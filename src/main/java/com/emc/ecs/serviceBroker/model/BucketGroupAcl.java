@@ -1,0 +1,31 @@
+package com.emc.ecs.serviceBroker.model;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "group_acl")
+public class BucketGroupAcl {
+	
+	@XmlElement
+	private String group;
+	
+	@XmlElement
+	private String permission;
+
+	public String getGroup() {
+		return group;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
+	}
+
+	public String getPermission() {
+		return permission;
+	}
+
+	public void setPermission(String permission) {
+		this.permission = permission;
+	}
+
+}
