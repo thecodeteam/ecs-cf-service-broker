@@ -4,8 +4,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Test;
 
+import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
 public class EcsManagementClientTest {
@@ -39,5 +42,36 @@ public class EcsManagementClientTest {
 		UserSecretKey secret = ecs.createUserSecretKey("testuser2");
 		assertNotNull(secret.getSecretKey());
 		ecs.deleteObjectUser("testuser2");
+	}
+	
+	@Test
+	public void testBucketDoesNotExist() throws EcsManagementClientException {
+		assertFalse(ecs.bucketExists("testbucket1"));
+	}
+	
+	@Test
+	public void listReplicationGroups() throws EcsManagementClientException {
+		List<DataServiceReplicationGroup> rgList = ecs.listReplicationGroups();
+		assertTrue(rgList.size() == 1);
+	}
+	
+	@Test
+	public void getReplicationGroup() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		DataServiceReplicationGroup rg = ecs.getReplicationGroup("rg1");
+		assertTrue(rg.getName().equals("rg1"));
+		assertTrue(rg.getId().equals("urn:storageos:ReplicationGroupInfo:3b3a2648-f513-4f5c-b1ad-00fb3afe5b90:global"));
+	}
+	
+	@Test
+	public void getReplicationGroupId() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		assertTrue(ecs.getReplicationGroupId().equals("urn:storageos:ReplicationGroupInfo:3b3a2648-f513-4f5c-b1ad-00fb3afe5b90:global"));
+	}
+	
+	@Test
+	public void createExistsAndDeleteBucket() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		ecs.createBucket("testbucket2");
+		assertTrue(ecs.bucketExists("testbucket2"));
+		ecs.deleteBucket("testbucket2");
+		assertFalse(ecs.bucketExists("testbucket2"));
 	}
 }

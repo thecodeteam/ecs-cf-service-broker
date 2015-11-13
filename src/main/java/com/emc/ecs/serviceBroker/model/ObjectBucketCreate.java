@@ -5,29 +5,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "object_bucket_create")
 public class ObjectBucketCreate {
-	@XmlElement
 	private String name;
-
-	@XmlElement
 	private String vpool;
-
-	@XmlElement(name = "filesystem_enabled")
 	private Boolean filesystemEnabled = false;
-
-	@XmlElement(name = "head_type")
 	private String headType = "s3";
-
-	@XmlElement
 	private String namespace;
 	
-	@XmlElement(name = "is_stale_allowed")
 	private Boolean isStaleAllowed = true;
 
-	public ObjectBucketCreate(String name, String namespace, String vpool) {
+	public ObjectBucketCreate(String name, String namespace, String replicationGroup) {
 		super();
 		this.name = name;
 		this.namespace = namespace;
-		this.vpool = vpool;
+		this.vpool = replicationGroup;
+	}
+	
+	public ObjectBucketCreate() {
+		super();
 	}
 
 	public String getName() {
@@ -42,10 +36,11 @@ public class ObjectBucketCreate {
 		return vpool;
 	}
 
-	public void setVpool(String vpool) {
-		this.vpool = vpool;
+	public void setVpool(String replicationGroup) {
+		this.vpool = replicationGroup;
 	}
-
+	
+	@XmlElement(name = "filesystem_enabled")
 	public Boolean getFilesystemEnabled() {
 		return filesystemEnabled;
 	}
@@ -54,6 +49,7 @@ public class ObjectBucketCreate {
 		this.filesystemEnabled = filesystemEnabled;
 	}
 
+	@XmlElement(name = "head_type")
 	public String getHeadType() {
 		return headType;
 	}
@@ -70,6 +66,7 @@ public class ObjectBucketCreate {
 		this.namespace = namespace;
 	}
 
+	@XmlElement(name = "is_stale_allowed")
 	public Boolean getIsStaleAllowed() {
 		return isStaleAllowed;
 	}

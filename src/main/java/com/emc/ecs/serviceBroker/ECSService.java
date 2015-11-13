@@ -1,9 +1,8 @@
 package com.emc.ecs.serviceBroker;
 
-import java.util.Map;
-
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 
+import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
 public class ECSService {
@@ -22,15 +21,15 @@ public class ECSService {
 		return null;
 	}
 
-	public Map<String, String> getBucketInfo(String id) {
-		return ecs.getBucket(id).toMap();
+	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
+		return ecs.getBucket(id);
 	}
 
-	public void deleteBucket(String id) {
+	public void deleteBucket(String id) throws EcsManagementClientException {
 		ecs.deleteBucket(id);
 	}
 
-	public void createBucket(String id, String planId) {
+	public void createBucket(String id, String planId) throws EcsManagementClientException {
 		if (planId == "ecs-bucket-small" || planId == "ecs-bucket-unlimited") {
 			ecs.createBucket(id);
 		}
@@ -79,7 +78,7 @@ public class ECSService {
 		ecs.removeBucketUserAcl(bucket, username);
 	}
 
-	public boolean bucketExists(String id) {
+	public boolean bucketExists(String id) throws EcsManagementClientException {
 		return ecs.bucketExists(id);
 	}
 	

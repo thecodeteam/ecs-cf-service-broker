@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.emc.ecs.serviceBroker.ECSService;
+import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.ServiceInstanceRepository;
 
 @Service
@@ -29,23 +30,31 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 	public ServiceInstance createServiceInstance(ServiceDefinition service, String serviceInstanceId, String planId, String organizationGuid,
 			String spaceGuid) throws ServiceInstanceExistsException, ServiceBrokerException {
 		ServiceInstance instance = new ServiceInstance(serviceInstanceId, service.getId(), planId, organizationGuid, spaceGuid, null);
-		if (ecs.bucketExists(instance.getId())) {
-			ecs.deleteBucket(instance.getId());
+		try {
+			if (ecs.bucketExists(instance.getId())) {
+				ecs.deleteBucket(instance.getId());
+			}
+			ecs.createBucket(instance.getId(), planId);
+			if (ecs.getBucketInfo(instance.getId()) == null) {
+				throw new ServiceBrokerException("Failed to create new ECS bucket: " + instance.getId());
+			}
+			repo.save(instance);
+			return instance;
+		} catch (EcsManagementClientException e) {
+			throw new ServiceBrokerException(e.getMessage());
 		}
-		ecs.createBucket(instance.getId(), planId);
-		if (ecs.getBucketInfo(instance.getId()) == null) {
-			throw new ServiceBrokerException("Failed to create new ECS bucket: " + instance.getId());
-		}
-		repo.save(instance);
-		return instance;
 	}
 
 	@Override
 	public ServiceInstance deleteServiceInstance(String id, String serviceId, String planId) throws ServiceBrokerException {
-		ServiceInstance instance = repo.find(id);
-		ecs.deleteBucket(id);
-		repo.delete(id);
-		return instance;
+		try {
+			ServiceInstance instance = repo.find(id);
+			ecs.deleteBucket(id);
+			repo.delete(id);
+			return instance;			
+		} catch (EcsManagementClientException e) {
+			throw new ServiceBrokerException(e.getMessage());
+		}
 	}
 
 	@Override
