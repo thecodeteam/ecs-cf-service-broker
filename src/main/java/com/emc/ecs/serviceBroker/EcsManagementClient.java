@@ -140,6 +140,7 @@ public class EcsManagementClient {
 	}
 
 	public String getReplicationGroupId() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		// TODO: Extract RG & NS details into ECSService
 		return getReplicationGroup(replicationGroup).getId();
 	}
 	
@@ -241,6 +242,7 @@ public class EcsManagementClient {
 	}
 	
 	public void applyBucketUserAcl(String id, String username, String permission) throws EcsManagementClientException {
+		// TODO: separate best practices from low-level API
 		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
 				.segment("object", "bucket", id, "acl");
 		List<BucketUserAcl> userAcl = Arrays.asList(
