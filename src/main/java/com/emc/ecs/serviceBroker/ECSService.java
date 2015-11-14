@@ -2,6 +2,7 @@ package com.emc.ecs.serviceBroker;
 
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 
+import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
 import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
@@ -74,9 +75,14 @@ public class ECSService {
 		return ecs.bucketExists(id);
 	}
 
-	public Object getObjectEndpoint() {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getObjectEndpoint(String id) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		// with VDC/inactive in the API, we would make a more intelligent selection
+		// as it stands, there's not enough info -- just pick the 1st one.
+		BaseUrlInfo baseUrlInfo = ecs.getBaseUrlInfo(ecs.listBaseUrls().get(0).getId());
+		if (baseUrlInfo.getNamespaceInHost()) {
+			return "https://" + ecs.getNamespace() + "." + baseUrlInfo.getBaseurl() + "/" + id;
+		} else {
+			return "https://" + baseUrlInfo.getBaseurl() + "/" + ecs.getNamespace() + "/" + id;
+		}
 	}
-	
 }

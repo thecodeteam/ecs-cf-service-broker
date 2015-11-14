@@ -24,7 +24,7 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 	@Autowired
 	public BucketServiceInstanceService(ECSService ecs) {
 		this.ecs = ecs;
-		this.repo = new ServiceInstanceRepository(ecs);
+		this.repo = new ServiceInstanceRepository();
 	}
 
 	@Override

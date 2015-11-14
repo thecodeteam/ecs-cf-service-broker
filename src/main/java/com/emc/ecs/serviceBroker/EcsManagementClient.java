@@ -19,6 +19,9 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.filter.LoggingFilter;
 
+import com.emc.ecs.serviceBroker.model.BaseUrl;
+import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
+import com.emc.ecs.serviceBroker.model.BaseUrlList;
 import com.emc.ecs.serviceBroker.model.BucketAcl;
 import com.emc.ecs.serviceBroker.model.BucketAclAcl;
 import com.emc.ecs.serviceBroker.model.BucketQuotaParam;
@@ -275,6 +278,20 @@ public class EcsManagementClient {
 		return response.readEntity(BucketAcl.class);
 	}
 
+	public List<BaseUrl> listBaseUrls() throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "baseurl");
+		Response response = handleRemoteCall("get", uri, null);
+		return response.readEntity(BaseUrlList.class).getBaseUrls();
+	}
+	
+	public BaseUrlInfo getBaseUrlInfo(String id) throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "baseurl", id);
+		Response response = handleRemoteCall("get", uri, null);
+		return response.readEntity(BaseUrlInfo.class);
+	}
+	
 	private Response makeRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
 		if (! isLoggedIn())
 			login();

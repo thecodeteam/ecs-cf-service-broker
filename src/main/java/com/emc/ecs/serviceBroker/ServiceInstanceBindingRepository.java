@@ -4,10 +4,8 @@ import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 
 public class ServiceInstanceBindingRepository {
 
-	private ECSService ecs;
-
-	public ServiceInstanceBindingRepository(ECSService ecs) {
-		this.ecs = ecs;
+	public ServiceInstanceBindingRepository() {
+		super();
 	}
 
 	public void save(ServiceInstanceBinding binding) {

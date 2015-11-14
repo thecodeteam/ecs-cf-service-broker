@@ -4,10 +4,8 @@ import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 
 public class ServiceInstanceRepository {
 	
-	private ECSService ecs;
-
-	public ServiceInstanceRepository(ECSService ecs) {
-		this.ecs = ecs;
+	public ServiceInstanceRepository() {
+		super();
 	}
 
 	public void save(ServiceInstance instance) {
