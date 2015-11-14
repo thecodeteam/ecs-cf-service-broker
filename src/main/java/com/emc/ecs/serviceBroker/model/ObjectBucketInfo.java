@@ -5,15 +5,16 @@ import java.util.ArrayList;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "object_bucket_info")
+@XmlRootElement(name = "bucket_info")
 public class ObjectBucketInfo {
 
 	private String id;
-	private String create;
+	private String name;
+	private String created;
 	private String softquota;
 	private Boolean fsAccessEnabled;
 	private Boolean locked;
-	private String vpool;
+	private String replicationGroup;
 	private String namespace;
 	private String owner;
 	private Boolean isStaleAllowed;
@@ -26,7 +27,6 @@ public class ObjectBucketInfo {
 	private Boolean remote;
 	private Boolean internal;
 	private Boolean inactive;
-	private String name;
 	private Vdc vdc;
 	private ArrayList<String> tags;
 	
@@ -34,12 +34,12 @@ public class ObjectBucketInfo {
 		super();
 	}
 
-	public String getCreate() {
-		return create;
+	public String getCreated() {
+		return created;
 	}
 
-	public void setCreate(String create) {
-		this.create = create;
+	public void setCreated(String created) {
+		this.created = created;
 	}
 
 	public String getSoftquota() {
@@ -67,12 +67,13 @@ public class ObjectBucketInfo {
 		this.locked = locked;
 	}
 
-	public String getVpool() {
-		return vpool;
+	@XmlElement(name = "vpool")
+	public String getReplicationGroup() {
+		return replicationGroup;
 	}
 
-	public void setVpool(String vpool) {
-		this.vpool = vpool;
+	public void setReplicationGroup(String replicationGroup) {
+		this.replicationGroup = replicationGroup;
 	}
 
 	public String getNamespace() {

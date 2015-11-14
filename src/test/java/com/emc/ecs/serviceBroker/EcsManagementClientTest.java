@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.emc.ecs.serviceBroker.model.BucketAcl;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
@@ -73,5 +74,29 @@ public class EcsManagementClientTest {
 		assertTrue(ecs.bucketExists("testbucket2"));
 		ecs.deleteBucket("testbucket2");
 		assertFalse(ecs.bucketExists("testbucket2"));
+	}
+	
+	@Test
+	public void testGetBucket() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		ecs.createBucket("testbucket3");
+		assertTrue(ecs.getBucket("testbucket3").getName().equals("testbucket3"));
+		ecs.deleteBucket("testbucket3");
+	}
+	
+	@Test
+	public void testApplyCheckRemoveBucketUserAcl() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		ecs.createBucket("testbucket4");
+		ecs.createObjectUser("spiegela");
+		ecs.applyBucketUserAcl("testbucket4", "spiegela", "full_control");
+		BucketAcl acl = ecs.getBucketAcl("testbucket4");
+		long userAclCount = acl
+				.getAcl()
+				.getUserAccessList()
+				.stream()
+				.filter(userAcl -> userAcl.getUser().equals("spiegela"))
+				.count(); 
+		assertTrue(userAclCount == 1);
+		ecs.deleteBucket("testbucket4");
+		ecs.deleteObjectUser("spiegela");
 	}
 }

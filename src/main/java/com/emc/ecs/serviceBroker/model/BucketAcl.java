@@ -6,17 +6,38 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "bucket_acl")
 public class BucketAcl {
 	
-	@XmlElement
 	private String bucket;
-	
-	@XmlElement
 	private String namespace;
-	
-	@XmlElement
 	private String permission;
-	
-	@XmlElement
 	private BucketAclAcl acl;
+	
+	public BucketAcl() {
+		super();
+	}
+	
+	public BucketAcl(String bucket, String namespace, String permission, BucketAclAcl acl) {
+		super();
+		this.bucket = bucket;
+		this.namespace = namespace;
+		this.permission = permission;
+		this.acl = acl;
+	}
+
+	public String getPermission() {
+		return permission;
+	}
+
+	public void setPermission(String permission) {
+		this.permission = permission;
+	}
+
+	public BucketAclAcl getAcl() {
+		return acl;
+	}
+
+	public void setAcl(BucketAclAcl acl) {
+		this.acl = acl;
+	}
 
 	public String getBucket() {
 		return bucket;

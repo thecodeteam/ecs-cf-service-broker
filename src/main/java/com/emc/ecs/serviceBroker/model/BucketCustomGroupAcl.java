@@ -6,10 +6,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "customgroup_acl")
 public class BucketCustomGroupAcl {
 	
-	@XmlElement
 	private String customgroup;
-	
-	@XmlElement
 	private String permission;
 
 	public String getCustomgroup() {

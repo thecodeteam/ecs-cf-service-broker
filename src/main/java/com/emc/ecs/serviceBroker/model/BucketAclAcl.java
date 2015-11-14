@@ -1,42 +1,55 @@
 package com.emc.ecs.serviceBroker.model;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "acl")
 public class BucketAclAcl {
 
-	@XmlElement
-	private BucketUserAcl userAcl;
+	private List<BucketUserAcl> userAccessList;
+	private List<BucketGroupAcl> groupAccessList;
+	private List<BucketCustomGroupAcl> customGroupAccessList;
 
-	@XmlElement
-	private BucketGroupAcl groupAcl;
+	public BucketAclAcl() {
+		super();
+	}
+
+	public BucketAclAcl(List<BucketUserAcl> userAccessList, List<BucketGroupAcl> groupAccessList,
+			List<BucketCustomGroupAcl> customGroupAccessList) {
+		super();
+		this.userAccessList = userAccessList;
+		this.groupAccessList = groupAccessList;
+		this.customGroupAccessList = customGroupAccessList;
+	}
 	
-	@XmlElement
-	private BucketCustomGroupAcl customGroupAcl;
+	@XmlElement(name = "user_acl")
+	public List<BucketUserAcl> getUserAccessList() {
+		return userAccessList;
+	}
+
+	public void setUserAccessList(List<BucketUserAcl> userAccessList) {
+		this.userAccessList = userAccessList;
+	}
+
+	@XmlElement(name = "group_acl")
+	public List<BucketGroupAcl> getGroupAccessList() {
+		return groupAccessList;
+	}
+
+	public void setGroupAccessList(List<BucketGroupAcl> groupAccessList) {
+		this.groupAccessList = groupAccessList;
+	}
+
+	@XmlElement(name = "custom_group_acl")
+	public List<BucketCustomGroupAcl> getCustomGroupAccessList() {
+		return customGroupAccessList;
+	}
+
+	public void setCustomGroupAccessList(List<BucketCustomGroupAcl> customGroupAccessList) {
+		this.customGroupAccessList = customGroupAccessList;
+	}
 	
-	public BucketUserAcl getUserAcl() {
-		return userAcl;
-	}
-
-	public void setUserAcl(BucketUserAcl userAcl) {
-		this.userAcl = userAcl;
-	}
-
-	public BucketGroupAcl getGroupAcl() {
-		return groupAcl;
-	}
-
-	public void setGroupAcl(BucketGroupAcl groupAcl) {
-		this.groupAcl = groupAcl;
-	}
-
-	public BucketCustomGroupAcl getCustomGroupAcl() {
-		return customGroupAcl;
-	}
-
-	public void setCustomGroupAcl(BucketCustomGroupAcl customGroupAcl) {
-		this.customGroupAcl = customGroupAcl;
-	}
 	
 }

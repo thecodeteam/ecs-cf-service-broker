@@ -1,9 +1,10 @@
 package com.emc.ecs.serviceBroker;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -16,8 +17,11 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.springframework.util.CollectionUtils;
+import org.glassfish.jersey.filter.LoggingFilter;
 
+import com.emc.ecs.serviceBroker.model.BucketAcl;
+import com.emc.ecs.serviceBroker.model.BucketAclAcl;
+import com.emc.ecs.serviceBroker.model.BucketUserAcl;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroupList;
 import com.emc.ecs.serviceBroker.model.EcsManagementClientError;
@@ -181,9 +185,11 @@ public class EcsManagementClient {
 
 	public ObjectBucketInfo getBucket(String id) throws EcsManagementClientException {
 		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
-				.segment("object", "bucket", id, "info");
+				.segment("object", "bucket", id, "info")
+				.queryParam("namespace", namespace);
 		Response response = handleRemoteCall("get", uri, null);
-		return response.readEntity(ObjectBucketInfo.class);
+		ObjectBucketInfo info = response.readEntity(ObjectBucketInfo.class);
+		return info;
 	}
 
 	public void deleteBucket(String id) throws EcsManagementClientException {
@@ -224,7 +230,7 @@ public class EcsManagementClient {
 		return response.readEntity(UserSecretKey.class);
 	}
 
-	public void applyBucketQuota(String id, int limit, int warn) {
+	public void applyBucketQuota(String id, int limit, int warn) throws EcsManagementClientException {
 		// TODO Auto-generated method stub
 		
 	}
@@ -234,9 +240,23 @@ public class EcsManagementClient {
 		
 	}
 	
-	public void applyBucketUserAcl(String bucket, String username, String permission) {
-		// TODO Auto-generated method stub
-		
+	public void applyBucketUserAcl(String id, String username, String permission) throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "bucket", id, "acl");
+		List<BucketUserAcl> userAcl = Arrays.asList(
+				new BucketUserAcl(username, permission),
+				new BucketUserAcl(adminUsername, "full_control")
+				);
+		BucketAcl acl = new BucketAcl(id, namespace, "none", new BucketAclAcl(userAcl , null, null));
+		handleRemoteCall("put", uri, acl);
+	}
+	
+	public BucketAcl getBucketAcl(String id) throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "bucket", id, "acl")
+				.queryParam("namespace", namespace);
+		Response response = handleRemoteCall("get", uri, null);
+		return response.readEntity(BucketAcl.class);
 	}
 
 	public void removeBucketUserAcl(String bucket, String username) {
@@ -248,7 +268,9 @@ public class EcsManagementClient {
 		if (! isLoggedIn())
 			login();
 		Client jerseyClient = buildJerseyClient();
+		Logger logger = Logger.getLogger(LoggingFilter.class.getName());
 		Builder request = jerseyClient.target(uri)
+				.register(new LoggingFilter(logger, true))
 				.request()
 				.header("X-SDS-AUTH-TOKEN", authToken)
 				.header("Accept", "application/xml");

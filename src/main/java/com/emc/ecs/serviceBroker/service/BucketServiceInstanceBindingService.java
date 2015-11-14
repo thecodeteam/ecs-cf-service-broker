@@ -41,7 +41,12 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 		}
 		
 		UserSecretKey userSecret = ecs.createUser(username);
-		ecs.addUserToBucket(bucket, username);
+		try {
+			ecs.addUserToBucket(bucket, username);
+		} catch (EcsManagementClientException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		Map<String,Object> credentials = new HashMap<String,Object>();
 		credentials.put("accessKey", username);

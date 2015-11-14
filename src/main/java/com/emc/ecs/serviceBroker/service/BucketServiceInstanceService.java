@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.emc.ecs.serviceBroker.ECSService;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.ServiceInstanceRepository;
 
 @Service
@@ -42,6 +43,8 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 			return instance;
 		} catch (EcsManagementClientException e) {
 			throw new ServiceBrokerException(e.getMessage());
+		} catch (EcsManagementResourceNotFoundException e) {
+			throw new ServiceBrokerException(e.getMessage());
 		}
 	}
 
@@ -66,16 +69,21 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 	public ServiceInstance updateServiceInstance(String instanceId, String planId)
 			throws ServiceInstanceUpdateNotSupportedException, ServiceBrokerException,
 			ServiceInstanceDoesNotExistException {
+		try {
+			
 		ServiceInstance instance = repo.find(instanceId);
-		if (instance == null) {
-			throw new ServiceInstanceDoesNotExistException(instanceId);
+			if (instance == null) {
+				throw new ServiceInstanceDoesNotExistException(instanceId);
+			}
+			ecs.changeBucketPlan(instanceId, planId);
+			repo.delete(instanceId);
+			ServiceInstance updatedInstance = new ServiceInstance(instanceId, 
+					instance.getServiceDefinitionId(), planId, instance.getOrganizationGuid(), 
+					instance.getSpaceGuid(), instance.getDashboardUrl());
+			repo.save(updatedInstance);
+			return updatedInstance;
+		} catch (EcsManagementClientException e) {
+			throw new ServiceBrokerException(e.getMessage());
 		}
-		ecs.changeBucketPlan(instanceId, planId);
-		repo.delete(instanceId);
-		ServiceInstance updatedInstance = new ServiceInstance(instanceId, 
-				instance.getServiceDefinitionId(), planId, instance.getOrganizationGuid(), 
-				instance.getSpaceGuid(), instance.getDashboardUrl());
-		repo.save(updatedInstance);
-		return updatedInstance;
 	}
 }

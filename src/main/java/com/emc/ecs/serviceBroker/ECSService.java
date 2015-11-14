@@ -29,7 +29,7 @@ public class ECSService {
 		ecs.deleteBucket(id);
 	}
 
-	public void createBucket(String id, String planId) throws EcsManagementClientException {
+	public void createBucket(String id, String planId) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		if (planId == "ecs-bucket-small" || planId == "ecs-bucket-unlimited") {
 			ecs.createBucket(id);
 		}
@@ -38,7 +38,7 @@ public class ECSService {
 		}
 	}
 	
-	public void changeBucketPlan(String id, String planId) {
+	public void changeBucketPlan(String id, String planId) throws EcsManagementClientException {
 		if (planId == "ecs-bucket-small") {
 			ecs.applyBucketQuota(id, 10, 8);
 		}
@@ -70,7 +70,7 @@ public class ECSService {
 		ecs.deleteObjectUser(username);
 	}
 
-	public void addUserToBucket(String bucket, String username) {
+	public void addUserToBucket(String bucket, String username) throws EcsManagementClientException {
 		ecs.applyBucketUserAcl(bucket, username, "FULL_CONTROL");
 	}
 
