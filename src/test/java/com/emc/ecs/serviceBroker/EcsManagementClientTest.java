@@ -3,18 +3,28 @@ package com.emc.ecs.serviceBroker;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
+import com.nitorcreations.junit.runners.NestedRunner;
 import java.util.List;
-
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.emc.ecs.serviceBroker.model.BucketAcl;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
+import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
+@RunWith(NestedRunner.class)
 public class EcsManagementClientTest {
 	
-	private EcsManagementClient ecs = new EcsManagementClient("https://146.148.65.187:4443", "root", "ChangeMe", "ns1", "rg1");
+	private EcsManagementClient ecs = new EcsManagementClient("https://146.148.65.187:4443",
+			"root", "ChangeMe", "ns1", "rg1");
+	
+	@After
+	public void cleanup() throws EcsManagementClientException {
+		ecs.logout();
+	}
 	
 	@Test
 	public void testLogin() throws EcsManagementClientException {
@@ -35,14 +45,6 @@ public class EcsManagementClientTest {
 		assertTrue(ecs.userExists("testuser1"));
 		ecs.deleteObjectUser("testuser1");
 		assertFalse(ecs.userExists("testuser1"));
-	}
-	
-	@Test
-	public void createUserSecretKey() throws EcsManagementClientException {
-		ecs.createObjectUser("testuser2");
-		UserSecretKey secret = ecs.createUserSecretKey("testuser2");
-		assertNotNull(secret.getSecretKey());
-		ecs.deleteObjectUser("testuser2");
 	}
 	
 	@Test
@@ -76,27 +78,84 @@ public class EcsManagementClientTest {
 		assertFalse(ecs.bucketExists("testbucket2"));
 	}
 	
-	@Test
-	public void testGetBucket() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		ecs.createBucket("testbucket3");
-		assertTrue(ecs.getBucket("testbucket3").getName().equals("testbucket3"));
-		ecs.deleteBucket("testbucket3");
+	public class WhenUserExists {
+		private String user = "testuser2";
+		
+		@Before
+		public void setUp() throws EcsManagementClientException {
+			ecs.createObjectUser(user);			
+		}
+		
+		@After
+		public void cleanup() throws EcsManagementClientException {
+			ecs.deleteObjectUser(user);
+		}
+		
+		@Test
+		public void createUserSecretKey() throws EcsManagementClientException {
+			UserSecretKey secret = ecs.createUserSecretKey(user);
+			assertNotNull(secret.getSecretKey());
+		}
 	}
 	
-	@Test
-	public void testApplyCheckRemoveBucketUserAcl() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		ecs.createBucket("testbucket4");
-		ecs.createObjectUser("spiegela");
-		ecs.applyBucketUserAcl("testbucket4", "spiegela", "full_control");
-		BucketAcl acl = ecs.getBucketAcl("testbucket4");
-		long userAclCount = acl
-				.getAcl()
-				.getUserAccessList()
-				.stream()
-				.filter(userAcl -> userAcl.getUser().equals("spiegela"))
-				.count(); 
-		assertTrue(userAclCount == 1);
-		ecs.deleteBucket("testbucket4");
-		ecs.deleteObjectUser("spiegela");
+	public class WhenBucketExists {
+		private String bucket = "testbucket3";
+		
+		@Before
+		public void setUp() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+			ecs.createBucket(bucket);
+		}
+		
+		@After
+		public void cleanup() throws EcsManagementClientException {
+			ecs.deleteBucket(bucket);	
+		}
+		
+		@Test
+		public void testGetBucket() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+			assertTrue(ecs.getBucket(bucket).getName().equals(bucket));
+		}
+
+		@Test
+		public void testApplyRemoveBucketQuota() throws EcsManagementClientException, EcsManagementResourceNotFoundException {		
+			ecs.applyBucketQuota(bucket, 10, 8);
+			ObjectBucketInfo bucketInfo = ecs.getBucket(bucket);
+			assertTrue(bucketInfo.getBlockSize() == 10);
+			assertTrue(bucketInfo.getNotificationSize() == 8);
+			ecs.removeBucketQuota(bucket);
+			bucketInfo = ecs.getBucket(bucket);
+			assertTrue(bucketInfo.getBlockSize() == -1);
+			assertTrue(bucketInfo.getNotificationSize() == -1);
+		}
+	}
+	
+	public class WhenUserAndBucketExist {
+		private String bucket = "testbucket4";
+		private String user = "testuser3";
+		
+		@Before
+		public void setUp() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+			ecs.createBucket(bucket);
+			ecs.createObjectUser(user);
+		}
+		
+		@After
+		public void cleanup() throws EcsManagementClientException {
+			ecs.deleteObjectUser(user);
+			ecs.deleteBucket(bucket);
+		}
+		
+		@Test
+		public void testApplyCheckRemoveBucketUserAcl() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+			ecs.applyBucketUserAcl(bucket, user, "full_control");
+			BucketAcl acl = ecs.getBucketAcl(bucket);
+			long userAclCount = acl
+					.getAcl()
+					.getUserAccessList()
+					.stream()
+					.filter(userAcl -> userAcl.getUser().equals(user))
+					.count(); 
+			assertTrue(userAclCount == 1);
+		}
 	}
 }

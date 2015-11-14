@@ -61,10 +61,9 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 	@Override
 	public ServiceInstanceBinding deleteServiceInstanceBinding(String bindingId, ServiceInstance instance, String serviceId,
 			String planId) throws ServiceBrokerException {
-		String bucket = serviceId;
+//		String bucket = serviceId;
 		String username = bindingId;
 		ServiceInstanceBinding binding = repo.find(username);
-		ecs.removeUserFromBucket(bucket, username);
 		try {
 			ecs.deleteUser(username);			
 		} catch (EcsManagementClientException e) {

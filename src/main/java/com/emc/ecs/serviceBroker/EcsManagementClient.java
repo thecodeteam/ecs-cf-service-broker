@@ -21,6 +21,7 @@ import org.glassfish.jersey.filter.LoggingFilter;
 
 import com.emc.ecs.serviceBroker.model.BucketAcl;
 import com.emc.ecs.serviceBroker.model.BucketAclAcl;
+import com.emc.ecs.serviceBroker.model.BucketQuotaParam;
 import com.emc.ecs.serviceBroker.model.BucketUserAcl;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroupList;
@@ -33,6 +34,8 @@ import com.emc.ecs.serviceBroker.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.model.UserSecretKeyCreate;
 
 public class EcsManagementClient {
+	// TODO: separate client calls out into domain classes
+	// TODO: handle auth token timeout errors
 
 	private String managementEndpoint;
 	private String adminUsername;
@@ -135,6 +138,14 @@ public class EcsManagementClient {
 		this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
 	}
 
+	public void logout() throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("logout")
+				.queryParam("force", true);
+		handleRemoteCall("get", uri, null);
+		this.authToken = null;
+	}
+	
 	public String getAuthToken() {
 		return authToken;
 	}
@@ -231,18 +242,21 @@ public class EcsManagementClient {
 		return response.readEntity(UserSecretKey.class);
 	}
 
-	public void applyBucketQuota(String id, int limit, int warn) throws EcsManagementClientException {
-		// TODO Auto-generated method stub
-		
+	public void applyBucketQuota(String id, long limit, long warn) throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "bucket", id, "quota");
+		handleRemoteCall("put", uri, new BucketQuotaParam(namespace, limit, warn));
 	}
 
-	public void removeBucketQuota(String id) {
-		// TODO Auto-generated method stub
-		
+	public void removeBucketQuota(String id) throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "bucket", id, "quota")
+				.queryParam("namespace", namespace);
+		handleRemoteCall("delete", uri, null);
 	}
 	
 	public void applyBucketUserAcl(String id, String username, String permission) throws EcsManagementClientException {
-		// TODO: separate best practices from low-level API
+		// TODO: move best practices from low-level API to ECSService
 		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
 				.segment("object", "bucket", id, "acl");
 		List<BucketUserAcl> userAcl = Arrays.asList(
@@ -261,11 +275,6 @@ public class EcsManagementClient {
 		return response.readEntity(BucketAcl.class);
 	}
 
-	public void removeBucketUserAcl(String bucket, String username) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	private Response makeRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
 		if (! isLoggedIn())
 			login();
@@ -283,6 +292,8 @@ public class EcsManagementClient {
 			response = request.post(Entity.xml(arg));
 		} else if (method == "put") {
 			response = request.put(Entity.xml(arg));
+		} else if (method == "delete") {
+			response = request.delete();
 		}
 		return response;
 	}

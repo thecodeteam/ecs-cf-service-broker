@@ -17,10 +17,6 @@ public class ECSService {
 		this.ecs = ecs;
 	}
 
-	public Object getObjectEndpoint() {
-		return null;
-	}
-
 	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
 		return ecs.getBucket(id);
 	}
@@ -74,12 +70,13 @@ public class ECSService {
 		ecs.applyBucketUserAcl(bucket, username, "FULL_CONTROL");
 	}
 
-	public void removeUserFromBucket(String bucket, String username) {
-		ecs.removeBucketUserAcl(bucket, username);
-	}
-
 	public boolean bucketExists(String id) throws EcsManagementClientException {
 		return ecs.bucketExists(id);
+	}
+
+	public Object getObjectEndpoint() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

@@ -1,23 +1,23 @@
 package com.emc.ecs.serviceBroker.model;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "bucket_quota_param")
 public class BucketQuotaParam {
 	
-	@XmlElement
 	private long blockSize = 10;
-	
-	@XmlElement
 	private long notificationSize = 8;
-	
-	@XmlElement
 	private String namespace;
+	
+	public BucketQuotaParam() {
+		super();
+	}
 
-	public BucketQuotaParam(String namespace) {
+	public BucketQuotaParam(String namespace, long blockSize, long notificationSize) {
 		super();
 		this.namespace = namespace;
+		this.blockSize = blockSize;
+		this.notificationSize = notificationSize;
 	}
 
 	public long getBlockSize() {

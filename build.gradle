@@ -38,7 +38,8 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-jersey')
     compile("org.cloudfoundry:spring-boot-cf-service-broker:${springBootCfServiceBrokerVersion}")
     testCompile("org.cloudfoundry:spring-boot-cf-service-broker-tests:${springBootCfServiceBrokerVersion}")
-    testCompile('org.springframework.boot:spring-boot-starter-test') 
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('com.nitorcreations:junit-runners:1.3') 
 }
 
 
