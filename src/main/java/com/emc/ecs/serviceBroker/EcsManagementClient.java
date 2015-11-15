@@ -245,6 +245,13 @@ public class EcsManagementClient {
 		return response.readEntity(UserSecretKey.class);
 	}
 
+	public UserSecretKey createUserSecretKey(String username, String secretKey) throws EcsManagementClientException {
+		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
+				.segment("object", "user-secret-keys", username);
+		Response response = handleRemoteCall("post", uri, new UserSecretKeyCreate(secretKey));
+		return response.readEntity(UserSecretKey.class);
+	}
+
 	public void applyBucketQuota(String id, long limit, long warn) throws EcsManagementClientException {
 		UriBuilder uri = UriBuilder.fromPath(managementEndpoint)
 				.segment("object", "bucket", id, "quota");

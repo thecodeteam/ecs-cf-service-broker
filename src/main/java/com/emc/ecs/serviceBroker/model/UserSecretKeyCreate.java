@@ -14,6 +14,11 @@ public class UserSecretKeyCreate {
 		super();
 	}
 	
+	public UserSecretKeyCreate(String secretKey) {
+		super();
+		this.secretKey = secretKey;
+	}
+
 	@XmlElement(name = "existing_key_expiry_time_mins")
 	public String getExistingKeyExpiryTimeMins() {
 		return existingKeyExpiryTimeMins;

@@ -1,21 +1,53 @@
 package com.emc.ecs.serviceBroker;
 
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import com.emc.ecs.serviceBroker.config.EcsConfig;
 import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
 import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
+@Service
 public class ECSService {
 	
 	private EcsManagementClient ecs;
+	private String bucketName;
+	private String repoUser;
+	private String repoSecret;
 
-	public EcsManagementClient getEcs() {
-		return ecs;
+	@Autowired
+	public ECSService(EcsConfig ecsConfig) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		super();
+		this.ecs = ecsConfig.getEcsClient();
+		this.bucketName = ecsConfig.getBucketName();
+		this.repoUser = ecsConfig.getRepoUser();
+		this.repoSecret = ecsConfig.getRepoSecret();
+		if (! ecs.bucketExists(bucketName)) ecs.createBucket(bucketName);
+		if (! ecs.userExists(repoUser)) {
+			ecs.createObjectUser(repoUser);
+			ecs.createUserSecretKey(repoUser, repoSecret);
+			ecs.applyBucketUserAcl(bucketName, repoUser, repoSecret);
+		}
+	}
+	
+	public String getBucketName() {
+		return bucketName;
+	}
+
+	public void setBucketName(String bucketName) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		if (! ecs.bucketExists(bucketName))
+			ecs.createBucket(bucketName);
+		this.bucketName = bucketName;
 	}
 
 	public void setEcs(EcsManagementClient ecs) {
 		this.ecs = ecs;
+	}
+	
+	public EcsManagementClient getEcs() {
+		return ecs;
 	}
 
 	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
@@ -75,14 +107,14 @@ public class ECSService {
 		return ecs.bucketExists(id);
 	}
 
-	public Object getObjectEndpoint(String id) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+	public String getObjectEndpoint() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		// with VDC/inactive in the API, we would make a more intelligent selection
 		// as it stands, there's not enough info -- just pick the 1st one.
 		BaseUrlInfo baseUrlInfo = ecs.getBaseUrlInfo(ecs.listBaseUrls().get(0).getId());
 		if (baseUrlInfo.getNamespaceInHost()) {
-			return "https://" + ecs.getNamespace() + "." + baseUrlInfo.getBaseurl() + "/" + id;
+			return "https://" + ecs.getNamespace() + "." + baseUrlInfo.getBaseurl();
 		} else {
-			return "https://" + baseUrlInfo.getBaseurl() + "/" + ecs.getNamespace() + "/" + id;
+			return "https://" + baseUrlInfo.getBaseurl() + "/" + ecs.getNamespace();
 		}
 	}
 }
