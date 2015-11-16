@@ -13,6 +13,7 @@ import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.emc.ecs.serviceBroker.ECSService;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
@@ -21,6 +22,7 @@ import com.emc.ecs.serviceBroker.config.EcsConfig;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 
+@Service
 public class BucketServiceInstanceBindingService implements ServiceInstanceBindingService {
 
 	private ECSService ecs;

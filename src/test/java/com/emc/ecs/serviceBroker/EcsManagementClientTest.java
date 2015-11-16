@@ -10,6 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.emc.ecs.serviceBroker.model.BaseUrl;
+import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
 import com.emc.ecs.serviceBroker.model.BucketAcl;
 import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
 import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
@@ -18,7 +20,7 @@ import com.emc.ecs.serviceBroker.model.UserSecretKey;
 @RunWith(NestedRunner.class)
 public class EcsManagementClientTest {
 	
-	private EcsManagementClient ecs = new EcsManagementClient("https://146.148.65.187:4443",
+	private EcsManagementClient ecs = new EcsManagementClient("https://104.197.146.180:4443",
 			"root", "ChangeMe", "ns1", "rg1");
 	
 	@After
@@ -62,12 +64,6 @@ public class EcsManagementClientTest {
 	public void getReplicationGroup() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		DataServiceReplicationGroup rg = ecs.getReplicationGroup("rg1");
 		assertTrue(rg.getName().equals("rg1"));
-		assertTrue(rg.getId().equals("urn:storageos:ReplicationGroupInfo:3b3a2648-f513-4f5c-b1ad-00fb3afe5b90:global"));
-	}
-	
-	@Test
-	public void getReplicationGroupId() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		assertTrue(ecs.getReplicationGroupId().equals("urn:storageos:ReplicationGroupInfo:3b3a2648-f513-4f5c-b1ad-00fb3afe5b90:global"));
 	}
 	
 	@Test
@@ -76,6 +72,14 @@ public class EcsManagementClientTest {
 		assertTrue(ecs.bucketExists("testbucket2"));
 		ecs.deleteBucket("testbucket2");
 		assertFalse(ecs.bucketExists("testbucket2"));
+	}
+	
+	@Test
+	public void testBaseUrlListAndInfo() throws EcsManagementClientException {
+		BaseUrl baseUrl = ecs.listBaseUrls().get(0);
+		BaseUrlInfo baseUrlInfo = ecs.getBaseUrlInfo(baseUrl.getId());
+		assertTrue(baseUrlInfo.getBaseurl().equals("s3.amazonaws.com"));
+		assertTrue(baseUrlInfo.getName().equals("DefaultBaseUrl"));
 	}
 	
 	public class WhenUserExists {

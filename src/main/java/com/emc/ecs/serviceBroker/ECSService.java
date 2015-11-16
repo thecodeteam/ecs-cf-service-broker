@@ -23,12 +23,12 @@ public class ECSService {
 		this.ecs = ecsConfig.getEcsClient();
 		this.bucketName = ecsConfig.getBucketName();
 		this.repoUser = ecsConfig.getRepoUser();
-		this.repoSecret = ecsConfig.getRepoSecret();
+		this.repoSecret = ecsConfig.getRepoSecret(); //this doesn't set the secret.  need to add another get statement and provide secret to repos.
 		if (! ecs.bucketExists(bucketName)) ecs.createBucket(bucketName);
 		if (! ecs.userExists(repoUser)) {
 			ecs.createObjectUser(repoUser);
 			ecs.createUserSecretKey(repoUser, repoSecret);
-			ecs.applyBucketUserAcl(bucketName, repoUser, repoSecret);
+			ecs.applyBucketUserAcl(bucketName, repoUser, "full_control");
 		}
 	}
 	
@@ -114,7 +114,7 @@ public class ECSService {
 		if (baseUrlInfo.getNamespaceInHost()) {
 			return "https://" + ecs.getNamespace() + "." + baseUrlInfo.getBaseurl();
 		} else {
-			return "https://" + baseUrlInfo.getBaseurl() + "/" + ecs.getNamespace();
+			return "https://" + baseUrlInfo.getBaseurl();
 		}
 	}
 }

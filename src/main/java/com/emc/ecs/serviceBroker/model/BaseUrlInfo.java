@@ -3,14 +3,16 @@ package com.emc.ecs.serviceBroker.model;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement(name = "base_url")
 public class BaseUrlInfo {
 	private String id;
 	private Link link;
 	private String name;
 	private List<String> tags;
 	private String baseurl;
-	private Boolean namespaceInHost;
+	private Boolean namespaceInHost = false;
 
 	public BaseUrlInfo() {
 		super();
