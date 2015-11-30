@@ -1,120 +1,124 @@
 package com.emc.ecs.serviceBroker;
 
-import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.emc.ecs.serviceBroker.config.EcsConfig;
+import com.emc.ecs.managementClient.BaseUrlAction;
+import com.emc.ecs.managementClient.BucketAclAction;
+import com.emc.ecs.managementClient.BucketAction;
+import com.emc.ecs.managementClient.BucketQuotaAction;
+import com.emc.ecs.managementClient.Connection;
+import com.emc.ecs.managementClient.ObjectUserAction;
+import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
+import com.emc.ecs.serviceBroker.model.BucketAcl;
+import com.emc.ecs.serviceBroker.model.BucketUserAcl;
 import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
+import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
 
 @Service
-public class ECSService {
+public class EcsService {
 	
-	private EcsManagementClient ecs;
-	private String bucketName;
-	private String repoUser;
-	private String repoSecret;
+	private Connection connection;
+	private EcsRepositoryCredentials credentials;
 
 	@Autowired
-	public ECSService(EcsConfig ecsConfig) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+	public EcsService(Connection connection, EcsRepositoryCredentials creds) throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
 		super();
-		this.ecs = ecsConfig.getEcsClient();
-		this.bucketName = ecsConfig.getBucketName();
-		this.repoUser = ecsConfig.getRepoUser();
-		this.repoSecret = ecsConfig.getRepoSecret(); //this doesn't set the secret.  need to add another get statement and provide secret to repos.
-		if (! ecs.bucketExists(bucketName)) ecs.createBucket(bucketName);
-		if (! ecs.userExists(repoUser)) {
-			ecs.createObjectUser(repoUser);
-			ecs.createUserSecretKey(repoUser, repoSecret);
-			ecs.applyBucketUserAcl(bucketName, repoUser, "full_control");
+		this.connection = connection;
+		this.credentials = creds;
+		prepareRepository(creds);
+	}
+
+	private void prepareRepository(EcsRepositoryCredentials creds)
+			throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		String bucketName = creds.getBucketName();
+		String userName = creds.getUserName();
+		if (! bucketExists(bucketName))
+			createBucket(bucketName, "ecs-bucket-unlimited");
+		
+		if (! userExists(userName)) {
+			UserSecretKey secretKey = createUser(userName);
+			addUserToBucket(bucketName, userName);
+			this.credentials.setUserSecret(secretKey.getSecretKey());
+		} else {
+			this.credentials.setUserSecret(getUserSecret(userName));
 		}
 	}
 	
-	public String getBucketName() {
-		return bucketName;
-	}
-
-	public void setBucketName(String bucketName) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		if (! ecs.bucketExists(bucketName))
-			ecs.createBucket(bucketName);
-		this.bucketName = bucketName;
-	}
-
-	public void setEcs(EcsManagementClient ecs) {
-		this.ecs = ecs;
+	public EcsRepositoryCredentials getCredentials() {
+		return credentials;
 	}
 	
-	public EcsManagementClient getEcs() {
-		return ecs;
+	public void setCredentials(EcsRepositoryCredentials credentials) {
+		this.credentials = credentials;
+	}
+
+	private String getUserSecret(String userName) {
+		return null;
 	}
 
 	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
-		return ecs.getBucket(id);
+		return BucketAction.get(connection, id, credentials.getNamespace());
 	}
 
 	public void deleteBucket(String id) throws EcsManagementClientException {
-		ecs.deleteBucket(id);
+		BucketAction.delete(connection, id, credentials.getNamespace());
 	}
 
 	public void createBucket(String id, String planId) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		if (planId == "ecs-bucket-small" || planId == "ecs-bucket-unlimited") {
-			ecs.createBucket(id);
+			BucketAction.create(connection, id, credentials.getNamespace(), credentials.getReplicationGroup());
 		}
 		if (planId == "ecs-bucket-small") {
-			ecs.applyBucketQuota(id, 10, 8);
+			BucketQuotaAction.create(connection, id, credentials.getNamespace(), 10, 8);
 		}
 	}
 	
 	public void changeBucketPlan(String id, String planId) throws EcsManagementClientException {
 		if (planId == "ecs-bucket-small") {
-			ecs.applyBucketQuota(id, 10, 8);
+			BucketQuotaAction.create(connection, id, credentials.getNamespace(), 10, 8);
 		}
 		if (planId == "ecs-bucket-unlimited") {
-			ecs.removeBucketQuota(id);
+			BucketQuotaAction.delete(connection, id, credentials.getNamespace());
 		}
 	}
 
-	public UserSecretKey createUser(String username) throws ServiceBrokerException {
-		try {
-			ecs.createObjectUser(username);
-			return ecs.createUserSecretKey(username);
-		}
-		catch(EcsManagementClientException e) {
-			throw new ServiceBrokerException(e.getMessage());
-		}
+	public UserSecretKey createUser(String id) throws EcsManagementClientException {
+		ObjectUserAction.create(connection, id, credentials.getNamespace());
+		ObjectUserSecretAction.create(connection, id);
+		return ObjectUserSecretAction.list(connection, id).get(0);
 	}
 
-	public Boolean userExists(String username) throws ServiceBrokerException {
-		try {
-			return ecs.userExists(username);
-		}
-		catch(EcsManagementClientException e) {
-			throw new ServiceBrokerException(e.getMessage());
-		}
+	public Boolean userExists(String id) throws EcsManagementClientException {
+		return ObjectUserAction.exists(connection, id, credentials.getNamespace());
 	}
 
-	public void deleteUser(String username) throws EcsManagementClientException {
-		ecs.deleteObjectUser(username);
+	public void deleteUser(String id) throws EcsManagementClientException {
+		ObjectUserAction.delete(connection, id);
 	}
 
-	public void addUserToBucket(String bucket, String username) throws EcsManagementClientException {
-		ecs.applyBucketUserAcl(bucket, username, "FULL_CONTROL");
+	public void addUserToBucket(String id, String username) throws EcsManagementClientException {
+		BucketAcl acl = BucketAclAction.get(connection, id, credentials.getNamespace());
+		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
+		userAcl.add(new BucketUserAcl(username, "full_control"));
+		acl.getAcl().setUserAccessList(userAcl);
+		BucketAclAction.update(connection, id, acl);
 	}
 
 	public boolean bucketExists(String id) throws EcsManagementClientException {
-		return ecs.bucketExists(id);
+		return BucketAction.exists(connection, id, credentials.getNamespace());
 	}
 
 	public String getObjectEndpoint() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		// with VDC/inactive in the API, we would make a more intelligent selection
 		// as it stands, there's not enough info -- just pick the 1st one.
-		BaseUrlInfo baseUrlInfo = ecs.getBaseUrlInfo(ecs.listBaseUrls().get(0).getId());
-		if (baseUrlInfo.getNamespaceInHost()) {
-			return "https://" + ecs.getNamespace() + "." + baseUrlInfo.getBaseurl();
-		} else {
-			return "https://" + baseUrlInfo.getBaseurl();
-		}
+		String id = BaseUrlAction.list(connection).get(0).getId();
+		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, id);
+		return baseUrl.getNamespaceUrl(credentials.getNamespace());
 	}
 }

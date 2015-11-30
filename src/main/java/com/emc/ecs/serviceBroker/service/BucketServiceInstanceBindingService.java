@@ -1,11 +1,8 @@
 package com.emc.ecs.serviceBroker.service;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.bind.JAXBException;
 
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceBindingExistsException;
@@ -15,70 +12,56 @@ import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingSe
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.emc.ecs.serviceBroker.ECSService;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.config.EcsConfig;
+import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 
 @Service
 public class BucketServiceInstanceBindingService implements ServiceInstanceBindingService {
 
-	private ECSService ecs;
-	private ServiceInstanceBindingRepository repo;
+	private EcsService ecs;
+	private ServiceInstanceBindingRepository repository;
 	
 	@Autowired
-	public BucketServiceInstanceBindingService(EcsConfig config, ECSService ecs) throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
+	public BucketServiceInstanceBindingService(EcsService ecs) throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
 		this.ecs = ecs;
-		this.repo = new ServiceInstanceBindingRepository(config, ecs);
+		this.repository = new ServiceInstanceBindingRepository(ecs);
 	}
 
 	@Override
 	public ServiceInstanceBinding createServiceInstanceBinding(String bindingId, ServiceInstance serviceInstance, String serviceId,
 			String planId, String appGuid) throws ServiceInstanceBindingExistsException, ServiceBrokerException {
-		String bucket = serviceId;
-		String username = bindingId;		
-		UserSecretKey userSecret = ecs.createUser(username);
+		UserSecretKey userSecret;
+		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, serviceId, null, null, appGuid);
 		Map<String,Object> credentials = new HashMap<String,Object>();
-		credentials.put("accessKey", username);
-		credentials.put("secretKey", userSecret.getSecretKey());
+		credentials.put("accessKey", bindingId);
 		credentials.put("bucket", serviceId);
 		try {
-			if (ecs.userExists(username)) ecs.deleteUser(username);
-			ecs.addUserToBucket(bucket, username);
+			if (ecs.userExists(bindingId)) throw new ServiceInstanceBindingExistsException(binding);
+			userSecret = ecs.createUser(bindingId);
+			ecs.addUserToBucket(serviceId, bindingId);
+			repository.save(binding);
+			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
-			ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, serviceId, credentials, null, appGuid);
-			repo.save(binding);
-			return binding;
-		} catch (EcsManagementClientException | EcsManagementResourceNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new ServiceBrokerException(e.getMessage());
 		}
-		return null;
+		binding = new ServiceInstanceBinding(bindingId, serviceId, credentials, null, appGuid);
+		return binding;
 	}
 
 	@Override
 	public ServiceInstanceBinding deleteServiceInstanceBinding(String bindingId, ServiceInstance instance, String serviceId,
 			String planId) throws ServiceBrokerException {
-		String username = bindingId;
 		try {
-			ServiceInstanceBinding binding = repo.find(username);
-			ecs.deleteUser(username);			
-			repo.delete(username);
+			ServiceInstanceBinding binding = repository.find(bindingId);
+			ecs.deleteUser(bindingId);			
+			repository.delete(bindingId);
 			return binding;
-		} catch (EcsManagementClientException e) {
+		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return null;
 	}
 }

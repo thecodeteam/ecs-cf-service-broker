@@ -66,4 +66,13 @@ public class BaseUrlInfo {
 	public void setNamespaceInHost(Boolean namespaceInHost) {
 		this.namespaceInHost = namespaceInHost;
 	}
+	
+	public String getNamespaceUrl(String namespace) {
+		if (namespaceInHost) {
+			return "https://" + namespace + "." + baseurl;
+		} else {
+			return "https://" + baseurl;
+		}
+	}	
+
 }

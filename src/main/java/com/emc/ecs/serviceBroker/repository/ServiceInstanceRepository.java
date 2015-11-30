@@ -15,10 +15,9 @@ import javax.xml.bind.Unmarshaller;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.emc.ecs.serviceBroker.ECSService;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.config.EcsConfig;
+import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
@@ -29,13 +28,15 @@ public class ServiceInstanceRepository {
 	String bucket;
 		
 	@Autowired
-	public ServiceInstanceRepository(EcsConfig config, ECSService service) throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
+	public ServiceInstanceRepository(EcsService ecs)
+			throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
 		super();
-		String endpoint = service.getObjectEndpoint();
+		EcsRepositoryCredentials creds = ecs.getCredentials();
+		String endpoint = ecs.getObjectEndpoint();
 		S3Config s3Config = new S3Config(new URI(endpoint));
-		s3Config.withIdentity(config.getRepoUser()).withSecretKey(config.getRepoSecret());
+		s3Config.withIdentity(creds.getUserName()).withSecretKey(creds.getUserSecret());
 		this.s3 = new S3JerseyClient(s3Config);
-		this.bucket = config.getBucketName();
+		this.bucket = creds.getBucketName();
 	}
 
 	public void save(ServiceInstance instance) throws IOException, JAXBException {
