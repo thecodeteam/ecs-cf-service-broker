@@ -40,6 +40,7 @@ public class BucketActionTest extends EcsActionTest {
 	public void testGetBucket() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		BucketAction.create(connection, bucket, namespace, replicationGroup);
 		assertTrue(BucketAction.get(connection, bucket, namespace).getName().equals(bucket));
+		BucketAction.delete(connection, bucket, namespace);
 	}
 
 }
