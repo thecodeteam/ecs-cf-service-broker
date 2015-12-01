@@ -1,5 +1,7 @@
 package com.emc.ecs.serviceBroker.config;
 
+import java.net.URL;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -13,12 +15,14 @@ public class BrokerConfig {
 
 	@Bean
 	public Connection ecsConnection() {
-		return new Connection("https://104.197.129.211:4443", "root", "ChangeMe");
+		URL certificate = getClass().getClassLoader().getResource("localhost.pem");
+		return new Connection("https://8.34.215.78:4443", "root", "ChangeMe", certificate);
 	}
 	
 	@Bean
 	public EcsRepositoryCredentials getRepositoryCredentials() {
-		return new EcsRepositoryCredentials("ecs-cf-service-broker-repository", "ecs-cf-service-broker-repository", "ns1", "rg1");
+		return new EcsRepositoryCredentials("ecs-cf-service-broker-repository", "ecs-cf-service-broker-repository",
+				"ns1", "urn:storageos:ReplicationGroupInfo:d4fc7068-1051-49ee-841f-1102e44c841e:global");
 	}
 
 }
