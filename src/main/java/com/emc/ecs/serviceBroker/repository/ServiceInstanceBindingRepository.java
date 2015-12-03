@@ -7,12 +7,8 @@ import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,11 +18,15 @@ import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServiceInstanceBindingRepository {
 	
 	S3JerseyClient s3;
 	String bucket;
+	ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
 	public ServiceInstanceBindingRepository(EcsService ecs)
@@ -41,20 +41,16 @@ public class ServiceInstanceBindingRepository {
 	}
 
 	public void save(ServiceInstanceBinding binding) throws IOException, JAXBException {
-		PipedInputStream inStream = new PipedInputStream();
-		PipedOutputStream outStream = new PipedOutputStream(inStream);
-		JAXBContext jaxbContext = JAXBContext.newInstance(ServiceInstance.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.marshal(binding, outStream);
-		outStream.close();
-		s3.putObject(bucket, getFilename(binding.getId()), inStream, null);
+		PipedInputStream input = new PipedInputStream();
+		PipedOutputStream output = new PipedOutputStream(input);
+		objectMapper.writeValue(output, binding);
+		output.close();
+		s3.putObject(bucket, getFilename(binding.getId()), input, null);
 	}
 
-	public ServiceInstanceBinding find(String id) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(ServiceInstanceBinding.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		GetObjectResult<InputStream> outStream = s3.getObject(bucket, getFilename(id));
-		return (ServiceInstanceBinding) jaxbUnmarshaller.unmarshal(outStream.getObject());
+	public ServiceInstanceBinding find(String id) throws JsonParseException, JsonMappingException, IOException {
+		GetObjectResult<InputStream> input = s3.getObject(bucket, getFilename(id));
+		return (ServiceInstanceBinding) objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
 	}
 
 	public void delete(String id) {
@@ -62,7 +58,7 @@ public class ServiceInstanceBindingRepository {
 	}
 	
 	private String getFilename(String id) {
-		return "service-instance-binding/" + id + ".xml";
+		return "service-instance-binding/" + id + ".json";
 	}
 
 }

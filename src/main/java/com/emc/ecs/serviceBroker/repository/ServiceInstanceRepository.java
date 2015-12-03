@@ -7,10 +7,7 @@ import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +18,15 @@ import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServiceInstanceRepository {
 	
 	S3JerseyClient s3;
 	String bucket;
+	ObjectMapper objectMapper = new ObjectMapper();
 		
 	@Autowired
 	public ServiceInstanceRepository(EcsService ecs)
@@ -40,20 +41,16 @@ public class ServiceInstanceRepository {
 	}
 
 	public void save(ServiceInstance instance) throws IOException, JAXBException {
-		PipedInputStream inStream = new PipedInputStream();
-		PipedOutputStream outStream = new PipedOutputStream(inStream);
-		JAXBContext jaxbContext = JAXBContext.newInstance(ServiceInstance.class);
-		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.marshal(instance, outStream);
-		outStream.close();
-		s3.putObject(bucket, getFilename(instance.getId()), inStream, null);
+		PipedInputStream input = new PipedInputStream();
+		PipedOutputStream output = new PipedOutputStream(input);
+		objectMapper.writeValue(output, instance);
+		output.close();
+		s3.putObject(bucket, getFilename(instance.getId()), input, null);
 	}
 
-	public ServiceInstance find(String id) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(ServiceInstance.class);
-		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-		GetObjectResult<InputStream> outStream = s3.getObject(bucket, getFilename(id));
-		return (ServiceInstance) jaxbUnmarshaller.unmarshal(outStream.getObject());
+	public ServiceInstance find(String id) throws JsonParseException, JsonMappingException, IOException {
+		GetObjectResult<InputStream> input = s3.getObject(bucket, getFilename(id));
+		return (ServiceInstance) objectMapper.readValue(input.getObject(), ServiceInstance.class);
 	}
 
 	public void delete(String id) {
@@ -61,7 +58,7 @@ public class ServiceInstanceRepository {
 	}
 	
 	private String getFilename(String id) {
-		return "service-instance/" + id + ".xml";
+		return "service-instance/" + id + ".json";
 	}
 
 }
