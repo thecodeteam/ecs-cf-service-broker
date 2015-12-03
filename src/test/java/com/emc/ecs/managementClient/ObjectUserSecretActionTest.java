@@ -2,6 +2,8 @@ package com.emc.ecs.managementClient;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,5 +30,12 @@ public class ObjectUserSecretActionTest extends EcsActionTest {
 	public void createUserSecretKey() throws EcsManagementClientException {
 		UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
 		assertNotNull(secret.getSecretKey());
+	}
+	
+	@Test
+	public void listUserSecretKey() throws EcsManagementClientException {
+		UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
+		List<UserSecretKey> secretKeys = ObjectUserSecretAction.list(connection, user);
+		assertEquals(secret.getSecretKey(), secretKeys.get(0).getSecretKey());
 	}
 }
