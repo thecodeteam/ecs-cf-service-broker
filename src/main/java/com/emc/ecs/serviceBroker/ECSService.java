@@ -71,20 +71,22 @@ public class EcsService {
 	}
 
 	public void createBucket(String id, String planId) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		if (planId == "ecs-bucket-small" || planId == "ecs-bucket-unlimited") {
+		if (planId.equals("ecs-bucket-small") || planId.equals("ecs-bucket-unlimited")) {
 			BucketAction.create(connection, id, credentials.getNamespace(), credentials.getReplicationGroup());
-		}
-		if (planId == "ecs-bucket-small") {
+		} else if (planId.equals("ecs-bucket-small")) {
 			BucketQuotaAction.create(connection, id, credentials.getNamespace(), 10, 8);
+		} else {
+			throw new EcsManagementClientException("No service matching plan id");
 		}
 	}
 	
 	public void changeBucketPlan(String id, String planId) throws EcsManagementClientException {
-		if (planId == "ecs-bucket-small") {
+		if (planId.equals("ecs-bucket-small")) {
 			BucketQuotaAction.create(connection, id, credentials.getNamespace(), 10, 8);
-		}
-		if (planId == "ecs-bucket-unlimited") {
+		} else if (planId.equals("ecs-bucket-unlimited")) {
 			BucketQuotaAction.delete(connection, id, credentials.getNamespace());
+		} else {
+			throw new EcsManagementClientException("No service matching plan id");
 		}
 	}
 

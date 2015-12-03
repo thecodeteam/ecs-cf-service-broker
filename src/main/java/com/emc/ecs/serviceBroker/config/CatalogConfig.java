@@ -19,7 +19,7 @@ public class CatalogConfig {
 	public Catalog catalog() {
 		ServiceDefinition bucketSvc = new ServiceDefinition(
 				"ecs-bucket",
-				"ecs bucket",
+				"ecs-bucket",
 				"Elastic Cloud Object Storage Bucket",
 				true,  // bindable
 				true, // planUpdatable
@@ -34,7 +34,7 @@ public class CatalogConfig {
 
 	private Map<String, Object> getServiceDefinitionMetadata() {
 		Map<String, Object> sdMetadata = new HashMap<String, Object>();
-		sdMetadata.put("displaName", "ECS Bucket");
+		sdMetadata.put("displaName", "ecs-bucket");
 		sdMetadata.put("imageUrl", "http://www.emc.com/images/products/header-image-icon-ecs.png");
 		sdMetadata.put("longDescription", "Elastic Cloud Storage Object Bucket");
 		sdMetadata.put("providerDisplayName", "EMC Elastic Cloud Storage");
@@ -52,7 +52,7 @@ public class CatalogConfig {
 		costs1Map.put("unit", "MONTHLY");
 		plan1Meta.put("costs", Arrays.asList(costs1Map));
 		plan1Meta.put("bullets", Arrays.asList("5 GB Storage", "Multi-protocol access:  S3, Swift, HDFS"));
-		Plan plan1 = new Plan("ecs-bucket-small", "Small ECS Bucket", "10 GB ECS Bucket Plan", plan1Meta);
+		Plan plan1 = new Plan("ecs-bucket-small", "5gb-monthly", "5 GB ECS Bucket Plan", plan1Meta);
 
 		Map<String, Object> plan2Meta = new HashMap<String, Object>();
 		Map<String, Object> costs2Map = new HashMap<String, Object>();
@@ -61,8 +61,8 @@ public class CatalogConfig {
 		costs2Map.put("amount", amount2Map);
 		costs2Map.put("unit", "PER GB PER MONTH");
 		plan2Meta.put("costs", Arrays.asList(costs2Map));
-		plan2Meta.put("bullets", Arrays.asList("5 GB Storage", "Multi-protocol access:  S3, Swift, HDFS"));
-		Plan plan2 = new Plan("ecs-bucket-unlimited", "Unlimited ECS Bucket", "Pay per GB for Month", plan2Meta);
+		plan2Meta.put("bullets", Arrays.asList("Unlimited Storage", "Multi-protocol access:  S3, Swift, HDFS"));
+		Plan plan2 = new Plan("ecs-bucket-unlimited", "unlimited", "Pay per GB for Month", plan2Meta);
 		return Arrays.asList(plan1, plan2);
 	}
 }
