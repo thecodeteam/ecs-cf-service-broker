@@ -58,8 +58,8 @@ public class EcsService {
 		this.credentials = credentials;
 	}
 
-	private String getUserSecret(String userName) {
-		return null;
+	private String getUserSecret(String id) throws EcsManagementClientException {
+		return ObjectUserSecretAction.list(connection, id).get(0).getSecretKey();
 	}
 
 	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
