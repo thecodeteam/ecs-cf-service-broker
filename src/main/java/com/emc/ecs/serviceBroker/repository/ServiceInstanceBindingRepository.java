@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServiceInstanceBindingRepository {
-	
+
 	S3JerseyClient s3;
 	String bucket;
 	ObjectMapper objectMapper = new ObjectMapper();
@@ -35,28 +35,35 @@ public class ServiceInstanceBindingRepository {
 		EcsRepositoryCredentials creds = ecs.getCredentials();
 		String endpoint = ecs.getObjectEndpoint();
 		S3Config s3Config = new S3Config(new URI(endpoint));
-		s3Config.withIdentity(creds.getUserName()).withSecretKey(creds.getUserSecret());
+		s3Config.withIdentity(creds.getPrefixedUserName()).withSecretKey(creds.getUserSecret());
 		this.s3 = new S3JerseyClient(s3Config);
-		this.bucket = creds.getBucketName();
+		this.bucket = creds.getPrefixedBucketName();
 	}
 
 	public void save(ServiceInstanceBinding binding) throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
-		objectMapper.writeValue(output, binding);
+		// Spring Boot CF Service Broker doesn't include a JSON deserializable
+		// class, so we've implemented one.
+		ServiceInstanceBindingSerializer bindingResp = new ServiceInstanceBindingSerializer(binding);
+		objectMapper.writeValue(output, bindingResp);
 		output.close();
 		s3.putObject(bucket, getFilename(binding.getId()), input, null);
 	}
 
 	public ServiceInstanceBinding find(String id) throws JsonParseException, JsonMappingException, IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket, getFilename(id));
-		return (ServiceInstanceBinding) objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
+		// Spring Boot CF Service Broker doesn't include a JSON deserializable
+		// class, so we've implemented one.
+		ServiceInstanceBindingSerializer bindingResp = objectMapper.readValue(input.getObject(),
+				ServiceInstanceBindingSerializer.class);
+		return bindingResp.toServiceInstanceBinding();
 	}
 
 	public void delete(String id) {
 		s3.deleteObject(bucket, getFilename(id));
 	}
-	
+
 	private String getFilename(String id) {
 		return "service-instance-binding/" + id + ".json";
 	}
