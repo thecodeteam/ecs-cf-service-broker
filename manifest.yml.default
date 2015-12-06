@@ -1,0 +1,8 @@
+---
+applications:
+- name: ecs-broker
+  path: ./build/libs/ecs-cf-service-broker-0.0.1-SNAPSHOT.jar
+# env:
+#   endpoint: <ecs management endpoint>
+#   namespace: <namespace name>
+#   replicationGroup: <replication group id>
