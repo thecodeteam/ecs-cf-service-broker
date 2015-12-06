@@ -87,3 +87,6 @@ local.properties
 target/
 
 /bin
+
+### Cloud Foundry ###
+manifest.yml
