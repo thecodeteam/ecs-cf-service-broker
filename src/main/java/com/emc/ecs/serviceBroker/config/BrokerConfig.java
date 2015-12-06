@@ -18,13 +18,13 @@ public class BrokerConfig {
 	@Value("${endpoint}")
 	private String endpoint;
 	
-	@Value("${port}")
+	@Value("${port}:4443")
 	private String port;
 	
-	@Value("${username}")
+	@Value("${username}:root")
 	private String username;
 	
-	@Value("${password}")
+	@Value("${password}:ChangeMe")
 	private String password;
 	
 	@Value("${replicationGroup}")
