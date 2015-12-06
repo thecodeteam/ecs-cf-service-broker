@@ -37,12 +37,20 @@ public class EcsRepositoryCredentials {
 		return userName;
 	}
 	
+	public String getPrefixedUserName() {
+		return prefix + userName;
+	}
+	
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
 	
 	public String getBucketName() {
 		return bucketName;
+	}
+	
+	public String getPrefixedBucketName() {
+		return prefix + bucketName;
 	}
 	
 	public void setBucketName(String bucketName) {

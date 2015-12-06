@@ -35,9 +35,9 @@ public class ServiceInstanceRepository {
 		EcsRepositoryCredentials creds = ecs.getCredentials();
 		String endpoint = ecs.getObjectEndpoint();
 		S3Config s3Config = new S3Config(new URI(endpoint));
-		s3Config.withIdentity(creds.getUserName()).withSecretKey(creds.getUserSecret());
+		s3Config.withIdentity(creds.getPrefixedUserName()).withSecretKey(creds.getUserSecret());
 		this.s3 = new S3JerseyClient(s3Config);
-		this.bucket = creds.getBucketName();
+		this.bucket = creds.getPrefixedBucketName();
 	}
 
 	public void save(ServiceInstance instance) throws IOException, JAXBException {
