@@ -27,7 +27,7 @@ public class BaseUrlActionTest extends EcsActionTest {
 	public void testBaseUrlListAndGet() throws EcsManagementClientException {
 		BaseUrl baseUrl = BaseUrlAction.list(connection).get(0);
 		BaseUrlInfo baseUrlInfo = BaseUrlAction.get(connection, baseUrl.getId());
-		assertTrue(baseUrlInfo.getBaseurl().equals(baseUrl));
+		assertTrue(baseUrlInfo.getBaseurl().equals(baseUrlHost));
 		assertTrue(baseUrlInfo.getName().equals("DefaultBaseUrl"));
 	}
 
