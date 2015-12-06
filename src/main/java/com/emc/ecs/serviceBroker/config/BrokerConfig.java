@@ -18,6 +18,15 @@ public class BrokerConfig {
 	@Value("${endpoint}")
 	private String endpoint;
 	
+	@Value("${namespace}")
+	private String namespace;
+	
+	@Value("${replicationGroup}")
+	private String replicationGroup;
+	
+	@Value("${repositoryUser}:user")
+	private String repositoryUser;
+	
 	@Value("${port}:4443")
 	private String port;
 	
@@ -27,16 +36,7 @@ public class BrokerConfig {
 	@Value("${password}:ChangeMe")
 	private String password;
 	
-	@Value("${replicationGroup}")
-	private String replicationGroup;
-	
-	@Value("${namespace}")
-	private String namespace;
-	
-	@Value("${repositoryUser}")
-	private String repositoryUser;
-	
-	@Value("${repositoryBucket}")
+	@Value("${repositoryBucket}:repository")
 	private String repositoryBucket;
 	
 	@Value("${prefix}:ecs-cf-broker-")
