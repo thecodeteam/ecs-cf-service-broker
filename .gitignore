@@ -90,3 +90,5 @@ target/
 
 ### Cloud Foundry ###
 manifest.yml
+
+*.pem

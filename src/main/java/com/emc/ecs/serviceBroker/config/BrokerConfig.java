@@ -24,22 +24,22 @@ public class BrokerConfig {
 	@Value("${replicationGroup}")
 	private String replicationGroup;
 	
-	@Value("${repositoryUser}:user")
+	@Value("${repositoryUser:user}")
 	private String repositoryUser;
 	
-	@Value("${port}:4443")
+	@Value("${port:4443}")
 	private String port;
 	
-	@Value("${username}:root")
+	@Value("${username:root}")
 	private String username;
 	
-	@Value("${password}:ChangeMe")
+	@Value("${password:ChangeMe}")
 	private String password;
 	
-	@Value("${repositoryBucket}:repository")
+	@Value("${repositoryBucket:repository}")
 	private String repositoryBucket;
 	
-	@Value("${prefix}:ecs-cf-broker-")
+	@Value("${prefix:ecs-cf-broker-}")
 	private String prefix;
 
 	@Bean
