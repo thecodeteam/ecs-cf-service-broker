@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.emc.ecs.common.EcsActionTest;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
 public class ObjectUserActionTest extends EcsActionTest {
