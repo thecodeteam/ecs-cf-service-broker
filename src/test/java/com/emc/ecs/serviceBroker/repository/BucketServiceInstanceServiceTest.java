@@ -4,41 +4,37 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
+import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.cloudfoundry.community.servicebroker.model.fixture.DataFixture;
-import org.junit.Before;
 import org.junit.Test;
 
-import com.emc.ecs.common.EcsActionTest;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.EcsService;
 
-public class BucketServiceInstanceServiceTest extends EcsActionTest {
-	protected EcsRepositoryCredentials creds = 
-		new EcsRepositoryCredentials("repository", "user", namespace, replicationGroup, "ecs-cf-broker-");
-	protected EcsService ecs;
-	
-	@Before
-	public void setUp() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		ecs = new EcsService(connection, creds);
-	}
-
+public class BucketServiceInstanceServiceTest extends RepositoryTest {
 	@Test
 	public void testSaveFindDelete() throws IOException, JAXBException, EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
-		ServiceInstanceRepository repository = new ServiceInstanceRepository(ecs);
-		ServiceInstance instance = serviceInstanceFixture();
-		repository.save(instance);
-		ServiceInstance instance2 = repository.find(instance.getId());
-		assertEquals(instance.getId(), instance2.getId());
-		repository.delete(instance.getId());
+		ServiceInstanceBindingRepository repository = new ServiceInstanceBindingRepository(ecs);
+		ServiceInstance binding = bindingInstanceFixture();
+		repository.save(binding);
+		ServiceInstance binding2 = repository.find(binding.getId());
+		assertEquals(binding.getId(), binding2.getId());
+		repository.delete(binding.getId());
 	}
 	
-	private ServiceInstance serviceInstanceFixture() {
-		return new ServiceInstance("service-inst-one-id", "service-one-id", "plan-one-id",
-				DataFixture.getOrgOneGuid(), DataFixture.getSpaceOneGuid(), null);
+	private ServiceInstanceBinding bindingInstanceFixture() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		Map<String, Object> creds = new HashMap();
+		creds.put("accessKey", "user");
+		creds.put("bucket", "bucket");
+		creds.put("secretKey", "password");
+		creds.put("endpoint", ecs.getObjectEndpoint());
+		return new ServiceInstanceBinding("service-inst-bind-one-id", "binding-one-id", creds, null,
+				DataFixture.getOrgOneGuid());
 	}
 }
