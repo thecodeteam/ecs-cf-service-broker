@@ -121,6 +121,10 @@ public class EcsService {
 		// as it stands, there's not enough info -- just pick the 1st one.
 		String id = BaseUrlAction.list(connection).get(0).getId();
 		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, id);
-		return baseUrl.getNamespaceUrl(credentials.getNamespace());
+		return baseUrl.getNamespaceUrl(credentials.getNamespace(), false);
+	}
+	
+	private String prefix(String string) {
+		return this.getCredentials().getPrefix() + string;
 	}
 }

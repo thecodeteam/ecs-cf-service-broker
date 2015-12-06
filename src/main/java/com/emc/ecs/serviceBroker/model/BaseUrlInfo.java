@@ -67,11 +67,12 @@ public class BaseUrlInfo {
 		this.namespaceInHost = namespaceInHost;
 	}
 	
-	public String getNamespaceUrl(String namespace) {
+	public String getNamespaceUrl(String namespace, boolean ssl) {
+		String scheme = ssl ? "https" : "http";
 		if (namespaceInHost) {
-			return "https://" + namespace + "." + baseurl;
+			return scheme + "://" + namespace + "." + baseurl;
 		} else {
-			return "https://" + baseurl;
+			return scheme + "://" + baseurl;
 		}
 	}	
 
