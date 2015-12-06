@@ -39,6 +39,8 @@ public class BrokerConfig {
 	@Value("${repositoryBucket}")
 	private String repositoryBucket;
 	
+	@Value("${prefix}:ecs-cf-broker-")
+	private String prefix;
 
 	@Bean
 	public Connection ecsConnection() {
@@ -53,6 +55,6 @@ public class BrokerConfig {
 	
 	@Bean
 	public EcsRepositoryCredentials getRepositoryCredentials() {
-		return new EcsRepositoryCredentials(repositoryBucket, repositoryUser, namespace, replicationGroup);
+		return new EcsRepositoryCredentials(repositoryBucket, repositoryUser, namespace, replicationGroup, prefix);
 	}
 }

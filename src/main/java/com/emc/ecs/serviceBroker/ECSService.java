@@ -59,61 +59,62 @@ public class EcsService {
 	}
 
 	private String getUserSecret(String id) throws EcsManagementClientException {
-		return ObjectUserSecretAction.list(connection, id).get(0).getSecretKey();
+		return ObjectUserSecretAction.list(connection, prefix(id)).get(0).getSecretKey();
 	}
 
 	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
-		return BucketAction.get(connection, id, credentials.getNamespace());
+		return BucketAction.get(connection, prefix(id), credentials.getNamespace());
 	}
 
 	public void deleteBucket(String id) throws EcsManagementClientException {
-		BucketAction.delete(connection, id, credentials.getNamespace());
+		BucketAction.delete(connection, prefix(id), credentials.getNamespace());
 	}
 
 	public void createBucket(String id, String planId) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		if (planId.equals("ecs-bucket-small") || planId.equals("ecs-bucket-unlimited")) {
-			BucketAction.create(connection, id, credentials.getNamespace(), credentials.getReplicationGroup());
-		} else if (planId.equals("ecs-bucket-small")) {
-			BucketQuotaAction.create(connection, id, credentials.getNamespace(), 10, 8);
+			BucketAction.create(connection, prefix(id), credentials.getNamespace(), credentials.getReplicationGroup());
 		} else {
 			throw new EcsManagementClientException("No service matching plan id");
 		}
+
+		if (planId.equals("ecs-bucket-small"))
+			BucketQuotaAction.create(connection, prefix(id), credentials.getNamespace(), 10, 8);
 	}
 	
 	public void changeBucketPlan(String id, String planId) throws EcsManagementClientException {
 		if (planId.equals("ecs-bucket-small")) {
-			BucketQuotaAction.create(connection, id, credentials.getNamespace(), 10, 8);
+			BucketQuotaAction.create(connection, prefix(id), credentials.getNamespace(), 10, 8);
 		} else if (planId.equals("ecs-bucket-unlimited")) {
-			BucketQuotaAction.delete(connection, id, credentials.getNamespace());
+			BucketQuotaAction.delete(connection, prefix(id), credentials.getNamespace());
 		} else {
 			throw new EcsManagementClientException("No service matching plan id");
 		}
 	}
 
 	public UserSecretKey createUser(String id) throws EcsManagementClientException {
-		ObjectUserAction.create(connection, id, credentials.getNamespace());
-		ObjectUserSecretAction.create(connection, id);
-		return ObjectUserSecretAction.list(connection, id).get(0);
+		ObjectUserAction.create(connection, prefix(id), credentials.getNamespace());
+		ObjectUserSecretAction.create(connection, prefix(id));
+		return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
 	}
 
 	public Boolean userExists(String id) throws EcsManagementClientException {
-		return ObjectUserAction.exists(connection, id, credentials.getNamespace());
+		return ObjectUserAction.exists(connection, prefix(id), credentials.getNamespace());
 	}
 
 	public void deleteUser(String id) throws EcsManagementClientException {
-		ObjectUserAction.delete(connection, id);
+		ObjectUserAction.delete(connection, prefix(id));
 	}
 
 	public void addUserToBucket(String id, String username) throws EcsManagementClientException {
-		BucketAcl acl = BucketAclAction.get(connection, id, credentials.getNamespace());
+		BucketAcl acl = BucketAclAction.get(connection, prefix(id), credentials.getNamespace());
 		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-		userAcl.add(new BucketUserAcl(username, "full_control"));
+		userAcl.add(new BucketUserAcl(prefix(username), "full_control"));
 		acl.getAcl().setUserAccessList(userAcl);
-		BucketAclAction.update(connection, id, acl);
+		BucketAclAction.update(connection, prefix(id), acl);
 	}
 
 	public boolean bucketExists(String id) throws EcsManagementClientException {
-		return BucketAction.exists(connection, id, credentials.getNamespace());
+		return BucketAction.exists(connection, prefix(id), credentials.getNamespace());
 	}
 
 	public String getObjectEndpoint() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
