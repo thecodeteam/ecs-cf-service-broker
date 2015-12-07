@@ -34,21 +34,22 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 	public ServiceInstanceBinding createServiceInstanceBinding(String bindingId, ServiceInstance serviceInstance, String serviceId,
 			String planId, String appGuid) throws ServiceInstanceBindingExistsException, ServiceBrokerException {
 		UserSecretKey userSecret;
-		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, serviceId, null, null, appGuid);
+		String instanceId = serviceInstance.getId();
+		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, instanceId, null, null, appGuid);
 		Map<String,Object> credentials = new HashMap<String,Object>();
 		credentials.put("accessKey", bindingId);
-		credentials.put("bucket", serviceId);
+		credentials.put("bucket", instanceId);
 		try {
 			if (ecs.userExists(bindingId)) throw new ServiceInstanceBindingExistsException(binding);
 			userSecret = ecs.createUser(bindingId);
-			ecs.addUserToBucket(serviceId, bindingId);
+			ecs.addUserToBucket(instanceId, bindingId);
 			repository.save(binding);
 			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
-		binding = new ServiceInstanceBinding(bindingId, serviceId, credentials, null, appGuid);
+		binding = new ServiceInstanceBinding(bindingId, instanceId, credentials, null, appGuid);
 		return binding;
 	}
 
@@ -57,7 +58,8 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 			String planId) throws ServiceBrokerException {
 		try {
 			ServiceInstanceBinding binding = repository.find(bindingId);
-			ecs.deleteUser(bindingId);			
+			ecs.deleteUser(bindingId);
+			// TODO Delete User ACLs as a cleanup exercise
 			repository.delete(bindingId);
 			return binding;
 		} catch (Exception e) {
