@@ -41,6 +41,9 @@ public class BrokerConfig {
 	
 	@Value("${prefix:ecs-cf-broker-}")
 	private String prefix;
+	
+	@Value("${brokerApiVersion:2.8}")
+	private String brokerApiVersion;
 
 	@Bean
 	public Connection ecsConnection() {
@@ -50,7 +53,7 @@ public class BrokerConfig {
 	
 	@Bean
 	public BrokerApiVersion brokerApiVersion() {
-		return new BrokerApiVersion("2.7");
+		return new BrokerApiVersion(brokerApiVersion);
 	}
 	
 	@Bean
