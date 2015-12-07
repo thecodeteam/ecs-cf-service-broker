@@ -27,8 +27,8 @@ public class BrokerConfig {
 	@Value("${repositoryUser:user}")
 	private String repositoryUser;
 	
-	@Value("${port:4443}")
-	private String port;
+	@Value("${managementPort:4443}")
+	private String managementPort;
 	
 	@Value("${username:root}")
 	private String username;
@@ -45,7 +45,7 @@ public class BrokerConfig {
 	@Bean
 	public Connection ecsConnection() {
 		URL certificate = getClass().getClassLoader().getResource("localhost.pem");
-		return new Connection("https://" + endpoint + ":" + port, username, password, certificate);
+		return new Connection("https://" + endpoint + ":" + managementPort, username, password, certificate);
 	}
 	
 	@Bean
