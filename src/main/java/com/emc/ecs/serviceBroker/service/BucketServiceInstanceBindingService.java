@@ -33,6 +33,7 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 	@Override
 	public ServiceInstanceBinding createServiceInstanceBinding(String bindingId, ServiceInstance serviceInstance, String serviceId,
 			String planId, String appGuid) throws ServiceInstanceBindingExistsException, ServiceBrokerException {
+		// TODO Add parameters for binding permissions (read-only, read-write, full-controll, etc.)
 		UserSecretKey userSecret;
 		String instanceId = serviceInstance.getId();
 		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, instanceId, null, null, appGuid);
@@ -43,13 +44,17 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 			if (ecs.userExists(bindingId)) throw new ServiceInstanceBindingExistsException(binding);
 			userSecret = ecs.createUser(bindingId);
 			ecs.addUserToBucket(instanceId, bindingId);
-			repository.save(binding);
 			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
 		binding = new ServiceInstanceBinding(bindingId, instanceId, credentials, null, appGuid);
+		try {
+			repository.save(binding);
+		} catch (Exception e) {
+			throw new ServiceBrokerException(e.getMessage());
+		}
 		return binding;
 	}
 
