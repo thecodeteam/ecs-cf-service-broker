@@ -17,6 +17,7 @@ public class CatalogConfig {
 	
 	@Bean
 	public Catalog catalog() {
+		// TODO Add FS-enabled & CAS bucket types
 		ServiceDefinition bucketSvc = new ServiceDefinition(
 				"ecs-bucket",
 				"ecs-bucket",
