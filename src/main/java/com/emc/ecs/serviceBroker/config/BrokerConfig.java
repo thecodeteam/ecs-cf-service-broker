@@ -15,6 +15,9 @@ import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
 @ComponentScan(basePackages = "com.emc.ecs.serviceBroker")
 public class BrokerConfig {
 	
+	// TODO support multiple Cloud Foundry instances per http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html
+	// TODO support syslog drain URL
+	
 	@Value("${endpoint}")
 	private String endpoint;
 	
