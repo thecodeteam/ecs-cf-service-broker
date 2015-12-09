@@ -33,6 +33,8 @@ public class Connection {
 	private String password;
 	private String authToken;
 	private URL certificate;
+	private int authRetries = 0;
+	private static final int authMaxRetries = 3;
 
 		
 	public Connection(String endpoint, String username, String password) {
@@ -162,10 +164,18 @@ public class Connection {
 			response = request.put(Entity.xml(arg));
 		} else if (method == "delete") {
 			response = request.delete();
+		} else {
+			throw new EcsManagementClientException("Invalid request method: " + method);
+		}
+		if (response.getStatus() == 401 && authRetries < authMaxRetries) {
+			// attempt to re-authorize and retry up to _authMaxRetries_ times.
+			authRetries += 1;
+			logout();
+			response = makeRemoteCall(method, uri, arg);
 		}
 		return response;
 	}
-	
+
 	protected boolean existenceQuery(UriBuilder uri, Object arg) throws EcsManagementClientException {
 		Response response = makeRemoteCall("get", uri, arg);
 		try {
@@ -179,7 +189,6 @@ public class Connection {
 	private void handleResponse(Response response) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		if (response.getStatus() > 399) {
 			EcsManagementClientError error = response.readEntity(EcsManagementClientError.class);
-			System.out.println(error);
 			if (response.getStatus() == 404) {
 				throw new EcsManagementResourceNotFoundException(response.getStatusInfo().toString());
 			} else if (error.getCode() == 1004) {
