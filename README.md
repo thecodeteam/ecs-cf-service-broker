@@ -83,6 +83,6 @@ To execute unit tests, a running ECS system must be available to the broker.  On
  * Add parameters to bindings for user ACLs (read-only, read-write, etc.)
  * Add support for dynamically generated plans as done the [MySQL service broker](https://github.com/cloudfoundry/cf-mysql-broker)
  * Delete ACLs from bucket (in addition to the user) when removing bindings
- * Automatic support for multiple Cloud Foundry instances as [show here](http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html)
+ * Automatic support for multiple Cloud Foundry instances as [shown here](http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html)
  * Support syslog drain URL for logging
- * Support TLS for internal S3 bucket (requires ECS 2.1.1)  
+ * Support TLS for internal S3 bucket with self-signed cert (requires ECS 2.1.1)
