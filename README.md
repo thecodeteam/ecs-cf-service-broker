@@ -56,6 +56,16 @@ To load a self-signed certificate for an ECS system, just provide a PEM formatte
 
 The service broker catalog can be configured through the [CatalogConfig](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/java/com/emc/ecs/serviceBroker/config/CatalogConfig.java) class.  This will be replaced with a YAML based configuration in the future, so that it can be generated dynamically as part of PCF or another build tool.
 
+### Broker security
+
+By default the broker is secured with a dynamically generated password ala Spring Security. In order to register with Cloud Foundry, a user would need to view the output logs, and grab the password with each restart.
+
+To statically set a broker password, simple add the following to the `src/main/resources/application.properties` file:
+
+```
+security.user.password: <password>
+```
+
 ## Deploying your broker
 
 Follow the [documentation](http://docs.cloudfoundry.org/services/managing-service-brokers.html) to register the broker to Cloud Foundry.
