@@ -45,6 +45,8 @@ public class CatalogConfig {
 	}
 
 	private List<Plan> getBucketPlans() {
+		// TODO Add support for dynamically generated plans like how it's done in the MySQL broker:
+		//      https://github.com/cloudfoundry/cf-mysql-broker
 		Map<String, Object> plan1Meta = new HashMap<String, Object>();
 		Map<String, Object> costs1Map = new HashMap<String, Object>();
 		Map<String, Object> amount1Map = new HashMap<String, Object>();

@@ -122,7 +122,7 @@ public class EcsService {
 		// as it stands, there's not enough info -- just pick the 1st one.
 		String id = BaseUrlAction.list(connection).get(0).getId();
 		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, id);
-		// TODO:  switch to SSL end-point and custom S3 trust manager
+		// TODO:  switch to TLS end-point and custom S3 trust manager
 		return baseUrl.getNamespaceUrl(credentials.getNamespace(), false);
 	}
 	
