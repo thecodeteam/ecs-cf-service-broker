@@ -3,7 +3,7 @@
 ## Description
 
 This service broker enables Cloud Foundry applications to create, delete and
-modify ECS object storage buckets; and bind multiple applications to the same
+modify [ECS](http://emc.com/ecs) object storage buckets; and bind multiple applications to the same
 bucket.
 
 ## Features
