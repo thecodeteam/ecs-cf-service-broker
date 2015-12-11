@@ -50,21 +50,21 @@ public class CatalogConfig {
 		Map<String, Object> plan1Meta = new HashMap<String, Object>();
 		Map<String, Object> costs1Map = new HashMap<String, Object>();
 		Map<String, Object> amount1Map = new HashMap<String, Object>();
-		amount1Map.put("amount", new Double(0.0));
+		amount1Map.put("usd", new Double(0.0));
 		costs1Map.put("amount", amount1Map);
 		costs1Map.put("unit", "MONTHLY");
 		plan1Meta.put("costs", Arrays.asList(costs1Map));
-		plan1Meta.put("bullets", Arrays.asList("5 GB Storage", "Multi-protocol access:  S3, Swift, HDFS"));
+		plan1Meta.put("bullets", Arrays.asList("Shared object storage", "5 GB Storage", "Multi-protocol access:  S3, Swift, HDFS"));
 		Plan plan1 = new Plan("8e777d49-0a78-4cf4-810a-b5f5173b019d", "5gb", "5 GB ECS Bucket Plan", plan1Meta);
 
 		Map<String, Object> plan2Meta = new HashMap<String, Object>();
 		Map<String, Object> costs2Map = new HashMap<String, Object>();
 		Map<String, Object> amount2Map = new HashMap<String, Object>();
-		amount2Map.put("amount", new Double(0.03));
+		amount2Map.put("usd", new Double(0.03));
 		costs2Map.put("amount", amount2Map);
 		costs2Map.put("unit", "PER GB PER MONTH");
 		plan2Meta.put("costs", Arrays.asList(costs2Map));
-		plan2Meta.put("bullets", Arrays.asList("Unlimited Storage", "Multi-protocol access:  S3, Swift, HDFS"));
+		plan2Meta.put("bullets", Arrays.asList("Shared object storage", "Unlimited Storage", "Multi-protocol access:  S3, Swift, HDFS"));
 		Plan plan2 = new Plan("89d20694-9ab0-4a98-bc6a-868d6d4ecf31", "unlimited", "Pay per GB for Month", plan2Meta);
 		return Arrays.asList(plan1, plan2);
 	}
