@@ -7,10 +7,10 @@ import java.util.Optional;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.emc.ecs.managementClient.model.DataServiceReplicationGroup;
+import com.emc.ecs.managementClient.model.DataServiceReplicationGroupList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
-import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroupList;
 
 public class ReplicationGroupAction {
 	

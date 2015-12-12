@@ -7,9 +7,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.common.EcsActionTest;
+import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 
 public class BucketQuotaActionTest extends EcsActionTest {
 	private String bucket = "testbucket3";

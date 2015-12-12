@@ -9,8 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.common.EcsActionTest;
+import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.model.UserSecretKey;
 
 public class ObjectUserSecretActionTest extends EcsActionTest {
 	private String user = "testuser2";

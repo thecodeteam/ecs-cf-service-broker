@@ -7,9 +7,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.common.EcsActionTest;
+import com.emc.ecs.managementClient.model.BaseUrl;
+import com.emc.ecs.managementClient.model.BaseUrlInfo;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.model.BaseUrl;
-import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
 
 public class BaseUrlActionTest extends EcsActionTest {
 	

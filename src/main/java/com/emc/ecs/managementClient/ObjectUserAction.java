@@ -2,9 +2,9 @@ package com.emc.ecs.managementClient;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.emc.ecs.managementClient.model.UserCreateParam;
+import com.emc.ecs.managementClient.model.UserDeleteParam;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.model.UserCreateParam;
-import com.emc.ecs.serviceBroker.model.UserDeleteParam;
 
 public class ObjectUserAction {
 

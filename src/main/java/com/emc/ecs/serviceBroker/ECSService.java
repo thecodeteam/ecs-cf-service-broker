@@ -12,11 +12,11 @@ import com.emc.ecs.managementClient.BucketQuotaAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
-import com.emc.ecs.serviceBroker.model.BaseUrlInfo;
-import com.emc.ecs.serviceBroker.model.BucketAcl;
-import com.emc.ecs.serviceBroker.model.BucketUserAcl;
-import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
-import com.emc.ecs.serviceBroker.model.UserSecretKey;
+import com.emc.ecs.managementClient.model.BaseUrlInfo;
+import com.emc.ecs.managementClient.model.BucketAcl;
+import com.emc.ecs.managementClient.model.BucketUserAcl;
+import com.emc.ecs.managementClient.model.ObjectBucketInfo;
+import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
 
 @Service

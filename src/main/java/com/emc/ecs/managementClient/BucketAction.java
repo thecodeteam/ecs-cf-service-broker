@@ -3,9 +3,9 @@ package com.emc.ecs.managementClient;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.emc.ecs.managementClient.model.ObjectBucketCreate;
+import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.model.ObjectBucketCreate;
-import com.emc.ecs.serviceBroker.model.ObjectBucketInfo;
 
 public class BucketAction {
 	

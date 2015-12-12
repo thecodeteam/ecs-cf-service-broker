@@ -3,8 +3,8 @@ package com.emc.ecs.managementClient;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.model.BucketAcl;
 
 public class BucketAclAction {
 	public static void update(Connection connection, String id, BucketAcl acl) throws EcsManagementClientException {

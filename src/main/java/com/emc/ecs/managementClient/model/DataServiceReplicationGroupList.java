@@ -1,4 +1,4 @@
-package com.emc.ecs.serviceBroker.model;
+package com.emc.ecs.managementClient.model;
 
 import java.util.List;
 

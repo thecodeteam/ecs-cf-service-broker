@@ -9,10 +9,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.common.EcsActionTest;
+import com.emc.ecs.managementClient.model.BucketAcl;
+import com.emc.ecs.managementClient.model.BucketUserAcl;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.model.BucketAcl;
-import com.emc.ecs.serviceBroker.model.BucketUserAcl;
 
 public class BucketAclActionTest extends EcsActionTest {
 	private String bucket = "testbucket4";

@@ -12,10 +12,10 @@ import org.cloudfoundry.community.servicebroker.service.ServiceInstanceBindingSe
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
-import com.emc.ecs.serviceBroker.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 
 @Service

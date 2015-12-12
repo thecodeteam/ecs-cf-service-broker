@@ -1,4 +1,4 @@
-package com.emc.ecs.serviceBroker.model;
+package com.emc.ecs.managementClient.model;
 
 public class VArrayMapping {
 	private String name;

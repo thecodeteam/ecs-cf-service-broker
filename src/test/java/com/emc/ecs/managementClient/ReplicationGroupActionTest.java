@@ -9,9 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.common.EcsActionTest;
+import com.emc.ecs.managementClient.model.DataServiceReplicationGroup;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.model.DataServiceReplicationGroup;
 
 public class ReplicationGroupActionTest extends EcsActionTest {
 	private String replicationGroup = "rg1";

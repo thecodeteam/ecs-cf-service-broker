@@ -5,10 +5,10 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.emc.ecs.managementClient.model.UserSecretKey;
+import com.emc.ecs.managementClient.model.UserSecretKeyCreate;
+import com.emc.ecs.managementClient.model.UserSecretKeyList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.model.UserSecretKey;
-import com.emc.ecs.serviceBroker.model.UserSecretKeyCreate;
-import com.emc.ecs.serviceBroker.model.UserSecretKeyList;
 
 public class ObjectUserSecretAction {
 

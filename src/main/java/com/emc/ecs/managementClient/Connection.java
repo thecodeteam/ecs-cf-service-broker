@@ -23,9 +23,9 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.filter.LoggingFilter;
 
+import com.emc.ecs.managementClient.model.EcsManagementClientError;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.model.EcsManagementClientError;
 
 public class Connection {
 	private String endpoint;
