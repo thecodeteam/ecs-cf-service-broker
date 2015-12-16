@@ -88,3 +88,4 @@ To execute unit tests, a running ECS system must be available to the broker.  On
  * Support TLS for internal S3 bucket with self-signed cert (requires ECS 2.1.1)
  * Add BOSH release project and integration for PCF Tile
  * Add ECS API simulator for unit test support without an actual ECS instance
+ * Add a non-persistent option so that broker can startup without an actual ECS available
