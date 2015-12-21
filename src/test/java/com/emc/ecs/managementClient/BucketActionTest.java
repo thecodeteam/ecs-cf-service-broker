@@ -31,6 +31,7 @@ public class BucketActionTest extends EcsActionTest {
 	
 	@Test
 	public void createExistsAndDeleteBucket() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+		assertFalse(BucketAction.exists(connection, bucket, namespace));
 		BucketAction.create(connection, bucket, namespace, replicationGroup);
 		assertTrue(BucketAction.exists(connection, bucket, namespace));
 		BucketAction.delete(connection, bucket, namespace);
