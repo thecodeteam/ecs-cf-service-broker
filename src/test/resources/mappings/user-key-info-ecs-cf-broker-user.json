@@ -1,0 +1,23 @@
+{
+	"scenarioName": "ecs-cf-broker-user",
+    "requiredScenarioState": "Key created",
+    "request": {
+        "method": "GET",
+        "url": "/object/user-secret-keys/ecs-cf-broker-user",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><user_secret_keys><secret_key_1>rTuCD7wLu3lhC1Z79N3MOD86kl/wKCB1GCNZwgXa</secret_key_1><secret_key_2></secret_key_2><key_expiry_timestamp_1></key_expiry_timestamp_1><key_expiry_timestamp_2></key_expiry_timestamp_2><key_timestamp_1>2015-12-14 05:13:39.597</key_timestamp_1><key_timestamp_2></key_timestamp_2><link rel=\"self\" href=\"/object/secret-keys\"/></user_secret_keys>"
+    }
+}

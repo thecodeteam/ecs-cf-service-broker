@@ -1,0 +1,21 @@
+{
+	"scenarioName": "authentication",
+	"newScenarioState": "Logged in",
+    "request": {
+        "method": "GET",
+        "url": "/login",
+        "headers": {
+        	"Authorization" : {
+        		"equalTo": "Basic cm9vdDpDaGFuZ2VNZQ=="
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml",
+        	"X-SDS-AUTH-TOKEN" : "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><loggedIn><user>root</user></loggedIn>"
+    }
+}

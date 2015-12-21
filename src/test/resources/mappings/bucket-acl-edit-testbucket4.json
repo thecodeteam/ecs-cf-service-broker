@@ -1,0 +1,28 @@
+{
+	"scenarioName": "testbucket4",
+    "requiredScenarioState": "Created",
+    "newScenarioState": "ACL updated",
+    "request": {
+        "method": "PUT",
+        "url": "/object/bucket/testbucket4/acl",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        },
+        "bodyPatterns": [
+        	{
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><bucket_acl><acl><user_acl><permission>full_control</permission><user>root</user></user_acl><user_acl><permission>full_control</permission><user>testuser3</user></user_acl></acl><bucket>testbucket4</bucket><namespace>ns1</namespace></bucket_acl>"
+        	}
+        ]
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		}
+	}
+}

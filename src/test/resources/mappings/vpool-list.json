@@ -1,0 +1,21 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/vdc/data-service/vpools",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><data_service_vpools><data_service_vpool><creation_time>1450069960578</creation_time><id>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</id><inactive>false</inactive><tags/><isAllowAllNamespaces>true</isAllowAllNamespaces><description></description><name>rg1</name><varrayMappings><name>urn:storageos:VirtualDataCenterData:4dad5021-5203-476f-98bc-32db61c93419</name><value>urn:storageos:VirtualArray:9cf60101-6488-44a1-8579-a28d9ed38cd2</value></varrayMappings></data_service_vpool></data_service_vpools>"
+    }
+}

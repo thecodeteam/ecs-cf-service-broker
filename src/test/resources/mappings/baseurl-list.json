@@ -1,0 +1,21 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/object/baseurl",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><base_urls><base_url><id>urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2</id><link rel=\"self\" href=\"/object/baseurl/urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2\"/><name>DefaultBaseUrl</name></base_url></base_urls>"
+    }
+}

@@ -1,0 +1,23 @@
+{
+	"scenarioName": "testbucket4",
+    "requiredScenarioState": "Created",
+    "request": {
+        "method": "GET",
+        "url": "/object/bucket/testbucket4/acl?namespace=ns1",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+		"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><bucket_acl><bucket>testbucket4</bucket><namespace>ns1</namespace><acl><user_acl><user>root</user><permission>full_control</permission></user_acl></acl></bucket_acl>"
+	}
+}

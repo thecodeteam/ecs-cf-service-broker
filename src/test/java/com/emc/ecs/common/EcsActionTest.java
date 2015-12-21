@@ -6,8 +6,8 @@ import com.emc.ecs.managementClient.Connection;
 
 public abstract class EcsActionTest {
 	protected URL certificate = getClass().getClassLoader().getResource("localhost.pem");
-	protected Connection connection = new Connection("https://104.197.254.237:4443", "root", "ChangeMe", certificate);
+	protected Connection connection = new Connection("https://127.0.0.1:8443", "root", "ChangeMe", certificate);
 	protected String namespace = "ns1";
-	protected String baseUrlHost = "s3.marqing.com";
-	protected String replicationGroup = "urn:storageos:ReplicationGroupInfo:b3672185-e441-495e-8032-4660cb2616a3:global";
+	protected String baseUrlHost = "localhost";
+	protected String replicationGroup = "urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global";
 }

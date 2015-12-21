@@ -1,0 +1,23 @@
+{
+	"scenarioName": "testbucket3",
+    "requiredScenarioState": "Created",
+    "request": {
+        "method": "GET",
+        "url": "/object/bucket/testbucket3/info?namespace=ns1",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+		"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><bucket_info><name>testbucket3</name><tags/><api_type>S3</api_type><block_size>-1</block_size><owner>root</owner><created>2015-12-14T05:13:49.263Z</created><default_retention>-2</default_retention><fs_access_enabled>false</fs_access_enabled><is_stale_allowed>true</is_stale_allowed><locked>false</locked><namespace>ns1</namespace><notification_size>-1</notification_size><vpool>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</vpool></bucket_info>"
+	}
+}
