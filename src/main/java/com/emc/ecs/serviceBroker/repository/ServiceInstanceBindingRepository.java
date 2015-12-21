@@ -33,8 +33,7 @@ public class ServiceInstanceBindingRepository {
 			throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
 		super();
 		EcsRepositoryCredentials creds = ecs.getCredentials();
-		String endpoint = ecs.getObjectEndpoint();
-		S3Config s3Config = new S3Config(new URI(endpoint));
+		S3Config s3Config = new S3Config(new URI(creds.getEndpoint()));
 		s3Config.withIdentity(creds.getPrefixedUserName()).withSecretKey(creds.getUserSecret());
 		this.s3 = new S3JerseyClient(s3Config);
 		this.bucket = creds.getPrefixedBucketName();

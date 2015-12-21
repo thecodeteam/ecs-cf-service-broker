@@ -2,6 +2,7 @@ package com.emc.ecs.serviceBroker.repository;
 
 public class EcsRepositoryCredentials {
 	private String bucketName;
+	private String endpoint;
 	private String userName;
 	private String userSecret;
 	private String namespace;
@@ -71,5 +72,13 @@ public class EcsRepositoryCredentials {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
+	}
+
+	public String getEndpoint() {
+		return endpoint;
+	}
+
+	public void setEndpoint(String endpoint) {
+		this.endpoint = endpoint;
 	}
 }

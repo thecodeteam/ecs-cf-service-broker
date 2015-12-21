@@ -32,6 +32,9 @@ public class EcsService {
 		this.connection = connection;
 		this.credentials = creds;
 		prepareRepository(creds);
+		
+		if (creds.getEndpoint() == null)
+			creds.setEndpoint(getObjectEndpoint());
 	}
 
 	private void prepareRepository(EcsRepositoryCredentials creds)
