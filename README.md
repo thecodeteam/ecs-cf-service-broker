@@ -81,11 +81,11 @@ To execute unit tests, a running ECS system must be available to the broker.  On
 ## Todos
  * Add FS-enabled and CAS bucket types to plans
  * Add parameters to bindings for user ACLs (read-only, read-write, etc.)
- * Add support for dynamically generated plans as done the [MySQL service broker](https://github.com/cloudfoundry/cf-mysql-broker)
+ * Add support for dynamically generated plans as done the [MySQL service broker](https://github.com/cloudfoundry/cf-mysql-broker) [wip]
  * Delete ACLs from bucket (in addition to the user) when removing bindings
  * Automatic support for multiple Cloud Foundry instances as [shown here](http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html)
  * Support syslog drain URL for logging
- * Support TLS for internal S3 bucket with self-signed cert (requires ECS 2.1.1)
+ * Support TLS for internal S3 bucket with self-signed cert (requires ECS 2.1.1) [wip]
  * Add BOSH release project and integration for PCF Tile
- * Add ECS API simulator for unit test support without an actual ECS instance
+ * Add ECS API simulator for unit test support without an actual ECS instance [wip]
  * Add a non-persistent option so that broker can startup without an actual ECS available
