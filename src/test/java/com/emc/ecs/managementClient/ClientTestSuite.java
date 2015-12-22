@@ -12,9 +12,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 
 @RunWith(Suite.class)
 @SuiteClasses({ BaseUrlActionTest.class, BucketAclActionTest.class,
-		BucketActionTest.class, ConnectionTest.class,
-		ObjectUserActionTest.class, ObjectUserSecretActionTest.class,
-		ReplicationGroupActionTest.class, BucketQuotaActionTest.class })
+		BucketActionTest.class, BucketQuotaActionTest.class,
+		ConnectionTest.class, ObjectUserActionTest.class,
+		ObjectUserSecretActionTest.class, ReplicationGroupActionTest.class })
 public class ClientTestSuite {
 	
 	private static WireMockServer wireMockServer;

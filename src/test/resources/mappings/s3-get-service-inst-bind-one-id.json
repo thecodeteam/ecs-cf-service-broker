@@ -1,0 +1,25 @@
+{
+	"scenarioName": "service-inst-bind-one-id",
+	"requiredScenarioState": "Created",
+    "request": {
+        "method": "GET",
+        "url": "/ecs-cf-broker-repository/service-instance-binding/service-inst-bind-one-id.json",
+        "headers": {
+        	"Authorization" : {
+        		"matches": "AWS ecs-cf-broker-user:.*"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"x-amz-request-id": "0a05881f:150a5d74db8:1b23:0",
+			"x-amz-id-2": "9edc6c7b2841f4facfc63af0f50256253fa46e1ec24cc03172f28660fa13efe3",
+			"ETag": "\"6adcaaac0bfa894645f032330e770759\"",
+			"x-emc-mtime": "1450675293828",
+			"Content-Encoding": "identity",
+			"Content-Type": "application/octet-stream"
+		},
+		"body": "{\"id\":\"service-inst-bind-one-id\",\"credentials\":{},\"service_instance_id\":\"binding-one-id\",\"syslog_drain_url\":null,\"app_guid\":\"org-guid-one\"}" 
+    }
+}

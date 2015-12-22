@@ -1,21 +1,31 @@
 {
+	"scenarioName": "service-inst-one-id",
+	"requiredScenarioState": "Started",
+	"newScenarioState": "Created",
     "request": {
-        "method": "GET",
-        "url": "/object/baseurl/urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2",
+        "method": "PUT",
+        "url": "/ecs-cf-broker-repository/service-instance/service-inst-one-id.json",
         "headers": {
-        	"Accept": {
-        		"equalTo": "application/xml"
+        	"Content-Type": {
+        		"equalTo": "application/octet-stream"
         	},
-        	"X-SDS-AUTH-TOKEN" : {
-        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	"Authorization" : {
+        		"matches": "AWS ecs-cf-broker-user:.*"
         	}
-        }
+        },
+        "bodyPatterns": [
+        	{
+        		"equalToJson": "{\"service_instance_id\":\"service-inst-one-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null}"
+        	}
+        ]
     },
     "response": {
         "status": "200",
         "headers": {
-			"Content-Type": "application/xml"
-		},
-        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><base_url><id>urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2</id><link rel=\"self\" href=\"/object/baseurl/urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2\"/><name>DefaultBaseUrl</name><tags/><baseurl>localhost</baseurl><namespace_in_host>false</namespace_in_host></base_url>"
+			"x-amz-request-id": "0a05881f:150a5d74db8:1b1f:f",
+			"x-amz-id-2": "fcff654eb2d4b131db75376eb1fde702bf1e738f48c59bfa1093302d2625ee82",
+			"ETag": "\"fa51be240a40853fad2493b43f3808be\"",
+			"x-emc-mtime": "1450675315169"
+		}
     }
 }

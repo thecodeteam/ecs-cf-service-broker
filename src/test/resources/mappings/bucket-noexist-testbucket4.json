@@ -2,7 +2,7 @@
 	"scenarioName": "testbucket4",
 	"requiredScenarioState": "Started",
     "request": {
-        "method": "POST",
+        "method": "GET",
         "url": "/object/bucket/testbucket4/info?namespace=ns1",
         "headers": {
         	"Accept": {

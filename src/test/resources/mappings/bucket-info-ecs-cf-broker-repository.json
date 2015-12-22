@@ -1,6 +1,6 @@
 {
 	"scenarioName": "ecs-cf-broker-repository",
-    "requiredScenarioState": "Created",
+    "requiredScenarioState": "ACL updated",
     "request": {
         "method": "GET",
         "url": "/object/bucket/ecs-cf-broker-repository/info?namespace=ns1",

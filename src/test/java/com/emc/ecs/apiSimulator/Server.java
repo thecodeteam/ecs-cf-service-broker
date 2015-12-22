@@ -7,7 +7,9 @@ public class Server {
 
 	public static void main(String[] args) {
 		WireMockServer wireMockServer = new WireMockServer(
-				wireMockConfig().httpsPort(8443));
+				wireMockConfig()
+					.port(9020) 	   // use HTTP port for s3
+					.httpsPort(8443)); // use HTTPS port for ecs-management 
 		wireMockServer.start();
 	}
 

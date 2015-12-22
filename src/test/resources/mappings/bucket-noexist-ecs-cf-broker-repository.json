@@ -21,4 +21,3 @@
 		"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><error><code>1004</code><description>Request parameter cannot be found</description><details>Unable to find entity with the given id ecs-cf-broker-repository</details><retryable>false</retryable></error>"
 	}
 }
-
