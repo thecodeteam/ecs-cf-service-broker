@@ -4,6 +4,7 @@ import java.net.URL;
 
 import org.cloudfoundry.community.servicebroker.model.BrokerApiVersion;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -18,43 +19,40 @@ public class BrokerConfig {
 	// TODO support multiple Cloud Foundry instances per http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html
 	// TODO support syslog drain URL
 	
-	@Value("${endpoint}")
-	private String endpoint;
+	@Value("${broker-config.managementEndpoint}")
+	private String managementEndpoint;
 	
-	@Value("${namespace}")
+	@Value("${broker-config.namespace}")
 	private String namespace;
 	
-	@Value("${replicationGroup}")
+	@Value("${broker-config.replicationGroup}")
 	private String replicationGroup;
 	
-	@Value("${repositoryUser:user}")
+	@Value("${broker-config.repositoryUser:user}")
 	private String repositoryUser;
 	
-	@Value("${managementPort:4443}")
-	private String managementPort;
-	
-	@Value("${username:root}")
+	@Value("${broker-config.username:root}")
 	private String username;
 	
-	@Value("${password:ChangeMe}")
+	@Value("${broker-config.password:ChangeMe}")
 	private String password;
 	
-	@Value("${repositoryBucket:repository}")
+	@Value("${broker-config.repositoryBucket:repository}")
 	private String repositoryBucket;
 
-	@Value("${repositoryEndpoint}")
+	@Value("${broker-config.repositoryEndpoint}")
 	private String repositoryEndpoint;
 	
-	@Value("${prefix:ecs-cf-broker-}")
+	@Value("${broker-config.prefix:ecs-cf-broker-}")
 	private String prefix;
 	
-	@Value("${brokerApiVersion:2.8}")
+	@Value("${broker-config.apiVersion:2.8}")
 	private String brokerApiVersion;
 
 	@Bean
 	public Connection ecsConnection() {
 		URL certificate = getClass().getClassLoader().getResource("localhost.pem");
-		return new Connection("https://" + endpoint + ":" + managementPort, username, password, certificate);
+		return new Connection(managementEndpoint, username, password, certificate);
 	}
 	
 	@Bean
