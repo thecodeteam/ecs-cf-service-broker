@@ -1,12 +1,8 @@
-security:
-  user:
-    password: password
 broker-config:
-  endpoint: 127.0.0.1
+  managementEndpoint: https://127.0.0.1:4443
   namespace: ns1
   replicationGroup: urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global
-  managementPort: 8443
-  repositoryEndpoint: 127.0.0.1
+  repositoryEndpoint: http://127.0.0.1:9020
 catalog:
   services:
     - name: ecs-bucket
