@@ -1,0 +1,5 @@
+broker-config:
+  endpoint: 10.5.136.31
+  namespace: s3
+  replicationGroup: urn:storageos:ReplicationGroupInfo:30e61aed-73d9-46e7-9aab-db4bc194d7f9:global
+  repositoryEndpoint: 10.5.136.31
