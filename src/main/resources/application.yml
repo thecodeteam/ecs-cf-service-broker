@@ -1,5 +1,5 @@
 broker-config:
-  endpoint: 10.5.136.31
-  namespace: s3
-  replicationGroup: urn:storageos:ReplicationGroupInfo:30e61aed-73d9-46e7-9aab-db4bc194d7f9:global
-  repositoryEndpoint: 10.5.136.31
+  managementEndpoint: https://127.0.0.1:8443
+  namespace: ns1
+  replicationGroup: urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global
+  repositoryEndpoint: http://127.0.0.1:9020
