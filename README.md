@@ -102,15 +102,6 @@ You can then run the test-suite with gradle:
 
 Or within Eclipse.  It might work fine in other IDEs, but I've only run them in Eclipse.
 
-## Todos
- * Add FS-enabled and CAS bucket types to plans
- * Add parameters to bindings for user ACLs (read-only, read-write, etc.)
- * Add support for dynamically generated plans as done the
- [MySQL service broker](https://github.com/cloudfoundry/cf-mysql-broker) [wip]
- * Delete ACLs from bucket (in addition to the user) when removing bindings
- * Automatic support for multiple Cloud Foundry instances as
- [shown here](http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html)
- * Support syslog drain URL for logging
- * Support TLS for internal S3 bucket with self-signed cert (requires ECS 2.1.1) [wip]
- * Add BOSH release project and integration for PCF Tile
- * Add simulator support for CF created services & bindings
+## TODOs
+
+Check our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues)
