@@ -32,7 +32,10 @@ To build, make sure that you have a Java 8 runtime environment, and use Gradle.
 ### ECS Configuration
 
 The service broker supports a number of configuration parameters that are available as environment variables or through
-Spring configuration.  An example YAML file is provided pointing to the local ECS simulator:
+Spring configuration.  All parameters are prefixed with the `broker-config.` string.  Default parameters point to the
+bundled ECS simulator.  For more info, check the
+[default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
+
 
 | Parameter          | Default Value  | Required | Description                                    |
 | ------------------ |:--------------:| -------- | ---------------------------------------------- |
@@ -56,6 +59,12 @@ accessible.  You'll find the
 Just run this file as a Java program, and the broker will be able to initialize against the
 "mocked" API calls.
 
+You can also start the simulator from the command-line:
+
+```yaml
+./gradlew simulate
+```
+
 Soon, we will add simulated support for other Cloud Foundry to broker interactions.
 
 ### Self-signed certificates
@@ -65,10 +74,48 @@ into the `src/main/resources` directory.
 
 ### Broker Catalog and Plan Configuration
 
-The service broker catalog can be configured through the
-[CatalogConfig](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/java/com/emc/ecs/serviceBroker/config/CatalogConfig.java)
-class.  This will be replaced with a YAML based configuration in the future, so that it can be generated dynamically as
-part of PCF or another build tool.
+The service broker catalog can be configured through YAML based configuration.  You can create the file manually,
+via PCF or another build tool.  Just add a `catalog` section to the `src/main/resources/application.yml` file:
+
+```yaml
+...
+catalog:
+  services:
+    - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
+      name: ecs-bucket
+      description: Elastic Cloud Object Storage Bucket
+      bindable: true
+      planUpdatable: true
+      tags:
+        - s3
+        - storage
+        - object
+      metadata:
+        displayName: ecs-bucket
+        imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
+        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
+        providerDisplayName: EMC Corporation
+        documentationUrl: https://community.emc.com/docs/DOC-45012
+        supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
+      plans:
+        - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
+          name: 5gb
+          description: Free Trial
+          metadata:
+            storageLimit: 5
+            costs:
+              - amount:
+                  usd: 0.0
+                unit: MONTHLY
+            bullets:
+              - Shared object storage
+              - 5 GB Storage
+              - "Multi-protocol access:  S3, Swift, HDFS"
+...
+```
+
+For more info, check the
+[default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
 
 ### Broker security
 
@@ -78,9 +125,11 @@ Cloud Foundry, a user would need to view the output logs, and grab the password 
 To statically set a broker password, simple add the following to the `src/main/resources/application.yml` file:
 
 ```yaml
+...
 security:
   user:
     password: <password>
+...
 ```
 
 ## Deploying your broker
@@ -94,14 +143,18 @@ Local test suite can be run with either a live ECS platform, or using the includ
 can be found and/or changed via the
 [EcsActionTest class](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/common/EcsActionTest.java).
 
+First start the simulator either within Eclipse, or via the command-line:
+
+```
+./gradlew simulate
+```
+
 You can then run the test-suite with gradle:
 
 ```
 ./gradlew test
 ```
 
-Or within Eclipse.  It might work fine in other IDEs, but I've only run them in Eclipse.
-
 ## TODOs
 
-Check our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues)
+Up to date tasks are on our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues) page.
