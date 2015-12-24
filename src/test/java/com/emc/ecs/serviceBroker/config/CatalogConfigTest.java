@@ -30,7 +30,7 @@ public class CatalogConfigTest {
 				.get(0);
 		testServiceDefinition(ecsBucketService,
 				"f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa", "ecs-bucket",
-				"Elastic Cloud Object Storage Bucket", true, true,
+				"Elastic Cloud S3 Object Storage Bucket", true, true,
 				Collections.emptyList(), null);
 	}
 
@@ -55,13 +55,13 @@ public class CatalogConfigTest {
 		testPlan(plan0, "8e777d49-0a78-4cf4-810a-b5f5173b019d", "5gb",
 				"Free Trial", new Double(0.0), "MONTHLY",
 				Arrays.asList("Shared object storage", "5 GB Storage",
-						"Multi-protocol access:  S3, Swift, HDFS"));
+						"S3 protocol and HDFS access"));
 
 		Plan plan1 = ecsBucketPlans.get(1);
 		testPlan(plan1, "89d20694-9ab0-4a98-bc6a-868d6d4ecf31", "unlimited",
 				"Pay per GB for Month", new Double(0.03), "PER GB PER MONTH",
 				Arrays.asList("Shared object storage", "Unlimited Storage",
-						"Multi-protocol access:  S3, Swift, HDFS"));
+						"S3 protocol and HDFS access"));
 	}
 
 	private void testServiceDefinition(ServiceDefinition service, String id,
