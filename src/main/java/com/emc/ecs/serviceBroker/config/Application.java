@@ -1,5 +1,6 @@
 package com.emc.ecs.serviceBroker.config;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.cloudfoundry.community.servicebroker.model.BrokerApiVersion;
@@ -13,6 +14,10 @@ import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.serviceBroker.service.EcsServiceInstanceBindingService;
+import com.emc.ecs.serviceBroker.service.EcsServiceInstanceService;
 
 @EnableAutoConfiguration
 @ComponentScan
@@ -20,9 +25,6 @@ public class Application {
 	
 	@Autowired
 	private BrokerConfig broker;
-	
-	@Autowired
-	private CatalogConfig catalog;
 
 	public Application() {
 		super();
@@ -37,16 +39,44 @@ public class Application {
 	}
 	
 	@Bean
-	public EcsService ecsService() throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		return new EcsService(ecsConnection(), broker, catalog);
-	}
-	
-	@Bean
 	public BrokerApiVersion brokerApiVersion() {
 		return new BrokerApiVersion(broker.getBrokerApiVersion());
 	}
+	
+	@Bean
+	public EcsService ecsService() throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
+		return new EcsService();
+	}
+	
+	@Bean
+	public EcsServiceInstanceBindingService ecsServiceInstanceBindingService()
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
+		return new EcsServiceInstanceBindingService();
+	}
+	
+	@Bean
+	public ServiceInstanceRepository serviceInstanceRepository()
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
+		return new ServiceInstanceRepository(broker);
+	}
 
+	@Bean
+	public EcsServiceInstanceService ecsServiceInstanceService()
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
+		return new EcsServiceInstanceService();
+	}
+	
+	@Bean
+	public ServiceInstanceBindingRepository serviceInstanceBindingRepository()
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
+		return new ServiceInstanceBindingRepository(broker);
+	}
+	
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
