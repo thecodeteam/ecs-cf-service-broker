@@ -16,14 +16,15 @@ public class BucketAclAcl {
 		super();
 	}
 
-	public BucketAclAcl(List<BucketUserAcl> userAccessList, List<BucketGroupAcl> groupAccessList,
+	public BucketAclAcl(List<BucketUserAcl> userAccessList,
+			List<BucketGroupAcl> groupAccessList,
 			List<BucketCustomGroupAcl> customGroupAccessList) {
 		super();
 		this.userAccessList = userAccessList;
 		this.groupAccessList = groupAccessList;
 		this.customGroupAccessList = customGroupAccessList;
 	}
-	
+
 	@XmlElement(name = "user_acl")
 	public List<BucketUserAcl> getUserAccessList() {
 		return userAccessList;
@@ -47,9 +48,9 @@ public class BucketAclAcl {
 		return customGroupAccessList;
 	}
 
-	public void setCustomGroupAccessList(List<BucketCustomGroupAcl> customGroupAccessList) {
+	public void setCustomGroupAccessList(
+			List<BucketCustomGroupAcl> customGroupAccessList) {
 		this.customGroupAccessList = customGroupAccessList;
 	}
-	
-	
+
 }

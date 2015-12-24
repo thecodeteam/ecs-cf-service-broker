@@ -66,16 +66,16 @@ public class BaseUrlInfo {
 	public void setNamespaceInHost(Boolean namespaceInHost) {
 		this.namespaceInHost = namespaceInHost;
 	}
-	
+
 	public String getNamespaceUrl(String namespace, boolean ssl) {
 		String scheme = ssl ? "https" : "http";
 		String port = ssl ? "9021" : "9020";
 
 		if (namespaceInHost) {
-			return scheme + "://" + namespace + "." + baseurl + ":" + port ;
+			return scheme + "://" + namespace + "." + baseurl + ":" + port;
 		} else {
 			return scheme + "://" + baseurl + ":" + port;
 		}
-	}	
+	}
 
 }

@@ -6,11 +6,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "user_secret_key")
 public class UserSecretKey {
 
-	private String keyExpiryTimestamp;	
+	private String keyExpiryTimestamp;
 	private String secretKey;
 	private String keyTimestamp;
 	private Link link;
-	
+
 	public UserSecretKey() {
 		super();
 	}

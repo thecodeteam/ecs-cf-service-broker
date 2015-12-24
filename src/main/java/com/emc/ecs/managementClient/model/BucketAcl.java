@@ -4,17 +4,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "bucket_acl")
 public class BucketAcl {
-	
+
 	private String bucket;
 	private String namespace;
 	private String permission;
 	private BucketAclAcl acl;
-	
+
 	public BucketAcl() {
 		super();
 	}
-	
-	public BucketAcl(String bucket, String namespace, String permission, BucketAclAcl acl) {
+
+	public BucketAcl(String bucket, String namespace, String permission,
+			BucketAclAcl acl) {
 		super();
 		this.bucket = bucket;
 		this.namespace = namespace;

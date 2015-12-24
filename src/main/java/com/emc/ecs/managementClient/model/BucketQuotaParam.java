@@ -4,16 +4,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "bucket_quota_param")
 public class BucketQuotaParam {
-	
+
 	private long blockSize = 10;
 	private long notificationSize = 8;
 	private String namespace;
-	
+
 	public BucketQuotaParam() {
 		super();
 	}
 
-	public BucketQuotaParam(String namespace, long blockSize, long notificationSize) {
+	public BucketQuotaParam(String namespace, long blockSize,
+			long notificationSize) {
 		super();
 		this.namespace = namespace;
 		this.blockSize = blockSize;

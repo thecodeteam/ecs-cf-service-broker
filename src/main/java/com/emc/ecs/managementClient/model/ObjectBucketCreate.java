@@ -10,16 +10,17 @@ public class ObjectBucketCreate {
 	private Boolean filesystemEnabled = false;
 	private String headType = "s3";
 	private String namespace;
-	
+
 	private Boolean isStaleAllowed = true;
 
-	public ObjectBucketCreate(String name, String namespace, String replicationGroup) {
+	public ObjectBucketCreate(String name, String namespace,
+			String replicationGroup) {
 		super();
 		this.name = name;
 		this.namespace = namespace;
 		this.vpool = replicationGroup;
 	}
-	
+
 	public ObjectBucketCreate() {
 		super();
 	}
@@ -39,7 +40,7 @@ public class ObjectBucketCreate {
 	public void setVpool(String replicationGroup) {
 		this.vpool = replicationGroup;
 	}
-	
+
 	@XmlElement(name = "filesystem_enabled")
 	public Boolean getFilesystemEnabled() {
 		return filesystemEnabled;

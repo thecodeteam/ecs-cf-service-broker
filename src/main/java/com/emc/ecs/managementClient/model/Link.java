@@ -8,12 +8,12 @@ public class Link {
 
 	private String href;
 	private String rel;
-	
+
 	@XmlAttribute
 	public String getHref() {
 		return href;
 	}
-	
+
 	@XmlAttribute
 	public String getRel() {
 		return rel;

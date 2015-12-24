@@ -16,7 +16,7 @@ public class UserDeleteParam {
 		super();
 		this.user = user;
 	}
-	
+
 	public UserDeleteParam(String user, String namespace) {
 		super();
 		this.user = user;
@@ -26,15 +26,17 @@ public class UserDeleteParam {
 	public String getUser() {
 		return user;
 	}
+
 	public void setUser(String user) {
 		this.user = user;
 	}
+
 	public String getNamespace() {
 		return namespace;
 	}
+
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
 	}
-	
-	
+
 }

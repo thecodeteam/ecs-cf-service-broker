@@ -13,20 +13,23 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 
 public class ReplicationGroupAction {
-	
-	public static List<DataServiceReplicationGroup> list(Connection connection) throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder()
-				.segment("vdc", "data-service", "vpools");
+
+	public static List<DataServiceReplicationGroup> list(Connection connection)
+			throws EcsManagementClientException {
+		UriBuilder uri = connection.getUriBuilder().segment("vdc",
+				"data-service", "vpools");
 		Response response = connection.handleRemoteCall("get", uri, null);
-		DataServiceReplicationGroupList rgList = response.readEntity(DataServiceReplicationGroupList.class);
+		DataServiceReplicationGroupList rgList = response
+				.readEntity(DataServiceReplicationGroupList.class);
 		return rgList.getReplicationGroups();
 	}
-	
-	public static DataServiceReplicationGroup get(Connection connection, String id) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+
+	public static DataServiceReplicationGroup get(Connection connection,
+			String id) throws EcsManagementClientException,
+					EcsManagementResourceNotFoundException {
 		List<DataServiceReplicationGroup> repGroups = list(connection);
 		Optional<DataServiceReplicationGroup> optionalRg = repGroups.stream()
-				.filter(rg -> rg.getName().equals(id))
-				.findFirst();
+				.filter(rg -> rg.getName().equals(id)).findFirst();
 		try {
 			return optionalRg.get();
 		} catch (NoSuchElementException e) {

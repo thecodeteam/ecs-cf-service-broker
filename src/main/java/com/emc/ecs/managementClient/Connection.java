@@ -36,7 +36,6 @@ public class Connection {
 	private int authRetries = 0;
 	private static final int authMaxRetries = 3;
 
-		
 	public Connection(String endpoint, String username, String password) {
 		super();
 		this.endpoint = endpoint;
@@ -44,7 +43,8 @@ public class Connection {
 		this.password = password;
 	}
 
-	public Connection(String endpoint, String username, String password, URL certificate) {
+	public Connection(String endpoint, String username, String password,
+			URL certificate) {
 		super();
 		this.endpoint = endpoint;
 		this.username = username;
@@ -55,42 +55,44 @@ public class Connection {
 	public String getAuthToken() {
 		return authToken;
 	}
-	
+
 	private Client buildJerseyClient() throws EcsManagementClientException {
 		/**
-		 * Disable host name verification. Should be able to configure the
-		 * ECS certificate with the correct host name to avoid this.
+		 * Disable host name verification. Should be able to configure the ECS
+		 * certificate with the correct host name to avoid this.
 		 **/
 		HostnameVerifier hostnameVerifier = getHostnameVerifier();
 		HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
 		ClientBuilder builder = JerseyClientBuilder.newBuilder()
 				.register(hostnameVerifier);
-		
+
 		if (certificate != null) {
 			builder.sslContext(getSSLContext());
 		}
 		return builder.build();
 	}
-	
+
 	private SSLContext getSSLContext() throws EcsManagementClientException {
 		try {
 			CertificateFactory certFactory;
 			InputStream certInputStream = certificate.openStream();
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			certFactory = CertificateFactory.getInstance("X.509");
-			Certificate caCert = certFactory.generateCertificate(certInputStream);
-			TrustManagerFactory trustMgrFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			Certificate caCert = certFactory
+					.generateCertificate(certInputStream);
+			TrustManagerFactory trustMgrFactory = TrustManagerFactory
+					.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			keyStore.load(null);
 			keyStore.setCertificateEntry("caCert", caCert);
 			trustMgrFactory.init(keyStore);
 			sslContext.init(null, trustMgrFactory.getTrustManagers(), null);
 			return sslContext;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			throw new EcsManagementClientException(e.getMessage());
 		}
 	}
-		
+
 	private HostnameVerifier getHostnameVerifier() {
 		return new HostnameVerifier() {
 			@Override
@@ -105,54 +107,50 @@ public class Connection {
 	}
 
 	public void login() throws EcsManagementClientException {
-		UriBuilder uriBuilder = UriBuilder.fromPath(endpoint)
-				.segment("login");
-		HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder()
-			      .credentials(username, password)
-			      .build();
+		UriBuilder uriBuilder = UriBuilder.fromPath(endpoint).segment("login");
+		HttpAuthenticationFeature authFeature = HttpAuthenticationFeature
+				.basicBuilder().credentials(username, password).build();
 		Client jerseyClient = buildJerseyClient().register(authFeature);
-		
-		Response response = jerseyClient.target(uriBuilder)
-				.request()
-				.get();
+
+		Response response = jerseyClient.target(uriBuilder).request().get();
 		try {
-			handleResponse(response);			
-		} catch(EcsManagementResourceNotFoundException e) {
+			handleResponse(response);
+		} catch (EcsManagementResourceNotFoundException e) {
 			throw new EcsManagementClientException(e.getMessage());
 		}
 		this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
 	}
 
 	public void logout() throws EcsManagementClientException {
-		UriBuilder uri = UriBuilder.fromPath(endpoint)
-				.segment("logout")
+		UriBuilder uri = UriBuilder.fromPath(endpoint).segment("logout")
 				.queryParam("force", true);
 		handleRemoteCall("get", uri, null);
 		this.authToken = null;
 	}
-		
-	protected Response handleRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
+
+	protected Response handleRemoteCall(String method, UriBuilder uri,
+			Object arg) throws EcsManagementClientException {
 		Response response = makeRemoteCall(method, uri, arg);
-		try {			
-			handleResponse(response);			
+		try {
+			handleResponse(response);
 		} catch (EcsManagementResourceNotFoundException e) {
 			throw new EcsManagementClientException(e.getMessage());
 		}
 		return response;
 	}
-	
+
 	protected UriBuilder getUriBuilder() {
 		return UriBuilder.fromPath(endpoint);
 	}
 
-	protected Response makeRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
-		if (! isLoggedIn())
+	protected Response makeRemoteCall(String method, UriBuilder uri, Object arg)
+			throws EcsManagementClientException {
+		if (!isLoggedIn())
 			login();
 		Client jerseyClient = buildJerseyClient();
 		Logger logger = Logger.getLogger(LoggingFilter.class.getName());
 		Builder request = jerseyClient.target(uri)
-				.register(new LoggingFilter(logger, true))
-				.request()
+				.register(new LoggingFilter(logger, true)).request()
 				.header("X-SDS-AUTH-TOKEN", authToken)
 				.header("Accept", "application/xml");
 		Response response = null;
@@ -165,7 +163,8 @@ public class Connection {
 		} else if (method == "delete") {
 			response = request.delete();
 		} else {
-			throw new EcsManagementClientException("Invalid request method: " + method);
+			throw new EcsManagementClientException(
+					"Invalid request method: " + method);
 		}
 		if (response.getStatus() == 401 && authRetries < authMaxRetries) {
 			// attempt to re-authorize and retry up to _authMaxRetries_ times.
@@ -176,7 +175,8 @@ public class Connection {
 		return response;
 	}
 
-	protected boolean existenceQuery(UriBuilder uri, Object arg) throws EcsManagementClientException {
+	protected boolean existenceQuery(UriBuilder uri, Object arg)
+			throws EcsManagementClientException {
 		Response response = makeRemoteCall("get", uri, arg);
 		try {
 			handleResponse(response);
@@ -185,16 +185,21 @@ public class Connection {
 		}
 		return true;
 	}
-	
-	private void handleResponse(Response response) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+
+	private void handleResponse(Response response)
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
 		if (response.getStatus() > 399) {
-			EcsManagementClientError error = response.readEntity(EcsManagementClientError.class);
+			EcsManagementClientError error = response
+					.readEntity(EcsManagementClientError.class);
 			if (response.getStatus() == 404) {
-				throw new EcsManagementResourceNotFoundException(response.getStatusInfo().toString());
+				throw new EcsManagementResourceNotFoundException(
+						response.getStatusInfo().toString());
 			} else if (error.getCode() == 1004) {
-				throw new EcsManagementResourceNotFoundException(error.toString());
+				throw new EcsManagementResourceNotFoundException(
+						error.toString());
 			} else {
-				throw new EcsManagementClientException(error.toString());				
+				throw new EcsManagementClientException(error.toString());
 			}
 		}
 	}

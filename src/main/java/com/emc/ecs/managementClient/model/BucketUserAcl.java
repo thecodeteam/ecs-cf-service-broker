@@ -4,11 +4,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "user_acl")
 public class BucketUserAcl {
-	
+
 	private String user;
 	private String permission;
-	
-		public BucketUserAcl() {
+
+	public BucketUserAcl() {
 		super();
 	}
 

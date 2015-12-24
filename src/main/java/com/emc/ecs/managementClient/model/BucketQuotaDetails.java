@@ -41,5 +41,5 @@ public class BucketQuotaDetails {
 	public void setNotificationSize(long notificationSize) {
 		this.notificationSize = notificationSize;
 	}
-	
+
 }

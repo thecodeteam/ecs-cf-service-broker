@@ -14,7 +14,7 @@ public class UserCreateParam {
 		super();
 		this.user = user;
 		this.namespace = namespace;
-	}	
+	}
 
 	public String getUser() {
 		return user;
@@ -43,5 +43,5 @@ public class UserCreateParam {
 	public UserCreateParam() {
 		super();
 	}
-	
+
 }

@@ -4,7 +4,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "group_acl")
 public class BucketGroupAcl {
-	
+
 	private String group;
 	private String permission;
 

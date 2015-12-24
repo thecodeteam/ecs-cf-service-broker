@@ -22,5 +22,5 @@ public class BaseUrlList {
 	public void setBaseUrls(List<BaseUrl> baseUrls) {
 		this.baseUrls = baseUrls;
 	}
-	
+
 }

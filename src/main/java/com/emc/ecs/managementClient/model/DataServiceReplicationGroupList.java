@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "data_service_vpools")
 public class DataServiceReplicationGroupList {
-	
+
 	private List<DataServiceReplicationGroup> replicationGroups;
 
 	public DataServiceReplicationGroupList() {
@@ -19,7 +19,8 @@ public class DataServiceReplicationGroupList {
 		return replicationGroups;
 	}
 
-	public void setReplicationGroups(final List<DataServiceReplicationGroup> replicationGroups) {
+	public void setReplicationGroups(
+			final List<DataServiceReplicationGroup> replicationGroups) {
 		this.replicationGroups = replicationGroups;
 	}
 }

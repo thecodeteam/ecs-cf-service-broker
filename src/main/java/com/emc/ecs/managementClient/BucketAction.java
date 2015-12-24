@@ -8,23 +8,25 @@ import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
 public class BucketAction {
-	
-	public static void create(Connection connection, String id, String namespace, String replicationGroup)
-			throws EcsManagementClientException {
+
+	public static void create(Connection connection, String id,
+			String namespace, String replicationGroup)
+					throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment("object", "bucket");
-		connection.handleRemoteCall("post", uri, new ObjectBucketCreate(id, namespace, replicationGroup));
+		connection.handleRemoteCall("post", uri,
+				new ObjectBucketCreate(id, namespace, replicationGroup));
 	}
-	
-	public static boolean exists(Connection connection, String id, String namespace)
-			throws EcsManagementClientException {
+
+	public static boolean exists(Connection connection, String id,
+			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
 				.segment("object", "bucket", id, "info")
 				.queryParam("namespace", namespace);
 		return connection.existenceQuery(uri, null);
 	}
-	
-	public static ObjectBucketInfo get(Connection connection, String id, String namespace)
-			throws EcsManagementClientException {
+
+	public static ObjectBucketInfo get(Connection connection, String id,
+			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
 				.segment("object", "bucket", id, "info")
 				.queryParam("namespace", namespace);
@@ -32,9 +34,9 @@ public class BucketAction {
 		ObjectBucketInfo info = response.readEntity(ObjectBucketInfo.class);
 		return info;
 	}
-	
-	public static void delete(Connection connection, String id, String namespace)
-			throws EcsManagementClientException {
+
+	public static void delete(Connection connection, String id,
+			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
 				.segment("object", "bucket", id, "deactivate")
 				.queryParam("namespace", namespace);

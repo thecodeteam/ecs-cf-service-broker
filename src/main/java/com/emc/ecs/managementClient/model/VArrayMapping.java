@@ -23,5 +23,5 @@ public class VArrayMapping {
 	public void setValue(String value) {
 		this.value = value;
 	}
-	
+
 }

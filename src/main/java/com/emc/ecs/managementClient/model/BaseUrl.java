@@ -8,7 +8,7 @@ public class BaseUrl {
 	public BaseUrl() {
 		super();
 	}
-	
+
 	public String getName() {
 		return name;
 	}

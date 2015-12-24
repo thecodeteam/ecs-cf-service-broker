@@ -29,7 +29,7 @@ public class ObjectBucketInfo {
 	private Boolean inactive;
 	private Vdc vdc;
 	private ArrayList<String> tags;
-	
+
 	public ObjectBucketInfo() {
 		super();
 	}
