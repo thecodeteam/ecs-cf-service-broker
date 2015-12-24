@@ -56,9 +56,3 @@ eclipse {
 task wrapper(type: Wrapper) {
     gradleVersion = '2.7'
 }
-
-test {
-	include '**/ClientTestSuite'
-	include '**/CatalogConfigTest'
-	include '**/RepositoryTestSuite'
-}
