@@ -56,3 +56,8 @@ eclipse {
 task wrapper(type: Wrapper) {
     gradleVersion = '2.7'
 }
+
+task simulate(type:JavaExec) {
+	classpath sourceSets.test.runtimeClasspath
+	main = "com.emc.ecs.apiSimulator.Server"
+}
