@@ -1,71 +1,43 @@
 package com.emc.ecs.serviceBroker.config;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.cloudfoundry.community.servicebroker.model.Catalog;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 
-import org.cloudfoundry.community.servicebroker.model.Catalog;
-import org.cloudfoundry.community.servicebroker.model.Plan;
-import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
-
+@ConfigurationProperties(prefix = "catalog")
 @Configuration
 public class CatalogConfig {
 	
+	private List<ServiceDefinitionProxy> services;
+
+	public CatalogConfig() {
+		super();
+	}
+	
 	@Bean
-	public Catalog catalog() {
-		// TODO Add FS-enabled & CAS bucket types
-		ServiceDefinition bucketSvc = new ServiceDefinition(
-				"f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa",
-				"ecs-bucket",
-				"Elastic Cloud Object Storage Bucket",
-				true,  // bindable
-				true, // planUpdatable
-				getBucketPlans(),
-				Arrays.asList("object", "storage", "hadoop"),
-				getServiceDefinitionMetadata(),
-				null, // requires
-				null  // dashboardClient
-				);
-		return new Catalog(Arrays.asList(bucketSvc));
+	Catalog catalog() {
+		return new Catalog(services.stream()
+				.map(s -> s.unproxy())
+				.collect(Collectors.toList()));
+	}
+	
+	public CatalogConfig(List<ServiceDefinitionProxy> services) {
+		super();
+		this.services = services;
 	}
 
-	private Map<String, Object> getServiceDefinitionMetadata() {
-		Map<String, Object> sdMetadata = new HashMap<String, Object>();
-		sdMetadata.put("displayName", "ecs-bucket");
-		sdMetadata.put("imageUrl", "http://www.emc.com/images/products/header-image-icon-ecs.png");
-		sdMetadata.put("longDescription", "Elastic Cloud Storage Object Bucket");
-		sdMetadata.put("providerDisplayName", "EMC Corporation");
-		sdMetadata.put("documentationUrl", "https://community.emc.com/docs/DOC-45012");
-		sdMetadata.put("supportUrl", "http://www.emc.com/products-solutions/trial-software-download/ecs.htm");
-		return sdMetadata;
+	public List<ServiceDefinitionProxy> getServices() {
+		return services;
+	}
+	
+	public void setServices(List<ServiceDefinitionProxy> services) {
+		this.services = services;
 	}
 
-	private List<Plan> getBucketPlans() {
-		// TODO Add support for dynamically generated plans like how it's done in the MySQL broker:
-		//      https://github.com/cloudfoundry/cf-mysql-broker
-		Map<String, Object> plan1Meta = new HashMap<String, Object>();
-		Map<String, Object> costs1Map = new HashMap<String, Object>();
-		Map<String, Object> amount1Map = new HashMap<String, Object>();
-		amount1Map.put("usd", new Double(0.0));
-		costs1Map.put("amount", amount1Map);
-		costs1Map.put("unit", "MONTHLY");
-		plan1Meta.put("costs", Arrays.asList(costs1Map));
-		plan1Meta.put("bullets", Arrays.asList("Shared object storage", "5 GB Storage", "Multi-protocol access:  S3, Swift, HDFS"));
-		Plan plan1 = new Plan("8e777d49-0a78-4cf4-810a-b5f5173b019d", "5gb", "5 GB ECS Bucket Plan", plan1Meta);
-
-		Map<String, Object> plan2Meta = new HashMap<String, Object>();
-		Map<String, Object> costs2Map = new HashMap<String, Object>();
-		Map<String, Object> amount2Map = new HashMap<String, Object>();
-		amount2Map.put("usd", new Double(0.03));
-		costs2Map.put("amount", amount2Map);
-		costs2Map.put("unit", "PER GB PER MONTH");
-		plan2Meta.put("costs", Arrays.asList(costs2Map));
-		plan2Meta.put("bullets", Arrays.asList("Shared object storage", "Unlimited Storage", "Multi-protocol access:  S3, Swift, HDFS"));
-		Plan plan2 = new Plan("89d20694-9ab0-4a98-bc6a-868d6d4ecf31", "unlimited", "Pay per GB for Month", plan2Meta);
-		return Arrays.asList(plan1, plan2);
-	}
 }
