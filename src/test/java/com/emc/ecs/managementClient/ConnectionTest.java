@@ -17,7 +17,6 @@ public class ConnectionTest extends EcsActionTest {
 
 	@Test
 	public void testLogin() throws EcsManagementClientException {
-		System.out.println(connection.getCertificate());
 		assertFalse(connection.isLoggedIn());
 		connection.login();
 		assertTrue(connection.isLoggedIn());

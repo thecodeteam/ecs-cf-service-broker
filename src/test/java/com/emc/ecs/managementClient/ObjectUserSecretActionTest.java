@@ -14,29 +14,30 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
 public class ObjectUserSecretActionTest extends EcsActionTest {
 	private String user = "testuser2";
-	
+
 	@Before
 	public void setUp() throws EcsManagementClientException {
 		connection.login();
-		ObjectUserAction.create(connection, user, namespace);			
+		ObjectUserAction.create(connection, user, namespace);
 	}
-	
+
 	@After
 	public void cleanup() throws EcsManagementClientException {
 		ObjectUserAction.delete(connection, user);
 		connection.logout();
 	}
-	
+
 	@Test
 	public void createUserSecretKey() throws EcsManagementClientException {
 		UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
 		assertNotNull(secret.getSecretKey());
 	}
-	
+
 	@Test
 	public void listUserSecretKey() throws EcsManagementClientException {
 		UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
-		List<UserSecretKey> secretKeys = ObjectUserSecretAction.list(connection, user);
+		List<UserSecretKey> secretKeys = ObjectUserSecretAction.list(connection,
+				user);
 		assertEquals(secret.getSecretKey(), secretKeys.get(0).getSecretKey());
 	}
 }

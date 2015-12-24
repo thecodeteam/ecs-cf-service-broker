@@ -24,22 +24,26 @@ import com.emc.ecs.serviceBroker.config.BrokerConfig;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class, initializers = ConfigFileApplicationContextInitializer.class)
 public class BucketServiceInstanceBindingServiceTest {
-	
+
 	@Autowired
 	private BrokerConfig broker;
-	
+
 	@Test
-	public void testSaveFindDelete() throws IOException, JAXBException, EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
-		ServiceInstanceRepository repository = new ServiceInstanceRepository(broker);
+	public void testSaveFindDelete()
+			throws IOException, JAXBException, EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
+		ServiceInstanceRepository repository = new ServiceInstanceRepository(
+				broker);
 		ServiceInstance instance = serviceInstanceFixture();
 		repository.save(instance);
 		ServiceInstance instance2 = repository.find(instance.getId());
 		assertEquals(instance.getId(), instance2.getId());
 		repository.delete(instance.getId());
 	}
-	
+
 	private ServiceInstance serviceInstanceFixture() {
-		return new ServiceInstance("service-inst-one-id", "service-one-id", "plan-one-id",
-				DataFixture.getOrgOneGuid(), DataFixture.getSpaceOneGuid(), null);
+		return new ServiceInstance("service-inst-one-id", "service-one-id",
+				"plan-one-id", DataFixture.getOrgOneGuid(),
+				DataFixture.getSpaceOneGuid(), null);
 	}
 }

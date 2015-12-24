@@ -16,7 +16,7 @@ public class ObjectUserActionTest extends EcsActionTest {
 	public void setUp() throws EcsManagementClientException {
 		connection.login();
 	}
-	
+
 	@After
 	public void cleanup() throws EcsManagementClientException {
 		connection.logout();
@@ -26,13 +26,14 @@ public class ObjectUserActionTest extends EcsActionTest {
 	public void testUserDoesNotExist() throws EcsManagementClientException {
 		assertFalse(ObjectUserAction.exists(connection, user, namespace));
 	}
-	
+
 	@Test
-	public void createExistsAndDeleteObjectUser() throws EcsManagementClientException {
+	public void createExistsAndDeleteObjectUser()
+			throws EcsManagementClientException {
 		ObjectUserAction.create(connection, user, namespace);
 		assertTrue(ObjectUserAction.exists(connection, user, namespace));
 		ObjectUserAction.delete(connection, user);
 		assertFalse(ObjectUserAction.exists(connection, user, namespace));
 	}
-	
+
 }

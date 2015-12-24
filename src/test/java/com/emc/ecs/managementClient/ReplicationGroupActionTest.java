@@ -20,7 +20,7 @@ public class ReplicationGroupActionTest extends EcsActionTest {
 	public void setUp() throws EcsManagementClientException {
 		connection.login();
 	}
-	
+
 	@After
 	public void cleanup() throws EcsManagementClientException {
 		connection.logout();
@@ -28,13 +28,16 @@ public class ReplicationGroupActionTest extends EcsActionTest {
 
 	@Test
 	public void listReplicationGroups() throws EcsManagementClientException {
-		List<DataServiceReplicationGroup> rgList = ReplicationGroupAction.list(connection);
+		List<DataServiceReplicationGroup> rgList = ReplicationGroupAction
+				.list(connection);
 		assertTrue(rgList.size() == 1);
 	}
-	
+
 	@Test
-	public void getReplicationGroup() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		DataServiceReplicationGroup rg = ReplicationGroupAction.get(connection, replicationGroup);
+	public void getReplicationGroup() throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
+		DataServiceReplicationGroup rg = ReplicationGroupAction.get(connection,
+				replicationGroup);
 		assertTrue(rg.getName().equals(replicationGroup));
 	}
 
