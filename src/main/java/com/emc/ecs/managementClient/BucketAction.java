@@ -17,6 +17,13 @@ public class BucketAction {
 				new ObjectBucketCreate(id, namespace, replicationGroup));
 	}
 
+	public static void create(Connection connection,
+			ObjectBucketCreate createParam)
+					throws EcsManagementClientException {
+		UriBuilder uri = connection.getUriBuilder().segment("object", "bucket");
+		connection.handleRemoteCall("post", uri, createParam);
+	}
+
 	public static boolean exists(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()

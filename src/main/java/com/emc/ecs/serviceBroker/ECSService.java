@@ -14,22 +14,28 @@ import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.model.BaseUrlInfo;
 import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.managementClient.model.BucketUserAcl;
+import com.emc.ecs.managementClient.model.ObjectBucketCreate;
 import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
+import com.emc.ecs.serviceBroker.config.CatalogConfig;
+import com.emc.ecs.serviceBroker.model.PlanProxy;
+import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 
 @Service
 public class EcsService {
 
 	private Connection connection;
 	private BrokerConfig broker;
+	private CatalogConfig catalog;
 
-	public EcsService(Connection connection, BrokerConfig broker)
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
+	public EcsService(Connection connection, BrokerConfig broker,
+			CatalogConfig catalog) throws EcsManagementClientException,
+					EcsManagementResourceNotFoundException {
 		super();
 		this.broker = broker;
 		this.connection = connection;
+		this.catalog = catalog;
 		prepareRepository();
 
 		if (broker.getRepositoryEndpoint() == null)
@@ -41,7 +47,8 @@ public class EcsService {
 		String bucketName = broker.getRepositoryBucket();
 		String userName = broker.getRepositoryUser();
 		if (!bucketExists(bucketName))
-			createBucket(bucketName, "ecs-bucket-unlimited");
+			createBucket(bucketName, broker.getRepositoryServiceId(),
+					broker.getRepositoryPlanId());
 
 		if (!userExists(userName)) {
 			UserSecretKey secretKey = createUser(userName);
@@ -67,34 +74,60 @@ public class EcsService {
 		BucketAction.delete(connection, prefix(id), broker.getNamespace());
 	}
 
-	public void createBucket(String id, String planId)
+	public void createBucket(String id, String serviceId, String planId)
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
-		if (planId.equals("ecs-bucket-small")
-				|| planId.equals("ecs-bucket-unlimited")) {
-			BucketAction.create(connection, prefix(id), broker.getNamespace(),
-					broker.getReplicationGroup());
-		} else {
+		ServiceDefinitionProxy service = catalog
+				.findServiceDefinition(serviceId);
+		if (service == null)
 			throw new EcsManagementClientException(
-					"No service matching plan id");
-		}
+					"No service matching service id: " + serviceId);
 
-		if (planId.equals("ecs-bucket-small"))
+		PlanProxy plan = service.findPlan(planId);
+		if (plan == null)
+			throw new EcsManagementClientException(
+					"No service matching plan id: " + planId);
+
+		ObjectBucketCreate createParam = new ObjectBucketCreate();
+		createParam.setName(prefix(id));
+		createParam.setNamespace(broker.getNamespace());
+		createParam.setVpool(broker.getReplicationGroup());
+		createParam.setHeadType(service.getHeadType());
+		createParam.setFilesystemEnabled(service.getFileSystemEnabled());
+		createParam.setIsStaleAllowed(service.getStaleAllowed());
+
+		BucketAction.create(connection, createParam);
+
+		int limit = plan.getQuotaLimit();
+		int warning = plan.getQuotaWarning();
+
+		// no quota needed if neither is set
+		if (limit != -1 || warning != -1)
 			BucketQuotaAction.create(connection, prefix(id),
-					broker.getNamespace(), 10, 8);
+					broker.getNamespace(), limit, warning);
 	}
 
-	public void changeBucketPlan(String id, String planId)
+	public void changeBucketPlan(String id, String serviceId, String planId)
 			throws EcsManagementClientException {
-		if (planId.equals("ecs-bucket-small")) {
-			BucketQuotaAction.create(connection, prefix(id),
-					broker.getNamespace(), 10, 8);
-		} else if (planId.equals("ecs-bucket-unlimited")) {
+		ServiceDefinitionProxy service = catalog
+				.findServiceDefinition(serviceId);
+		if (service == null)
+			throw new EcsManagementClientException(
+					"No service matching service id: " + serviceId);
+
+		PlanProxy plan = service.findPlan(planId);
+		if (plan == null)
+			throw new EcsManagementClientException(
+					"No service matching plan id: " + planId);
+
+		int limit = plan.getQuotaLimit();
+		int warning = plan.getQuotaWarning();
+		if (limit == -1 && warning == -1) {
 			BucketQuotaAction.delete(connection, prefix(id),
 					broker.getNamespace());
 		} else {
-			throw new EcsManagementClientException(
-					"No service matching plan id");
+			BucketQuotaAction.create(connection, prefix(id),
+					broker.getNamespace(), limit, warning);
 		}
 	}
 

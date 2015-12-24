@@ -16,6 +16,8 @@ public class BrokerConfig {
 	private String replicationGroup;
 	private String repositorySecret;
 	private String repositoryEndpoint;
+	private String repositoryServiceId;
+	private String repositoryPlanId;
 	private String repositoryUser = "user";
 	private String username = "root";
 	private String password = "ChangeMe";
@@ -85,6 +87,22 @@ public class BrokerConfig {
 
 	public String getRepositoryEndpoint() {
 		return repositoryEndpoint;
+	}
+
+	public String getRepositoryServiceId() {
+		return repositoryServiceId;
+	}
+
+	public void setRepositoryServiceId(String repositoryServiceId) {
+		this.repositoryServiceId = repositoryServiceId;
+	}
+
+	public String getRepositoryPlanId() {
+		return repositoryPlanId;
+	}
+
+	public void setRepositoryPlanId(String repositoryPlanId) {
+		this.repositoryPlanId = repositoryPlanId;
 	}
 
 	public void setRepositoryEndpoint(String repositoryEndpoint) {

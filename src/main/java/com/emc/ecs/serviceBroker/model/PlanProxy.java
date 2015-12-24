@@ -9,6 +9,8 @@ public class PlanProxy {
 	private String name;
 	private String description;
 	private PlanMetadataProxy metadata;
+	private int quotaLimit = -1;
+	private int quotaWarning = -1;
 
 	public PlanProxy() {
 		super();
@@ -57,5 +59,21 @@ public class PlanProxy {
 
 	public void setMetadata(PlanMetadataProxy metadata) {
 		this.metadata = metadata;
+	}
+
+	public int getQuotaLimit() {
+		return quotaLimit;
+	}
+
+	public void setQuotaLimit(int quotaLimit) {
+		this.quotaLimit = quotaLimit;
+	}
+
+	public int getQuotaWarning() {
+		return quotaWarning;
+	}
+
+	public void setQuotaWarning(int quotaWarning) {
+		this.quotaWarning = quotaWarning;
 	}
 }

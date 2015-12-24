@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.emc.ecs.serviceBroker.model.PlanProxy;
 import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 
 @ConfigurationProperties(prefix = "catalog")
@@ -40,4 +41,8 @@ public class CatalogConfig {
 		this.services = services;
 	}
 
+	public ServiceDefinitionProxy findServiceDefinition(String serviceId) {
+		return services.stream().filter(s -> s.getId().equals(serviceId))
+				.findFirst().get();
+	}
 }

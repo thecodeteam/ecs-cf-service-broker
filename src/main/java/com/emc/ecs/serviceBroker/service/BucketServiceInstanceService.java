@@ -41,7 +41,7 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 		try {
 			if (ecs.bucketExists(instance.getId()))
 				throw new ServiceInstanceExistsException(instance);
-			ecs.createBucket(instance.getId(), planId);
+			ecs.createBucket(instance.getId(), service.getId(), planId);
 
 			if (ecs.getBucketInfo(instance.getId()) == null)
 				throw new ServiceBrokerException(
@@ -86,7 +86,7 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 			ServiceInstance instance = repository.find(instanceId);
 			if (instance == null)
 				throw new ServiceInstanceDoesNotExistException(instanceId);
-			ecs.changeBucketPlan(instanceId, planId);
+			ecs.changeBucketPlan(instanceId, instance.getServiceDefinitionId(), planId);
 			repository.delete(instanceId);
 			ServiceInstance updatedInstance = new ServiceInstance(instanceId,
 					instance.getServiceDefinitionId(), planId,

@@ -20,6 +20,9 @@ public class Application {
 	
 	@Autowired
 	private BrokerConfig broker;
+	
+	@Autowired
+	private CatalogConfig catalog;
 
 	public Application() {
 		super();
@@ -36,7 +39,7 @@ public class Application {
 	@Bean
 	public EcsService ecsService() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
-		return new EcsService(ecsConnection(), broker);
+		return new EcsService(ecsConnection(), broker, catalog);
 	}
 	
 	@Bean
