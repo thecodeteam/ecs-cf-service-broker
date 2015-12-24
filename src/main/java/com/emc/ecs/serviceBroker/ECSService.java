@@ -1,6 +1,7 @@
 package com.emc.ecs.serviceBroker;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -154,6 +155,19 @@ public class EcsService {
 		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
 		userAcl.add(new BucketUserAcl(prefix(username), "full_control"));
 		acl.getAcl().setUserAccessList(userAcl);
+		BucketAclAction.update(connection, prefix(id), acl);
+	}
+
+	public void removeUserFromBucket(String id, String username)
+			throws EcsManagementClientException {
+		BucketAcl acl = BucketAclAction.get(connection, prefix(id),
+				broker.getNamespace());
+		List<BucketUserAcl> newUserAcl = acl.getAcl()
+				.getUserAccessList()
+				.stream()
+				.filter(a -> a.getUser().equals(prefix(username)))
+				.collect(Collectors.toList());
+		acl.getAcl().setUserAccessList(newUserAcl);
 		BucketAclAction.update(connection, prefix(id), acl);
 	}
 

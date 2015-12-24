@@ -75,7 +75,7 @@ public class BucketServiceInstanceBindingService
 		try {
 			ServiceInstanceBinding binding = repository.find(bindingId);
 			ecs.deleteUser(bindingId);
-			// TODO Delete User ACLs as a cleanup exercise
+			ecs.removeUserFromBucket(serviceId, bindingId);
 			repository.delete(bindingId);
 			return binding;
 		} catch (Exception e) {
