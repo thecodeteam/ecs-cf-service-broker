@@ -53,7 +53,7 @@ public class CatalogConfigTest {
 		Plan plan0 = ecsBucketPlans.get(0);
 
 		testPlan(plan0, "8e777d49-0a78-4cf4-810a-b5f5173b019d", "5gb",
-				"5 GB ECS Bucket Plan", new Double(0.0), "MONTHLY",
+				"Free Trial", new Double(0.0), "MONTHLY",
 				Arrays.asList("Shared object storage", "5 GB Storage",
 						"Multi-protocol access:  S3, Swift, HDFS"));
 
