@@ -13,7 +13,6 @@ import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
-import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
 
 @EnableAutoConfiguration
 @ComponentScan
@@ -21,12 +20,10 @@ public class Application {
 	
 	@Autowired
 	private BrokerConfig broker;
-	
-	@Autowired
-	private static EcsRepositoryCredentials credentials;
-	
-	@Autowired
-	private static EcsService ecs;
+
+	public Application() {
+		super();
+	}
 
 	@Bean
 	public Connection ecsConnection() {
@@ -37,29 +34,26 @@ public class Application {
 	}
 	
 	@Bean
-	public BrokerApiVersion brokerApiVersion() {
-		return new BrokerApiVersion(broker.getBrokerApiVersion());
+	public EcsService ecsService() throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
+		return new EcsService(ecsConnection(), broker);
 	}
 	
 	@Bean
-	public EcsRepositoryCredentials getRepositoryCredentials() {
-		EcsRepositoryCredentials creds = new EcsRepositoryCredentials(
-				broker.getRepositoryBucket(), broker.getRepositoryUser(),
-				broker.getNamespace(), broker.getReplicationGroup(),
-				broker.getPrefix());
-		String repoEndpoint = broker.getRepositoryEndpoint();
-		if (repoEndpoint != null)
-			creds.setEndpoint(repoEndpoint);
-		return creds;
+	public BrokerApiVersion brokerApiVersion() {
+		return new BrokerApiVersion(broker.getBrokerApiVersion());
 	}
 
-	public static void main(String[] args) throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
+	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
-		ecs.prepareRepository();
-
-		if (credentials.getEndpoint() == null)
-			credentials.setEndpoint(ecs.getObjectEndpoint());
 	}
-    	
+
+	public BrokerConfig getBroker() {
+		return broker;
+	}
+
+	public void setBroker(BrokerConfig broker) {
+		this.broker = broker;
+	}
+   	
 }

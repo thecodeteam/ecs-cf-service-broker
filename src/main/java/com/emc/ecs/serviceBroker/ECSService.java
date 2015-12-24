@@ -2,7 +2,6 @@ package com.emc.ecs.serviceBroker;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.emc.ecs.managementClient.BaseUrlAction;
@@ -17,44 +16,38 @@ import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.managementClient.model.BucketUserAcl;
 import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.managementClient.model.UserSecretKey;
-import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
+import com.emc.ecs.serviceBroker.config.BrokerConfig;
 
 @Service
 public class EcsService {
 	
-	@Autowired
 	private Connection connection;
-
-	@Autowired
-	private EcsRepositoryCredentials credentials;
-
-
-	public EcsService() {
+	private BrokerConfig broker;
+	
+	public EcsService(Connection connection, BrokerConfig broker) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		super();
+		this.broker = broker;
+		this.connection = connection;
+		prepareRepository();
+
+		if (broker.getRepositoryEndpoint() == null)
+			broker.setRepositoryEndpoint(getObjectEndpoint());
 	}
 
 	public void prepareRepository()
 			throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		String bucketName = credentials.getBucketName();
-		String userName = credentials.getUserName();
+		String bucketName = broker.getRepositoryBucket();
+		String userName = broker.getRepositoryUser();
 		if (! bucketExists(bucketName))
 			createBucket(bucketName, "ecs-bucket-unlimited");
 		
 		if (! userExists(userName)) {
 			UserSecretKey secretKey = createUser(userName);
 			addUserToBucket(bucketName, userName);
-			credentials.setUserSecret(secretKey.getSecretKey());
+			broker.setRepositorySecret(secretKey.getSecretKey());
 		} else {
-			credentials.setUserSecret(getUserSecret(userName));
+			broker.setRepositorySecret(getUserSecret(userName));
 		}
-	}
-	
-	public EcsRepositoryCredentials getCredentials() {
-		return credentials;
-	}
-	
-	public void setCredentials(EcsRepositoryCredentials credentials) {
-		this.credentials = credentials;
 	}
 
 	private String getUserSecret(String id) throws EcsManagementClientException {
@@ -62,42 +55,42 @@ public class EcsService {
 	}
 
 	public ObjectBucketInfo getBucketInfo(String id) throws EcsManagementClientException {
-		return BucketAction.get(connection, prefix(id), credentials.getNamespace());
+		return BucketAction.get(connection, prefix(id), broker.getNamespace());
 	}
 
 	public void deleteBucket(String id) throws EcsManagementClientException {
-		BucketAction.delete(connection, prefix(id), credentials.getNamespace());
+		BucketAction.delete(connection, prefix(id), broker.getNamespace());
 	}
 
 	public void createBucket(String id, String planId) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
 		if (planId.equals("ecs-bucket-small") || planId.equals("ecs-bucket-unlimited")) {
-			BucketAction.create(connection, prefix(id), credentials.getNamespace(), credentials.getReplicationGroup());
+			BucketAction.create(connection, prefix(id), broker.getNamespace(), broker.getReplicationGroup());
 		} else {
 			throw new EcsManagementClientException("No service matching plan id");
 		}
 
 		if (planId.equals("ecs-bucket-small"))
-			BucketQuotaAction.create(connection, prefix(id), credentials.getNamespace(), 10, 8);
+			BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(), 10, 8);
 	}
 	
 	public void changeBucketPlan(String id, String planId) throws EcsManagementClientException {
 		if (planId.equals("ecs-bucket-small")) {
-			BucketQuotaAction.create(connection, prefix(id), credentials.getNamespace(), 10, 8);
+			BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(), 10, 8);
 		} else if (planId.equals("ecs-bucket-unlimited")) {
-			BucketQuotaAction.delete(connection, prefix(id), credentials.getNamespace());
+			BucketQuotaAction.delete(connection, prefix(id), broker.getNamespace());
 		} else {
 			throw new EcsManagementClientException("No service matching plan id");
 		}
 	}
 
 	public UserSecretKey createUser(String id) throws EcsManagementClientException {
-		ObjectUserAction.create(connection, prefix(id), credentials.getNamespace());
+		ObjectUserAction.create(connection, prefix(id), broker.getNamespace());
 		ObjectUserSecretAction.create(connection, prefix(id));
 		return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
 	}
 
 	public Boolean userExists(String id) throws EcsManagementClientException {
-		return ObjectUserAction.exists(connection, prefix(id), credentials.getNamespace());
+		return ObjectUserAction.exists(connection, prefix(id), broker.getNamespace());
 	}
 
 	public void deleteUser(String id) throws EcsManagementClientException {
@@ -105,7 +98,7 @@ public class EcsService {
 	}
 
 	public void addUserToBucket(String id, String username) throws EcsManagementClientException {
-		BucketAcl acl = BucketAclAction.get(connection, prefix(id), credentials.getNamespace());
+		BucketAcl acl = BucketAclAction.get(connection, prefix(id), broker.getNamespace());
 		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
 		userAcl.add(new BucketUserAcl(prefix(username), "full_control"));
 		acl.getAcl().setUserAccessList(userAcl);
@@ -113,7 +106,7 @@ public class EcsService {
 	}
 
 	public boolean bucketExists(String id) throws EcsManagementClientException {
-		return BucketAction.exists(connection, prefix(id), credentials.getNamespace());
+		return BucketAction.exists(connection, prefix(id), broker.getNamespace());
 	}
 
 	public String getObjectEndpoint() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
@@ -122,10 +115,10 @@ public class EcsService {
 		String id = BaseUrlAction.list(connection).get(0).getId();
 		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, id);
 		// TODO:  switch to TLS end-point and custom S3 trust manager
-		return baseUrl.getNamespaceUrl(credentials.getNamespace(), false);
+		return baseUrl.getNamespaceUrl(broker.getNamespace(), false);
 	}
 	
 	private String prefix(String string) {
-		return this.getCredentials().getPrefix() + string;
+		return broker.getPrefix() + string;
 	}
 }

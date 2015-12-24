@@ -21,13 +21,17 @@ import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 @Service
 public class BucketServiceInstanceBindingService implements ServiceInstanceBindingService {
 
+	@Autowired
 	private EcsService ecs;
-	private ServiceInstanceBindingRepository repository;
 	
 	@Autowired
-	public BucketServiceInstanceBindingService(EcsService ecs) throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
-		this.ecs = ecs;
-		this.repository = new ServiceInstanceBindingRepository(ecs);
+	private ServiceInstanceBindingRepository repository;
+	
+	
+	public BucketServiceInstanceBindingService()
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
+		super();
 	}
 
 	@Override

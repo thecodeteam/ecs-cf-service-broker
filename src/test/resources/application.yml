@@ -1,0 +1,49 @@
+broker:
+  management-endpoint: https://127.0.0.1:4443
+  namespace: ns1
+  replication-group: urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global
+  repository-endpoint: http://127.0.0.1:9020
+catalog:
+  services:
+    - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
+      name: ecs-bucket
+      description: Elastic Cloud Object Storage Bucket
+      bindable: true
+      planUpdatable: true
+      tags:
+        - s3
+        - storage
+        - object
+      metadata:
+        displayName: ecs-bucket
+        imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
+        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
+        providerDisplayName: EMC Corporation
+        documentationUrl: https://community.emc.com/docs/DOC-45012
+        supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
+      plans:
+        - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
+          name: 5gb
+          description: Free Trial
+          metadata:
+            storageLimit: 5
+            costs:
+              - amount:
+                  usd: 0.0
+                unit: MONTHLY
+            bullets:
+              - Shared object storage
+              - 5 GB Storage
+              - "Multi-protocol access:  S3, Swift, HDFS"
+        - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
+          name: unlimited
+          description: Pay per GB for Month
+          metadata:
+            costs:
+              - amount:
+                  usd: 0.03
+                unit: PER GB PER MONTH
+            bullets:
+              - Shared object storage
+              - Unlimited Storage
+              - "Multi-protocol access:  S3, Swift, HDFS"

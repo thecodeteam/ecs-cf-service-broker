@@ -1,12 +1,10 @@
 package com.emc.ecs.serviceBroker.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "broker")
-@ComponentScan(basePackages = "com.emc.ecs.serviceBroker")
 public class BrokerConfig {
 	
 	// TODO support multiple Cloud Foundry instances per http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html
@@ -15,13 +13,14 @@ public class BrokerConfig {
 	private String managementEndpoint;
 	private String namespace;
 	private String replicationGroup;
-	private String repositoryUser;
-	private String username;
-	private String password;
-	private String repositoryBucket;
+	private String repositorySecret;
 	private String repositoryEndpoint;
-	private String prefix;
-	private String brokerApiVersion;
+	private String repositoryUser = "user";
+	private String username = "root";
+	private String password = "ChangeMe";
+	private String repositoryBucket = "repository";
+	private String prefix = "ecs-cf-broker-";
+	private String brokerApiVersion = "2.8";
 
 	public BrokerConfig() {
 		super();
@@ -105,5 +104,21 @@ public class BrokerConfig {
 
 	public void setBrokerApiVersion(String brokerApiVersion) {
 		this.brokerApiVersion = brokerApiVersion;
+	}
+
+	public String getRepositorySecret() {
+		return repositorySecret;
+	}
+
+	public void setRepositorySecret(String repositorySecret) {
+		this.repositorySecret = repositorySecret;
+	}
+
+	public String getPrefixedBucketName() {
+		return prefix + repositoryBucket;
+	}
+
+	public String getPrefixedUserName() {
+		return prefix + repositoryUser;
 	}
 }

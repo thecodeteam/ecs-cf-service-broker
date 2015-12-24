@@ -11,10 +11,11 @@ import javax.xml.bind.JAXBException;
 
 import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.EcsService;
+import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
@@ -22,21 +23,24 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Component
 public class ServiceInstanceBindingRepository {
 
-	S3JerseyClient s3;
-	String bucket;
-	ObjectMapper objectMapper = new ObjectMapper();
+	private S3JerseyClient s3;
+	private String bucket;
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
-	public ServiceInstanceBindingRepository(EcsService ecs)
-			throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
+	public ServiceInstanceBindingRepository(BrokerConfig broker)
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
 		super();
-		EcsRepositoryCredentials creds = ecs.getCredentials();
-		S3Config s3Config = new S3Config(new URI(creds.getEndpoint()));
-		s3Config.withIdentity(creds.getPrefixedUserName()).withSecretKey(creds.getUserSecret());
+		S3Config s3Config = new S3Config(
+				new URI(broker.getRepositoryEndpoint()));
+		s3Config.withIdentity(broker.getPrefixedUserName())
+				.withSecretKey(broker.getRepositorySecret());
 		this.s3 = new S3JerseyClient(s3Config);
-		this.bucket = creds.getPrefixedBucketName();
+		this.bucket = broker.getPrefixedBucketName();
 	}
 
 	public void save(ServiceInstanceBinding binding) throws IOException, JAXBException {
