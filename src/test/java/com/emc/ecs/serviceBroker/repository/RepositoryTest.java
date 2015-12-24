@@ -18,6 +18,6 @@ public class RepositoryTest extends EcsActionTest {
 		creds = new EcsRepositoryCredentials("repository", "user", namespace,
 				replicationGroup, "ecs-cf-broker-");
 		if (repositoryEndpoint != null) creds.setEndpoint(repositoryEndpoint);
-		ecs = new EcsService(connection, creds);
+		ecs = new EcsService();
 	}
 }

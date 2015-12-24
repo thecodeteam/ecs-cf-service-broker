@@ -22,34 +22,30 @@ import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
 @Service
 public class EcsService {
 	
+	@Autowired
 	private Connection connection;
-	private EcsRepositoryCredentials credentials;
 
 	@Autowired
-	public EcsService(Connection connection, EcsRepositoryCredentials creds) throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
+	private EcsRepositoryCredentials credentials;
+
+
+	public EcsService() {
 		super();
-		this.connection = connection;
-		this.credentials = creds;
-		prepareRepository(creds);
-		
-		if (creds.getEndpoint() == null)
-			creds.setEndpoint(getObjectEndpoint());
 	}
 
-	private void prepareRepository(EcsRepositoryCredentials creds)
+	public void prepareRepository()
 			throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-		String bucketName = creds.getBucketName();
-		String userName = creds.getUserName();
+		String bucketName = credentials.getBucketName();
+		String userName = credentials.getUserName();
 		if (! bucketExists(bucketName))
 			createBucket(bucketName, "ecs-bucket-unlimited");
 		
 		if (! userExists(userName)) {
 			UserSecretKey secretKey = createUser(userName);
 			addUserToBucket(bucketName, userName);
-			this.credentials.setUserSecret(secretKey.getSecretKey());
+			credentials.setUserSecret(secretKey.getSecretKey());
 		} else {
-			this.credentials.setUserSecret(getUserSecret(userName));
+			credentials.setUserSecret(getUserSecret(userName));
 		}
 	}
 	

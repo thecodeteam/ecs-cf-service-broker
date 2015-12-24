@@ -1,70 +1,109 @@
 package com.emc.ecs.serviceBroker.config;
 
-import java.net.URL;
-
-import org.cloudfoundry.community.servicebroker.model.BrokerApiVersion;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import com.emc.ecs.managementClient.Connection;
-import com.emc.ecs.serviceBroker.repository.EcsRepositoryCredentials;
-
 @Configuration
+@ConfigurationProperties(prefix = "broker")
 @ComponentScan(basePackages = "com.emc.ecs.serviceBroker")
 public class BrokerConfig {
 	
 	// TODO support multiple Cloud Foundry instances per http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html
 	// TODO support syslog drain URL
 	
-	@Value("${broker-config.managementEndpoint}")
 	private String managementEndpoint;
-	
-	@Value("${broker-config.namespace}")
 	private String namespace;
-	
-	@Value("${broker-config.replicationGroup}")
 	private String replicationGroup;
-	
-	@Value("${broker-config.repositoryUser:user}")
 	private String repositoryUser;
-	
-	@Value("${broker-config.username:root}")
 	private String username;
-	
-	@Value("${broker-config.password:ChangeMe}")
 	private String password;
-	
-	@Value("${broker-config.repositoryBucket:repository}")
 	private String repositoryBucket;
-
-	@Value("${broker-config.repositoryEndpoint}")
 	private String repositoryEndpoint;
-	
-	@Value("${broker-config.prefix:ecs-cf-broker-}")
 	private String prefix;
-	
-	@Value("${broker-config.apiVersion:2.8}")
 	private String brokerApiVersion;
 
-	@Bean
-	public Connection ecsConnection() {
-		URL certificate = getClass().getClassLoader().getResource("localhost.pem");
-		return new Connection(managementEndpoint, username, password, certificate);
+	public BrokerConfig() {
+		super();
 	}
-	
-	@Bean
-	public BrokerApiVersion brokerApiVersion() {
-		return new BrokerApiVersion(brokerApiVersion);
+
+	public String getManagementEndpoint() {
+		return managementEndpoint;
 	}
-	
-	@Bean
-	public EcsRepositoryCredentials getRepositoryCredentials() {
-		EcsRepositoryCredentials creds = new EcsRepositoryCredentials(
-				repositoryBucket, repositoryUser, namespace, replicationGroup,
-				prefix);
-		if (repositoryEndpoint != null) creds.setEndpoint(repositoryEndpoint);
-		return creds;
+
+	public void setManagementEndpoint(String managementEndpoint) {
+		this.managementEndpoint = managementEndpoint;
+	}
+
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
+	}
+
+	public String getReplicationGroup() {
+		return replicationGroup;
+	}
+
+	public void setReplicationGroup(String replicationGroup) {
+		this.replicationGroup = replicationGroup;
+	}
+
+	public String getRepositoryUser() {
+		return repositoryUser;
+	}
+
+	public void setRepositoryUser(String repositoryUser) {
+		this.repositoryUser = repositoryUser;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getRepositoryBucket() {
+		return repositoryBucket;
+	}
+
+	public void setRepositoryBucket(String repositoryBucket) {
+		this.repositoryBucket = repositoryBucket;
+	}
+
+	public String getRepositoryEndpoint() {
+		return repositoryEndpoint;
+	}
+
+	public void setRepositoryEndpoint(String repositoryEndpoint) {
+		this.repositoryEndpoint = repositoryEndpoint;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public String getBrokerApiVersion() {
+		return brokerApiVersion;
+	}
+
+	public void setBrokerApiVersion(String brokerApiVersion) {
+		this.brokerApiVersion = brokerApiVersion;
 	}
 }

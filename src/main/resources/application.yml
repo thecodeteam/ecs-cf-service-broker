@@ -1,8 +1,8 @@
-broker-config:
-  managementEndpoint: https://127.0.0.1:4443
+broker:
+  management-endpoint: https://127.0.0.1:4443
   namespace: ns1
-  replicationGroup: urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global
-  repositoryEndpoint: http://127.0.0.1:9020
+  replication-group: urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global
+  repository-endpoint: http://127.0.0.1:9020
 catalog:
   services:
     - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
