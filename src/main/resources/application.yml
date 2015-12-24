@@ -14,6 +14,13 @@ catalog:
         - s3
         - storage
         - object
+      metadata:
+        displayName: ecs-bucket
+        imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
+        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
+        providerDisplayName: EMC Corporation
+        documentationUrl: https://community.emc.com/docs/DOC-45012
+        supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
       plans:
         - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
           name: 5gb
@@ -40,10 +47,3 @@ catalog:
               - Shared object storage
               - Unlimited Storage
               - "Multi-protocol access:  S3, Swift, HDFS"
-      metadata:
-        displayName: ecs-bucket
-        imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
-        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
-        providerDisplayName: EMC Corporation
-        documentationUrl: https://community.emc.com/docs/DOC-45012
-        supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
