@@ -3,6 +3,9 @@ package com.emc.ecs.serviceBroker;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.emc.ecs.managementClient.BaseUrlAction;
@@ -26,23 +29,29 @@ import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 @Service
 public class EcsService {
 
+	@Autowired
 	private Connection connection;
+	
+	@Autowired
 	private BrokerConfig broker;
+	
+	@Autowired
 	private CatalogConfig catalog;
 
-	public EcsService(Connection connection, BrokerConfig broker,
-			CatalogConfig catalog) throws EcsManagementClientException,
+	public EcsService() throws EcsManagementClientException,
 					EcsManagementResourceNotFoundException {
 		super();
-		this.broker = broker;
-		this.connection = connection;
-		this.catalog = catalog;
+	}
+	
+	@PostConstruct
+	public void initialize() throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
 		prepareRepository();
 
 		if (broker.getRepositoryEndpoint() == null)
 			broker.setRepositoryEndpoint(getObjectEndpoint());
 	}
-
+	
 	public void prepareRepository() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		String bucketName = broker.getRepositoryBucket();
