@@ -8,7 +8,7 @@ public class EcsManagementClientError {
 	private String description;
 	private String details;
 	private Boolean retryable;
-	
+
 	public EcsManagementClientError() {
 		super();
 	}
@@ -44,8 +44,9 @@ public class EcsManagementClientError {
 	public void setRetryable(Boolean retryable) {
 		this.retryable = retryable;
 	}
-	
+
 	public String toString() {
-		return "Error: " + description + " (" + code + "): " + details + ". Retryable: " + retryable + ".";
+		return "Error: " + description + " (" + code + "): " + details
+				+ ". Retryable: " + retryable + ".";
 	}
 }

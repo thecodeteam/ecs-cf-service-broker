@@ -19,29 +19,34 @@ import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
 
 @Service
 public class BucketServiceInstanceService implements ServiceInstanceService {
-	
+
 	@Autowired
 	private EcsService ecs;
-	
+
 	@Autowired
 	private ServiceInstanceRepository repository;
-	
-	public BucketServiceInstanceService()
-			throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
+
+	public BucketServiceInstanceService() throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
 		super();
 	}
 
 	@Override
-	public ServiceInstance createServiceInstance(ServiceDefinition service, String serviceInstanceId, String planId, String organizationGuid,
-			String spaceGuid) throws ServiceInstanceExistsException, ServiceBrokerException {
-		ServiceInstance instance = new ServiceInstance(serviceInstanceId, service.getId(), planId, organizationGuid, spaceGuid, null);
+	public ServiceInstance createServiceInstance(ServiceDefinition service,
+			String serviceInstanceId, String planId, String organizationGuid,
+			String spaceGuid) throws ServiceInstanceExistsException,
+					ServiceBrokerException {
+		ServiceInstance instance = new ServiceInstance(serviceInstanceId,
+				service.getId(), planId, organizationGuid, spaceGuid, null);
 		try {
-			if (ecs.bucketExists(instance.getId())) throw new ServiceInstanceExistsException(instance);
+			if (ecs.bucketExists(instance.getId()))
+				throw new ServiceInstanceExistsException(instance);
 			ecs.createBucket(instance.getId(), planId);
-			
+
 			if (ecs.getBucketInfo(instance.getId()) == null)
-				throw new ServiceBrokerException("Failed to create new ECS bucket: " + instance.getId());
-			
+				throw new ServiceBrokerException(
+						"Failed to create new ECS bucket: " + instance.getId());
+
 			repository.save(instance);
 			return instance;
 		} catch (Exception e) {
@@ -50,13 +55,14 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 	}
 
 	@Override
-	public ServiceInstance deleteServiceInstance(String id, String serviceId, String planId) throws ServiceBrokerException {
+	public ServiceInstance deleteServiceInstance(String id, String serviceId,
+			String planId) throws ServiceBrokerException {
 		ServiceInstance instance = null;
 		try {
 			instance = repository.find(id);
 			ecs.deleteBucket(id);
 			repository.delete(id);
-			return instance;			
+			return instance;
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
@@ -72,17 +78,20 @@ public class BucketServiceInstanceService implements ServiceInstanceService {
 	}
 
 	@Override
-	public ServiceInstance updateServiceInstance(String instanceId, String planId)
-			throws ServiceInstanceUpdateNotSupportedException, ServiceBrokerException,
-			ServiceInstanceDoesNotExistException {
-		try {			
+	public ServiceInstance updateServiceInstance(String instanceId,
+			String planId) throws ServiceInstanceUpdateNotSupportedException,
+					ServiceBrokerException,
+					ServiceInstanceDoesNotExistException {
+		try {
 			ServiceInstance instance = repository.find(instanceId);
-			if (instance == null) throw new ServiceInstanceDoesNotExistException(instanceId);
+			if (instance == null)
+				throw new ServiceInstanceDoesNotExistException(instanceId);
 			ecs.changeBucketPlan(instanceId, planId);
 			repository.delete(instanceId);
-			ServiceInstance updatedInstance = new ServiceInstance(instanceId, 
-					instance.getServiceDefinitionId(), planId, instance.getOrganizationGuid(), 
-					instance.getSpaceGuid(), instance.getDashboardUrl());
+			ServiceInstance updatedInstance = new ServiceInstance(instanceId,
+					instance.getServiceDefinitionId(), planId,
+					instance.getOrganizationGuid(), instance.getSpaceGuid(),
+					instance.getDashboardUrl());
 			repository.save(updatedInstance);
 			return updatedInstance;
 		} catch (Exception e) {

@@ -19,7 +19,7 @@ public class DashboardClientProxy {
 		this.secret = secret;
 		this.redirectUrl = redirectUrl;
 	}
-	
+
 	public DashboardClient unproxy() {
 		return new DashboardClient(id, secret, redirectUrl);
 	}

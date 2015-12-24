@@ -22,17 +22,15 @@ public class ServiceDefinitionProxy {
 	private List<PlanProxy> plans;
 	private List<String> requires;
 	private DashboardClientProxy dashboardClient;
-	
+
 	public ServiceDefinitionProxy() {
 		super();
 	}
 
 	public ServiceDefinitionProxy(String id, String name, String description,
 			Boolean bindable, Boolean planUpdatable, List<String> tags,
-			Map<String, Object> metadata,
-			List<PlanProxy> plans,
-			List<String> requires,
-			DashboardClientProxy dashboardClient) {
+			Map<String, Object> metadata, List<PlanProxy> plans,
+			List<String> requires, DashboardClientProxy dashboardClient) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -45,19 +43,21 @@ public class ServiceDefinitionProxy {
 		this.requires = requires;
 		this.dashboardClient = dashboardClient;
 	}
-	
+
 	public ServiceDefinition unproxy() {
 		List<Plan> realPlans = null;
 		if (plans != null)
-			realPlans = plans.stream().map(p -> p.unproxy()).collect(Collectors.toList());
-		
+			realPlans = plans.stream()
+					.map(p -> p.unproxy())
+					.collect(Collectors.toList());
+
 		DashboardClient realDashboardClient = null;
 		if (dashboardClient != null)
 			realDashboardClient = dashboardClient.unproxy();
-		
+
 		return new ServiceDefinition(id, name, description, bindable,
-				planUpdatable, realPlans, tags, metadata,
-				requires, realDashboardClient);
+				planUpdatable, realPlans, tags, metadata, requires,
+				realDashboardClient);
 	}
 
 	public String getId() {

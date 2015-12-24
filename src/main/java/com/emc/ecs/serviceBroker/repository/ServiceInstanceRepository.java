@@ -25,14 +25,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class ServiceInstanceRepository {
-	
+
 	private String bucket;
 	private S3JerseyClient s3;
 	private ObjectMapper objectMapper = new ObjectMapper();
-		
+
 	@Autowired
 	public ServiceInstanceRepository(BrokerConfig broker)
-			throws EcsManagementClientException, EcsManagementResourceNotFoundException, URISyntaxException {
+			throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException, URISyntaxException {
 		super();
 		S3Config s3Config = new S3Config(
 				new URI(broker.getRepositoryEndpoint()));
@@ -42,7 +43,8 @@ public class ServiceInstanceRepository {
 		this.bucket = broker.getPrefixedBucketName();
 	}
 
-	public void save(ServiceInstance instance) throws IOException, JAXBException {
+	public void save(ServiceInstance instance)
+			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
 		objectMapper.writeValue(output, instance);
@@ -50,15 +52,18 @@ public class ServiceInstanceRepository {
 		s3.putObject(bucket, getFilename(instance.getId()), input, null);
 	}
 
-	public ServiceInstance find(String id) throws JsonParseException, JsonMappingException, IOException {
-		GetObjectResult<InputStream> input = s3.getObject(bucket, getFilename(id));
-		return (ServiceInstance) objectMapper.readValue(input.getObject(), ServiceInstance.class);
+	public ServiceInstance find(String id)
+			throws JsonParseException, JsonMappingException, IOException {
+		GetObjectResult<InputStream> input = s3.getObject(bucket,
+				getFilename(id));
+		return (ServiceInstance) objectMapper.readValue(input.getObject(),
+				ServiceInstance.class);
 	}
 
 	public void delete(String id) {
 		s3.deleteObject(bucket, getFilename(id));
 	}
-	
+
 	private String getFilename(String id) {
 		return "service-instance/" + id + ".json";
 	}

@@ -19,15 +19,15 @@ import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 
 @Service
-public class BucketServiceInstanceBindingService implements ServiceInstanceBindingService {
+public class BucketServiceInstanceBindingService
+		implements ServiceInstanceBindingService {
 
 	@Autowired
 	private EcsService ecs;
-	
+
 	@Autowired
 	private ServiceInstanceBindingRepository repository;
-	
-	
+
 	public BucketServiceInstanceBindingService()
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
@@ -35,17 +35,22 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 	}
 
 	@Override
-	public ServiceInstanceBinding createServiceInstanceBinding(String bindingId, ServiceInstance serviceInstance, String serviceId,
-			String planId, String appGuid) throws ServiceInstanceBindingExistsException, ServiceBrokerException {
-		// TODO Add parameters for binding permissions (read-only, read-write, full-controll, etc.)
+	public ServiceInstanceBinding createServiceInstanceBinding(String bindingId,
+			ServiceInstance serviceInstance, String serviceId, String planId,
+			String appGuid) throws ServiceInstanceBindingExistsException,
+					ServiceBrokerException {
+		// TODO Add parameters for binding permissions (read-only, read-write,
+		// full-controll, etc.)
 		UserSecretKey userSecret;
 		String instanceId = serviceInstance.getId();
-		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, instanceId, null, null, appGuid);
-		Map<String,Object> credentials = new HashMap<String,Object>();
+		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId,
+				instanceId, null, null, appGuid);
+		Map<String, Object> credentials = new HashMap<String, Object>();
 		credentials.put("accessKey", bindingId);
 		credentials.put("bucket", instanceId);
 		try {
-			if (ecs.userExists(bindingId)) throw new ServiceInstanceBindingExistsException(binding);
+			if (ecs.userExists(bindingId))
+				throw new ServiceInstanceBindingExistsException(binding);
 			userSecret = ecs.createUser(bindingId);
 			ecs.addUserToBucket(instanceId, bindingId);
 			credentials.put("secretKey", userSecret.getSecretKey());
@@ -53,7 +58,8 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
-		binding = new ServiceInstanceBinding(bindingId, instanceId, credentials, null, appGuid);
+		binding = new ServiceInstanceBinding(bindingId, instanceId, credentials,
+				null, appGuid);
 		try {
 			repository.save(binding);
 		} catch (Exception e) {
@@ -63,8 +69,9 @@ public class BucketServiceInstanceBindingService implements ServiceInstanceBindi
 	}
 
 	@Override
-	public ServiceInstanceBinding deleteServiceInstanceBinding(String bindingId, ServiceInstance instance, String serviceId,
-			String planId) throws ServiceBrokerException {
+	public ServiceInstanceBinding deleteServiceInstanceBinding(String bindingId,
+			ServiceInstance instance, String serviceId, String planId)
+					throws ServiceBrokerException {
 		try {
 			ServiceInstanceBinding binding = repository.find(bindingId);
 			ecs.deleteUser(bindingId);

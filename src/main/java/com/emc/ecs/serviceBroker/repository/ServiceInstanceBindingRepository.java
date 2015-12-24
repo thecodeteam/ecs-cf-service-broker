@@ -43,23 +43,27 @@ public class ServiceInstanceBindingRepository {
 		this.bucket = broker.getPrefixedBucketName();
 	}
 
-	public void save(ServiceInstanceBinding binding) throws IOException, JAXBException {
+	public void save(ServiceInstanceBinding binding)
+			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
 		// Spring Boot CF Service Broker doesn't include a JSON deserializable
 		// class, so we've implemented one.
-		ServiceInstanceBindingSerializer bindingResp = new ServiceInstanceBindingSerializer(binding);
+		ServiceInstanceBindingSerializer bindingResp = new ServiceInstanceBindingSerializer(
+				binding);
 		objectMapper.writeValue(output, bindingResp);
 		output.close();
 		s3.putObject(bucket, getFilename(binding.getId()), input, null);
 	}
 
-	public ServiceInstanceBinding find(String id) throws JsonParseException, JsonMappingException, IOException {
-		GetObjectResult<InputStream> input = s3.getObject(bucket, getFilename(id));
+	public ServiceInstanceBinding find(String id)
+			throws JsonParseException, JsonMappingException, IOException {
+		GetObjectResult<InputStream> input = s3.getObject(bucket,
+				getFilename(id));
 		// Spring Boot CF Service Broker doesn't include a JSON deserializable
 		// class, so we've implemented one.
-		ServiceInstanceBindingSerializer bindingResp = objectMapper.readValue(input.getObject(),
-				ServiceInstanceBindingSerializer.class);
+		ServiceInstanceBindingSerializer bindingResp = objectMapper.readValue(
+				input.getObject(), ServiceInstanceBindingSerializer.class);
 		return bindingResp.toServiceInstanceBinding();
 	}
 

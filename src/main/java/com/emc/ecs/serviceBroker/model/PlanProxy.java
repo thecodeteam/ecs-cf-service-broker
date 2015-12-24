@@ -9,7 +9,7 @@ public class PlanProxy {
 	private String name;
 	private String description;
 	private PlanMetadataProxy metadata;
-	
+
 	public PlanProxy() {
 		super();
 	}
@@ -22,7 +22,7 @@ public class PlanProxy {
 		this.description = description;
 		this.metadata = metadata;
 	}
-	
+
 	public Plan unproxy() {
 		return new Plan(id, name, description, metadata.unproxy());
 	}

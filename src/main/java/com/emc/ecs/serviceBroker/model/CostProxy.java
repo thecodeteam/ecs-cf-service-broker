@@ -7,7 +7,7 @@ public class CostProxy {
 
 	private Map<String, Object> amount;
 	private String unit;
-	
+
 	public CostProxy() {
 		super();
 	}

@@ -14,26 +14,26 @@ public class ServiceInstanceBindingSerializer {
 
 	@JsonSerialize
 	private String id;
-	
+
 	@JsonSerialize
 	@JsonProperty("service_instance_id")
 	private String serviceInstanceId;
-	
+
 	@JsonSerialize
-	private Map<String,Object> credentials = new HashMap<String,Object>();
-	
+	private Map<String, Object> credentials = new HashMap<String, Object>();
+
 	@JsonSerialize
 	@JsonProperty("syslog_drain_url")
 	private String syslogDrainUrl;
-	
+
 	@JsonSerialize
 	@JsonProperty("app_guid")
 	private String appGuid;
 
 	public ServiceInstanceBindingSerializer() {
-		
+
 	}
-	
+
 	public ServiceInstanceBindingSerializer(ServiceInstanceBinding binding) {
 		super();
 		this.id = binding.getId();
@@ -42,9 +42,10 @@ public class ServiceInstanceBindingSerializer {
 		this.syslogDrainUrl = binding.getSyslogDrainUrl();
 		this.appGuid = binding.getAppGuid();
 	}
-	
+
 	public ServiceInstanceBinding toServiceInstanceBinding() {
-		return new ServiceInstanceBinding(id, serviceInstanceId, credentials, syslogDrainUrl, appGuid);
+		return new ServiceInstanceBinding(id, serviceInstanceId, credentials,
+				syslogDrainUrl, appGuid);
 	}
 
 	public String getId() {
