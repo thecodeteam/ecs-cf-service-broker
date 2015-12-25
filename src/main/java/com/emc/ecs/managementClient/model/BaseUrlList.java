@@ -14,6 +14,11 @@ public class BaseUrlList {
 		super();
 	}
 
+	public BaseUrlList(List<BaseUrl> baseUrls) {
+		super();
+		this.baseUrls = baseUrls;
+	}
+
 	@XmlElement(name = "base_url")
 	public List<BaseUrl> getBaseUrls() {
 		return baseUrls;

@@ -9,6 +9,13 @@ public class BaseUrl {
 		super();
 	}
 
+	public BaseUrl(String id, Link link, String name) {
+		super();
+		this.id = id;
+		this.link = link;
+		this.name = name;
+	}
+
 	public String getName() {
 		return name;
 	}
