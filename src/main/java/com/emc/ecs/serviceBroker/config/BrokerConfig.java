@@ -23,6 +23,7 @@ public class BrokerConfig {
 	private String repositoryBucket = "repository";
 	private String prefix = "ecs-cf-broker-";
 	private String brokerApiVersion = "2.8";
+	private String certificate = "localhost.pem";
 
 	public BrokerConfig() {
 		super();
@@ -138,5 +139,13 @@ public class BrokerConfig {
 
 	public String getPrefixedUserName() {
 		return prefix + repositoryUser;
+	}
+
+	public String getCertificate() {
+		return certificate;
+	}
+
+	public void setCertificate(String certificate) {
+		this.certificate = certificate;
 	}
 }

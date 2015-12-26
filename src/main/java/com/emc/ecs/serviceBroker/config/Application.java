@@ -33,7 +33,7 @@ public class Application {
 	@Bean
 	public Connection ecsConnection() {
 		URL certificate = getClass().getClassLoader()
-				.getResource("localhost.pem");
+				.getResource(broker.getCertificate());
 		return new Connection(broker.getManagementEndpoint(),
 				broker.getUsername(), broker.getPassword(), certificate);
 	}

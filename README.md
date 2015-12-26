@@ -48,6 +48,7 @@ bundled ECS simulator.  For more info, check the
 | repositoryBucket   | repository     | false    | Internal bucket for metadata storage           |
 | prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users     |
 | brokerApiVersion   | 2.8            | false    | Version of the CF broker API to advertise      |
+| certificate        | localhost.pem  | false    | ECS SSL public key cert file <sup>[1](#footnote1)</sup> | 
 
 If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
 
@@ -158,3 +159,6 @@ You can then run the test-suite with gradle:
 ## TODOs
 
 Up to date tasks are on our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues) page.
+
+---
+<a name="footnote1">_1_</a>: Certificate file is expected to be in `<project root>/src/main/resources/` directory.
