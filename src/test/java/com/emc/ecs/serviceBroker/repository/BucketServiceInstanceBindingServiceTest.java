@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -22,7 +23,9 @@ import com.emc.ecs.serviceBroker.config.Application;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = Application.class, initializers = ConfigFileApplicationContextInitializer.class)
+@ContextConfiguration(classes = Application.class,
+	initializers = ConfigFileApplicationContextInitializer.class)
+@ActiveProfiles("development")
 public class BucketServiceInstanceBindingServiceTest {
 
 	@Autowired
