@@ -9,12 +9,12 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
-import org.cloudfoundry.community.servicebroker.model.fixture.DataFixture;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
+import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
+import org.springframework.cloud.servicebroker.model.fixture.DataFixture;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

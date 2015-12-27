@@ -3,10 +3,10 @@ package com.emc.ecs.serviceBroker.config;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.cloudfoundry.community.servicebroker.model.BrokerApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.servicebroker.model.BrokerApiVersion;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 

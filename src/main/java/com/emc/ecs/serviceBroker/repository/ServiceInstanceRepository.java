@@ -9,8 +9,8 @@ import java.net.URISyntaxException;
 
 import javax.xml.bind.JAXBException;
 
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.servicebroker.model.ServiceInstance;
 import org.springframework.stereotype.Component;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
@@ -49,7 +49,7 @@ public class ServiceInstanceRepository {
 		PipedOutputStream output = new PipedOutputStream(input);
 		objectMapper.writeValue(output, instance);
 		output.close();
-		s3.putObject(bucket, getFilename(instance.getId()), input, null);
+		s3.putObject(bucket, getFilename(instance.getServiceInstanceId()), input, null);
 	}
 
 	public ServiceInstance find(String id)

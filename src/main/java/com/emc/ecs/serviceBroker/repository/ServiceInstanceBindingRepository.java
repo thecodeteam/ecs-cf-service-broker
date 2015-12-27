@@ -9,8 +9,8 @@ import java.net.URISyntaxException;
 
 import javax.xml.bind.JAXBException;
 
-import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
 import org.springframework.stereotype.Component;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;

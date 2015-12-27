@@ -7,12 +7,12 @@ import java.net.URISyntaxException;
 
 import javax.xml.bind.JAXBException;
 
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
-import org.cloudfoundry.community.servicebroker.model.fixture.DataFixture;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
+import org.springframework.cloud.servicebroker.model.ServiceInstance;
+import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -23,8 +23,7 @@ import com.emc.ecs.serviceBroker.config.Application;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = Application.class,
-	initializers = ConfigFileApplicationContextInitializer.class)
+@ContextConfiguration(classes = Application.class, initializers = ConfigFileApplicationContextInitializer.class)
 @ActiveProfiles("development")
 public class BucketServiceInstanceBindingServiceTest {
 
@@ -32,21 +31,17 @@ public class BucketServiceInstanceBindingServiceTest {
 	private BrokerConfig broker;
 
 	@Test
-	public void testSaveFindDelete()
-			throws IOException, JAXBException, EcsManagementClientException,
+	public void testSaveFindDelete() throws IOException, JAXBException, EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
-		ServiceInstanceRepository repository = new ServiceInstanceRepository(
-				broker);
+		ServiceInstanceRepository repository = new ServiceInstanceRepository(broker);
 		ServiceInstance instance = serviceInstanceFixture();
 		repository.save(instance);
-		ServiceInstance instance2 = repository.find(instance.getId());
-		assertEquals(instance.getId(), instance2.getId());
-		repository.delete(instance.getId());
+		ServiceInstance instance2 = repository.find(instance.getServiceInstanceId());
+		assertEquals(instance.getServiceInstanceId(), instance2.getServiceInstanceId());
+		repository.delete(instance.getServiceInstanceId());
 	}
 
 	private ServiceInstance serviceInstanceFixture() {
-		return new ServiceInstance("service-inst-one-id", "service-one-id",
-				"plan-one-id", DataFixture.getOrgOneGuid(),
-				DataFixture.getSpaceOneGuid(), null);
+		return new ServiceInstance(ServiceInstanceFixture.buildCreateServiceInstanceRequest(false));
 	}
 }

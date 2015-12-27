@@ -3,8 +3,8 @@ package com.emc.ecs.serviceBroker.config;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.cloudfoundry.community.servicebroker.model.Catalog;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.servicebroker.model.Catalog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

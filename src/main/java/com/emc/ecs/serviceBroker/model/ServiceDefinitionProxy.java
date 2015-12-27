@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.cloudfoundry.community.servicebroker.model.DashboardClient;
-import org.cloudfoundry.community.servicebroker.model.Plan;
-import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
+import org.springframework.cloud.servicebroker.model.DashboardClient;
+import org.springframework.cloud.servicebroker.model.Plan;
+import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.stereotype.Component;
 
 @Component

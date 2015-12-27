@@ -7,13 +7,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.cloudfoundry.community.servicebroker.model.Catalog;
-import org.cloudfoundry.community.servicebroker.model.Plan;
-import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
+import org.springframework.cloud.servicebroker.model.Catalog;
+import org.springframework.cloud.servicebroker.model.Plan;
+import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -74,7 +74,7 @@ public class CatalogConfigTest {
 		assertEquals(name, service.getName());
 		assertEquals(description, service.getDescription());
 		assertEquals(bindable, service.isBindable());
-		assertEquals(updatable, service.isPlanUpdatable());
+		assertEquals(updatable, service.isPlanUpdateable());
 		assertEquals(requires, service.getRequires());
 		assertEquals(dashboardUrl, service.getDashboardClient());
 	}

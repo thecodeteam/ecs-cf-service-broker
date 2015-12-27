@@ -1,6 +1,6 @@
 package com.emc.ecs.serviceBroker.model;
 
-import org.cloudfoundry.community.servicebroker.model.Plan;
+import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.stereotype.Component;
 
 @Component

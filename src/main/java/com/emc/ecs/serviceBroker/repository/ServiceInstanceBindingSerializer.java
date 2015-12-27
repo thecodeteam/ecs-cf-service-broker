@@ -3,7 +3,7 @@ package com.emc.ecs.serviceBroker.repository;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cloudfoundry.community.servicebroker.model.ServiceInstanceBinding;
+import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;

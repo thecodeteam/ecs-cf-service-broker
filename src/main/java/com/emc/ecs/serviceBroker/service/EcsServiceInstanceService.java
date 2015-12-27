@@ -2,14 +2,21 @@ package com.emc.ecs.serviceBroker.service;
 
 import java.net.URISyntaxException;
 
-import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
-import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceDoesNotExistException;
-import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
-import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceUpdateNotSupportedException;
-import org.cloudfoundry.community.servicebroker.model.ServiceDefinition;
-import org.cloudfoundry.community.servicebroker.model.ServiceInstance;
-import org.cloudfoundry.community.servicebroker.service.ServiceInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceUpdateNotSupportedException;
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.model.GetLastServiceOperationRequest;
+import org.springframework.cloud.servicebroker.model.GetLastServiceOperationResponse;
+import org.springframework.cloud.servicebroker.model.ServiceInstance;
+import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceResponse;
+import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
@@ -32,70 +39,72 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	}
 
 	@Override
-	public ServiceInstance createServiceInstance(ServiceDefinition service,
-			String serviceInstanceId, String planId, String organizationGuid,
-			String spaceGuid) throws ServiceInstanceExistsException,
+	public CreateServiceInstanceResponse createServiceInstance(
+			CreateServiceInstanceRequest request)
+					throws ServiceInstanceExistsException,
 					ServiceBrokerException {
-		ServiceInstance instance = new ServiceInstance(serviceInstanceId,
-				service.getId(), planId, organizationGuid, spaceGuid, null);
+		ServiceInstance instance = new ServiceInstance(request);
+		String serviceInstanceId = request.getServiceInstanceId();
+		String serviceDefinitionId = request.getServiceDefinitionId();
 		try {
-			if (ecs.bucketExists(instance.getId()))
-				throw new ServiceInstanceExistsException(instance);
-			ecs.createBucket(instance.getId(), service.getId(), planId);
+			if (ecs.bucketExists(serviceInstanceId))
+				throw new ServiceInstanceExistsException(serviceInstanceId,
+						serviceDefinitionId);
+			ecs.createBucket(serviceInstanceId, serviceDefinitionId,
+					request.getPlanId());
 
-			if (ecs.getBucketInfo(instance.getId()) == null)
+			if (ecs.getBucketInfo(serviceInstanceId) == null)
 				throw new ServiceBrokerException(
-						"Failed to create new ECS bucket: " + instance.getId());
+						"Failed to create new ECS bucket: "
+								+ serviceInstanceId);
 
 			repository.save(instance);
-			return instance;
+			return new CreateServiceInstanceResponse();
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
 	}
 
 	@Override
-	public ServiceInstance deleteServiceInstance(String id, String serviceId,
-			String planId) throws ServiceBrokerException {
-		ServiceInstance instance = null;
+	public DeleteServiceInstanceResponse deleteServiceInstance(
+			DeleteServiceInstanceRequest request)
+					throws ServiceBrokerException {
+		String serviceInstanceId = request.getServiceInstanceId();
 		try {
-			instance = repository.find(id);
-			ecs.deleteBucket(id);
-			repository.delete(id);
-			return instance;
+			ecs.deleteBucket(serviceInstanceId);
+			repository.delete(serviceInstanceId);
+			return new DeleteServiceInstanceResponse();
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
 	}
 
 	@Override
-	public ServiceInstance getServiceInstance(String id) {
-		try {
-			return repository.find(id);
-		} catch (Exception e) {
-			return null;
-		}
-	}
-
-	@Override
-	public ServiceInstance updateServiceInstance(String instanceId,
-			String planId) throws ServiceInstanceUpdateNotSupportedException,
+	public UpdateServiceInstanceResponse updateServiceInstance(
+			UpdateServiceInstanceRequest request)
+					throws ServiceInstanceUpdateNotSupportedException,
 					ServiceBrokerException,
 					ServiceInstanceDoesNotExistException {
+		String instanceId = request.getServiceInstanceId();
+		String planId = request.getPlanId();
 		try {
 			ServiceInstance instance = repository.find(instanceId);
 			if (instance == null)
 				throw new ServiceInstanceDoesNotExistException(instanceId);
-			ecs.changeBucketPlan(instanceId, instance.getServiceDefinitionId(), planId);
+			ecs.changeBucketPlan(instanceId, instance.getServiceDefinitionId(),
+					planId);
 			repository.delete(instanceId);
-			ServiceInstance updatedInstance = new ServiceInstance(instanceId,
-					instance.getServiceDefinitionId(), planId,
-					instance.getOrganizationGuid(), instance.getSpaceGuid(),
-					instance.getDashboardUrl());
+			ServiceInstance updatedInstance = new ServiceInstance(request);
 			repository.save(updatedInstance);
-			return updatedInstance;
+			return new UpdateServiceInstanceResponse();
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
+	}
+
+	@Override
+	public GetLastServiceOperationResponse getLastOperation(
+			GetLastServiceOperationRequest request) {
+		return new GetLastServiceOperationResponse(null);
 	}
 }
