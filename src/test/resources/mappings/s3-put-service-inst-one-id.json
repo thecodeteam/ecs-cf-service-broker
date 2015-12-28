@@ -4,7 +4,7 @@
 	"newScenarioState": "Created",
     "request": {
         "method": "PUT",
-        "url": "/ecs-cf-broker-repository/service-instance/service-inst-one-id.json",
+        "url": "/ecs-cf-broker-repository/service-instance/service-instance-id.json",
         "headers": {
         	"Content-Type": {
         		"equalTo": "application/octet-stream"
@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-        		"equalToJson": "{\"service_instance_id\":\"service-inst-one-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null}"
+        		"equalToJson": "{\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"IN_PROGRESS\",\"delete_operation\":false}}"
         	}
         ]
     },
@@ -24,7 +24,7 @@
         "headers": {
 			"x-amz-request-id": "0a05881f:150a5d74db8:1b1f:f",
 			"x-amz-id-2": "fcff654eb2d4b131db75376eb1fde702bf1e738f48c59bfa1093302d2625ee82",
-			"ETag": "\"fa51be240a40853fad2493b43f3808be\"",
+			"ETag": "\"db1d575065e2767e09fa127ea5d33e0a\"",
 			"x-emc-mtime": "1450675315169"
 		}
     }

@@ -3,7 +3,7 @@
 	"requiredScenarioState": "Created",
     "request": {
         "method": "GET",
-        "url": "/ecs-cf-broker-repository/service-instance/service-inst-one-id.json",
+        "url": "/ecs-cf-broker-repository/service-instance/service-instance-id.json",
         "headers": {
         	"Authorization" : {
         		"matches": "AWS ecs-cf-broker-user:.*"
@@ -20,6 +20,6 @@
 			"Content-Encoding": "identity",
 			"Content-Type": "application/octet-stream"
 		},
-		"body": "{\"service_instance_id\":\"service-inst-one-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null}" 
+		"body": "{\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"IN_PROGRESS\",\"delete_operation\":false}}" 
     }
 }

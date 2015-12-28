@@ -47,7 +47,8 @@ public class ServiceInstanceRepository {
 			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
-		objectMapper.writeValue(output, instance);
+		ServiceInstanceSerializer instanceResp = new ServiceInstanceSerializer(instance);
+		objectMapper.writeValue(output, instanceResp);
 		output.close();
 		s3.putObject(bucket, getFilename(instance.getServiceInstanceId()), input, null);
 	}
@@ -56,8 +57,9 @@ public class ServiceInstanceRepository {
 			throws JsonParseException, JsonMappingException, IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket,
 				getFilename(id));
-		return (ServiceInstance) objectMapper.readValue(input.getObject(),
-				ServiceInstance.class);
+		ServiceInstanceSerializer instanceResp = objectMapper.readValue(input.getObject(),
+				ServiceInstanceSerializer.class);
+		return instanceResp.toServiceInstance();
 	}
 
 	public void delete(String id) {

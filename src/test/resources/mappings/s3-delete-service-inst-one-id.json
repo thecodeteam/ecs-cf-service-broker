@@ -4,7 +4,7 @@
 	"newScenarioState": "Started",
     "request": {
         "method": "DELETE",
-        "url": "/ecs-cf-broker-repository/service-instance/service-inst-one-id.json",
+        "url": "/ecs-cf-broker-repository/service-instance/service-instance-id.json",
         "headers": {
         	"Authorization" : {
         		"matches": "AWS ecs-cf-broker-user:.*"

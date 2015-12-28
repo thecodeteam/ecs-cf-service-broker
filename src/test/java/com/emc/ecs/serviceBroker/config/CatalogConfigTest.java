@@ -34,7 +34,7 @@ public class CatalogConfigTest {
 		testServiceDefinition(ecsBucketService,
 				"f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa", "ecs-bucket",
 				"Elastic Cloud S3 Object Storage Bucket", true, true,
-				Collections.emptyList(), null);
+				null, null);
 	}
 
 	@Test
