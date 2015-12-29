@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
-import org.springframework.cloud.servicebroker.model.ServiceInstance;
 import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,14 +33,14 @@ public class BucketServiceInstanceBindingServiceTest {
 	public void testSaveFindDelete() throws IOException, JAXBException, EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
 		ServiceInstanceRepository repository = new ServiceInstanceRepository(broker);
-		ServiceInstance instance = serviceInstanceFixture();
+		ServiceInstanceSerializer instance = serviceInstanceFixture();
 		repository.save(instance);
-		ServiceInstance instance2 = repository.find(instance.getServiceInstanceId());
+		ServiceInstanceSerializer instance2 = repository.find(instance.getServiceInstanceId());
 		assertEquals(instance.getServiceInstanceId(), instance2.getServiceInstanceId());
 		repository.delete(instance.getServiceInstanceId());
 	}
 
-	private ServiceInstance serviceInstanceFixture() {
-		return new ServiceInstance(ServiceInstanceFixture.buildCreateServiceInstanceRequest(false));
+	private ServiceInstanceSerializer serviceInstanceFixture() {
+		return new ServiceInstanceSerializer(ServiceInstanceFixture.buildCreateServiceInstanceRequest(false));
 	}
 }

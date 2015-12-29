@@ -1,9 +1,7 @@
 package com.emc.ecs.serviceBroker.repository;
 
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.OperationState;
-import org.springframework.cloud.servicebroker.model.ServiceInstance;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -44,19 +42,18 @@ public class ServiceInstanceSerializer {
 	
 	@JsonIgnore
 	private boolean async;
-	
+
 	@SuppressWarnings("unused")
 	private ServiceInstanceSerializer() {}
 	
-	public ServiceInstanceSerializer(ServiceInstance instance) {
+	public ServiceInstanceSerializer(CreateServiceInstanceRequest request) {
 		super();
-		this.serviceDefinitionId = instance.getServiceDefinitionId();
-		this.planId = instance.getPlanId();
-		this.organizationGuid = instance.getOrganizationGuid();
-		this.spaceGuid = instance.getSpaceGuid();
-		this.serviceInstanceId = instance.getServiceInstanceId();
-		this.lastOperation = new LastOperationSerializer(OperationState.IN_PROGRESS, "Provisioning", false);
-		
+		this.serviceDefinitionId = request.getServiceDefinitionId();
+		this.planId = request.getPlanId();
+		this.organizationGuid = request.getOrganizationGuid();
+		this.spaceGuid = request.getSpaceGuid();
+		this.serviceInstanceId = request.getServiceInstanceId();
+		this.lastOperation = new LastOperationSerializer(OperationState.IN_PROGRESS, "Provisioning", false);		
 	}
 
 	public String getServiceInstanceId() {
@@ -91,10 +88,10 @@ public class ServiceInstanceSerializer {
 		return lastOperation;
 	}
 
-	public ServiceInstance toServiceInstance() {
-		CreateServiceInstanceRequest request = new CreateServiceInstanceRequest(serviceDefinitionId, planId,
-				organizationGuid, spaceGuid).withServiceInstanceId(serviceInstanceId);
-		return new ServiceInstance(request);
+	public void update(UpdateServiceInstanceRequest request) {
+		this.serviceDefinitionId = request.getServiceDefinitionId();
+		this.planId = request.getPlanId();
+		this.serviceInstanceId = request.getServiceInstanceId();
 	}
 	
 }

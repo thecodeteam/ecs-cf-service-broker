@@ -13,7 +13,6 @@ import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceReques
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.model.GetLastServiceOperationRequest;
 import org.springframework.cloud.servicebroker.model.GetLastServiceOperationResponse;
-import org.springframework.cloud.servicebroker.model.ServiceInstance;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceResponse;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
@@ -23,6 +22,7 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceSerializer;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
@@ -43,7 +43,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 			CreateServiceInstanceRequest request)
 					throws ServiceInstanceExistsException,
 					ServiceBrokerException {
-		ServiceInstance instance = new ServiceInstance(request);
+		ServiceInstanceSerializer instance = new ServiceInstanceSerializer(request);
 		String serviceInstanceId = request.getServiceInstanceId();
 		String serviceDefinitionId = request.getServiceDefinitionId();
 		try {
@@ -88,14 +88,14 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 		String instanceId = request.getServiceInstanceId();
 		String planId = request.getPlanId();
 		try {
-			ServiceInstance instance = repository.find(instanceId);
+			ServiceInstanceSerializer instance = repository.find(instanceId);
 			if (instance == null)
 				throw new ServiceInstanceDoesNotExistException(instanceId);
 			ecs.changeBucketPlan(instanceId, instance.getServiceDefinitionId(),
 					planId);
 			repository.delete(instanceId);
-			ServiceInstance updatedInstance = new ServiceInstance(request);
-			repository.save(updatedInstance);
+			instance.update(request);
+			repository.save(instance);
 			return new UpdateServiceInstanceResponse();
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());

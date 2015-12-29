@@ -10,7 +10,6 @@ import java.net.URISyntaxException;
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.model.ServiceInstance;
 import org.springframework.stereotype.Component;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
@@ -43,23 +42,22 @@ public class ServiceInstanceRepository {
 		this.bucket = broker.getPrefixedBucketName();
 	}
 
-	public void save(ServiceInstance instance)
+	public void save(ServiceInstanceSerializer instance)
 			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
-		ServiceInstanceSerializer instanceResp = new ServiceInstanceSerializer(instance);
-		objectMapper.writeValue(output, instanceResp);
+		objectMapper.writeValue(output, instance);
 		output.close();
 		s3.putObject(bucket, getFilename(instance.getServiceInstanceId()), input, null);
 	}
 
-	public ServiceInstance find(String id)
+	public ServiceInstanceSerializer find(String id)
 			throws JsonParseException, JsonMappingException, IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket,
 				getFilename(id));
-		ServiceInstanceSerializer instanceResp = objectMapper.readValue(input.getObject(),
+		ServiceInstanceSerializer instance = objectMapper.readValue(input.getObject(),
 				ServiceInstanceSerializer.class);
-		return instanceResp.toServiceInstance();
+		return instance;
 	}
 
 	public void delete(String id) {
