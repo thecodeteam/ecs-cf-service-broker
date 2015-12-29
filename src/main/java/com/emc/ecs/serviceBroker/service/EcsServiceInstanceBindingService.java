@@ -2,6 +2,7 @@ package com.emc.ecs.serviceBroker.service;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,20 +39,24 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 	public CreateServiceInstanceBindingResponse createServiceInstanceBinding(
 			CreateServiceInstanceBindingRequest request)
 					throws ServiceInstanceBindingExistsException, ServiceBrokerException {
-		// TODO Add parameters for binding permissions (read-only, read-write,
-		// full-control, etc.)
 		UserSecretKey userSecret;
 		String instanceId = request.getServiceInstanceId();
 		String bindingId = request.getBindingId();
 		ServiceInstanceBinding binding = new ServiceInstanceBinding(request);
 		Map<String, Object> credentials = new HashMap<String, Object>();
+		@SuppressWarnings("unchecked")
+		List<String> permissions = (List<String>) request.getParameters().get("permissions");
 		credentials.put("accessKey", bindingId);
 		credentials.put("bucket", instanceId);
 		try {
 			if (ecs.userExists(bindingId))
 				throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
 			userSecret = ecs.createUser(bindingId);
-			ecs.addUserToBucket(instanceId, bindingId);
+			if (permissions == null) {
+				ecs.addUserToBucket(instanceId, bindingId);
+			} else {
+				ecs.addUserToBucket(instanceId, bindingId, permissions);				
+			}
 			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
 		} catch (Exception e) {
