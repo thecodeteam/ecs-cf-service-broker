@@ -1,9 +1,8 @@
 package com.emc.ecs.serviceBroker.repository;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,57 +10,73 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBindingSerializer {
+	
+	@JsonSerialize
+	@JsonProperty("binding_id")
+	private String bindingId;
+	
+	@JsonSerialize
+	@JsonProperty("service_id")
+	private String serviceDefinitionId;
+	
+	@JsonSerialize
+	@JsonProperty("plan_id")
+	private String planId;
 
 	@JsonSerialize
-	private String id;
+	@JsonProperty("bind_resource")
+	private Map<String, Object> bindResource;
 
 	@JsonSerialize
-	@JsonProperty("service_instance_id")
-	private String serviceInstanceId;
-
+	@JsonProperty("parameters")
+	private Map<String, Object> parameters;
+	
 	@JsonSerialize
-	private Map<String, Object> credentials = new HashMap<String, Object>();
-
-	@JsonSerialize
-	@JsonProperty("syslog_drain_url")
-	private String syslogDrainUrl;
-
-	@JsonSerialize
-	@JsonProperty("app_guid")
-	private String appGuid;
-
+	@JsonProperty("credentials")
+	private Map<String, Object> credentials;
+	
 	public ServiceInstanceBindingSerializer() {
 
 	}
 
-	public ServiceInstanceBindingSerializer(ServiceInstanceBinding binding) {
+	public ServiceInstanceBindingSerializer(CreateServiceInstanceBindingRequest request) {
 		super();
-		this.id = binding.getId();
-		this.serviceInstanceId = binding.getServiceInstanceId();
-		this.credentials = binding.getCredentials();
-		this.syslogDrainUrl = binding.getSyslogDrainUrl();
-		this.appGuid = binding.getAppGuid();
+		this.serviceDefinitionId = request.getServiceDefinitionId();
+		this.planId = request.getPlanId();
+		this.bindResource = request.getBindResource();
+		this.parameters = request.getParameters();
 	}
 
-	public ServiceInstanceBinding toServiceInstanceBinding() {
-		return new ServiceInstanceBinding(id, serviceInstanceId, credentials,
-				syslogDrainUrl, appGuid);
+	public Map<String, Object> getBindResource() {
+		return bindResource;
 	}
 
-	public String getId() {
-		return id;
+	public void setBindResource(Map<String, Object> bindResource) {
+		this.bindResource = bindResource;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public Map<String, Object> getParameters() {
+		return parameters;
 	}
 
-	public String getServiceInstanceId() {
-		return serviceInstanceId;
+	public void setParameters(Map<String, Object> parameters) {
+		this.parameters = parameters;
 	}
 
-	public void setServiceInstanceId(String serviceInstanceId) {
-		this.serviceInstanceId = serviceInstanceId;
+	public String getPlanId() {
+		return planId;
+	}
+
+	public void setPlanId(String planId) {
+		this.planId = planId;
+	}
+
+	public String getServiceDefinitionId() {
+		return serviceDefinitionId;
+	}
+
+	public void setServiceDefinitionId(String serviceDefinitionId) {
+		this.serviceDefinitionId = serviceDefinitionId;
 	}
 
 	public Map<String, Object> getCredentials() {
@@ -72,20 +87,12 @@ public class ServiceInstanceBindingSerializer {
 		this.credentials = credentials;
 	}
 
-	public String getSyslogDrainUrl() {
-		return syslogDrainUrl;
+	public String getBindingId() {
+		return bindingId;
 	}
 
-	public void setSyslogDrainUrl(String syslogDrainUrl) {
-		this.syslogDrainUrl = syslogDrainUrl;
-	}
-
-	public String getAppGuid() {
-		return appGuid;
-	}
-
-	public void setAppGuid(String appGuid) {
-		this.appGuid = appGuid;
+	public void setBindingId(String bindingId) {
+		this.bindingId = bindingId;
 	}
 
 }

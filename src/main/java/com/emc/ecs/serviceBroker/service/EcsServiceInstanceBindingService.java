@@ -10,7 +10,6 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingE
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
-import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +18,7 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingSerializer;
 
 @Service
 public class EcsServiceInstanceBindingService implements ServiceInstanceBindingService {
@@ -43,8 +43,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		UserSecretKey userSecret;
 		String instanceId = request.getServiceInstanceId();
 		String bindingId = request.getBindingId();
-		String appGuid = request.getAppGuid();
-		ServiceInstanceBinding binding = new ServiceInstanceBinding(bindingId, instanceId, null, null, appGuid);
+		ServiceInstanceBindingSerializer binding = new ServiceInstanceBindingSerializer(request);
 		Map<String, Object> credentials = new HashMap<String, Object>();
 		credentials.put("accessKey", bindingId);
 		credentials.put("bucket", instanceId);
@@ -58,13 +57,13 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
-		binding = new ServiceInstanceBinding(bindingId, instanceId, credentials, null, appGuid);
+		binding.setCredentials(credentials);
 		try {
 			repository.save(binding);
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
-		return new CreateServiceInstanceBindingResponse();
+		return new CreateServiceInstanceBindingResponse(credentials);
 	}
 
 	@Override
@@ -73,7 +72,6 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		String bindingId = request.getBindingId();
 		String instanceId = request.getServiceInstanceId();
 		try {
-			ServiceInstanceBinding binding = repository.find(bindingId);
 			ecs.deleteUser(bindingId);
 			ecs.removeUserFromBucket(instanceId, bindingId);
 			repository.delete(bindingId);

@@ -10,7 +10,6 @@ import java.net.URISyntaxException;
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
 import org.springframework.stereotype.Component;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
@@ -43,28 +42,22 @@ public class ServiceInstanceBindingRepository {
 		this.bucket = broker.getPrefixedBucketName();
 	}
 
-	public void save(ServiceInstanceBinding binding)
+	public void save(ServiceInstanceBindingSerializer binding)
 			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
-		// Spring Boot CF Service Broker doesn't include a JSON deserializable
-		// class, so we've implemented one.
-		ServiceInstanceBindingSerializer bindingResp = new ServiceInstanceBindingSerializer(
-				binding);
-		objectMapper.writeValue(output, bindingResp);
+		objectMapper.writeValue(output, binding);
 		output.close();
-		s3.putObject(bucket, getFilename(binding.getId()), input, null);
+		s3.putObject(bucket, getFilename(binding.getBindingId()), input, null);
 	}
 
-	public ServiceInstanceBinding find(String id)
+	public ServiceInstanceBindingSerializer find(String id)
 			throws JsonParseException, JsonMappingException, IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket,
 				getFilename(id));
-		// Spring Boot CF Service Broker doesn't include a JSON deserializable
-		// class, so we've implemented one.
-		ServiceInstanceBindingSerializer bindingResp = objectMapper.readValue(
+		ServiceInstanceBindingSerializer binding = objectMapper.readValue(
 				input.getObject(), ServiceInstanceBindingSerializer.class);
-		return bindingResp.toServiceInstanceBinding();
+		return binding;
 	}
 
 	public void delete(String id) {

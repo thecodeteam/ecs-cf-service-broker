@@ -13,8 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
-import org.springframework.cloud.servicebroker.model.ServiceInstanceBinding;
-import org.springframework.cloud.servicebroker.model.fixture.DataFixture;
+import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceBindingFixture;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -43,14 +42,14 @@ public class BucketServiceInstanceServiceTest {
 			EcsManagementResourceNotFoundException, URISyntaxException {
 		ServiceInstanceBindingRepository repository = new ServiceInstanceBindingRepository(
 				broker);
-		ServiceInstanceBinding binding = bindingInstanceFixture();
+		ServiceInstanceBindingSerializer binding = bindingInstanceFixture();
 		repository.save(binding);
-		ServiceInstanceBinding binding2 = repository.find(binding.getId());
-		assertEquals(binding.getId(), binding2.getId());
-		repository.delete(binding.getId());
+		ServiceInstanceBindingSerializer binding2 = repository.find(binding.getBindingId());
+		assertEquals(binding.getBindingId(), binding2.getBindingId());
+		repository.delete(binding.getBindingId());
 	}
 
-	private ServiceInstanceBinding bindingInstanceFixture()
+	private ServiceInstanceBindingSerializer bindingInstanceFixture()
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		Map<String, Object> creds = new HashMap<String, Object>();
@@ -58,7 +57,10 @@ public class BucketServiceInstanceServiceTest {
 		creds.put("bucket", "bucket");
 		creds.put("secretKey", "password");
 		creds.put("endpoint", ecs.getObjectEndpoint());
-		return new ServiceInstanceBinding("service-inst-bind-one-id",
-				"binding-one-id", null, null, DataFixture.getOrgOneGuid());
+		ServiceInstanceBindingSerializer binding = new ServiceInstanceBindingSerializer(
+				ServiceInstanceBindingFixture.buildCreateBindingRequestForApp());
+		binding.setBindingId("service-inst-bind-one-id");
+		binding.setCredentials(creds);
+		return binding;
 	}
 }
