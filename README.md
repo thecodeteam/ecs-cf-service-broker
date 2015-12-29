@@ -18,6 +18,7 @@ including:
  * Specify an ECS namespace and replication group for provisioning
  * Provide a string prefix for bucket and user names
  * Support a self-signed SSL certificate for the ECS management API
+ * Configure offered services & plans through a YAML based configuration
 
 ## Build
 
