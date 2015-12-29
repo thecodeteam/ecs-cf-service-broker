@@ -1,5 +1,6 @@
 package com.emc.ecs.serviceBroker;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -156,13 +157,17 @@ public class EcsService {
 	public void deleteUser(String id) throws EcsManagementClientException {
 		ObjectUserAction.delete(connection, prefix(id));
 	}
+	
+	public void addUserToBucket(String id, String username) throws EcsManagementClientException {
+		addUserToBucket(id, username, Arrays.asList("full_control"));
+	}
 
-	public void addUserToBucket(String id, String username)
+	public void addUserToBucket(String id, String username, List<String> permissions)
 			throws EcsManagementClientException {
 		BucketAcl acl = BucketAclAction.get(connection, prefix(id),
 				broker.getNamespace());
 		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-		userAcl.add(new BucketUserAcl(prefix(username), "full_control"));
+		userAcl.add(new BucketUserAcl(prefix(username), permissions));
 		acl.getAcl().setUserAccessList(userAcl);
 		BucketAclAction.update(connection, prefix(id), acl);
 	}

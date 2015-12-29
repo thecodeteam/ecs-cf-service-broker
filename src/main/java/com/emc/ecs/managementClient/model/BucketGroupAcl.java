@@ -1,12 +1,14 @@
 package com.emc.ecs.managementClient.model;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "group_acl")
 public class BucketGroupAcl {
 
 	private String group;
-	private String permission;
+	private List<String> permission;
 
 	public String getGroup() {
 		return group;
@@ -16,11 +18,11 @@ public class BucketGroupAcl {
 		this.group = group;
 	}
 
-	public String getPermission() {
+	public List<String> getPermission() {
 		return permission;
 	}
 
-	public void setPermission(String permission) {
+	public void setPermission(List<String> permission) {
 		this.permission = permission;
 	}
 

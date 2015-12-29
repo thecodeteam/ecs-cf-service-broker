@@ -2,6 +2,7 @@ package com.emc.ecs.managementClient;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -39,7 +40,7 @@ public class BucketAclActionTest extends EcsActionTest {
 			EcsManagementResourceNotFoundException {
 		BucketAcl acl = BucketAclAction.get(connection, bucket, namespace);
 		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-		userAcl.add(new BucketUserAcl(user, "full_control"));
+		userAcl.add(new BucketUserAcl(user, Arrays.asList("full_control")));
 		acl.getAcl().setUserAccessList(userAcl);
 		BucketAclAction.update(connection, bucket, acl);
 		BucketAcl bucketAcl = BucketAclAction.get(connection, bucket,
