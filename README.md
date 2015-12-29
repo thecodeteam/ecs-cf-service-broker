@@ -80,14 +80,16 @@ The service broker catalog can be configured through YAML based configuration.  
 via PCF or another build tool.  Just add a `catalog` section to the `src/main/resources/application.yml` file:
 
 ```yaml
-...
 catalog:
   services:
     - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
       name: ecs-bucket
-      description: Elastic Cloud Object Storage Bucket
+      description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       planUpdatable: true
+      head-type: s3
+      file-system-enabled: false
+      stale-allowed: true
       tags:
         - s3
         - storage
@@ -103,8 +105,9 @@ catalog:
         - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
           name: 5gb
           description: Free Trial
+          quota-limit: 5
+          quota-warning: 4
           metadata:
-            storageLimit: 5
             costs:
               - amount:
                   usd: 0.0
@@ -112,8 +115,19 @@ catalog:
             bullets:
               - Shared object storage
               - 5 GB Storage
-              - "Multi-protocol access:  S3, Swift, HDFS"
-...
+              - S3 protocol and HDFS access
+        - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
+          name: unlimited
+          description: Pay per GB for Month
+          metadata:
+            costs:
+              - amount:
+                  usd: 0.03
+                unit: PER GB PER MONTH
+            bullets:
+              - Shared object storage
+              - Unlimited Storage
+              - S3 protocol and HDFS access
 ```
 
 For more info, check the
