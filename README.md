@@ -74,6 +74,11 @@ Soon, we will add simulated support for other Cloud Foundry to broker interactio
 To load a self-signed certificate for an ECS system, just provide a PEM formatted certificate file named `localhost.pem`
 into the `src/main/resources` directory.
 
+## Deploying your broker
+
+Follow the [documentation](http://docs.cloudfoundry.org/services/managing-service-brokers.html) to register the broker
+to Cloud Foundry.
+
 ### Broker Catalog and Plan Configuration
 
 The service broker catalog can be configured through YAML based configuration.  You can create the file manually,
@@ -147,11 +152,6 @@ security:
     password: <password>
 ...
 ```
-
-## Deploying your broker
-
-Follow the [documentation](http://docs.cloudfoundry.org/services/managing-service-brokers.html) to register the broker
-to Cloud Foundry.
 
 ## Testing
 
