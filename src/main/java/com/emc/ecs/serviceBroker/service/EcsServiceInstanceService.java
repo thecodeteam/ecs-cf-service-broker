@@ -22,7 +22,7 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
-import com.emc.ecs.serviceBroker.repository.ServiceInstanceSerializer;
+import com.emc.ecs.serviceBroker.repository.ServiceInstance;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
@@ -43,7 +43,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 			CreateServiceInstanceRequest request)
 					throws ServiceInstanceExistsException,
 					ServiceBrokerException {
-		ServiceInstanceSerializer instance = new ServiceInstanceSerializer(request);
+		ServiceInstance instance = new ServiceInstance(request);
 		String serviceInstanceId = request.getServiceInstanceId();
 		String serviceDefinitionId = request.getServiceDefinitionId();
 		try {
@@ -88,7 +88,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 		String instanceId = request.getServiceInstanceId();
 		String planId = request.getPlanId();
 		try {
-			ServiceInstanceSerializer instance = repository.find(instanceId);
+			ServiceInstance instance = repository.find(instanceId);
 			if (instance == null)
 				throw new ServiceInstanceDoesNotExistException(instanceId);
 			ecs.changeBucketPlan(instanceId, instance.getServiceDefinitionId(),

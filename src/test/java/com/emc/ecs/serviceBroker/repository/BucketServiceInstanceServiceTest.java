@@ -42,14 +42,14 @@ public class BucketServiceInstanceServiceTest {
 			EcsManagementResourceNotFoundException, URISyntaxException {
 		ServiceInstanceBindingRepository repository = new ServiceInstanceBindingRepository(
 				broker);
-		ServiceInstanceBindingSerializer binding = bindingInstanceFixture();
+		ServiceInstanceBinding binding = bindingInstanceFixture();
 		repository.save(binding);
-		ServiceInstanceBindingSerializer binding2 = repository.find(binding.getBindingId());
+		ServiceInstanceBinding binding2 = repository.find(binding.getBindingId());
 		assertEquals(binding.getBindingId(), binding2.getBindingId());
 		repository.delete(binding.getBindingId());
 	}
 
-	private ServiceInstanceBindingSerializer bindingInstanceFixture()
+	private ServiceInstanceBinding bindingInstanceFixture()
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		Map<String, Object> creds = new HashMap<String, Object>();
@@ -57,7 +57,7 @@ public class BucketServiceInstanceServiceTest {
 		creds.put("bucket", "bucket");
 		creds.put("secretKey", "password");
 		creds.put("endpoint", ecs.getObjectEndpoint());
-		ServiceInstanceBindingSerializer binding = new ServiceInstanceBindingSerializer(
+		ServiceInstanceBinding binding = new ServiceInstanceBinding(
 				ServiceInstanceBindingFixture.buildCreateBindingRequestForApp());
 		binding.setBindingId("service-inst-bind-one-id");
 		binding.setCredentials(creds);

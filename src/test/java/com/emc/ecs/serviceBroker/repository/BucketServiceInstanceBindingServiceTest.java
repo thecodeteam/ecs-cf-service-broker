@@ -33,14 +33,14 @@ public class BucketServiceInstanceBindingServiceTest {
 	public void testSaveFindDelete() throws IOException, JAXBException, EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
 		ServiceInstanceRepository repository = new ServiceInstanceRepository(broker);
-		ServiceInstanceSerializer instance = serviceInstanceFixture();
+		ServiceInstance instance = serviceInstanceFixture();
 		repository.save(instance);
-		ServiceInstanceSerializer instance2 = repository.find(instance.getServiceInstanceId());
+		ServiceInstance instance2 = repository.find(instance.getServiceInstanceId());
 		assertEquals(instance.getServiceInstanceId(), instance2.getServiceInstanceId());
 		repository.delete(instance.getServiceInstanceId());
 	}
 
-	private ServiceInstanceSerializer serviceInstanceFixture() {
-		return new ServiceInstanceSerializer(ServiceInstanceFixture.buildCreateServiceInstanceRequest(false));
+	private ServiceInstance serviceInstanceFixture() {
+		return new ServiceInstance(ServiceInstanceFixture.buildCreateServiceInstanceRequest(false));
 	}
 }

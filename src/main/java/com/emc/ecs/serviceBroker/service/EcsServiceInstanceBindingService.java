@@ -18,7 +18,7 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
-import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingSerializer;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceBinding;
 
 @Service
 public class EcsServiceInstanceBindingService implements ServiceInstanceBindingService {
@@ -43,7 +43,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		UserSecretKey userSecret;
 		String instanceId = request.getServiceInstanceId();
 		String bindingId = request.getBindingId();
-		ServiceInstanceBindingSerializer binding = new ServiceInstanceBindingSerializer(request);
+		ServiceInstanceBinding binding = new ServiceInstanceBinding(request);
 		Map<String, Object> credentials = new HashMap<String, Object>();
 		credentials.put("accessKey", bindingId);
 		credentials.put("bucket", instanceId);

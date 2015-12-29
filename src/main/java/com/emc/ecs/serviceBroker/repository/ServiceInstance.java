@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
-public class ServiceInstanceSerializer {
+public class ServiceInstance {
 
 	@JsonSerialize
 	@JsonProperty("service_instance_id")
@@ -44,9 +44,9 @@ public class ServiceInstanceSerializer {
 	private boolean async;
 
 	@SuppressWarnings("unused")
-	private ServiceInstanceSerializer() {}
+	private ServiceInstance() {}
 	
-	public ServiceInstanceSerializer(CreateServiceInstanceRequest request) {
+	public ServiceInstance(CreateServiceInstanceRequest request) {
 		super();
 		this.serviceDefinitionId = request.getServiceDefinitionId();
 		this.planId = request.getPlanId();

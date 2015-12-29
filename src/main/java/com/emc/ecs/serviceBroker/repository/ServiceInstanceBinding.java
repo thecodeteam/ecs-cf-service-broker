@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
-public class ServiceInstanceBindingSerializer {
+public class ServiceInstanceBinding {
 	
 	@JsonSerialize
 	@JsonProperty("binding_id")
@@ -35,11 +35,11 @@ public class ServiceInstanceBindingSerializer {
 	@JsonProperty("credentials")
 	private Map<String, Object> credentials;
 	
-	public ServiceInstanceBindingSerializer() {
+	public ServiceInstanceBinding() {
 
 	}
 
-	public ServiceInstanceBindingSerializer(CreateServiceInstanceBindingRequest request) {
+	public ServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
 		super();
 		this.serviceDefinitionId = request.getServiceDefinitionId();
 		this.planId = request.getPlanId();

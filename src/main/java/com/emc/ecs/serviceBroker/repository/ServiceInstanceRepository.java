@@ -42,7 +42,7 @@ public class ServiceInstanceRepository {
 		this.bucket = broker.getPrefixedBucketName();
 	}
 
-	public void save(ServiceInstanceSerializer instance)
+	public void save(ServiceInstance instance)
 			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
@@ -51,12 +51,12 @@ public class ServiceInstanceRepository {
 		s3.putObject(bucket, getFilename(instance.getServiceInstanceId()), input, null);
 	}
 
-	public ServiceInstanceSerializer find(String id)
+	public ServiceInstance find(String id)
 			throws JsonParseException, JsonMappingException, IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket,
 				getFilename(id));
-		ServiceInstanceSerializer instance = objectMapper.readValue(input.getObject(),
-				ServiceInstanceSerializer.class);
+		ServiceInstance instance = objectMapper.readValue(input.getObject(),
+				ServiceInstance.class);
 		return instance;
 	}
 

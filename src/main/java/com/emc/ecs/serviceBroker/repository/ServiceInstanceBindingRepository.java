@@ -42,7 +42,7 @@ public class ServiceInstanceBindingRepository {
 		this.bucket = broker.getPrefixedBucketName();
 	}
 
-	public void save(ServiceInstanceBindingSerializer binding)
+	public void save(ServiceInstanceBinding binding)
 			throws IOException, JAXBException {
 		PipedInputStream input = new PipedInputStream();
 		PipedOutputStream output = new PipedOutputStream(input);
@@ -51,12 +51,12 @@ public class ServiceInstanceBindingRepository {
 		s3.putObject(bucket, getFilename(binding.getBindingId()), input, null);
 	}
 
-	public ServiceInstanceBindingSerializer find(String id)
+	public ServiceInstanceBinding find(String id)
 			throws JsonParseException, JsonMappingException, IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket,
 				getFilename(id));
-		ServiceInstanceBindingSerializer binding = objectMapper.readValue(
-				input.getObject(), ServiceInstanceBindingSerializer.class);
+		ServiceInstanceBinding binding = objectMapper.readValue(
+				input.getObject(), ServiceInstanceBinding.class);
 		return binding;
 	}
 
