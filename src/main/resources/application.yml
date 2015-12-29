@@ -56,6 +56,7 @@ catalog:
       plans:
         - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
           name: 5gb
+          free: true
           description: Free Trial
           quota-limit: 5
           quota-warning: 4

@@ -8,6 +8,7 @@ public class PlanProxy {
 	private String id;
 	private String name;
 	private String description;
+	private Boolean free = false;
 	private PlanMetadataProxy metadata;
 	private int quotaLimit = -1;
 	private int quotaWarning = -1;
@@ -17,16 +18,17 @@ public class PlanProxy {
 	}
 
 	public PlanProxy(String id, String name, String description,
-			PlanMetadataProxy metadata) {
+			PlanMetadataProxy metadata, Boolean free) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.description = description;
 		this.metadata = metadata;
+		this.free = free;
 	}
 
 	public Plan unproxy() {
-		return new Plan(id, name, description, metadata.unproxy());
+		return new Plan(id, name, description, metadata.unproxy(), free);
 	}
 
 	public String getId() {
@@ -75,5 +77,13 @@ public class PlanProxy {
 
 	public void setQuotaWarning(int quotaWarning) {
 		this.quotaWarning = quotaWarning;
+	}
+
+	public Boolean getFree() {
+		return free;
+	}
+
+	public void setFree(Boolean free) {
+		this.free = free;
 	}
 }
