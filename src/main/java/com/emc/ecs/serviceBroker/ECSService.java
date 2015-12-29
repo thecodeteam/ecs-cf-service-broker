@@ -200,8 +200,12 @@ public class EcsService {
 		// TODO: switch to TLS end-point and custom S3 trust manager
 		return baseUrl.getNamespaceUrl(broker.getNamespace(), false);
 	}
+	
+	public String getRepositoryEndpoint() {
+		return broker.getRepositoryEndpoint();
+	}
 
-	private String prefix(String string) {
+	public String prefix(String string) {
 		return broker.getPrefix() + string;
 	}
 }

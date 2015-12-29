@@ -1,6 +1,7 @@
 package com.emc.ecs.serviceBroker.service;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,24 +45,26 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		String bindingId = request.getBindingId();
 		ServiceInstanceBinding binding = new ServiceInstanceBinding(request);
 		Map<String, Object> credentials = new HashMap<String, Object>();
-		@SuppressWarnings("unchecked")
-		List<String> permissions = (List<String>) request.getParameters().get("permissions");
-		credentials.put("accessKey", bindingId);
-		credentials.put("bucket", instanceId);
+		Map<String, Object> parameters = request.getParameters();
+		credentials.put("accessKey", ecs.prefix(bindingId));
+		credentials.put("bucket", ecs.prefix(instanceId));
 		try {
 			if (ecs.userExists(bindingId))
 				throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
 			userSecret = ecs.createUser(bindingId);
-			if (permissions == null) {
-				ecs.addUserToBucket(instanceId, bindingId);
-			} else {
+			if (parameters != null) {
+				@SuppressWarnings("unchecked")
+				List<String> permissions = (List<String>) parameters.get("permissions");
 				ecs.addUserToBucket(instanceId, bindingId, permissions);				
+			} else {
+				ecs.addUserToBucket(instanceId, bindingId);
 			}
 			credentials.put("secretKey", userSecret.getSecretKey());
-			credentials.put("endpoint", ecs.getObjectEndpoint());
+			credentials.put("endpoint", ecs.getRepositoryEndpoint());
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}
+		binding.setBindingId(bindingId);
 		binding.setCredentials(credentials);
 		try {
 			repository.save(binding);
