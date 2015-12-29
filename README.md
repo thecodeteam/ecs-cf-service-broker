@@ -37,7 +37,6 @@ Spring configuration.  All parameters are prefixed with the `broker-config.` str
 bundled ECS simulator.  For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
 
-
 | Parameter          | Default Value  | Required | Description                                    |
 | ------------------ |:--------------:| -------- | ---------------------------------------------- |
 | managementEndpoint | -              | true     | Base URL for the API endpoint                  |
@@ -49,7 +48,7 @@ bundled ECS simulator.  For more info, check the
 | repositoryBucket   | repository     | false    | Internal bucket for metadata storage           |
 | prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users     |
 | brokerApiVersion   | 2.8            | false    | Version of the CF broker API to advertise      |
-| certificate        | localhost.pem  | false    | ECS SSL public key cert file <sup>[1](#footnote1)</sup> | 
+| certificate        | localhost.pem  | false    | ECS SSL public key cert file                   | 
 
 If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
 
@@ -78,6 +77,39 @@ into the `src/main/resources` directory.
 
 Follow the [documentation](http://docs.cloudfoundry.org/services/managing-service-brokers.html) to register the broker
 to Cloud Foundry.
+
+### End-user Broker Usage
+
+CLoud Foundry end-users can create and bind services to their applications using the `cf` CLI application.
+
+```
+cf create-service ecs-bucket unlimited my_bucket
+```
+
+This creates a bucket of the `ecs-bucket` service with the `unlimited` plan and the name: `my-bucket`.  To bind
+an application to this bucket:
+
+```
+cf bind-service my-app my-bucket
+```
+
+The default will give `my-app` "full control" of the bucket.  To give a reduced set of permissions, you can provide
+additional configuration parameters with the `-c` flag:
+
+```
+cf bind-service my-app my-bucket -c '{"permissions": ["read", "write"]}'
+```
+
+Valid permissions include:
+ * read
+ * read_acl
+ * write
+ * write_acl
+ * execute
+ * full_control
+ * privileged_write
+ * delete
+ * none
 
 ### Broker Catalog and Plan Configuration
 
@@ -174,6 +206,3 @@ You can then run the test-suite with gradle:
 ## TODOs
 
 Up to date tasks are on our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues) page.
-
----
-<a name="footnote1">_1_</a>: Certificate file is expected to be in `<project root>/src/main/resources/` directory.
