@@ -65,3 +65,7 @@ task simulate(type:JavaExec) {
 	classpath sourceSets.test.runtimeClasspath
 	main = "com.emc.ecs.apiSimulator.Server"
 }
+
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+  systemProperty('spring.profiles.active', 'production')
+}
