@@ -11,7 +11,7 @@ bucket.
 This service broker supports a number of Cloud Foundry and ECS features
 including:
  * Create and Delete Object Storage Buckets
- * Bind one or more Cloud Foundry applications to a bucket, with unique credentials for each application
+ * Bind one or more Cloud Foundry applications to a bucket, with unique credentials and permissions for each application
  * Support quota enforced plans for buckets to limit the amount of capacity
  * Change plans of an existing bucket
  * Browse Cloud Foundry instance and binding metadata through an internal bucket
