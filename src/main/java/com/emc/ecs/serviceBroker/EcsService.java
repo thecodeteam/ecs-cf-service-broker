@@ -194,7 +194,7 @@ public class EcsService {
 			urlId = BaseUrlAction.list(connection).get(0).getId();
 		} else {
 			urlId = BaseUrlAction.list(connection).stream()
-			.filter(b -> b.getName() == broker.getBaseUrl())
+			.filter(b -> broker.getBaseUrl().equals(b.getName()))
 			.findFirst()
 			.get()
 			.getId();		
