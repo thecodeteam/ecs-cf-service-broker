@@ -59,7 +59,8 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 				ecs.addUserToBucket(instanceId, bindingId);
 			}
 			credentials.put("secretKey", userSecret.getSecretKey());
-			credentials.put("endpoint", ecs.getRepositoryEndpoint());
+			credentials.put("endpoint", ecs.getObjectEndpoint());
+			credentials.put("baseUrl", ecs.getBaseUrl());
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
 		}

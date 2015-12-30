@@ -57,6 +57,7 @@ public class BucketServiceInstanceServiceTest {
 		creds.put("bucket", "bucket");
 		creds.put("secretKey", "password");
 		creds.put("endpoint", ecs.getObjectEndpoint());
+		creds.put("baseUrl", ecs.getBaseUrl());
 		ServiceInstanceBinding binding = new ServiceInstanceBinding(
 				ServiceInstanceBindingFixture.buildCreateBindingRequestForApp());
 		binding.setBindingId("service-inst-bind-one-id");

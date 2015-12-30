@@ -14,7 +14,9 @@ public class BrokerConfig {
 	private String namespace;
 	private String replicationGroup;
 	private String repositorySecret;
+	private String objectEndpoint;
 	private String repositoryEndpoint;
+	private String baseUrl;
 	private String repositoryServiceId;
 	private String repositoryPlanId;
 	private String repositoryUser = "user";
@@ -86,6 +88,8 @@ public class BrokerConfig {
 	}
 
 	public String getRepositoryEndpoint() {
+		if (repositoryEndpoint == null)
+			return objectEndpoint;
 		return repositoryEndpoint;
 	}
 
@@ -147,5 +151,21 @@ public class BrokerConfig {
 
 	public void setCertificate(String certificate) {
 		this.certificate = certificate;
+	}
+
+	public String getBaseUrl() {
+		return baseUrl;
+	}
+
+	public void setBaseUrl(String baseUrl) {
+		this.baseUrl = baseUrl;
+	}
+
+	public String getObjectEndpoint() {
+		return objectEndpoint;
+	}
+
+	public void setObjectEndpoint(String objectEndpoint) {
+		this.objectEndpoint = objectEndpoint;
 	}
 }

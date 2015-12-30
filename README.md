@@ -37,18 +37,21 @@ Spring configuration.  All parameters are prefixed with the `broker-config.` str
 bundled ECS simulator.  For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
 
-| Parameter          | Default Value  | Required | Description                                    |
-| ------------------ |:--------------:| -------- | ---------------------------------------------- |
-| managementEndpoint | -              | true     | Base URL for the API endpoint                  |
-| replicationGroup   | -              | true     | ID (not name) of replication group             |
-| namespace          | -              | true     | ECS Namespace name                             |
-| repositoryUser     | user           | false    | Username to authenticate to intenal bucket     |
-| username           | root           | false    | Username to authenticate to ECS management API |
-| password           | ChangeMe       | false    | Password to authenticate to ECS management API |
-| repositoryBucket   | repository     | false    | Internal bucket for metadata storage           |
-| prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users     |
-| brokerApiVersion   | 2.8            | false    | Version of the CF broker API to advertise      |
-| certificate        | localhost.pem  | false    | ECS SSL public key cert file                   | 
+| Parameter          | Default Value  | Required | Description                                      |
+| ------------------ |:--------------:| -------- | ------------------------------------------------ |
+| managementEndpoint | -              | true     | Base URL for the ECS API endpoint                |
+| objectEndpoint     | -              | true     | Base URL for the ECS Object endpoint             |
+| baseUrl            | -              | false    | Base URL name configured in ECS for object calls | 
+| repositoryEndpoint | objectEndpoint | false    | Endpoint used for broker metadata storage        |
+| replicationGroup   | -              | true     | ID (not name) of replication group               |
+| namespace          | -              | true     | ECS Namespace name                               |
+| repositoryUser     | user           | false    | Username to authenticate to intenal bucket       |
+| username           | root           | false    | Username to authenticate to ECS management API   |
+| password           | ChangeMe       | false    | Password to authenticate to ECS management API   |
+| repositoryBucket   | repository     | false    | Internal bucket for metadata storage             |
+| prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users       |
+| brokerApiVersion   | 2.8            | false    | Version of the CF broker API to advertise        |
+| certificate        | localhost.pem  | false    | ECS SSL public key cert file                     | 
 
 If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
 

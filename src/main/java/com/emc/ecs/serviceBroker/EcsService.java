@@ -48,9 +48,6 @@ public class EcsService {
 	public void initialize() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		prepareRepository();
-
-		if (broker.getRepositoryEndpoint() == null)
-			broker.setRepositoryEndpoint(getObjectEndpoint());
 	}
 	
 	public void prepareRepository() throws EcsManagementClientException,
@@ -190,18 +187,24 @@ public class EcsService {
 				broker.getNamespace());
 	}
 
-	public String getObjectEndpoint() throws EcsManagementClientException,
+	public String getBaseUrl() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
-		// with VDC/inactive in the API, we would make a more intelligent
-		// selection
-		// as it stands, there's not enough info -- just pick the 1st one.
-		String id = BaseUrlAction.list(connection).get(0).getId();
-		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, id);
+		String urlId;
+		if (broker.getBaseUrl() == null) {
+			urlId = BaseUrlAction.list(connection).get(0).getId();
+		} else {
+			urlId = BaseUrlAction.list(connection).stream()
+			.filter(b -> b.getName() == broker.getBaseUrl())
+			.findFirst()
+			.get()
+			.getId();		
+		}
+		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, urlId);
 		// TODO: switch to TLS end-point and custom S3 trust manager
 		return baseUrl.getNamespaceUrl(broker.getNamespace(), false);
 	}
 	
-	public String getRepositoryEndpoint() {
+	public String getObjectEndpoint() {
 		return broker.getRepositoryEndpoint();
 	}
 
