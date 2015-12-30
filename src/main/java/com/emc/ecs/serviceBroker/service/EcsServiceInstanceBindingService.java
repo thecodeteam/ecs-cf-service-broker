@@ -1,9 +1,12 @@
 package com.emc.ecs.serviceBroker.service;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -61,14 +64,12 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
 			credentials.put("baseUrl", ecs.getBaseUrl());
-		} catch (Exception e) {
-			throw new ServiceBrokerException(e.getMessage());
-		}
-		binding.setBindingId(bindingId);
-		binding.setCredentials(credentials);
-		try {
+			binding.setBindingId(bindingId);
+			binding.setCredentials(credentials);
 			repository.save(binding);
-		} catch (Exception e) {
+		} catch (IOException | JAXBException | EcsManagementResourceNotFoundException
+				| EcsManagementClientException e) {
+			e.printStackTrace();
 			throw new ServiceBrokerException(e.getMessage());
 		}
 		return new CreateServiceInstanceBindingResponse(credentials);
