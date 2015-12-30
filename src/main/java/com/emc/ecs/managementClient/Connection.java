@@ -169,7 +169,7 @@ public class Connection {
 		if (response.getStatus() == 401 && authRetries < authMaxRetries) {
 			// attempt to re-authorize and retry up to _authMaxRetries_ times.
 			authRetries += 1;
-			logout();
+			this.authToken = null;
 			response = makeRemoteCall(method, uri, arg);
 		}
 		return response;
