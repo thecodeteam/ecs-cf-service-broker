@@ -1,7 +1,6 @@
 package com.emc.ecs.serviceBroker.service;
 
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +18,8 @@ import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
-import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBinding;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 
 @Service
 public class EcsServiceInstanceBindingService implements ServiceInstanceBindingService {
