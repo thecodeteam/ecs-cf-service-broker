@@ -179,7 +179,7 @@ public class EcsService {
 		List<BucketUserAcl> newUserAcl = acl.getAcl()
 				.getUserAccessList()
 				.stream()
-				.filter(a -> a.getUser().equals(prefix(username)))
+				.filter(a ->! a.getUser().equals(prefix(username)))
 				.collect(Collectors.toList());
 		acl.getAcl().setUserAccessList(newUserAcl);
 		BucketAclAction.update(connection, prefix(id), acl);
