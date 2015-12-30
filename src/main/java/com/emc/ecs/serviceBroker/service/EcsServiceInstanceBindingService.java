@@ -78,9 +78,9 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 			throws ServiceBrokerException {
 		String bindingId = request.getBindingId();
 		String instanceId = request.getServiceInstanceId();
-		try {
-			ecs.deleteUser(bindingId);
+	 	try {
 			ecs.removeUserFromBucket(instanceId, bindingId);
+			ecs.deleteUser(bindingId);
 			repository.delete(bindingId);
 		} catch (Exception e) {
 			throw new ServiceBrokerException(e.getMessage());
