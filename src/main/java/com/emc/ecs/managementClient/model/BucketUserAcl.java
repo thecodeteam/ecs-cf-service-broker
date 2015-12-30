@@ -2,22 +2,23 @@ package com.emc.ecs.managementClient.model;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "user_acl")
 public class BucketUserAcl {
 
 	private String user;
-	private List<String> permission;
+	private List<String> permissions;
 
 	public BucketUserAcl() {
 		super();
 	}
 
-	public BucketUserAcl(String user, List<String> permission) {
+	public BucketUserAcl(String user, List<String> permissions) {
 		super();
 		this.user = user;
-		this.permission = permission;
+		this.permissions = permissions;
 	}
 
 	public String getUser() {
@@ -28,12 +29,13 @@ public class BucketUserAcl {
 		this.user = user;
 	}
 
-	public List<String> getPermission() {
-		return permission;
+	@XmlElement(name = "permission")
+	public List<String> getPermissions() {
+		return permissions;
 	}
 
-	public void setPermission(List<String> permission) {
-		this.permission = permission;
+	public void setPermissions(List<String> permissions) {
+		this.permissions = permissions;
 	}
 
 }
