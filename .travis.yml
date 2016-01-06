@@ -3,5 +3,5 @@ before_script:
   - "./gradlew simulate &"
 after_script:
   - "kill %1"
-script:
-  - jdk_switcher use oraclejdk8
+jdk:
+  - oraclejdk8
