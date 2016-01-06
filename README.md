@@ -1,4 +1,4 @@
-# EMC Elastic Cloud Storage (ECS) Cloud Foundry Service Broker
+# EMC Elastic Cloud Storage (ECS) Cloud Foundry Service Broker [![Build Status](https://travis-ci.org/spiegela/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/spiegela/ecs-cf-service-broker)
 
 ## Description
 
