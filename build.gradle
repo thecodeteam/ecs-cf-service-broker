@@ -49,7 +49,6 @@ dependencies {
     testCompile(group: 'com.github.tomakehurst', name: 'wiremock', version: '1.57')
 }
 
-
 eclipse {
     classpath {
          containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
@@ -58,7 +57,7 @@ eclipse {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.7'
+    gradleVersion = '2.10'
 }
 
 task simulate(type:JavaExec) {
