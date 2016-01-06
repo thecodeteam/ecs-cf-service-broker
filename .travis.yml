@@ -1,6 +1,7 @@
 language: java
 before_script:
   - "./gradlew simulate &"
+  - "sleep 5"
 after_script:
   - "kill %1"
 jdk:
