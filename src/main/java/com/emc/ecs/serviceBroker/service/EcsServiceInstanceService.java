@@ -105,6 +105,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	@Override
 	public GetLastServiceOperationResponse getLastOperation(
 			GetLastServiceOperationRequest request) {
-		return new GetLastServiceOperationResponse(null);
+		return new GetLastServiceOperationResponse();
 	}
 }
