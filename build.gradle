@@ -56,6 +56,10 @@ eclipse {
     }
 }
 
+springBoot {
+  executable = true
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '2.10'
 }
