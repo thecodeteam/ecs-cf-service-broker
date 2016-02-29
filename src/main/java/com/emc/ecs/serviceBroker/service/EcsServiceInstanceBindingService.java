@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
@@ -72,7 +73,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 			e.printStackTrace();
 			throw new ServiceBrokerException(e.getMessage());
 		}
-		return new CreateServiceInstanceBindingResponse(credentials);
+		return new CreateServiceInstanceAppBindingResponse().withCredentials(credentials);
 	}
 
 	@Override

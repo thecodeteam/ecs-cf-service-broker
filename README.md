@@ -25,6 +25,10 @@ including:
 To build, make sure that you have a Java 8 runtime environment, and use Gradle.
 
 ```
+# start up the ecs-simulator to satisfy the test-suite
+./gradlew simulate &
+
+# Then build the project
 ./gradlew build
 ```
 
