@@ -119,6 +119,7 @@ public class Connection {
 			throw new EcsManagementClientException(e.getMessage());
 		}
 		this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
+		this.authRetries = 0;
 	}
 
 	public void logout() throws EcsManagementClientException {
