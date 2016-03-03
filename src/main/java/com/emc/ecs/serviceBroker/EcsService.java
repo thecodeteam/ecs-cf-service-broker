@@ -193,6 +193,8 @@ public class EcsService {
 		if (broker.getBaseUrl() == null) {
 			urlId = BaseUrlAction.list(connection).get(0).getId();
 		} else {
+			// failure to find the baseUrl here creates a confusing silent failure...
+			// TODO:  Make base url lookups smarter -- by name & url?  Or make this error more clear?
 			urlId = BaseUrlAction.list(connection).stream()
 			.filter(b -> broker.getBaseUrl().equals(b.getName()))
 			.findFirst()
