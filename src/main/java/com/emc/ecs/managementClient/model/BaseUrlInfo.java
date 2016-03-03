@@ -58,7 +58,7 @@ public class BaseUrlInfo {
 		this.baseurl = baseurl;
 	}
 
-	@XmlElement(name = "get_namespace_in_host")
+	@XmlElement(name = "namespace_in_host")
 	public Boolean getNamespaceInHost() {
 		return namespaceInHost;
 	}

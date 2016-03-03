@@ -25,11 +25,19 @@ public class BaseUrlActionTest extends EcsActionTest {
 
 	@Test
 	public void testBaseUrlListAndGet() throws EcsManagementClientException {
-		BaseUrl baseUrl = BaseUrlAction.list(connection).get(0);
-		BaseUrlInfo baseUrlInfo = BaseUrlAction.get(connection,
-				baseUrl.getId());
-		assertTrue(baseUrlInfo.getBaseurl().equals(baseUrlHost));
-		assertTrue(baseUrlInfo.getName().equals("DefaultBaseUrl"));
+		BaseUrl baseUrl1 = BaseUrlAction.list(connection).get(0);
+		BaseUrl baseUrl2 = BaseUrlAction.list(connection).get(1);
+		BaseUrlInfo baseUrlInfo1 = BaseUrlAction.get(connection,
+				baseUrl1.getId());
+		BaseUrlInfo baseUrlInfo2 = BaseUrlAction.get(connection,
+				baseUrl2.getId());
+		assertTrue(baseUrlInfo1.getBaseurl().equals("localhost"));
+		assertTrue(baseUrlInfo1.getName().equals("DefaultBaseUrl"));
+		assertTrue(baseUrlInfo1.getNamespaceUrl(namespace, false).equals("http://localhost:9020"));
+		assertTrue(baseUrlInfo1.getNamespaceUrl(namespace, true).equals("https://localhost:9021"));
+		assertTrue(baseUrlInfo2.getBaseurl().equals("s3.10.5.5.5.xip.io"));
+		assertTrue(baseUrlInfo2.getName().equals("xip.io"));
+		assertTrue(baseUrlInfo2.getNamespaceUrl(namespace, false).equals("http://ns1.s3.10.5.5.5.xip.io:9020"));
+		assertTrue(baseUrlInfo2.getNamespaceUrl(namespace, true).equals("https://ns1.s3.10.5.5.5.xip.io:9021"));
 	}
-
 }

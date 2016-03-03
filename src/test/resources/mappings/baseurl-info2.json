@@ -1,0 +1,21 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/object/baseurl/urn:ObjectBaseUrl:fb51cf27-1ead-49f3-99c0-61748b9ce8fd",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><base_url><id>urn:ObjectBaseUrl:fb51cf27-1ead-49f3-99c0-61748b9ce8fd</id><link rel=\"self\" href=\"/object/baseurl/urn:ObjectBaseUrl:fb51cf27-1ead-49f3-99c0-61748b9ce8fd\"/><name>xip.io</name><baseurl>s3.10.5.5.5.xip.io</baseurl><namespace_in_host>true</namespace_in_host></base_url>"
+    }
+}

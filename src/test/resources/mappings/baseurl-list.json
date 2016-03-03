@@ -16,6 +16,6 @@
         "headers": {
 			"Content-Type": "application/xml"
 		},
-        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><base_urls><base_url><id>urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2</id><link rel=\"self\" href=\"/object/baseurl/urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2\"/><name>DefaultBaseUrl</name></base_url></base_urls>"
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><base_urls><base_url><id>urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2</id><link rel=\"self\" href=\"/object/baseurl/urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2\"/><name>DefaultBaseUrl</name></base_url><base_url><id>urn:ObjectBaseUrl:fb51cf27-1ead-49f3-99c0-61748b9ce8fd</id><link rel=\"self\" href=\"/object/baseurl/urn:ObjectBaseUrl:fb51cf27-1ead-49f3-99c0-61748b9ce8fd\"/><name>xip.io</name></base_url></base_urls>"
     }
 }
