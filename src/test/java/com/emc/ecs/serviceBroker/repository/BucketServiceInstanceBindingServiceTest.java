@@ -19,7 +19,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.config.Application;
-import com.emc.ecs.serviceBroker.config.BrokerConfig;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class, initializers = ConfigFileApplicationContextInitializer.class)
@@ -27,12 +26,11 @@ import com.emc.ecs.serviceBroker.config.BrokerConfig;
 public class BucketServiceInstanceBindingServiceTest {
 
 	@Autowired
-	private BrokerConfig broker;
+	private ServiceInstanceRepository repository;
 
 	@Test
 	public void testSaveFindDelete() throws IOException, JAXBException, EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
-		ServiceInstanceRepository repository = new ServiceInstanceRepository(broker);
 		ServiceInstance instance = serviceInstanceFixture();
 		repository.save(instance);
 		ServiceInstance instance2 = repository.find(instance.getServiceInstanceId());

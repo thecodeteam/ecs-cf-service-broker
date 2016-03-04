@@ -60,7 +60,7 @@ public class Application {
 	public ServiceInstanceRepository serviceInstanceRepository()
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
-		return new ServiceInstanceRepository(broker);
+		return new ServiceInstanceRepository();
 	}
 
 	@Bean
@@ -74,7 +74,7 @@ public class Application {
 	public ServiceInstanceBindingRepository serviceInstanceBindingRepository()
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
-		return new ServiceInstanceBindingRepository(broker);
+		return new ServiceInstanceBindingRepository();
 	}
 	
 	public static void main(String[] args) {
