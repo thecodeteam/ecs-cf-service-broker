@@ -7,10 +7,10 @@ import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Component
 public class ServiceInstanceBindingRepository {
 
 	private S3JerseyClient s3;
@@ -30,10 +29,12 @@ public class ServiceInstanceBindingRepository {
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
-	public ServiceInstanceBindingRepository(BrokerConfig broker)
+	BrokerConfig broker;
+	
+	@PostConstruct
+	public void initialize()
 			throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException, URISyntaxException {
-		super();
 		S3Config s3Config = new S3Config(
 				new URI(broker.getRepositoryEndpoint()));
 		s3Config.withIdentity(broker.getPrefixedUserName())

@@ -39,17 +39,12 @@ public class EcsService {
 	@Autowired
 	private CatalogConfig catalog;
 
-	public EcsService() throws EcsManagementClientException,
-					EcsManagementResourceNotFoundException {
-		super();
-	}
-	
 	@PostConstruct
 	public void initialize() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		prepareRepository();
 	}
-	
+
 	public void prepareRepository() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		String bucketName = broker.getRepositoryBucket();
