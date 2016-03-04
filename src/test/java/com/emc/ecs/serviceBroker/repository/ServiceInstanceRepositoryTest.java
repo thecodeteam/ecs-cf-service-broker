@@ -27,7 +27,7 @@ import com.emc.ecs.serviceBroker.config.Application;
 @ContextConfiguration(classes = Application.class,
 	initializers = ConfigFileApplicationContextInitializer.class)
 @ActiveProfiles("development")
-public class BucketServiceInstanceServiceTest {
+public class ServiceInstanceRepositoryTest {
 	
 	@Autowired
 	EcsService ecs;

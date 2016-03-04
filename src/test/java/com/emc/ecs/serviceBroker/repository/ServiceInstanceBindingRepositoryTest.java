@@ -23,7 +23,7 @@ import com.emc.ecs.serviceBroker.config.Application;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class, initializers = ConfigFileApplicationContextInitializer.class)
 @ActiveProfiles("development")
-public class BucketServiceInstanceBindingServiceTest {
+public class ServiceInstanceBindingRepositoryTest {
 
 	@Autowired
 	private ServiceInstanceRepository repository;
