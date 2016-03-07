@@ -2,6 +2,7 @@ package com.emc.ecs.serviceBroker.service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,6 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 	public CreateServiceInstanceBindingResponse createServiceInstanceBinding(
 			CreateServiceInstanceBindingRequest request)
 					throws ServiceInstanceBindingExistsException, ServiceBrokerException {
-		UserSecretKey userSecret;
 		String instanceId = request.getServiceInstanceId();
 		String bindingId = request.getBindingId();
 		ServiceInstanceBinding binding = new ServiceInstanceBinding(request);
@@ -54,7 +54,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		try {
 			if (ecs.userExists(bindingId))
 				throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
-			userSecret = ecs.createUser(bindingId);
+			UserSecretKey userSecret = ecs.createUser(bindingId);
 			if (parameters != null) {
 				@SuppressWarnings("unchecked")
 				List<String> permissions = (List<String>) parameters.get("permissions");
@@ -62,9 +62,15 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 			} else {
 				ecs.addUserToBucket(instanceId, bindingId);
 			}
+			URL baseUrl = new URL(ecs.getBaseUrl());
+			String userInfo = bindingId + ":" + userSecret.getSecretKey();
+			String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
+					+ "@" + baseUrl.getHost() + ":" + baseUrl.getPort() + "/"
+					+ ecs.prefix(instanceId);
 			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
 			credentials.put("baseUrl", ecs.getBaseUrl());
+			credentials.put("s3Url", s3Url);
 			binding.setBindingId(bindingId);
 			binding.setCredentials(credentials);
 			repository.save(binding);
