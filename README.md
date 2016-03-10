@@ -47,8 +47,8 @@ bundled ECS simulator.  For more info, check the
 | replicationGroup   | -              | true     | ID (not name) of replication group                 |
 | namespace          | -              | true     | ECS Namespace name                                 |
 | baseUrl            | -              | false    | ECS Base URL name (otherwise, a default is picked) | 
-| objectEndpoint     | -              | false    | Overried Base URL for the object endpoint          |
-| repositoryEndpoint | objectEndpoint | false    | Endpoint used for broker metadata storage          |
+| objectEndpoint     | -              | false    | Override endpoint for the object endpoint          |
+| repositoryEndpoint | objectEndpoint | false    | Override endpoint for broker metadata storage      |
 | repositoryUser     | user           | false    | Username to authenticate to intenal bucket         |
 | username           | root           | false    | Username to authenticate to ECS management API     |
 | password           | ChangeMe       | false    | Password to authenticate to ECS management API     |
