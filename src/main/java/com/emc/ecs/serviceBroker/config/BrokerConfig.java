@@ -13,10 +13,10 @@ public class BrokerConfig {
 	private String managementEndpoint;
 	private String namespace;
 	private String replicationGroup;
-	private String repositorySecret;
+	private String baseUrl;
 	private String objectEndpoint;
 	private String repositoryEndpoint;
-	private String baseUrl;
+	private String repositorySecret;
 	private String repositoryServiceId;
 	private String repositoryPlanId;
 	private String repositoryUser = "user";

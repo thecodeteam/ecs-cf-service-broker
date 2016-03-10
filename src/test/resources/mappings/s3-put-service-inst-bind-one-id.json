@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-        		"equalToJson": "{\"binding_id\":\"service-inst-bind-one-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"bind_resource\":{\"app_guid\":\"app_guid\"},\"parameters\":{\"number\":1234,\"flag\":true,\"text\":\"abcdefg\",\"nested\":{\"text2\":\"zyxwvu\",\"flag2\":true,\"number2\":9876}},\"credentials\":{\"bucket\":\"bucket\",\"endpoint\":\"http://127.0.0.1:9020\",\"baseUrl\":\"http://localhost:9020\",\"secretKey\":\"password\",\"accessKey\":\"user\"}}"
+        		"equalToJson": "{\"binding_id\":\"service-inst-bind-one-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"bind_resource\":{\"app_guid\":\"app_guid\"},\"parameters\":{\"number\":1234,\"flag\":true,\"text\":\"abcdefg\",\"nested\":{\"text2\":\"zyxwvu\",\"flag2\":true,\"number2\":9876}},\"credentials\":{\"bucket\":\"bucket\",\"endpoint\":\"http://localhost:9020\",\"secretKey\":\"password\",\"accessKey\":\"user\"}}"        					   
         	}
         ]
     },
@@ -24,7 +24,7 @@
         "headers": {
 			"x-amz-request-id": "0a05881f:150a5d74db8:1b1f:0",
 			"x-amz-id-2": "9edc6c7b2841f4facfc63af0f50256253fa46e1ec24cc03172f28660fa13efe3",
-			"ETag": "\"f9b585d21982a02a25527705d66bd6d6\"",
+			"ETag": "\"579ff04e803b107fed19ef06a4b629a1\"",
 			"x-emc-mtime": "1450675293828"
 		}
     }

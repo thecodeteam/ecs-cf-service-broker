@@ -2,6 +2,7 @@ package com.emc.ecs.serviceBroker;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -17,7 +18,7 @@ import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
-import com.emc.ecs.managementClient.model.BaseUrlInfo;
+import com.emc.ecs.managementClient.model.BaseUrl;
 import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.managementClient.model.BucketUserAcl;
 import com.emc.ecs.managementClient.model.ObjectBucketCreate;
@@ -41,12 +42,43 @@ public class EcsService {
 	private CatalogConfig catalog;
 	
 	private String replicationGroupID;
+	private String objectEndpoint;
+	
+	public String getObjectEndpoint() {
+		return objectEndpoint;
+	}
 
 	@PostConstruct
 	public void initialize() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
 		lookupReplicationGroupID();
+		lookupObjectEndpoint();
 		prepareRepository();
+	}
+
+	private void lookupObjectEndpoint() throws EcsManagementClientException,
+			EcsManagementResourceNotFoundException {
+		if (broker.getObjectEndpoint() != null)
+			objectEndpoint = broker.getObjectEndpoint();
+
+		List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
+		String urlId;
+		
+		if (baseUrlList.isEmpty()) {
+			throw new EcsManagementClientException(
+					"No object endpoint or base URL available");
+		} else if (broker.getBaseUrl() != null) {
+			urlId = baseUrlList.stream()
+					.filter(b -> broker.getBaseUrl().equals(b.getName()))
+					.findFirst().get().getId();
+		} else {
+			urlId = detectDefaultBaseUrlId(baseUrlList);
+		}
+
+		// TODO: switch to TLS end-point and custom S3 trust manager
+		objectEndpoint = BaseUrlAction
+				.get(connection, urlId)
+				.getNamespaceUrl(broker.getNamespace(), false);
 	}
 
 	private void lookupReplicationGroupID() throws EcsManagementClientException {
@@ -194,29 +226,15 @@ public class EcsService {
 				broker.getNamespace());
 	}
 
-	public String getBaseUrl() throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		String urlId;
-		if (broker.getBaseUrl() == null) {
-			urlId = BaseUrlAction.list(connection).get(0).getId();
-		} else {
-			// failure to find the baseUrl here creates a confusing silent failure...
-			// TODO:  Make base url lookups smarter -- by name & url?  Or make this error more clear?
-			urlId = BaseUrlAction.list(connection).stream()
-			.filter(b -> broker.getBaseUrl().equals(b.getName()))
-			.findFirst()
-			.get()
-			.getId();		
-		}
-		BaseUrlInfo baseUrl = BaseUrlAction.get(connection, urlId);
-		// TODO: switch to TLS end-point and custom S3 trust manager
-		return baseUrl.getNamespaceUrl(broker.getNamespace(), false);
+	private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {
+		Optional<BaseUrl> maybeBaseUrl = baseUrlList.stream()
+			.filter(b -> "DefaultBaseUrl".equals(b.getName()))
+			.findAny();
+		if (maybeBaseUrl.isPresent())
+			return maybeBaseUrl.get().getId();
+		return baseUrlList.get(0).getId();
 	}
 	
-	public String getObjectEndpoint() {
-		return broker.getRepositoryEndpoint();
-	}
-
 	public String prefix(String string) {
 		return broker.getPrefix() + string;
 	}
