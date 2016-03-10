@@ -67,7 +67,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 
 			URL baseUrl = new URL(ecs.getObjectEndpoint());
 			String userInfo = bindingId + ":" + userSecret.getSecretKey();
-			String s3Url = "s3://" + ecs.prefix(userInfo)
+			String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
 					+ "@" + baseUrl.getHost() + ":" + baseUrl.getPort() + "/"
 					+ ecs.prefix(instanceId);
 			credentials.put("secretKey", userSecret.getSecretKey());
