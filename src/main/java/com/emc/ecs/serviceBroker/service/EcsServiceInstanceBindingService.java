@@ -54,7 +54,9 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		try {
 			if (ecs.userExists(bindingId))
 				throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
+
 			UserSecretKey userSecret = ecs.createUser(bindingId);
+
 			if (parameters != null) {
 				@SuppressWarnings("unchecked")
 				List<String> permissions = (List<String>) parameters.get("permissions");
@@ -62,20 +64,19 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 			} else {
 				ecs.addUserToBucket(instanceId, bindingId);
 			}
-			URL baseUrl = new URL(ecs.getBaseUrl());
+
+			URL baseUrl = new URL(ecs.getObjectEndpoint());
 			String userInfo = bindingId + ":" + userSecret.getSecretKey();
 			String s3Url = "s3://" + ecs.prefix(userInfo)
 					+ "@" + baseUrl.getHost() + ":" + baseUrl.getPort() + "/"
 					+ ecs.prefix(instanceId);
 			credentials.put("secretKey", userSecret.getSecretKey());
 			credentials.put("endpoint", ecs.getObjectEndpoint());
-			credentials.put("baseUrl", ecs.getBaseUrl());
 			credentials.put("s3Url", s3Url);
 			binding.setBindingId(bindingId);
 			binding.setCredentials(credentials);
 			repository.save(binding);
-		} catch (IOException | JAXBException | EcsManagementResourceNotFoundException
-				| EcsManagementClientException e) {
+		} catch (IOException | JAXBException | EcsManagementClientException e) {
 			e.printStackTrace();
 			throw new ServiceBrokerException(e.getMessage());
 		}
