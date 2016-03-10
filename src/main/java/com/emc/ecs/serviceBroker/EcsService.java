@@ -51,34 +51,37 @@ public class EcsService {
 	@PostConstruct
 	public void initialize() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
+		lookupObjectEndpoints();
 		lookupReplicationGroupID();
-		lookupObjectEndpoint();
 		prepareRepository();
 	}
 
-	private void lookupObjectEndpoint() throws EcsManagementClientException,
+	private void lookupObjectEndpoints() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
-		if (broker.getObjectEndpoint() != null)
-			objectEndpoint = broker.getObjectEndpoint();
-
-		List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
-		String urlId;
-		
-		if (baseUrlList.isEmpty()) {
-			throw new EcsManagementClientException(
-					"No object endpoint or base URL available");
-		} else if (broker.getBaseUrl() != null) {
-			urlId = baseUrlList.stream()
-					.filter(b -> broker.getBaseUrl().equals(b.getName()))
-					.findFirst().get().getId();
+		if (broker.getObjectEndpoint() != null) {
+			objectEndpoint = broker.getObjectEndpoint();		
 		} else {
-			urlId = detectDefaultBaseUrlId(baseUrlList);
-		}
+			List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
+			String urlId;
+			
+			if (baseUrlList.isEmpty()) {
+				throw new EcsManagementClientException(
+						"No object endpoint or base URL available");
+			} else if (broker.getBaseUrl() != null) {
+				urlId = baseUrlList.stream()
+						.filter(b -> broker.getBaseUrl().equals(b.getName()))
+						.findFirst().get().getId();
+			} else {
+				urlId = detectDefaultBaseUrlId(baseUrlList);
+			}
 
-		// TODO: switch to TLS end-point and custom S3 trust manager
-		objectEndpoint = BaseUrlAction
-				.get(connection, urlId)
-				.getNamespaceUrl(broker.getNamespace(), false);
+			// TODO: switch to TLS end-point and custom S3 trust manager
+			objectEndpoint = BaseUrlAction
+					.get(connection, urlId)
+					.getNamespaceUrl(broker.getNamespace(), false);
+		}
+		if (broker.getRepositoryEndpoint() == null)
+			broker.setRepositoryEndpoint(objectEndpoint);
 	}
 
 	private void lookupReplicationGroupID() throws EcsManagementClientException {
