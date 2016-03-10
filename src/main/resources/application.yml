@@ -26,7 +26,7 @@ security:
 broker:
   certificate: localhost.pem
   namespace: ns1
-  replication-group: urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global
+  replication-group: rg1
   management-endpoint: https://127.0.0.1:4443
   object-endpoint: http://127.0.0.1:9020
 ---

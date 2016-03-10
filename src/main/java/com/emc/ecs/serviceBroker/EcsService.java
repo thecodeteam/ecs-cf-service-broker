@@ -16,6 +16,7 @@ import com.emc.ecs.managementClient.BucketQuotaAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
+import com.emc.ecs.managementClient.ReplicationGroupAction;
 import com.emc.ecs.managementClient.model.BaseUrlInfo;
 import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.managementClient.model.BucketUserAcl;
@@ -38,11 +39,22 @@ public class EcsService {
 	
 	@Autowired
 	private CatalogConfig catalog;
+	
+	private String replicationGroupID;
 
 	@PostConstruct
 	public void initialize() throws EcsManagementClientException,
 			EcsManagementResourceNotFoundException {
+		lookupReplicationGroupID();
 		prepareRepository();
+	}
+
+	private void lookupReplicationGroupID() throws EcsManagementClientException {
+		replicationGroupID = ReplicationGroupAction.list(connection).stream()
+			.filter(r -> broker.getReplicationGroup().equals(r.getName()))
+			.findFirst()
+			.get()
+			.getId();
 	}
 
 	public void prepareRepository() throws EcsManagementClientException,
@@ -94,7 +106,7 @@ public class EcsService {
 		ObjectBucketCreate createParam = new ObjectBucketCreate();
 		createParam.setName(prefix(id));
 		createParam.setNamespace(broker.getNamespace());
-		createParam.setVpool(broker.getReplicationGroup());
+		createParam.setVpool(replicationGroupID);
 		createParam.setHeadType(service.getHeadType());
 		createParam.setFilesystemEnabled(service.getFileSystemEnabled());
 		createParam.setIsStaleAllowed(service.getStaleAllowed());
