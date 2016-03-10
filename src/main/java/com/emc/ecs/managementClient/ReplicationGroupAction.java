@@ -29,7 +29,7 @@ public class ReplicationGroupAction {
 					EcsManagementResourceNotFoundException {
 		List<DataServiceReplicationGroup> repGroups = list(connection);
 		Optional<DataServiceReplicationGroup> optionalRg = repGroups.stream()
-				.filter(rg -> rg.getName().equals(id)).findFirst();
+				.filter(rg -> rg.getId().equals(id)).findFirst();
 		try {
 			return optionalRg.get();
 		} catch (NoSuchElementException e) {
