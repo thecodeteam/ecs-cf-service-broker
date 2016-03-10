@@ -30,6 +30,10 @@ public class Application {
 		super();
 	}
 
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
+
 	@Bean
 	public Connection ecsConnection() {
 		URL certificate = getClass().getClassLoader()
@@ -77,10 +81,6 @@ public class Application {
 		return new ServiceInstanceBindingRepository();
 	}
 	
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
-
 	public BrokerConfig getBroker() {
 		return broker;
 	}
