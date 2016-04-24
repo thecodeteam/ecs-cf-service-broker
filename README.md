@@ -29,7 +29,7 @@ To build, make sure that you have a Java 8 runtime environment, and use Gradle.
 ./gradlew simulate &
 
 # Then build the project
-./gradlew build
+SPRING_PROFILES_ACTIVE=development ./gradlew build
 ```
 
 ## Configuration
@@ -207,7 +207,7 @@ First start the simulator either within Eclipse, or via the command-line:
 You can then run the test-suite with gradle:
 
 ```
-./gradlew test
+SPRING_PROFILES_ACTIVE=development ./gradlew test
 ```
 
 ## TODOs
