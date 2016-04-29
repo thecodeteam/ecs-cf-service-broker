@@ -29,7 +29,7 @@ public class ServiceInstanceRepository {
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
-	BrokerConfig broker;
+	private BrokerConfig broker;
 
 	
 	@PostConstruct
