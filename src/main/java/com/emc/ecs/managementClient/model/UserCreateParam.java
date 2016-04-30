@@ -1,6 +1,6 @@
 package com.emc.ecs.managementClient.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class UserCreateParam {
 	private String user;
 	private String namespace;
-	private ArrayList<String> tags;
+	private List<String> tags;
 
 	public UserCreateParam(String user, String namespace) {
 		super();
@@ -32,11 +32,11 @@ public class UserCreateParam {
 		this.namespace = namespace;
 	}
 
-	public ArrayList<String> getTags() {
+	public List<String> getTags() {
 		return tags;
 	}
 
-	public void setTags(ArrayList<String> tags) {
+	public void setTags(List<String> tags) {
 		this.tags = tags;
 	}
 

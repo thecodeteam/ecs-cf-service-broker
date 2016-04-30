@@ -1,6 +1,6 @@
 package com.emc.ecs.managementClient.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -28,7 +28,7 @@ public class ObjectBucketInfo {
 	private Boolean internal;
 	private Boolean inactive;
 	private Vdc vdc;
-	private ArrayList<String> tags;
+	private List<String> tags;
 
 	public ObjectBucketInfo() {
 		super();
@@ -201,11 +201,11 @@ public class ObjectBucketInfo {
 		this.name = name;
 	}
 
-	public ArrayList<String> getTags() {
+	public List<String> getTags() {
 		return tags;
 	}
 
-	public void setTags(ArrayList<String> tags) {
+	public void setTags(List<String> tags) {
 		this.tags = tags;
 	}
 }

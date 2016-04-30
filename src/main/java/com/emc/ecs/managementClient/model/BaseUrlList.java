@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "base_urls")
 public class BaseUrlList {
 
-	List<BaseUrl> baseUrls;
+	private List<BaseUrl> baseUrls;
 
 	public BaseUrlList() {
 		super();
