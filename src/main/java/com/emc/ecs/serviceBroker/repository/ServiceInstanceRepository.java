@@ -26,7 +26,7 @@ public class ServiceInstanceRepository {
 
 	private String bucket;
 	private S3JerseyClient s3;
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Autowired
 	private BrokerConfig broker;
