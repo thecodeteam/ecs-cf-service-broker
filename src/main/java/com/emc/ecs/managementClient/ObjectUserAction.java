@@ -8,9 +8,12 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
 public class ObjectUserAction {
 
+	private static final String USERS = "users";
+	private static final String OBJECT = "object";
+	
 	public static void create(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder().segment("object", "users");
+		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, USERS);
 		connection.handleRemoteCall("post", uri,
 				new UserCreateParam(id, namespace));
 	}
@@ -18,14 +21,14 @@ public class ObjectUserAction {
 	public static boolean exists(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment("object", "users", id, "info")
+				.segment(OBJECT, USERS, id, "info")
 				.queryParam("namespace", namespace);
 		return connection.existenceQuery(uri, null);
 	}
 
 	public static void delete(Connection connection, String id)
 			throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder().segment("object", "users",
+		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, USERS,
 				"deactivate");
 		connection.handleRemoteCall("post", uri, new UserDeleteParam(id));
 	}

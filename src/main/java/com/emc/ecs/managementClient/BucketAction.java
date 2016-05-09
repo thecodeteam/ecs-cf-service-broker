@@ -9,10 +9,14 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
 public class BucketAction {
 
+	private static final String BUCKET = "bucket";
+	private static final String OBJECT = "object";
+	private static final String NAMESPACE = "namespace";
+
 	public static void create(Connection connection, String id,
 			String namespace, String replicationGroup)
 					throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder().segment("object", "bucket");
+		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET);
 		connection.handleRemoteCall("post", uri,
 				new ObjectBucketCreate(id, namespace, replicationGroup));
 	}
@@ -20,23 +24,23 @@ public class BucketAction {
 	public static void create(Connection connection,
 			ObjectBucketCreate createParam)
 					throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder().segment("object", "bucket");
+		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET);
 		connection.handleRemoteCall("post", uri, createParam);
 	}
 
 	public static boolean exists(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment("object", "bucket", id, "info")
-				.queryParam("namespace", namespace);
+				.segment(OBJECT, BUCKET, id, "info")
+				.queryParam(NAMESPACE, namespace);
 		return connection.existenceQuery(uri, null);
 	}
 
 	public static ObjectBucketInfo get(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment("object", "bucket", id, "info")
-				.queryParam("namespace", namespace);
+				.segment(OBJECT, BUCKET, id, "info")
+				.queryParam(NAMESPACE, namespace);
 		Response response = connection.handleRemoteCall("get", uri, null);
 		ObjectBucketInfo info = response.readEntity(ObjectBucketInfo.class);
 		return info;
@@ -45,8 +49,8 @@ public class BucketAction {
 	public static void delete(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment("object", "bucket", id, "deactivate")
-				.queryParam("namespace", namespace);
+				.segment(OBJECT, BUCKET, id, "deactivate")
+				.queryParam(NAMESPACE, namespace);
 		connection.handleRemoteCall("post", uri, null);
 	}
 
