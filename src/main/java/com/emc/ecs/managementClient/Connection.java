@@ -28,9 +28,9 @@ import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 
 public class Connection {
-	private String endpoint;
-	private String username;
-	private String password;
+	private final String endpoint;
+	private final String username;
+	private final String password;
 	private String authToken;
 	private URL certificate;
 	private int authRetries = 0;
