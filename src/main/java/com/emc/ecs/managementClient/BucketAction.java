@@ -7,11 +7,13 @@ import com.emc.ecs.managementClient.model.ObjectBucketCreate;
 import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
-public class BucketAction {
+public final class BucketAction {
 
 	private static final String BUCKET = "bucket";
 	private static final String OBJECT = "object";
 	private static final String NAMESPACE = "namespace";
+
+	private BucketAction() {}
 
 	public static void create(Connection connection, String id,
 			String namespace, String replicationGroup)
