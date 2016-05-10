@@ -10,7 +10,9 @@ import com.emc.ecs.managementClient.model.BaseUrlInfo;
 import com.emc.ecs.managementClient.model.BaseUrlList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
-public class BaseUrlAction {
+public final class BaseUrlAction {
+
+	private BaseUrlAction() {}
 
 	public static List<BaseUrl> list(Connection connection)
 			throws EcsManagementClientException {

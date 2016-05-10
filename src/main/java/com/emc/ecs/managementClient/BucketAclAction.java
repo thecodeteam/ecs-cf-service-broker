@@ -6,7 +6,10 @@ import javax.ws.rs.core.UriBuilder;
 import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
-public class BucketAclAction {
+public final class BucketAclAction {
+
+	private BucketAclAction() {}
+
 	public static void update(Connection connection, String id, BucketAcl acl)
 			throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment("object", "bucket",

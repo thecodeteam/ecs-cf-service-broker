@@ -6,11 +6,13 @@ import com.emc.ecs.managementClient.model.UserCreateParam;
 import com.emc.ecs.managementClient.model.UserDeleteParam;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
-public class ObjectUserAction {
+public final class ObjectUserAction {
 
 	private static final String USERS = "users";
 	private static final String OBJECT = "object";
 	
+	private ObjectUserAction() {}
+
 	public static void create(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, USERS);

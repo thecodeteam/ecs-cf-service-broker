@@ -12,7 +12,9 @@ import com.emc.ecs.managementClient.model.DataServiceReplicationGroupList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 
-public class ReplicationGroupAction {
+public final class ReplicationGroupAction {
+
+	private ReplicationGroupAction() {}
 
 	public static List<DataServiceReplicationGroup> list(Connection connection)
 			throws EcsManagementClientException {

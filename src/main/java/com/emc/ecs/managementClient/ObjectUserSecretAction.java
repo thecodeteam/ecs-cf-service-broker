@@ -10,10 +10,12 @@ import com.emc.ecs.managementClient.model.UserSecretKeyCreate;
 import com.emc.ecs.managementClient.model.UserSecretKeyList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
-public class ObjectUserSecretAction {
+public final class ObjectUserSecretAction {
 
 	private static final String OBJECT = "object";
 	private static final String USER_SECRET_KEYS = "user-secret-keys";
+
+	private ObjectUserSecretAction() {}
 
 	public static UserSecretKey create(Connection connection, String id)
 			throws EcsManagementClientException {
