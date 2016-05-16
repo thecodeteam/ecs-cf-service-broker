@@ -49,7 +49,7 @@ public class EcsService {
     }
 
     @PostConstruct
-    public void initialize() throws EcsManagementClientException,
+    private void initialize() throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	lookupObjectEndpoints();
 	lookupReplicationGroupID();
@@ -90,7 +90,7 @@ public class EcsService {
 		.findFirst().get().getId();
     }
 
-    public void prepareRepository() throws EcsManagementClientException,
+    private void prepareRepository() throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	String bucketName = broker.getRepositoryBucket();
 	String userName = broker.getRepositoryUser();
