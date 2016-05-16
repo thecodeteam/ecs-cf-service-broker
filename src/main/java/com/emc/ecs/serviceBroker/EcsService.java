@@ -56,63 +56,6 @@ public class EcsService {
 	prepareRepository();
     }
 
-    private void lookupObjectEndpoints() throws EcsManagementClientException,
-	    EcsManagementResourceNotFoundException {
-	if (broker.getObjectEndpoint() != null) {
-	    objectEndpoint = broker.getObjectEndpoint();
-	} else {
-	    List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
-	    String urlId;
-
-	    if (baseUrlList.isEmpty()) {
-		throw new EcsManagementClientException(
-			"No object endpoint or base URL available");
-	    } else if (broker.getBaseUrl() != null) {
-		urlId = baseUrlList.stream()
-			.filter(b -> broker.getBaseUrl().equals(b.getName()))
-			.findFirst().get().getId();
-	    } else {
-		urlId = detectDefaultBaseUrlId(baseUrlList);
-	    }
-
-	    // TODO: switch to TLS end-point and custom S3 trust manager
-	    objectEndpoint = BaseUrlAction.get(connection, urlId)
-		    .getNamespaceUrl(broker.getNamespace(), false);
-	}
-	if (broker.getRepositoryEndpoint() == null)
-	    broker.setRepositoryEndpoint(objectEndpoint);
-    }
-
-    private void lookupReplicationGroupID()
-	    throws EcsManagementClientException {
-	replicationGroupID = ReplicationGroupAction.list(connection).stream()
-		.filter(r -> broker.getReplicationGroup().equals(r.getName()))
-		.findFirst().get().getId();
-    }
-
-    private void prepareRepository() throws EcsManagementClientException,
-	    EcsManagementResourceNotFoundException {
-	String bucketName = broker.getRepositoryBucket();
-	String userName = broker.getRepositoryUser();
-	if (!bucketExists(bucketName))
-	    createBucket(bucketName, broker.getRepositoryServiceId(),
-		    broker.getRepositoryPlanId());
-
-	if (!userExists(userName)) {
-	    UserSecretKey secretKey = createUser(userName);
-	    addUserToBucket(bucketName, userName);
-	    broker.setRepositorySecret(secretKey.getSecretKey());
-	} else {
-	    broker.setRepositorySecret(getUserSecret(userName));
-	}
-    }
-
-    private String getUserSecret(String id)
-	    throws EcsManagementClientException {
-	return ObjectUserSecretAction.list(connection, prefix(id)).get(0)
-		.getSecretKey();
-    }
-
     public ObjectBucketInfo getBucketInfo(String id)
 	    throws EcsManagementClientException {
 	return BucketAction.get(connection, prefix(id), broker.getNamespace());
@@ -226,15 +169,72 @@ public class EcsService {
 		broker.getNamespace());
     }
 
+    public String prefix(String string) {
+	return broker.getPrefix() + string;
+    }
+
+    private void lookupObjectEndpoints() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	if (broker.getObjectEndpoint() != null) {
+	    objectEndpoint = broker.getObjectEndpoint();
+	} else {
+	    List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
+	    String urlId;
+
+	    if (baseUrlList.isEmpty()) {
+		throw new EcsManagementClientException(
+			"No object endpoint or base URL available");
+	    } else if (broker.getBaseUrl() != null) {
+		urlId = baseUrlList.stream()
+			.filter(b -> broker.getBaseUrl().equals(b.getName()))
+			.findFirst().get().getId();
+	    } else {
+		urlId = detectDefaultBaseUrlId(baseUrlList);
+	    }
+
+	    // TODO: switch to TLS end-point and custom S3 trust manager
+	    objectEndpoint = BaseUrlAction.get(connection, urlId)
+		    .getNamespaceUrl(broker.getNamespace(), false);
+	}
+	if (broker.getRepositoryEndpoint() == null)
+	    broker.setRepositoryEndpoint(objectEndpoint);
+    }
+
+    private void lookupReplicationGroupID()
+	    throws EcsManagementClientException {
+	replicationGroupID = ReplicationGroupAction.list(connection).stream()
+		.filter(r -> broker.getReplicationGroup().equals(r.getName()))
+		.findFirst().get().getId();
+    }
+
+    private void prepareRepository() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	String bucketName = broker.getRepositoryBucket();
+	String userName = broker.getRepositoryUser();
+	if (!bucketExists(bucketName))
+	    createBucket(bucketName, broker.getRepositoryServiceId(),
+		    broker.getRepositoryPlanId());
+
+	if (!userExists(userName)) {
+	    UserSecretKey secretKey = createUser(userName);
+	    addUserToBucket(bucketName, userName);
+	    broker.setRepositorySecret(secretKey.getSecretKey());
+	} else {
+	    broker.setRepositorySecret(getUserSecret(userName));
+	}
+    }
+
+    private String getUserSecret(String id)
+	    throws EcsManagementClientException {
+	return ObjectUserSecretAction.list(connection, prefix(id)).get(0)
+		.getSecretKey();
+    }
+
     private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {
 	Optional<BaseUrl> maybeBaseUrl = baseUrlList.stream()
 		.filter(b -> "DefaultBaseUrl".equals(b.getName())).findAny();
 	if (maybeBaseUrl.isPresent())
 	    return maybeBaseUrl.get().getId();
 	return baseUrlList.get(0).getId();
-    }
-
-    public String prefix(String string) {
-	return broker.getPrefix() + string;
     }
 }
