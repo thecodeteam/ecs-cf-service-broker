@@ -122,6 +122,11 @@ public class EcsService {
 	}
     }
 
+    public boolean bucketExists(String id) throws EcsManagementClientException {
+	return BucketAction.exists(connection, prefix(id),
+		broker.getNamespace());
+    }
+
     public UserSecretKey createUser(String id)
 	    throws EcsManagementClientException {
 	ObjectUserAction.create(connection, prefix(id), broker.getNamespace());
@@ -162,11 +167,6 @@ public class EcsService {
 		.collect(Collectors.toList());
 	acl.getAcl().setUserAccessList(newUserAcl);
 	BucketAclAction.update(connection, prefix(id), acl);
-    }
-
-    public boolean bucketExists(String id) throws EcsManagementClientException {
-	return BucketAction.exists(connection, prefix(id),
-		broker.getNamespace());
     }
 
     public String prefix(String string) {
