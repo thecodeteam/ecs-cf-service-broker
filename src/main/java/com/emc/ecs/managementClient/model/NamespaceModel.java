@@ -7,7 +7,7 @@ public class NamespaceModel {
     private String defaultDataServicesVpool;
     private String allowedVpoolsList;
     private String disallowedVpoolsList;
-    private String namespaceAdmins;
+    private String namespaceAdmins = "noadmin";
     private Boolean isEncryptionEnabled;
     private long defaultBucketBlockSize = -1;
     private Boolean isStaleAllowed;
