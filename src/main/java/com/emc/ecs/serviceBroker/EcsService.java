@@ -262,8 +262,8 @@ public class EcsService {
 	if (plan == null)
 	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
 
-	parameters.putAll(plan.getOverrides());
-	parameters.putAll(service.getOverrides());
+	parameters.putAll(plan.getServiceSettings());
+	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
 		replicationGroupID, parameters));
     }
@@ -285,8 +285,8 @@ public class EcsService {
 	if (plan == null)
 	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
 
-	parameters.putAll(plan.getOverrides());
-	parameters.putAll(service.getOverrides());
+	parameters.putAll(plan.getServiceSettings());
+	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.update(connection, prefix(id),
 		new NamespaceUpdate(parameters));
     }

@@ -20,7 +20,7 @@ public class ServiceDefinitionProxy {
     private Boolean planUpdatable;
     private List<String> tags;
     private Map<String, Object> metadata = new HashMap<>();
-    private Map<String, Object> overrides = new HashMap<>();
+    private Map<String, Object> serviceSettings = new HashMap<>();
     private List<PlanProxy> plans;
     private List<String> requires;
     private DashboardClientProxy dashboardClient;
@@ -34,8 +34,9 @@ public class ServiceDefinitionProxy {
 
     public ServiceDefinitionProxy(String id, String name, String description,
 	    Boolean bindable, Boolean planUpdatable, List<String> tags,
-	    Map<String, Object> metadata, List<PlanProxy> plans,
-	    List<String> requires, DashboardClientProxy dashboardClient) {
+	    Map<String, Object> serviceSettings, Map<String, Object> metadata,
+	    List<PlanProxy> plans, List<String> requires,
+	    DashboardClientProxy dashboardClient) {
 	super();
 	this.id = id;
 	this.name = name;
@@ -43,6 +44,7 @@ public class ServiceDefinitionProxy {
 	this.bindable = bindable;
 	this.planUpdatable = planUpdatable;
 	this.tags = tags;
+	this.serviceSettings = serviceSettings;
 	this.metadata = metadata;
 	this.plans = plans;
 	this.requires = requires;
@@ -173,12 +175,12 @@ public class ServiceDefinitionProxy {
 		.get();
     }
 
-    public Map<String, Object> getOverrides() {
-	return overrides;
+    public Map<String, Object> getServiceSettings() {
+	return serviceSettings;
     }
 
-    public void setOverrides(Map<String, Object> overrides) {
-	this.overrides = overrides;
+    public void setServiceSettings(Map<String, Object> serviceSettings) {
+	this.serviceSettings = serviceSettings;
     }
 
     public String getType() {

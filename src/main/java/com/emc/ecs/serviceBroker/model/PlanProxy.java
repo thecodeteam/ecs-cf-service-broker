@@ -15,7 +15,7 @@ public class PlanProxy {
 	private PlanMetadataProxy metadata;
 	private int quotaLimit = -1;
 	private int quotaWarning = -1;
-	private Map<String, Object> overrides = new HashMap<>();
+	private Map<String, Object> serviceSettings = new HashMap<>();
 
 	public PlanProxy() {
 		super();
@@ -91,11 +91,11 @@ public class PlanProxy {
 		this.free = free;
 	}
 
-	public Map<String, Object> getOverrides() {
-	    return overrides;
+	public Map<String, Object> getServiceSettings() {
+	    return serviceSettings;
 	}
 
-	public void setOverrides(Map<String, Object> overrides) {
-	    this.overrides = overrides;
+	public void setServiceSettings(Map<String, Object> serviceSettings) {
+	    this.serviceSettings = serviceSettings;
 	}
 }
