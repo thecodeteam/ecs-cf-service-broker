@@ -1,6 +1,7 @@
 package com.emc.ecs.serviceBroker.service;
 
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -21,14 +22,22 @@ import org.springframework.stereotype.Service;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.EcsService;
-import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.serviceBroker.config.CatalogConfig;
+import com.emc.ecs.serviceBroker.model.PlanProxy;
+import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.serviceBroker.repository.ServiceInstance;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
+    private static final String PLAN_NOT_FOUND = "No plan matching plan id: ";
+    private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
     @Autowired
     private EcsService ecs;
+
+    @Autowired
+    private CatalogConfig catalog;
 
     @Autowired
     private ServiceInstanceRepository repository;
@@ -45,23 +54,65 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	ServiceInstance instance = new ServiceInstance(request);
 	String serviceInstanceId = request.getServiceInstanceId();
 	String serviceDefinitionId = request.getServiceDefinitionId();
+	String planId = request.getPlanId();
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceDefinitionId);
+	Map<String, Object> params = request.getParameters();
 	try {
-	    if (ecs.bucketExists(serviceInstanceId))
-		throw new ServiceInstanceExistsException(serviceInstanceId,
-			serviceDefinitionId);
-	    ecs.createBucket(serviceInstanceId, serviceDefinitionId,
-		    request.getPlanId());
+	    if (service == null)
+		throw new EcsManagementClientException(
+			SERVICE_NOT_FOUND + serviceDefinitionId);
 
-	    if (ecs.getBucketInfo(serviceInstanceId) == null)
-		throw new ServiceBrokerException(
-			"Failed to create new ECS bucket: "
-				+ serviceInstanceId);
+	    PlanProxy plan = service.findPlan(planId);
+	    if (plan == null)
+		throw new EcsManagementClientException(
+			PLAN_NOT_FOUND + planId);
+
+	    String serviceType = (String) service.getServiceSettings()
+		    .get("service-type");
+	    if ("bucket".equals(serviceType)) {
+		createBucketUnlessExists(serviceInstanceId, serviceDefinitionId,
+			planId);		
+	    } else if ("namespace".equals(serviceType)) {
+		createNamespaceUnlessExists(serviceInstanceId, serviceDefinitionId,
+			planId, params);
+	    }
 
 	    repository.save(instance);
 	    return new CreateServiceInstanceResponse();
 	} catch (Exception e) {
-	    throw new ServiceBrokerException(e.getMessage());
+	    throw new ServiceBrokerException(e);
 	}
+    }
+
+    private void createNamespaceUnlessExists(String serviceInstanceId,
+	    String serviceDefinitionId, String planId, Map<String, Object> params) throws EcsManagementClientException {
+	if (ecs.namespaceExists(serviceInstanceId))
+	    throw new ServiceInstanceExistsException(serviceInstanceId,
+		serviceDefinitionId);
+	
+	ecs.createNamespace(serviceInstanceId, serviceDefinitionId, planId, params);
+
+	if (! ecs.namespaceExists(serviceInstanceId))
+	    throw new ServiceBrokerException(
+		"Failed to create new ECS namespace: "
+			+ serviceInstanceId);
+    }
+
+    private void createBucketUnlessExists(String serviceInstanceId,
+	    String serviceDefinitionId, String planId)
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	if (ecs.bucketExists(serviceInstanceId))
+	    throw new ServiceInstanceExistsException(serviceInstanceId,
+		serviceDefinitionId);
+	
+	ecs.createBucket(serviceInstanceId, serviceDefinitionId, planId);
+
+	if (ecs.getBucketInfo(serviceInstanceId) == null)
+	    throw new ServiceBrokerException(
+		"Failed to create new ECS bucket: "
+			+ serviceInstanceId);
     }
 
     @Override
@@ -74,7 +125,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    repository.delete(serviceInstanceId);
 	    return new DeleteServiceInstanceResponse();
 	} catch (Exception e) {
-	    throw new ServiceBrokerException(e.getMessage());
+	    throw new ServiceBrokerException(e);
 	}
     }
 
@@ -104,5 +155,5 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     public GetLastServiceOperationResponse getLastOperation(
 	    GetLastServiceOperationRequest request) {
 	return new GetLastServiceOperationResponse();
-    }
+    }    
 }
