@@ -68,3 +68,9 @@ task simulate(type:JavaExec) {
 	classpath sourceSets.test.runtimeClasspath
 	main = "com.emc.ecs.apiSimulator.Server"
 }
+
+task testSuite(type: Test) {
+   include '**/TestSuite.class'
+   reports.junitXml.destination = "$buildDir/test-results/TestSuite"
+   reports.html.destination = "$buildDir/test-results/TestSuite"
+}
