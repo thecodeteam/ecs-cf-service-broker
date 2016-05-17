@@ -85,36 +85,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	}
     }
 
-    private void createNamespaceUnlessExists(String serviceInstanceId,
-	    String serviceDefinitionId, String planId, Map<String, Object> params) throws EcsManagementClientException {
-	if (ecs.namespaceExists(serviceInstanceId))
-	    throw new ServiceInstanceExistsException(serviceInstanceId,
-		serviceDefinitionId);
-	
-	ecs.createNamespace(serviceInstanceId, serviceDefinitionId, planId, params);
-
-	if (! ecs.namespaceExists(serviceInstanceId))
-	    throw new ServiceBrokerException(
-		"Failed to create new ECS namespace: "
-			+ serviceInstanceId);
-    }
-
-    private void createBucketUnlessExists(String serviceInstanceId,
-	    String serviceDefinitionId, String planId)
-	    throws EcsManagementClientException,
-	    EcsManagementResourceNotFoundException {
-	if (ecs.bucketExists(serviceInstanceId))
-	    throw new ServiceInstanceExistsException(serviceInstanceId,
-		serviceDefinitionId);
-	
-	ecs.createBucket(serviceInstanceId, serviceDefinitionId, planId);
-
-	if (ecs.getBucketInfo(serviceInstanceId) == null)
-	    throw new ServiceBrokerException(
-		"Failed to create new ECS bucket: "
-			+ serviceInstanceId);
-    }
-
     @Override
     public DeleteServiceInstanceResponse deleteServiceInstance(
 	    DeleteServiceInstanceRequest request)
@@ -155,5 +125,35 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     public GetLastServiceOperationResponse getLastOperation(
 	    GetLastServiceOperationRequest request) {
 	return new GetLastServiceOperationResponse();
-    }    
+    }
+
+    private void createNamespaceUnlessExists(String serviceInstanceId,
+	    String serviceDefinitionId, String planId, Map<String, Object> params) throws EcsManagementClientException {
+	if (ecs.namespaceExists(serviceInstanceId))
+	    throw new ServiceInstanceExistsException(serviceInstanceId,
+		serviceDefinitionId);
+	
+	ecs.createNamespace(serviceInstanceId, serviceDefinitionId, planId, params);
+
+	if (! ecs.namespaceExists(serviceInstanceId))
+	    throw new ServiceBrokerException(
+		"Failed to create new ECS namespace: "
+			+ serviceInstanceId);
+    }
+
+    private void createBucketUnlessExists(String serviceInstanceId,
+	    String serviceDefinitionId, String planId)
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	if (ecs.bucketExists(serviceInstanceId))
+	    throw new ServiceInstanceExistsException(serviceInstanceId,
+		serviceDefinitionId);
+	
+	ecs.createBucket(serviceInstanceId, serviceDefinitionId, planId);
+
+	if (ecs.getBucketInfo(serviceInstanceId) == null)
+	    throw new ServiceBrokerException(
+		"Failed to create new ECS bucket: "
+			+ serviceInstanceId);
+    }
 }
