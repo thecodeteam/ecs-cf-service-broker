@@ -36,7 +36,7 @@ import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 
 @Service
 public class EcsService {
-    
+
     private static final String PLAN_NOT_FOUND = "No plan matching plan id: ";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
@@ -84,8 +84,7 @@ public class EcsService {
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
-	    throw new EcsManagementClientException(
-		    PLAN_NOT_FOUND + planId);
+	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
 
 	ObjectBucketCreate createParam = new ObjectBucketCreate();
 	createParam.setName(prefix(id));
@@ -116,8 +115,7 @@ public class EcsService {
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
-	    throw new EcsManagementClientException(
-		    PLAN_NOT_FOUND + planId);
+	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
 
 	int limit = plan.getQuotaLimit();
 	int warning = plan.getQuotaWarning();
@@ -262,8 +260,7 @@ public class EcsService {
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
-	    throw new EcsManagementClientException(
-		    PLAN_NOT_FOUND + planId);
+	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
 
 	parameters.putAll(plan.getOverrides());
 	parameters.putAll(service.getOverrides());
@@ -286,12 +283,12 @@ public class EcsService {
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
-	    throw new EcsManagementClientException(
-		    PLAN_NOT_FOUND + planId);
+	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
 
 	parameters.putAll(plan.getOverrides());
 	parameters.putAll(service.getOverrides());
-	NamespaceAction.update(connection, prefix(id), new NamespaceUpdate(parameters));
+	NamespaceAction.update(connection, prefix(id),
+		new NamespaceUpdate(parameters));
     }
 
     public NamespaceInfo getNamespaceInfo(String id)

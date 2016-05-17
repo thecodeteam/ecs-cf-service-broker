@@ -41,7 +41,6 @@ catalog:
               - Multiple Bucket Namespace
               - 5 GB Storage
               - S3 protocol and HDFS access
-      
     - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
       name: ecs-bucket
       description: Elastic Cloud S3 Object Storage Bucket
