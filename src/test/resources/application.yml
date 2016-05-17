@@ -13,6 +13,7 @@ catalog:
   services:
     - id: 09cac1c6-1b0a-11e6-b6ba-3e1d05defe78
       name: ecs-namespace
+      type: namespace
       description: Elastic Cloud Namespace
       bindable: true
       planUpdatable: true
@@ -20,9 +21,9 @@ catalog:
         - ecs-store
         - object
       metadata:
-        displayName: ecs-bucket
+        displayName: ecs-namespace
         imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
-        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
+        longDescription: EMC Elastic Cloud Storage (ECS) Namespace for managing Amazon S3, Swift or Atmos buckets.
         providerDisplayName: EMC Corporation
         documentationUrl: https://community.emc.com/docs/DOC-45012
         supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
@@ -43,6 +44,7 @@ catalog:
               - S3 protocol and HDFS access
     - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
       name: ecs-bucket
+      type: bucket      
       description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       planUpdatable: true
