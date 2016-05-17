@@ -39,7 +39,7 @@ public class CatalogConfigTest {
 	@Test
 	public void testEcsBucketMetadata() {
 		ServiceDefinition ecsBucketService = catalog.getServiceDefinitions()
-				.get(0);
+				.get(1);
 		Map<String, Object> metadata = ecsBucketService.getMetadata();
 		testServiceDefinitionMetadata(metadata, "ecs-bucket",
 				"http://www.emc.com/images/products/header-image-icon-ecs.png",
