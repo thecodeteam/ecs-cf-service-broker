@@ -1,5 +1,8 @@
 package com.emc.ecs.serviceBroker.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +15,7 @@ public class PlanProxy {
 	private PlanMetadataProxy metadata;
 	private int quotaLimit = -1;
 	private int quotaWarning = -1;
+	private Map<String, Object> overrides = new HashMap<>();
 
 	public PlanProxy() {
 		super();
@@ -85,5 +89,13 @@ public class PlanProxy {
 
 	public void setFree(Boolean free) {
 		this.free = free;
+	}
+
+	public Map<String, Object> getOverrides() {
+	    return overrides;
+	}
+
+	public void setOverrides(Map<String, Object> overrides) {
+	    this.overrides = overrides;
 	}
 }

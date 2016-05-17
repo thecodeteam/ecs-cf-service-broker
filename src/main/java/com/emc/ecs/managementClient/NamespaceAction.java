@@ -5,6 +5,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.emc.ecs.managementClient.model.NamespaceCreate;
 import com.emc.ecs.managementClient.model.NamespaceInfo;
+import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 
 public final class NamespaceAction {
@@ -33,6 +34,14 @@ public final class NamespaceAction {
 			replicationGroup));
     }
 
+
+    public static void create(Connection connection,
+	    NamespaceCreate createParam) throws EcsManagementClientException {
+	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
+		NAMESPACE);
+	connection.handleRemoteCall("post", uri, createParam);
+    }
+
     public static void delete(Connection connection, String namespace)
 	    throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
@@ -46,5 +55,12 @@ public final class NamespaceAction {
 		NAMESPACE, namespace);
 	Response response = connection.handleRemoteCall("get", uri, null);
 	return response.readEntity(NamespaceInfo.class);
+    }
+
+    public static void update(Connection connection, String namespace,
+	    NamespaceUpdate updateParam) throws EcsManagementClientException {
+	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
+		NAMESPACE, namespace);
+	connection.handleRemoteCall("put", uri, updateParam);
     }
 }

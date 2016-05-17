@@ -2,6 +2,7 @@ package com.emc.ecs.serviceBroker;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -15,12 +16,16 @@ import com.emc.ecs.managementClient.BucketAclAction;
 import com.emc.ecs.managementClient.BucketAction;
 import com.emc.ecs.managementClient.BucketQuotaAction;
 import com.emc.ecs.managementClient.Connection;
+import com.emc.ecs.managementClient.NamespaceAction;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
 import com.emc.ecs.managementClient.model.BaseUrl;
 import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.managementClient.model.BucketUserAcl;
+import com.emc.ecs.managementClient.model.NamespaceCreate;
+import com.emc.ecs.managementClient.model.NamespaceInfo;
+import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.managementClient.model.ObjectBucketCreate;
 import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.managementClient.model.UserSecretKey;
@@ -236,5 +241,58 @@ public class EcsService {
 	if (maybeBaseUrl.isPresent())
 	    return maybeBaseUrl.get().getId();
 	return baseUrlList.get(0).getId();
+    }
+
+    public Boolean namespaceExists(String id)
+	    throws EcsManagementClientException {
+	return NamespaceAction.exists(connection, prefix(id));
+    }
+
+    public void createNamespace(String id, String serviceId, String planId,
+	    Map<String, Object> parameters)
+	    throws EcsManagementClientException {
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceId);
+	if (service == null)
+	    throw new EcsManagementClientException(
+		    "No service matching service id: " + serviceId);
+
+	PlanProxy plan = service.findPlan(planId);
+	if (plan == null)
+	    throw new EcsManagementClientException(
+		    "No plan matching plan id " + planId);
+
+	parameters.putAll(plan.getOverrides());
+	parameters.putAll(service.getOverrides());
+	NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
+		replicationGroupID, parameters));
+    }
+
+    public void deleteNamespace(String id) throws EcsManagementClientException {
+	NamespaceAction.delete(connection, prefix(id));
+    }
+
+    public void changeNamespacePlan(String id, String serviceId, String planId,
+	    Map<String, Object> parameters)
+	    throws EcsManagementClientException {
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceId);
+	if (service == null)
+	    throw new EcsManagementClientException(
+		    "No service matching service id: " + serviceId);
+
+	PlanProxy plan = service.findPlan(planId);
+	if (plan == null)
+	    throw new EcsManagementClientException(
+		    "No service matching plan id: " + planId);
+
+	parameters.putAll(plan.getOverrides());
+	parameters.putAll(service.getOverrides());
+	NamespaceAction.update(connection, prefix(id), new NamespaceUpdate(parameters));
+    }
+
+    public NamespaceInfo getNamespaceInfo(String id)
+	    throws EcsManagementClientException {
+	return NamespaceAction.get(connection, prefix(id));
     }
 }

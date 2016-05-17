@@ -1,0 +1,29 @@
+{
+	"scenarioName": "ecs-cf-broker-testns1",
+	"requiredScenarioState": "Started",
+	"newScenarioState": "Created",
+    "request": {
+        "method": "POST",
+        "url": "/object/namespaces/namespace",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        },
+        "bodyPatterns": [
+        	{
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><namespace_create><allowed_vpools_list>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</allowed_vpools_list><default_bucket_block_size>-1</default_bucket_block_size><default_data_services_vpool>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</default_data_services_vpool><namespace_admins>noadmin</namespace_admins><namespace>ecs-cf-broker-testns1</namespace></namespace_create>"
+        	}
+        ]
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><namespace><id>ecs-cf-broker-testns1</id><inactive>false</inactive><link rel=\"self\" href=\"/object/namespaces/namespace/ecs-cf-broker-testns1\"/><name>ecs-cf-broker-testns1</name><default_bucket_block_size>-1</default_bucket_block_size><is_compliance_enabled>false</is_compliance_enabled><is_encryption_enabled>false</is_encryption_enabled><is_stale_allowed>false</is_stale_allowed><allowed_vpools_list>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</allowed_vpools_list><namespace_admins>noadmin</namespace_admins><default_data_services_vpool>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</default_data_services_vpool></namespace>"
+    }
+}

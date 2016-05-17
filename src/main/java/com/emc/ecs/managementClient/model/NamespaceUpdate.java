@@ -1,44 +1,69 @@
 package com.emc.ecs.managementClient.model;
 
-class NamespaceUpdate extends NamespaceModel {
-	private String vpoolsAddedToAllowedVpoolsList;
-	private String vpoolsAddedToDisallowedVpoolsList;
-	private String vpoolsRemovedFromAllowedVpoolsList;
-	private String vpoolsRemovedFromDisallowedVpoolsList;
+import java.util.Map;
 
-	public NamespaceUpdate() {
-		super();
-	}
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
-	public String getVpoolsAddedToAllowedVpoolsList() {
-		return vpoolsAddedToAllowedVpoolsList;
-	}
+@XmlRootElement(name = "namespace_update")
+public class NamespaceUpdate extends NamespaceModel {
+    private String vpoolsAddedToAllowedVpoolsList;
+    private String vpoolsAddedToDisallowedVpoolsList;
+    private String vpoolsRemovedFromAllowedVpoolsList;
+    private String vpoolsRemovedFromDisallowedVpoolsList;
 
-	public void setVpoolsAddedToAllowedVpoolsList(String vpoolsAddedToAllowedVpoolsList) {
-		this.vpoolsAddedToAllowedVpoolsList = vpoolsAddedToAllowedVpoolsList;
-	}
+    public NamespaceUpdate(Map<String, Object> params) {
+	setExternalGroupNames(
+		(String) params.get("domain-group-admins"));
+	setIsEncryptionEnabled(
+		(Boolean) params.get("encrypted"));
+	setIsComplianceEnabled(
+		(Boolean) params.get("compliance-enabled"));
+	setIsStaleAllowed(
+		(Boolean) params.get("access-during-outage"));
+    }
 
-	public String getVpoolsAddedToDisallowedVpoolsList() {
-		return vpoolsAddedToDisallowedVpoolsList;
-	}
+    public NamespaceUpdate() {
+	super();
+    }
 
-	public void setVpoolsAddedToDisallowedVpoolsList(String vpoolsAddedToDisallowedVpoolsList) {
-		this.vpoolsAddedToDisallowedVpoolsList = vpoolsAddedToDisallowedVpoolsList;
-	}
+    @XmlElement(name = "vpools_added_to_allowed_vpools_list")
+    public String getVpoolsAddedToAllowedVpoolsList() {
+	return vpoolsAddedToAllowedVpoolsList;
+    }
 
-	public String getVpoolsRemovedFromAllowedVpoolsList() {
-		return vpoolsRemovedFromAllowedVpoolsList;
-	}
+    public void setVpoolsAddedToAllowedVpoolsList(
+	    String vpoolsAddedToAllowedVpoolsList) {
+	this.vpoolsAddedToAllowedVpoolsList = vpoolsAddedToAllowedVpoolsList;
+    }
 
-	public void setVpoolsRemovedFromAllowedVpoolsList(String vpoolsRemovedFromAllowedVpoolsList) {
-		this.vpoolsRemovedFromAllowedVpoolsList = vpoolsRemovedFromAllowedVpoolsList;
-	}
+    @XmlElement(name = "vpools_added_to_disallowed_vpools_list")
+    public String getVpoolsAddedToDisallowedVpoolsList() {
+	return vpoolsAddedToDisallowedVpoolsList;
+    }
 
-	public String getVpoolsRemovedFromDisallowedVpoolsList() {
-		return vpoolsRemovedFromDisallowedVpoolsList;
-	}
+    public void setVpoolsAddedToDisallowedVpoolsList(
+	    String vpoolsAddedToDisallowedVpoolsList) {
+	this.vpoolsAddedToDisallowedVpoolsList = vpoolsAddedToDisallowedVpoolsList;
+    }
 
-	public void setVpoolsRemovedFromDisallowedVpoolsList(String vpoolsRemovedFromDisallowedVpoolsList) {
-		this.vpoolsRemovedFromDisallowedVpoolsList = vpoolsRemovedFromDisallowedVpoolsList;
-	}	
+    @XmlElement(name = "vpools_removed_from_allowed_vpools_list")
+    public String getVpoolsRemovedFromAllowedVpoolsList() {
+	return vpoolsRemovedFromAllowedVpoolsList;
+    }
+
+    public void setVpoolsRemovedFromAllowedVpoolsList(
+	    String vpoolsRemovedFromAllowedVpoolsList) {
+	this.vpoolsRemovedFromAllowedVpoolsList = vpoolsRemovedFromAllowedVpoolsList;
+    }
+
+    @XmlElement(name = "vpools_removed_from_disallowed_vpools_list")
+    public String getVpoolsRemovedFromDisallowedVpoolsList() {
+	return vpoolsRemovedFromDisallowedVpoolsList;
+    }
+
+    public void setVpoolsRemovedFromDisallowedVpoolsList(
+	    String vpoolsRemovedFromDisallowedVpoolsList) {
+	this.vpoolsRemovedFromDisallowedVpoolsList = vpoolsRemovedFromDisallowedVpoolsList;
+    }
 }

@@ -18,7 +18,8 @@ public class ServiceDefinitionProxy {
 	private Boolean bindable;
 	private Boolean planUpdatable;
 	private List<String> tags;
-	private Map<String, Object> metadata = new HashMap<String, Object>();
+	private Map<String, Object> metadata = new HashMap<>();
+	private Map<String, Object> overrides = new HashMap<>();
 	private List<PlanProxy> plans;
 	private List<String> requires;
 	private DashboardClientProxy dashboardClient;
@@ -170,6 +171,14 @@ public class ServiceDefinitionProxy {
 	public PlanProxy findPlan(String planId) {
 		return plans.stream().filter(p -> p.getId().equals(planId)).findFirst()
 				.get();
+	}
+
+	public Map<String, Object> getOverrides() {
+	    return overrides;
+	}
+
+	public void setOverrides(Map<String, Object> overrides) {
+	    this.overrides = overrides;
 	}
 
 }
