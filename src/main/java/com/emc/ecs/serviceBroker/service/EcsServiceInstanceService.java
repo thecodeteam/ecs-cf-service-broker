@@ -72,10 +72,13 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 		    .get("service-type");
 	    if ("bucket".equals(serviceType)) {
 		createBucketUnlessExists(serviceInstanceId, serviceDefinitionId,
-			planId);		
+			planId);
 	    } else if ("namespace".equals(serviceType)) {
-		createNamespaceUnlessExists(serviceInstanceId, serviceDefinitionId,
-			planId, params);
+		createNamespaceUnlessExists(serviceInstanceId,
+			serviceDefinitionId, planId, params);
+	    } else {
+		throw new EcsManagementClientException(
+			"No service matching type: " + serviceType);
 	    }
 
 	    repository.save(instance);
@@ -90,8 +93,24 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    DeleteServiceInstanceRequest request)
 	    throws ServiceBrokerException {
 	String serviceInstanceId = request.getServiceInstanceId();
+	String serviceDefinitionId = request.getServiceDefinitionId();
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceDefinitionId);
 	try {
-	    ecs.deleteBucket(serviceInstanceId);
+	    if (service == null)
+		throw new EcsManagementClientException(
+			SERVICE_NOT_FOUND + serviceDefinitionId);
+
+	    String serviceType = (String) service.getServiceSettings()
+		    .get("service-type");
+	    if ("bucket".equals(serviceType)) {
+		ecs.deleteBucket(serviceInstanceId);
+	    } else if ("namespace".equals(serviceType)) {
+		ecs.deleteNamespace(serviceInstanceId);
+	    } else {
+		throw new EcsManagementClientException(
+			"No service matching type: " + serviceType);
+	    }
 	    repository.delete(serviceInstanceId);
 	    return new DeleteServiceInstanceResponse();
 	} catch (Exception e) {
@@ -128,17 +147,18 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     }
 
     private void createNamespaceUnlessExists(String serviceInstanceId,
-	    String serviceDefinitionId, String planId, Map<String, Object> params) throws EcsManagementClientException {
+	    String serviceDefinitionId, String planId,
+	    Map<String, Object> params) throws EcsManagementClientException {
 	if (ecs.namespaceExists(serviceInstanceId))
 	    throw new ServiceInstanceExistsException(serviceInstanceId,
-		serviceDefinitionId);
-	
-	ecs.createNamespace(serviceInstanceId, serviceDefinitionId, planId, params);
+		    serviceDefinitionId);
 
-	if (! ecs.namespaceExists(serviceInstanceId))
+	ecs.createNamespace(serviceInstanceId, serviceDefinitionId, planId,
+		params);
+
+	if (!ecs.namespaceExists(serviceInstanceId))
 	    throw new ServiceBrokerException(
-		"Failed to create new ECS namespace: "
-			+ serviceInstanceId);
+		    "Failed to create new ECS namespace: " + serviceInstanceId);
     }
 
     private void createBucketUnlessExists(String serviceInstanceId,
@@ -147,13 +167,12 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    EcsManagementResourceNotFoundException {
 	if (ecs.bucketExists(serviceInstanceId))
 	    throw new ServiceInstanceExistsException(serviceInstanceId,
-		serviceDefinitionId);
-	
+		    serviceDefinitionId);
+
 	ecs.createBucket(serviceInstanceId, serviceDefinitionId, planId);
 
 	if (ecs.getBucketInfo(serviceInstanceId) == null)
 	    throw new ServiceBrokerException(
-		"Failed to create new ECS bucket: "
-			+ serviceInstanceId);
+		    "Failed to create new ECS bucket: " + serviceInstanceId);
     }
 }

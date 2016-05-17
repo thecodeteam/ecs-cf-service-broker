@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceRequest;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsService;
@@ -67,14 +68,27 @@ public class EcsServiceInstanceServiceTest {
 	
 	Map<String, Object> params = new HashMap<>();
 	instanceService
-		.createServiceInstance(serviceInstanceRequestFixture(params));
+		.createServiceInstance(createServiceInstanceRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
 	verify(ecs, times(2)).namespaceExists(NAMESPACE);
 	verify(ecs, times(1)).createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID,
 		params);
     }
-    
+
+    @Test
+    public void testDeleteNamespaceService()
+	    throws EcsManagementClientException {
+	when(catalog.findServiceDefinition(SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+	
+	instanceService.deleteServiceInstance(new DeleteServiceInstanceRequest(
+		NAMESPACE, SERVICE_ID, PLAN_ID, null));
+
+	verify(repository, times(1)).delete(NAMESPACE);
+	verify(ecs, times(1)).deleteNamespace(NAMESPACE);
+    }
+
     private ServiceDefinitionProxy namespaceServiceFixture() {
 	PlanProxy namespacePlan = new PlanProxy(PLAN_ID, "5gb", "Free Trial",
 		null, true);
@@ -88,10 +102,9 @@ public class EcsServiceInstanceServiceTest {
 	return namespaceService;
     }
 
-    private CreateServiceInstanceRequest serviceInstanceRequestFixture(
+    private CreateServiceInstanceRequest createServiceInstanceRequestFixture(
 	    Map<String, Object> params) {
 	return new CreateServiceInstanceRequest(SERVICE_ID, PLAN_ID, ORG_ID,
 		SPACE_ID, params).withServiceInstanceId(NAMESPACE);
     }
-
 }
