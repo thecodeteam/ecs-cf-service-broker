@@ -36,6 +36,9 @@ import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 
 @Service
 public class EcsService {
+    
+    private static final String PLAN_NOT_FOUND = "No plan matching plan id: ";
+    private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
     @Autowired
     private Connection connection;
@@ -54,7 +57,7 @@ public class EcsService {
     }
 
     @PostConstruct
-    private void initialize() throws EcsManagementClientException,
+    public void initialize() throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	lookupObjectEndpoints();
 	lookupReplicationGroupID();
@@ -77,12 +80,12 @@ public class EcsService {
 		.findServiceDefinition(serviceId);
 	if (service == null)
 	    throw new EcsManagementClientException(
-		    "No service matching service id: " + serviceId);
+		    SERVICE_NOT_FOUND + serviceId);
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
 	    throw new EcsManagementClientException(
-		    "No service matching plan id: " + planId);
+		    PLAN_NOT_FOUND + planId);
 
 	ObjectBucketCreate createParam = new ObjectBucketCreate();
 	createParam.setName(prefix(id));
@@ -109,12 +112,12 @@ public class EcsService {
 		.findServiceDefinition(serviceId);
 	if (service == null)
 	    throw new EcsManagementClientException(
-		    "No service matching service id: " + serviceId);
+		    SERVICE_NOT_FOUND + serviceId);
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
 	    throw new EcsManagementClientException(
-		    "No service matching plan id: " + planId);
+		    PLAN_NOT_FOUND + planId);
 
 	int limit = plan.getQuotaLimit();
 	int warning = plan.getQuotaWarning();
@@ -255,12 +258,12 @@ public class EcsService {
 		.findServiceDefinition(serviceId);
 	if (service == null)
 	    throw new EcsManagementClientException(
-		    "No service matching service id: " + serviceId);
+		    SERVICE_NOT_FOUND + serviceId);
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
 	    throw new EcsManagementClientException(
-		    "No plan matching plan id " + planId);
+		    PLAN_NOT_FOUND + planId);
 
 	parameters.putAll(plan.getOverrides());
 	parameters.putAll(service.getOverrides());
@@ -279,12 +282,12 @@ public class EcsService {
 		.findServiceDefinition(serviceId);
 	if (service == null)
 	    throw new EcsManagementClientException(
-		    "No service matching service id: " + serviceId);
+		    SERVICE_NOT_FOUND + serviceId);
 
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
 	    throw new EcsManagementClientException(
-		    "No service matching plan id: " + planId);
+		    PLAN_NOT_FOUND + planId);
 
 	parameters.putAll(plan.getOverrides());
 	parameters.putAll(service.getOverrides());

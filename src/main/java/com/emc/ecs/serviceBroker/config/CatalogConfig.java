@@ -20,16 +20,16 @@ public class CatalogConfig {
 		super();
 	}
 
+	public CatalogConfig(List<ServiceDefinitionProxy> services) {
+		super();
+		this.services = services;
+	}
+
 	@Bean
 	Catalog catalog() {
 		return new Catalog(services.stream()
 				.map(s -> s.unproxy())
 				.collect(Collectors.toList()));
-	}
-
-	public CatalogConfig(List<ServiceDefinitionProxy> services) {
-		super();
-		this.services = services;
 	}
 
 	public List<ServiceDefinitionProxy> getServices() {

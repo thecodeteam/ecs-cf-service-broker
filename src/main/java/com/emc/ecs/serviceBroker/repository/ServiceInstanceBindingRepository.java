@@ -18,8 +18,6 @@ import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServiceInstanceBindingRepository {
@@ -53,12 +51,11 @@ public class ServiceInstanceBindingRepository {
 	}
 
 	public ServiceInstanceBinding find(String id)
-			throws JsonParseException, JsonMappingException, IOException {
+			throws IOException {
 		GetObjectResult<InputStream> input = s3.getObject(bucket,
 				getFilename(id));
-		ServiceInstanceBinding binding = objectMapper.readValue(
-				input.getObject(), ServiceInstanceBinding.class);
-		return binding;
+		return objectMapper.readValue(input.getObject(),
+			ServiceInstanceBinding.class);
 	}
 
 	public void delete(String id) {

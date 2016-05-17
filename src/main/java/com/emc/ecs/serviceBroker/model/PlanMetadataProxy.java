@@ -43,7 +43,7 @@ public class PlanMetadataProxy {
 	}
 
 	public Map<String, Object> unproxy() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("bullets", bullets);
 		if (costs != null)
 			map.put("costs", costs.stream()

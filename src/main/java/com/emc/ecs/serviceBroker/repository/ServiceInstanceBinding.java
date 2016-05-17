@@ -36,7 +36,7 @@ public class ServiceInstanceBinding {
 	private Map<String, Object> credentials;
 	
 	public ServiceInstanceBinding() {
-
+	    super();
 	}
 
 	public ServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {

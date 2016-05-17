@@ -47,7 +47,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 		String instanceId = request.getServiceInstanceId();
 		String bindingId = request.getBindingId();
 		ServiceInstanceBinding binding = new ServiceInstanceBinding(request);
-		Map<String, Object> credentials = new HashMap<String, Object>();
+		Map<String, Object> credentials = new HashMap<>();
 		Map<String, Object> parameters = request.getParameters();
 		credentials.put("accessKey", ecs.prefix(bindingId));
 		credentials.put("bucket", ecs.prefix(instanceId));

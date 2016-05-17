@@ -45,6 +45,7 @@ public class EcsManagementClientError {
 		this.retryable = retryable;
 	}
 
+	@Override
 	public String toString() {
 		return "Error: " + description + " (" + code + "): " + details
 				+ ". Retryable: " + retryable + ".";

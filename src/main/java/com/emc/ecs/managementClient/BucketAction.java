@@ -44,8 +44,7 @@ public final class BucketAction {
 				.segment(OBJECT, BUCKET, id, "info")
 				.queryParam(NAMESPACE, namespace);
 		Response response = connection.handleRemoteCall("get", uri, null);
-		ObjectBucketInfo info = response.readEntity(ObjectBucketInfo.class);
-		return info;
+		return response.readEntity(ObjectBucketInfo.class);
 	}
 
 	public static void delete(Connection connection, String id,

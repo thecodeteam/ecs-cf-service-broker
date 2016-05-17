@@ -34,7 +34,7 @@ public class Connection {
 	private String authToken;
 	private URL certificate;
 	private int authRetries = 0;
-	private static final int authMaxRetries = 3;
+	private static final int AUTH_RETRIES_MAX = 3;
 
 	public Connection(String endpoint, String username, String password) {
 		super();
@@ -154,7 +154,7 @@ public class Connection {
 				.register(new LoggingFilter(logger, true)).request()
 				.header("X-SDS-AUTH-TOKEN", authToken)
 				.header("Accept", "application/xml");
-		Response response = null;
+		Response response;
 		if (method == "get") {
 			response = request.get();
 		} else if (method == "post") {
@@ -167,7 +167,7 @@ public class Connection {
 			throw new EcsManagementClientException(
 					"Invalid request method: " + method);
 		}
-		if (response.getStatus() == 401 && authRetries < authMaxRetries) {
+		if (response.getStatus() == 401 && authRetries < AUTH_RETRIES_MAX) {
 			// attempt to re-authorize and retry up to _authMaxRetries_ times.
 			authRetries += 1;
 			this.authToken = null;

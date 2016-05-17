@@ -9,6 +9,10 @@ public class UserCreateParam {
 	private String user;
 	private String namespace;
 	private List<String> tags;
+	
+	public UserCreateParam() {
+		super();
+	}
 
 	public UserCreateParam(String user, String namespace) {
 		super();
@@ -38,10 +42,6 @@ public class UserCreateParam {
 
 	public void setTags(List<String> tags) {
 		this.tags = tags;
-	}
-
-	public UserCreateParam() {
-		super();
 	}
 
 }

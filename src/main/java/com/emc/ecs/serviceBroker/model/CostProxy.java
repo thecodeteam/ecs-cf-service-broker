@@ -35,7 +35,7 @@ public class CostProxy {
 	}
 
 	public Map<String, Object> unproxy() {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("amount", amount);
 		map.put("unit", unit);
 		return map;
