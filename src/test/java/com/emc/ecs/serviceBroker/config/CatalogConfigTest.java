@@ -29,7 +29,7 @@ public class CatalogConfigTest {
 	@Test
 	public void testEcsBucket() {
 		ServiceDefinition ecsBucketService = catalog.getServiceDefinitions()
-				.get(0);
+				.get(1);
 		testServiceDefinition(ecsBucketService,
 				"f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa", "ecs-bucket",
 				"Elastic Cloud S3 Object Storage Bucket", true, true,
@@ -50,7 +50,7 @@ public class CatalogConfigTest {
 	@Test
 	public void testEcsBucketPlans() {
 		// Service Definition Plans
-		ServiceDefinition service = catalog.getServiceDefinitions().get(0);
+		ServiceDefinition service = catalog.getServiceDefinitions().get(1);
 		List<Plan> ecsBucketPlans = service.getPlans();
 		Plan plan0 = ecsBucketPlans.get(0);
 
