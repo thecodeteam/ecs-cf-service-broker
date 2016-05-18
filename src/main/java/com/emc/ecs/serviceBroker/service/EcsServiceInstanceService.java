@@ -51,6 +51,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     public CreateServiceInstanceResponse createServiceInstance(
 	    CreateServiceInstanceRequest request)
 	    throws ServiceInstanceExistsException, ServiceBrokerException {
+
 	ServiceInstance instance = new ServiceInstance(request);
 	String serviceInstanceId = request.getServiceInstanceId();
 	String serviceDefinitionId = request.getServiceDefinitionId();
@@ -92,6 +93,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     public DeleteServiceInstanceResponse deleteServiceInstance(
 	    DeleteServiceInstanceRequest request)
 	    throws ServiceBrokerException {
+
 	String serviceInstanceId = request.getServiceInstanceId();
 	String serviceDefinitionId = request.getServiceDefinitionId();
 	ServiceDefinitionProxy service = catalog
@@ -123,15 +125,42 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    UpdateServiceInstanceRequest request)
 	    throws ServiceInstanceUpdateNotSupportedException,
 	    ServiceBrokerException, ServiceInstanceDoesNotExistException {
-	String instanceId = request.getServiceInstanceId();
+
+	String serviceInstanceId = request.getServiceInstanceId();
+	String serviceDefinitionId = request.getServiceDefinitionId();
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceDefinitionId);
 	String planId = request.getPlanId();
+	Map<String, Object> params = request.getParameters();
+	
 	try {
-	    ServiceInstance instance = repository.find(instanceId);
+	    if (service == null)
+		throw new EcsManagementClientException(
+			SERVICE_NOT_FOUND + serviceDefinitionId);
+
+	    PlanProxy plan = service.findPlan(planId);
+	    if (plan == null)
+		throw new EcsManagementClientException(
+			PLAN_NOT_FOUND + planId);
+
+	    ServiceInstance instance = repository.find(serviceInstanceId);
 	    if (instance == null)
-		throw new ServiceInstanceDoesNotExistException(instanceId);
-	    ecs.changeBucketPlan(instanceId, instance.getServiceDefinitionId(),
-		    planId);
-	    repository.delete(instanceId);
+		throw new ServiceInstanceDoesNotExistException(serviceInstanceId);
+	    
+	    String serviceType = (String) service.getServiceSettings()
+		    .get("service-type");
+	    if ("bucket".equals(serviceType)) {
+		ecs.changeBucketPlan(serviceInstanceId,
+			instance.getServiceDefinitionId(), planId);
+	    } else if ("namespace".equals(serviceType)) {
+		ecs.changeNamespacePlan(serviceInstanceId,
+			instance.getServiceDefinitionId(), planId, params);
+	    } else {
+		throw new EcsManagementClientException(
+			"No service matching type: " + serviceType);
+	    }
+
+	    repository.delete(serviceInstanceId);
 	    instance.update(request);
 	    repository.save(instance);
 	    return new UpdateServiceInstanceResponse();

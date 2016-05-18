@@ -21,6 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsService;
@@ -33,7 +34,7 @@ import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EcsServiceInstanceServiceTest {
-    
+
     private static final String NAMESPACE = "ns1";
     private static final String SERVICE_ID = "09cac1c6-1b0a-11e6-b6ba-3e1d05defe78";
     private static final String PLAN_ID = "09cac5b8-1b0a-11e6-b6ba-3e1d05defe78";
@@ -42,16 +43,16 @@ public class EcsServiceInstanceServiceTest {
 
     @Mock
     private EcsService ecs;
-    
+
     @Mock
     private ServiceInstanceRepository repository;
-    
+
     @Mock
     private BrokerConfig broker;
-    
+
     @Mock
     private CatalogConfig catalog;
-  
+
     @Autowired
     @InjectMocks
     EcsServiceInstanceService instanceService;
@@ -61,14 +62,12 @@ public class EcsServiceInstanceServiceTest {
 	    throws EcsManagementClientException, IOException, JAXBException {
 	when(catalog.findServiceDefinition(SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
-	
-	when(ecs.namespaceExists(NAMESPACE))
-		.thenReturn(false)
-		.thenReturn(true);
-	
+
+	when(ecs.namespaceExists(NAMESPACE)).thenReturn(false).thenReturn(true);
+
 	Map<String, Object> params = new HashMap<>();
-	instanceService
-		.createServiceInstance(createServiceInstanceRequestFixture(params));
+	instanceService.createServiceInstance(
+		createRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
 	verify(ecs, times(2)).namespaceExists(NAMESPACE);
@@ -81,12 +80,32 @@ public class EcsServiceInstanceServiceTest {
 	    throws EcsManagementClientException {
 	when(catalog.findServiceDefinition(SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
-	
-	instanceService.deleteServiceInstance(new DeleteServiceInstanceRequest(
-		NAMESPACE, SERVICE_ID, PLAN_ID, null));
+
+	instanceService
+		.deleteServiceInstance(deleteRequestFixture());
 
 	verify(repository, times(1)).delete(NAMESPACE);
 	verify(ecs, times(1)).deleteNamespace(NAMESPACE);
+    }
+
+    @Test
+    public void testChangeNamespaceService()
+	    throws IOException, JAXBException, EcsManagementClientException {
+	Map<String, Object> params = new HashMap<>();
+
+	when(catalog.findServiceDefinition(SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+	when(repository.find(NAMESPACE))
+		.thenReturn(new ServiceInstance(createRequestFixture(params)));
+
+	instanceService.updateServiceInstance(
+		updateRequestFixture(params));
+
+	verify(repository, times(1)).find(NAMESPACE);
+	verify(repository, times(1)).delete(NAMESPACE);
+	verify(repository, times(1)).save(any(ServiceInstance.class));
+	verify(ecs, times(1)).changeNamespacePlan(NAMESPACE, SERVICE_ID,
+		PLAN_ID, params);
     }
 
     private ServiceDefinitionProxy namespaceServiceFixture() {
@@ -102,9 +121,20 @@ public class EcsServiceInstanceServiceTest {
 	return namespaceService;
     }
 
-    private CreateServiceInstanceRequest createServiceInstanceRequestFixture(
+    private CreateServiceInstanceRequest createRequestFixture(
 	    Map<String, Object> params) {
 	return new CreateServiceInstanceRequest(SERVICE_ID, PLAN_ID, ORG_ID,
 		SPACE_ID, params).withServiceInstanceId(NAMESPACE);
+    }
+
+    private UpdateServiceInstanceRequest updateRequestFixture(
+	    Map<String, Object> params) {
+	return new UpdateServiceInstanceRequest(SERVICE_ID, PLAN_ID, params)
+		.withServiceInstanceId(NAMESPACE);
+    }
+
+    private DeleteServiceInstanceRequest deleteRequestFixture() {
+	return new DeleteServiceInstanceRequest(NAMESPACE, SERVICE_ID, PLAN_ID,
+		null);
     }
 }
