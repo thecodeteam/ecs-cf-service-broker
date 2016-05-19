@@ -16,7 +16,8 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'spring-boot' 
-apply plugin: 'io.spring.dependency-management' 
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'jacoco'
 
 jar {
     baseName = 'ecs-cf-service-broker'
@@ -69,8 +70,7 @@ task simulate(type:JavaExec) {
 	main = "com.emc.ecs.apiSimulator.Server"
 }
 
-task testSuite(type: Test) {
-   include '**/TestSuite.class'
-   reports.junitXml.destination = "$buildDir/test-results/TestSuite"
-   reports.html.destination = "$buildDir/test-results/TestSuite"
+test {
+	include '**/TestSuite.class'
+	exclude 'com.emc.ecs.*.*.class'
 }

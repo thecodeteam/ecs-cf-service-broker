@@ -3,4 +3,3 @@ env:
   - SPRING_PROFILES_ACTIVE=development
 jdk:
   - oraclejdk8
-script: ./gradlew testSuite
