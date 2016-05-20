@@ -105,7 +105,7 @@ public class NamespaceModel {
 	return externalGroupAdmins;
     }
 
-    public void setExternalGroupNames(String externalGroupAdmins) {
+    public void setExternalGroupAdmins(String externalGroupAdmins) {
 	this.externalGroupAdmins = externalGroupAdmins;
     }
 

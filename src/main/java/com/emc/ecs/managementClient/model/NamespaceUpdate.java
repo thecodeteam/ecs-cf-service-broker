@@ -13,7 +13,7 @@ public class NamespaceUpdate extends NamespaceModel {
     private String vpoolsRemovedFromDisallowedVpoolsList;
 
     public NamespaceUpdate(Map<String, Object> params) {
-	setExternalGroupNames(
+	setExternalGroupAdmins(
 		(String) params.get("domain-group-admins"));
 	setIsEncryptionEnabled(
 		(Boolean) params.get("encrypted"));

@@ -26,7 +26,7 @@ public class NamespaceCreate extends NamespaceModel {
 	this.namespace = namespace;
 	setDefaultDataServicesVpool(replicationGroupURI);
 	setAllowedVpoolsList(replicationGroupURI);
-	setExternalGroupNames(
+	setExternalGroupAdmins(
 		(String) params.get("domain-group-admins"));
 	setIsEncryptionEnabled(
 		(Boolean) params.get("encrypted"));
