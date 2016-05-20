@@ -30,6 +30,10 @@ import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
+    private static final String NO_SERVICE_MATCHING_TYPE = "No service matching type: ";
+    private static final String NAMESPACE = "namespace";
+    private static final String BUCKET = "bucket";
+    private static final String SERVICE_TYPE = "service-type";
     private static final String PLAN_NOT_FOUND = "No plan matching plan id: ";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
@@ -70,16 +74,16 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 			PLAN_NOT_FOUND + planId);
 
 	    String serviceType = (String) service.getServiceSettings()
-		    .get("service-type");
-	    if ("bucket".equals(serviceType)) {
+		    .get(SERVICE_TYPE);
+	    if (BUCKET.equals(serviceType)) {
 		createBucketUnlessExists(serviceInstanceId, serviceDefinitionId,
 			planId);
-	    } else if ("namespace".equals(serviceType)) {
+	    } else if (NAMESPACE.equals(serviceType)) {
 		createNamespaceUnlessExists(serviceInstanceId,
 			serviceDefinitionId, planId, params);
 	    } else {
 		throw new EcsManagementClientException(
-			"No service matching type: " + serviceType);
+			NO_SERVICE_MATCHING_TYPE + serviceType);
 	    }
 
 	    repository.save(instance);
@@ -104,14 +108,14 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 			SERVICE_NOT_FOUND + serviceDefinitionId);
 
 	    String serviceType = (String) service.getServiceSettings()
-		    .get("service-type");
-	    if ("bucket".equals(serviceType)) {
+		    .get(SERVICE_TYPE);
+	    if (BUCKET.equals(serviceType)) {
 		ecs.deleteBucket(serviceInstanceId);
-	    } else if ("namespace".equals(serviceType)) {
+	    } else if (NAMESPACE.equals(serviceType)) {
 		ecs.deleteNamespace(serviceInstanceId);
 	    } else {
 		throw new EcsManagementClientException(
-			"No service matching type: " + serviceType);
+			NO_SERVICE_MATCHING_TYPE + serviceType);
 	    }
 	    repository.delete(serviceInstanceId);
 	    return new DeleteServiceInstanceResponse();
@@ -148,16 +152,16 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 		throw new ServiceInstanceDoesNotExistException(serviceInstanceId);
 	    
 	    String serviceType = (String) service.getServiceSettings()
-		    .get("service-type");
-	    if ("bucket".equals(serviceType)) {
+		    .get(SERVICE_TYPE);
+	    if (BUCKET.equals(serviceType)) {
 		ecs.changeBucketPlan(serviceInstanceId,
 			instance.getServiceDefinitionId(), planId);
-	    } else if ("namespace".equals(serviceType)) {
+	    } else if (NAMESPACE.equals(serviceType)) {
 		ecs.changeNamespacePlan(serviceInstanceId,
 			instance.getServiceDefinitionId(), planId, params);
 	    } else {
 		throw new EcsManagementClientException(
-			"No service matching type: " + serviceType);
+			NO_SERVICE_MATCHING_TYPE + serviceType);
 	    }
 
 	    repository.delete(serviceInstanceId);
@@ -165,7 +169,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    repository.save(instance);
 	    return new UpdateServiceInstanceResponse();
 	} catch (Exception e) {
-	    throw new ServiceBrokerException(e.getMessage());
+	    throw new ServiceBrokerException(e);
 	}
     }
 
@@ -200,7 +204,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
 	ecs.createBucket(serviceInstanceId, serviceDefinitionId, planId);
 
-	if (ecs.getBucketInfo(serviceInstanceId) == null)
+	if (ecs.bucketExists(serviceInstanceId))
 	    throw new ServiceBrokerException(
 		    "Failed to create new ECS bucket: " + serviceInstanceId);
     }
