@@ -24,10 +24,8 @@ import com.emc.ecs.managementClient.model.BaseUrl;
 import com.emc.ecs.managementClient.model.BucketAcl;
 import com.emc.ecs.managementClient.model.BucketUserAcl;
 import com.emc.ecs.managementClient.model.NamespaceCreate;
-import com.emc.ecs.managementClient.model.NamespaceInfo;
 import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.managementClient.model.ObjectBucketCreate;
-import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
@@ -62,11 +60,6 @@ public class EcsService {
 	lookupObjectEndpoints();
 	lookupReplicationGroupID();
 	prepareRepository();
-    }
-
-    public ObjectBucketInfo getBucketInfo(String id)
-	    throws EcsManagementClientException {
-	return BucketAction.get(connection, prefix(id), broker.getNamespace());
     }
 
     public void deleteBucket(String id) throws EcsManagementClientException {
@@ -284,15 +277,9 @@ public class EcsService {
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
 	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
-
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.update(connection, prefix(id),
 		new NamespaceUpdate(parameters));
-    }
-
-    public NamespaceInfo getNamespaceInfo(String id)
-	    throws EcsManagementClientException {
-	return NamespaceAction.get(connection, prefix(id));
     }
 }
