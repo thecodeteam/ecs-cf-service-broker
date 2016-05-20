@@ -26,16 +26,30 @@ public class Fixtures {
     public static final String TEST = "test";
     public static final String ORG_ID = "55083e67-f841-4c7e-9a19-2bf4d0cac6b9";
     public static final String SPACE_ID = "305c3c4d-ca6c-435d-b77f-046f8bc70e79";
+    public static final String EXTERNAL_ADMIN = "group1@foo.com";
 
     public static ServiceDefinitionProxy namespaceServiceFixture() {
+	Map<String, Object> settings1 = new HashMap<>();
 	PlanProxy namespacePlan1 = new PlanProxy(PLAN_ID1, "5gb", "Free Trial",
 		null, true);
+	settings1.put("default-bucket-quota", 5);
+	namespacePlan1.setServiceSettings(settings1);
+
+	Map<String, Object> settings2 = new HashMap<>();
 	PlanProxy namespacePlan2 = new PlanProxy(PLAN_ID2, "Unlimited",
 		"Pay per GB Per Month", null, false);
+	settings2.put("encrypted", true);
+	settings2.put("domain-group-admins", EXTERNAL_ADMIN);
+	settings2.put("compliance-enabled", true);
+	settings2.put("access-during-outage", true);
+	namespacePlan2.setServiceSettings(settings2);
+
 	List<PlanProxy> plans = Arrays.asList(namespacePlan1, namespacePlan2);
+
 	List<String> tags = Arrays.asList("ecs-namespace", "object");
 	Map<String, Object> serviceSettings = new HashMap<>();
 	serviceSettings.put("service-type", "namespace");
+
 	ServiceDefinitionProxy namespaceService = new ServiceDefinitionProxy(
 		SERVICE_ID, "ecs-namespace", "ECS Namespace", true, true, tags,
 		serviceSettings, null, plans, null, null);
