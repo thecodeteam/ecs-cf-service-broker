@@ -9,7 +9,7 @@ public class NamespaceModel {
     private String disallowedVpoolsList;
     private String namespaceAdmins = "noadmin";
     private Boolean isEncryptionEnabled;
-    private long defaultBucketBlockSize = -1;
+    private Integer defaultBucketBlockSize = -1;
     private Boolean isStaleAllowed;
     private Boolean isComplianceEnabled;
     private String externalGroupAdmins;
@@ -74,11 +74,11 @@ public class NamespaceModel {
     }
 
     @XmlElement(name = "default_bucket_block_size")
-    public long getDefaultBucketBlockSize() {
+    public Integer getDefaultBucketBlockSize() {
 	return defaultBucketBlockSize;
     }
 
-    public void setDefaultBucketBlockSize(long defaultBucketBlockSize) {
+    public void setDefaultBucketBlockSize(Integer defaultBucketBlockSize) {
 	this.defaultBucketBlockSize = defaultBucketBlockSize;
     }
 

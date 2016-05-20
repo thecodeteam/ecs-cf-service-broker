@@ -34,6 +34,8 @@ public class NamespaceCreate extends NamespaceModel {
 		(Boolean) params.get("compliance-enabled"));
 	setIsStaleAllowed(
 		(Boolean) params.get("access-during-outage"));
+	setDefaultBucketBlockSize(
+		(int) params.getOrDefault("default-bucket-quota", -1));
     }
 
     public String getNamespace() {
