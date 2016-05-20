@@ -34,7 +34,7 @@ import com.emc.ecs.serviceBroker.config.CatalogConfig;
 
 @RunWith(PowerMockRunner.class)
 public class EcsServiceTest {
-    
+
     @Mock
     private Connection connection;
 
@@ -43,11 +43,11 @@ public class EcsServiceTest {
 
     @Mock
     private CatalogConfig catalog;
-    
+
     @Autowired
     @InjectMocks
     EcsService ecs;
-    
+
     @PrepareForTest({ ReplicationGroupAction.class, BucketAction.class,
 	    ObjectUserAction.class, ObjectUserSecretAction.class })
     @Test
@@ -69,7 +69,7 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(BucketAction.class);
 	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
 		.thenReturn(true);
-	
+
 	PowerMockito.mockStatic(ReplicationGroupAction.class);
 	when(ReplicationGroupAction.list(connection))
 		.thenReturn(Arrays.asList(rg));
@@ -77,7 +77,7 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(ObjectUserAction.class);
 	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
 		.thenReturn(true);
-	
+
 	UserSecretKey secretKey = new UserSecretKey();
 	secretKey.setSecretKey(TEST);
 	PowerMockito.mockStatic(ObjectUserSecretAction.class);
@@ -92,55 +92,15 @@ public class EcsServiceTest {
 	verify(broker, times(1)).setRepositorySecret(TEST);
     }
 
-    @PrepareForTest({NamespaceAction.class})
+    @PrepareForTest({ NamespaceAction.class })
     @Test
-    public void createNamespaceDefaultTest()
-	    throws Exception {
+    public void createNamespaceDefaultTest() throws Exception {
 	Map<String, Object> params = new HashMap<>();
-	NamespaceCreate createParam = new NamespaceCreate(NAMESPACE, RG_ID, params);
+	NamespaceCreate createParam = new NamespaceCreate(NAMESPACE, RG_ID,
+		params);
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "create", connection, createParam);
-
-	when(catalog.findServiceDefinition(SERVICE_ID))
-	.thenReturn(namespaceServiceFixture());
-	
-	ecs.createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID1, params);
-	
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
-	PowerMockito.verifyStatic();
-    }
-
-    @PrepareForTest({NamespaceAction.class}) 
-    @Test
-    public void changeNamespacePlanTest() throws Exception {
-	PowerMockito.mockStatic(NamespaceAction.class);
-	Map<String, Object> params = new HashMap<>();
-	NamespaceUpdate updateParam = new NamespaceUpdate(params);
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
-		connection, NAMESPACE, updateParam);
-
-	when(catalog.findServiceDefinition(SERVICE_ID))
-	.thenReturn(namespaceServiceFixture());
-
-	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID2, params);
-
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
-	PowerMockito.verifyStatic();
-    }
-
-    @PrepareForTest({NamespaceAction.class})
-    @Test
-    public void createNamespaceWithParamsTest() throws Exception {
-	Map<String, Object> params = new HashMap<>();
-	params.put("domain-group-admins", "group1@foo.com");
-	params.put("encrypted", true);
-	params.put("compliance-enabled", true);
-	params.put("access-during-outage", true);
-	params.put("default-bucket-quota", 10);
-	NamespaceCreate createParam = new NamespaceCreate(NAMESPACE, RG_ID, params);
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "create", connection, createParam);
+	PowerMockito.doNothing().when(NamespaceAction.class, "create",
+		connection, createParam);
 
 	when(catalog.findServiceDefinition(SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
@@ -151,7 +111,50 @@ public class EcsServiceTest {
 	PowerMockito.verifyStatic();
     }
 
-    @PrepareForTest({NamespaceAction.class})
+    @PrepareForTest({ NamespaceAction.class })
+    @Test
+    public void changeNamespacePlanTest() throws Exception {
+	PowerMockito.mockStatic(NamespaceAction.class);
+	Map<String, Object> params = new HashMap<>();
+	NamespaceUpdate updateParam = new NamespaceUpdate(params);
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+		connection, NAMESPACE, updateParam);
+
+	when(catalog.findServiceDefinition(SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+
+	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID2, params);
+
+	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	PowerMockito.verifyStatic();
+    }
+
+    @PrepareForTest({ NamespaceAction.class })
+    @Test
+    public void createNamespaceWithParamsTest() throws Exception {
+	Map<String, Object> params = new HashMap<>();
+	params.put("domain-group-admins", "group1@foo.com");
+	params.put("encrypted", true);
+	params.put("compliance-enabled", true);
+	params.put("access-during-outage", true);
+	params.put("default-bucket-quota", 10);
+	NamespaceCreate createParam = new NamespaceCreate(NAMESPACE, RG_ID,
+		params);
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, "create",
+		connection, createParam);
+
+	when(catalog.findServiceDefinition(SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+
+	ecs.createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID1, params);
+
+	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	PowerMockito.verifyStatic();
+    }
+
+    @PrepareForTest({ NamespaceAction.class })
     @Test
     public void changeNamespacePlanWithParamsTest() throws Exception {
 	Map<String, Object> params = new HashMap<>();
