@@ -36,7 +36,7 @@ public final class ReplicationGroupAction {
 		try {
 			return optionalRg.get();
 		} catch (NoSuchElementException e) {
-			throw new EcsManagementResourceNotFoundException(e.getMessage());
+			throw new EcsManagementResourceNotFoundException(e);
 		}
 	}
 
