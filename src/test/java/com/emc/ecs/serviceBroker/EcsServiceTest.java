@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.emc.ecs.managementClient.BucketAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.NamespaceAction;
+import com.emc.ecs.managementClient.NamespaceQuotaAction;
+import com.emc.ecs.managementClient.NamespaceQuotaParam;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
@@ -51,8 +53,8 @@ public class EcsServiceTest {
 
     /**
      * When initializing the ecs-service, the service will accept static
-     * settings for the object-endpoint, repo-user & repo-bucket.  It will
-     * check to see that these exist, and continue if they do.
+     * settings for the object-endpoint, repo-user & repo-bucket. It will check
+     * to see that these exist, and continue if they do.
      * 
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
@@ -108,15 +110,15 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class })
+    @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
     @Test
     public void createNamespaceDefaultTest() throws Exception {
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, "create",
 		same(connection), any(NamespaceCreate.class));
-
-	ArgumentCaptor<NamespaceCreate> createCaptor =
-		    ArgumentCaptor.forClass(NamespaceCreate.class);
+	PowerMockito.mockStatic(NamespaceQuotaAction.class);
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
+		same(connection), anyString(), any(NamespaceQuotaParam.class));
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(SERVICE_ID))
@@ -126,7 +128,11 @@ public class EcsServiceTest {
 	ecs.createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID1, params);
 
 	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+
 	PowerMockito.verifyStatic();
+
+	ArgumentCaptor<NamespaceCreate> createCaptor =
+		    ArgumentCaptor.forClass(NamespaceCreate.class);
 	NamespaceAction.create(same(connection), createCaptor.capture());
 	NamespaceCreate create = createCaptor.getValue();
 	assertEquals(PREFIX + NAMESPACE, create.getNamespace());
@@ -134,13 +140,24 @@ public class EcsServiceTest {
 	assertNull(create.getIsComplianceEnabled());
 	assertNull(create.getIsStaleAllowed());
 	assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
+
+	PowerMockito.verifyStatic();
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
+		.forClass(NamespaceQuotaParam.class);
+	NamespaceQuotaAction.create(same(connection), idCaptor.capture(),
+		quotaParamCaptor.capture());
+	assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+	assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
+	assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
 
     /**
-     * When changing plans the params of the new plan should be set, 
-     * on the existing namespace.  The resulting update action will
-     * have the settings of the new plan.
-     *  
+     * When changing plans the params of the new plan should be set, on the
+     * existing namespace. The resulting update action will have the settings of
+     * the new plan.
+     * 
      * @throws Exception
      */
     @PrepareForTest({ NamespaceAction.class })
@@ -150,10 +167,10 @@ public class EcsServiceTest {
 	PowerMockito.doNothing().when(NamespaceAction.class, "update",
 		same(connection), any(String.class),
 		any(NamespaceUpdate.class));
-	
+
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-	ArgumentCaptor<NamespaceUpdate> updateCaptor =
-		    ArgumentCaptor.forClass(NamespaceUpdate.class);
+	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
+		.forClass(NamespaceUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(SERVICE_ID))
@@ -175,15 +192,14 @@ public class EcsServiceTest {
     }
 
     /**
-     * When creating plan with user specified parameters, the params
-     * should be set, except when overridden by a plan or service
-     * setting.  Therefore, default-bucket-quota will not be "10", it
-     * will be "5" since that's the setting in the plan.  Other settings
-     * will carry through.
+     * When creating plan with user specified parameters, the params should be
+     * set, except when overridden by a plan or service setting. Therefore,
+     * default-bucket-quota will not be "10", it will be "5" since that's the
+     * setting in the plan. Other settings will carry through.
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class })
+    @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
     @Test
     public void createNamespaceWithParamsTest() throws Exception {
 	Map<String, Object> params = new HashMap<>();
@@ -196,8 +212,13 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, "create",
 		same(connection), any(NamespaceUpdate.class));
-	ArgumentCaptor<NamespaceCreate> createCaptor =
-		    ArgumentCaptor.forClass(NamespaceCreate.class);
+	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
+		.forClass(NamespaceCreate.class);
+	
+	PowerMockito.mockStatic(NamespaceQuotaAction.class);
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
+		same(connection), any(String.class),
+		any(NamespaceQuotaParam.class));
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(SERVICE_ID))
@@ -215,15 +236,24 @@ public class EcsServiceTest {
 	assertTrue(create.getIsComplianceEnabled());
 	assertTrue(create.getIsStaleAllowed());
 	assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
+	
+	PowerMockito.verifyStatic();
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
+		.forClass(NamespaceQuotaParam.class);
+	NamespaceQuotaAction.create(same(connection), idCaptor.capture(),
+		quotaParamCaptor.capture());
+	assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+	assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
+	assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
 
     /**
-     * When changing plan with user specified parameters, the params
-     * should be set, except when overridden by a plan or service
-     * setting.  Therefore, default-bucket-quota will not be "10", it
-     * will be "5" since that's the setting in the plan.  Other settings
-     * will carry through.
-     *  
+     * When changing plan with user specified parameters, the params should be
+     * set, except when overridden by a plan or service setting. Therefore,
+     * default-bucket-quota will not be "10", it will be "5" since that's the
+     * setting in the plan. Other settings will carry through.
+     * 
      * @throws Exception
      */
     @PrepareForTest({ NamespaceAction.class })
@@ -238,10 +268,11 @@ public class EcsServiceTest {
 
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, "update",
-		same(connection), any(String.class), any(NamespaceUpdate.class));
+		same(connection), any(String.class),
+		any(NamespaceUpdate.class));
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-	ArgumentCaptor<NamespaceUpdate> updateCaptor =
-		    ArgumentCaptor.forClass(NamespaceUpdate.class);
+	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
+		.forClass(NamespaceUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(SERVICE_ID))

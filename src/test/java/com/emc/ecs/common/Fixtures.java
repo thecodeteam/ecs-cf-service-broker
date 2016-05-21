@@ -30,9 +30,13 @@ public class Fixtures {
 
     public static ServiceDefinitionProxy namespaceServiceFixture() {
 	Map<String, Object> settings1 = new HashMap<>();
+	Map<String, Object> quota = new HashMap<>();
+	quota.put("limit", 5);
+	quota.put("warn", 4);
 	PlanProxy namespacePlan1 = new PlanProxy(PLAN_ID1, "5gb", "Free Trial",
 		null, true);
 	settings1.put("default-bucket-quota", 5);
+	settings1.put("quota", quota);
 	namespacePlan1.setServiceSettings(settings1);
 
 	Map<String, Object> settings2 = new HashMap<>();

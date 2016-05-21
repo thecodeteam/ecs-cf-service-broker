@@ -17,11 +17,11 @@ public class NamespaceQuotaAction {
     }
 
     public static void create(Connection connection, String namespace,
-	    int limit, int warn) throws EcsManagementClientException {
-	UriBuilder uri = connection.getUriBuilder().segment(OBJECT,
-		NAMESPACES, NAMESPACE, namespace, QUOTA);
-	connection.handleRemoteCall("put", uri,
-		new NamespaceQuotaParam(namespace, limit, warn));
+	    NamespaceQuotaParam createParam)
+	    throws EcsManagementClientException {
+	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
+		NAMESPACE, namespace, QUOTA);
+	connection.handleRemoteCall("put", uri, createParam);
     }
 
     public static NamespaceQuotaDetails get(Connection connection,

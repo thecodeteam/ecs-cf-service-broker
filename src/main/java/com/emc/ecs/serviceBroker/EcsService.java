@@ -1,6 +1,7 @@
 package com.emc.ecs.serviceBroker;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +18,8 @@ import com.emc.ecs.managementClient.BucketAction;
 import com.emc.ecs.managementClient.BucketQuotaAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.NamespaceAction;
+import com.emc.ecs.managementClient.NamespaceQuotaAction;
+import com.emc.ecs.managementClient.NamespaceQuotaParam;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
@@ -259,6 +262,15 @@ public class EcsService {
 	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
 		replicationGroupID, parameters));
+	
+	if (parameters.containsKey("quota")) {
+	    @SuppressWarnings("unchecked")
+	    Map<String, Integer> quota =
+		    (Map<String, Integer>) parameters.get("quota");
+	    NamespaceQuotaParam  quotaParam = new NamespaceQuotaParam(id,
+		    quota.get("limit"), quota.get("warn"));
+	    NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
+	}
     }
 
     public void deleteNamespace(String id) throws EcsManagementClientException {
