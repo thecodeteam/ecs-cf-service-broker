@@ -1,4 +1,4 @@
-package com.emc.ecs.managementClient;
+package com.emc.ecs.serviceBroker.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

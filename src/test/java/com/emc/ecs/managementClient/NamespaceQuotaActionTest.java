@@ -9,6 +9,7 @@ import org.junit.Test;
 import com.emc.ecs.common.EcsActionTest;
 import com.emc.ecs.managementClient.model.NamespaceQuotaDetails;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import com.emc.ecs.serviceBroker.model.NamespaceQuotaParam;
 
 public class NamespaceQuotaActionTest extends EcsActionTest {
 

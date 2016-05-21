@@ -5,6 +5,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.emc.ecs.managementClient.model.NamespaceQuotaDetails;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import com.emc.ecs.serviceBroker.model.NamespaceQuotaParam;
 
 public class NamespaceQuotaAction {
 

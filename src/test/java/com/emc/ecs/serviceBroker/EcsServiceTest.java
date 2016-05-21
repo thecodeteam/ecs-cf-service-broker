@@ -24,7 +24,6 @@ import com.emc.ecs.managementClient.BucketAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.NamespaceAction;
 import com.emc.ecs.managementClient.NamespaceQuotaAction;
-import com.emc.ecs.managementClient.NamespaceQuotaParam;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
@@ -34,6 +33,7 @@ import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
+import com.emc.ecs.serviceBroker.model.NamespaceQuotaParam;
 
 @RunWith(PowerMockRunner.class)
 public class EcsServiceTest {
