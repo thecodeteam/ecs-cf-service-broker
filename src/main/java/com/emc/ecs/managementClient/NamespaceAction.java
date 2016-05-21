@@ -7,15 +7,11 @@ import com.emc.ecs.managementClient.model.NamespaceCreate;
 import com.emc.ecs.managementClient.model.NamespaceInfo;
 import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import static com.emc.ecs.managementClient.Constants.*;
 
 public final class NamespaceAction {
 
-    private static final String OBJECT = "object";
-    private static final String NAMESPACES = "namespaces";
-    private static final String NAMESPACE = "namespace";
-
-    private NamespaceAction() {
-    }
+    private NamespaceAction() {}
 
     public static boolean exists(Connection connection, String namespace)
 	    throws EcsManagementClientException {
@@ -29,7 +25,7 @@ public final class NamespaceAction {
 	    throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
 		NAMESPACE);
-	connection.handleRemoteCall("post", uri,
+	connection.handleRemoteCall(POST, uri,
 		new NamespaceCreate(namespace, namespaceAdmins,
 			replicationGroup));
     }
@@ -39,21 +35,21 @@ public final class NamespaceAction {
 	    NamespaceCreate createParam) throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
 		NAMESPACE);
-	connection.handleRemoteCall("post", uri, createParam);
+	connection.handleRemoteCall(POST, uri, createParam);
     }
 
     public static void delete(Connection connection, String namespace)
 	    throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
-		NAMESPACE, namespace, "deactivate");
-	connection.handleRemoteCall("post", uri, null);
+		NAMESPACE, namespace, DEACTIVATE);
+	connection.handleRemoteCall(POST, uri, null);
     }
 
     public static NamespaceInfo get(Connection connection, String namespace)
 	    throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
 		NAMESPACE, namespace);
-	Response response = connection.handleRemoteCall("get", uri, null);
+	Response response = connection.handleRemoteCall(GET, uri, null);
 	return response.readEntity(NamespaceInfo.class);
     }
 
@@ -61,6 +57,6 @@ public final class NamespaceAction {
 	    NamespaceUpdate updateParam) throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
 		NAMESPACE, namespace);
-	connection.handleRemoteCall("put", uri, updateParam);
+	connection.handleRemoteCall(PUT, uri, updateParam);
     }
 }

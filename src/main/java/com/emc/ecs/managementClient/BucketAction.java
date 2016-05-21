@@ -6,12 +6,9 @@ import javax.ws.rs.core.UriBuilder;
 import com.emc.ecs.managementClient.model.ObjectBucketCreate;
 import com.emc.ecs.managementClient.model.ObjectBucketInfo;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import static com.emc.ecs.managementClient.Constants.*;
 
 public final class BucketAction {
-
-	private static final String BUCKET = "bucket";
-	private static final String OBJECT = "object";
-	private static final String NAMESPACE = "namespace";
 
 	private BucketAction() {}
 
@@ -19,7 +16,7 @@ public final class BucketAction {
 			String namespace, String replicationGroup)
 					throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET);
-		connection.handleRemoteCall("post", uri,
+		connection.handleRemoteCall(POST, uri,
 				new ObjectBucketCreate(id, namespace, replicationGroup));
 	}
 
@@ -27,13 +24,13 @@ public final class BucketAction {
 			ObjectBucketCreate createParam)
 					throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET);
-		connection.handleRemoteCall("post", uri, createParam);
+		connection.handleRemoteCall(POST, uri, createParam);
 	}
 
 	public static boolean exists(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment(OBJECT, BUCKET, id, "info")
+				.segment(OBJECT, BUCKET, id, INFO)
 				.queryParam(NAMESPACE, namespace);
 		return connection.existenceQuery(uri, null);
 	}
@@ -41,18 +38,18 @@ public final class BucketAction {
 	public static ObjectBucketInfo get(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment(OBJECT, BUCKET, id, "info")
+				.segment(OBJECT, BUCKET, id, INFO)
 				.queryParam(NAMESPACE, namespace);
-		Response response = connection.handleRemoteCall("get", uri, null);
+		Response response = connection.handleRemoteCall(GET, uri, null);
 		return response.readEntity(ObjectBucketInfo.class);
 	}
 
 	public static void delete(Connection connection, String id,
 			String namespace) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder()
-				.segment(OBJECT, BUCKET, id, "deactivate")
+				.segment(OBJECT, BUCKET, id, DEACTIVATE)
 				.queryParam(NAMESPACE, namespace);
-		connection.handleRemoteCall("post", uri, null);
+		connection.handleRemoteCall(POST, uri, null);
 	}
 
 }

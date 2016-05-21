@@ -11,6 +11,7 @@ import com.emc.ecs.managementClient.model.DataServiceReplicationGroup;
 import com.emc.ecs.managementClient.model.DataServiceReplicationGroupList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
+import static com.emc.ecs.managementClient.Constants.*;
 
 public final class ReplicationGroupAction {
 
@@ -18,9 +19,9 @@ public final class ReplicationGroupAction {
 
 	public static List<DataServiceReplicationGroup> list(Connection connection)
 			throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder().segment("vdc",
-				"data-service", "vpools");
-		Response response = connection.handleRemoteCall("get", uri, null);
+		UriBuilder uri = connection.getUriBuilder().segment(VDC,
+				DATA_SERVICE, VPOOLS);
+		Response response = connection.handleRemoteCall(GET, uri, null);
 		DataServiceReplicationGroupList rgList = response
 				.readEntity(DataServiceReplicationGroupList.class);
 		return rgList.getReplicationGroups();

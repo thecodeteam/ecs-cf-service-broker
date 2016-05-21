@@ -26,6 +26,7 @@ import org.glassfish.jersey.filter.LoggingFilter;
 import com.emc.ecs.managementClient.model.EcsManagementClientError;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
+import static com.emc.ecs.managementClient.Constants.*;
 
 public class Connection {
 	private final String endpoint;
@@ -125,7 +126,7 @@ public class Connection {
 	public void logout() throws EcsManagementClientException {
 		UriBuilder uri = UriBuilder.fromPath(endpoint).segment("logout")
 				.queryParam("force", true);
-		handleRemoteCall("get", uri, null);
+		handleRemoteCall(GET, uri, null);
 		this.authToken = null;
 	}
 
@@ -155,13 +156,13 @@ public class Connection {
 				.header("X-SDS-AUTH-TOKEN", authToken)
 				.header("Accept", "application/xml");
 		Response response;
-		if (method == "get") {
+		if (method == GET) {
 			response = request.get();
-		} else if (method == "post") {
+		} else if (method == POST) {
 			response = request.post(Entity.xml(arg));
-		} else if (method == "put") {
+		} else if (method == PUT) {
 			response = request.put(Entity.xml(arg));
-		} else if (method == "delete") {
+		} else if (method == DELETE) {
 			response = request.delete();
 		} else {
 			throw new EcsManagementClientException(
@@ -178,7 +179,7 @@ public class Connection {
 
 	protected boolean existenceQuery(UriBuilder uri, Object arg)
 			throws EcsManagementClientException {
-		Response response = makeRemoteCall("get", uri, arg);
+		Response response = makeRemoteCall(GET, uri, arg);
 		try {
 			handleResponse(response);
 		} catch (EcsManagementResourceNotFoundException e) {

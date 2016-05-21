@@ -9,11 +9,9 @@ import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.managementClient.model.UserSecretKeyCreate;
 import com.emc.ecs.managementClient.model.UserSecretKeyList;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import static com.emc.ecs.managementClient.Constants.*;
 
 public final class ObjectUserSecretAction {
-
-	private static final String OBJECT = "object";
-	private static final String USER_SECRET_KEYS = "user-secret-keys";
 
 	private ObjectUserSecretAction() {}
 
@@ -21,7 +19,7 @@ public final class ObjectUserSecretAction {
 			throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment(OBJECT,
 				USER_SECRET_KEYS, id);
-		Response response = connection.handleRemoteCall("post", uri,
+		Response response = connection.handleRemoteCall(POST, uri,
 				new UserSecretKeyCreate());
 		return response.readEntity(UserSecretKey.class);
 	}
@@ -30,7 +28,7 @@ public final class ObjectUserSecretAction {
 			String key) throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment(OBJECT,
 				USER_SECRET_KEYS, id);
-		Response response = connection.handleRemoteCall("post", uri,
+		Response response = connection.handleRemoteCall(POST, uri,
 				new UserSecretKeyCreate(key));
 		return response.readEntity(UserSecretKey.class);
 	}
@@ -39,7 +37,7 @@ public final class ObjectUserSecretAction {
 			throws EcsManagementClientException {
 		UriBuilder uri = connection.getUriBuilder().segment(OBJECT,
 				USER_SECRET_KEYS, id);
-		Response response = connection.handleRemoteCall("get", uri, null);
+		Response response = connection.handleRemoteCall(GET, uri, null);
 		return response.readEntity(UserSecretKeyList.class).asList();
 	}
 
