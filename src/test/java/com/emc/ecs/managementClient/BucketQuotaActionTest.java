@@ -34,11 +34,11 @@ public class BucketQuotaActionTest extends EcsActionTest {
 		BucketQuotaAction.create(connection, bucket, namespace, 10, 8);
 		ObjectBucketInfo bucketInfo = BucketAction.get(connection, bucket,
 				namespace);
-		assertTrue(bucketInfo.getBlockSize() == 10);
-		assertTrue(bucketInfo.getNotificationSize() == 8);
+		assertEquals(10, bucketInfo.getBlockSize());
+		assertEquals(8, bucketInfo.getNotificationSize());
 		BucketQuotaAction.delete(connection, bucket, namespace);
 		bucketInfo = BucketAction.get(connection, bucket, namespace);
-		assertTrue(bucketInfo.getBlockSize() == -1);
-		assertTrue(bucketInfo.getNotificationSize() == -1);
+		assertEquals(-1, bucketInfo.getBlockSize());
+		assertEquals(-1, bucketInfo.getNotificationSize());
 	}
 }

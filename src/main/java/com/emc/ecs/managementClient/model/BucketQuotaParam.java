@@ -3,10 +3,8 @@ package com.emc.ecs.managementClient.model;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "bucket_quota_param")
-public class BucketQuotaParam {
+public class BucketQuotaParam extends QuotaDetails {
 
-	private long blockSize = 10;
-	private long notificationSize = 8;
 	private String namespace;
 
 	public BucketQuotaParam() {
@@ -17,24 +15,8 @@ public class BucketQuotaParam {
 			long notificationSize) {
 		super();
 		this.namespace = namespace;
-		this.blockSize = blockSize;
-		this.notificationSize = notificationSize;
-	}
-
-	public long getBlockSize() {
-		return blockSize;
-	}
-
-	public void setBlockSize(long blockSize) {
-		this.blockSize = blockSize;
-	}
-
-	public long getNotificationSize() {
-		return notificationSize;
-	}
-
-	public void setNotificationSize(long notificationSize) {
-		this.notificationSize = notificationSize;
+		setBlockSize(blockSize);
+		setNotificationSize(notificationSize);
 	}
 
 	public String getNamespace() {
