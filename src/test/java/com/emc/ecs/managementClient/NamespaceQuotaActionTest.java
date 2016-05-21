@@ -23,9 +23,12 @@ public class NamespaceQuotaActionTest extends EcsActionTest {
     }
 
     @Test
-    public void testApplyRemoveNamespaceQuota() throws EcsManagementClientException {
-	NamespaceQuotaAction.create(connection, namespace, 10, 8);
-	NamespaceQuotaDetails quota = NamespaceQuotaAction.get(connection, namespace);
+    public void testApplyRemoveNamespaceQuota()
+	    throws EcsManagementClientException {
+	NamespaceQuotaAction.create(connection, namespace,
+		new NamespaceQuotaParam(namespace, 10, 8));
+	NamespaceQuotaDetails quota = NamespaceQuotaAction.get(connection,
+		namespace);
 	assertEquals(10, quota.getBlockSize());
 	assertEquals(8, quota.getNotificationSize());
 	NamespaceQuotaAction.delete(connection, namespace);
