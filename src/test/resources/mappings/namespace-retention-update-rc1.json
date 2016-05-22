@@ -1,0 +1,27 @@
+{
+	"scenarioName": "rc1",
+	"requiredScenarioState": "Updated",
+    "request": {
+        "method": "PUT",
+        "url": "/object/namespaces/namespace/ns1/retention/rc1",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        },
+        "bodyPatterns": [
+        	{
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><retention_class_update><period>120</period></retention_class_update>"
+        	}
+        ]
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		}
+    }
+}
