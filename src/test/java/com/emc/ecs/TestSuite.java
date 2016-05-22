@@ -14,6 +14,7 @@ import com.emc.ecs.managementClient.BucketQuotaActionTest;
 import com.emc.ecs.managementClient.ConnectionTest;
 import com.emc.ecs.managementClient.NamespaceActionTest;
 import com.emc.ecs.managementClient.NamespaceQuotaActionTest;
+import com.emc.ecs.managementClient.NamespaceRetentionActionTest;
 import com.emc.ecs.managementClient.ObjectUserActionTest;
 import com.emc.ecs.managementClient.ObjectUserSecretActionTest;
 import com.emc.ecs.managementClient.ReplicationGroupActionTest;
@@ -35,6 +36,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
     ConnectionTest.class,
     NamespaceActionTest.class,
     NamespaceQuotaActionTest.class,
+    NamespaceRetentionActionTest.class,
     ObjectUserActionTest.class,
     ObjectUserSecretActionTest.class,
     ReplicationGroupActionTest.class,
