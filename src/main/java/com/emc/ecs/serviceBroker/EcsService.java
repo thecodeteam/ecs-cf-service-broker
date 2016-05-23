@@ -40,6 +40,7 @@ import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 @Service
 public class EcsService {
 
+    private static final String RETENTION = "retention";
     private static final String PLAN_NOT_FOUND = "No plan matching plan id: ";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
@@ -274,10 +275,10 @@ public class EcsService {
 	    NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
 	}
 
-	if (parameters.containsKey("retention")) {
+	if (parameters.containsKey(RETENTION)) {
 	    @SuppressWarnings("unchecked")
 	    Map<String, Integer> retention = (Map<String, Integer>) parameters
-		    .get("retention");
+		    .get(RETENTION);
 	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {
 		NamespaceRetentionAction.create(connection, prefix(id),
 			new RetentionClassCreate(entry.getKey(),
@@ -307,16 +308,20 @@ public class EcsService {
 	NamespaceAction.update(connection, prefix(id),
 		new NamespaceUpdate(parameters));
 
-	if (parameters.containsKey("retention")) {
+	if (parameters.containsKey(RETENTION)) {
 	    @SuppressWarnings("unchecked")
-	    Map<String, Integer> retention = (Map<String, Integer>) parameters.get("retention");
+	    Map<String, Integer> retention = (Map<String, Integer>) parameters
+		    .get(RETENTION);
 	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {
-		if (NamespaceRetentionAction.exists(connection, id, entry.getKey())) {
+		if (NamespaceRetentionAction.exists(connection, id,
+			entry.getKey())) {
 		    if (-1 == entry.getValue()) {
-			NamespaceRetentionAction.delete(connection, prefix(id), entry.getKey());
+			NamespaceRetentionAction.delete(connection, prefix(id),
+				entry.getKey());
 		    } else {
 			NamespaceRetentionAction.update(connection, prefix(id),
-				entry.getKey(), new RetentionClassUpdate(entry.getValue()));
+				entry.getKey(),
+				new RetentionClassUpdate(entry.getValue()));
 		    }
 		} else {
 		    NamespaceRetentionAction.create(connection, prefix(id),
