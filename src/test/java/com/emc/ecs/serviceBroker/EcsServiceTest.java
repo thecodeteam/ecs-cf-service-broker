@@ -647,4 +647,35 @@ public class EcsServiceTest {
 	NamespaceAction.delete(same(connection), nsCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
     }
+
+    /**
+     * A user can be created within a specific namespace
+     * @throws Exception 
+     */
+    @PrepareForTest({ObjectUserAction.class, ObjectUserSecretAction.class})
+    @Test
+    public void createUserInNamespace() throws Exception {
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	PowerMockito.doNothing().when(ObjectUserAction.class, "create",
+		same(connection), anyString(), anyString());
+
+	PowerMockito.mockStatic(ObjectUserSecretAction.class);
+	PowerMockito.when(ObjectUserSecretAction.class, "create",
+		same(connection), anyString()).thenReturn(new UserSecretKey());
+
+	PowerMockito.when(ObjectUserSecretAction.class, "list", same(connection),
+		anyString()).thenReturn(Arrays.asList(new UserSecretKey()));
+
+	when(broker.getPrefix()).thenReturn(PREFIX);
+
+	ecs.createUser("user1", NAMESPACE);
+	
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> userCaptor = ArgumentCaptor.forClass(String.class);
+	PowerMockito.verifyStatic();
+	ObjectUserAction.create(same(connection), userCaptor.capture(),
+		nsCaptor.capture());
+	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+	assertEquals(PREFIX + "user1", userCaptor.getValue());
+    }
 }

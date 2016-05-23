@@ -139,6 +139,13 @@ public class EcsService {
 	return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
     }
 
+    public UserSecretKey createUser(String id, String namespace)
+	    throws EcsManagementClientException {
+	ObjectUserAction.create(connection, prefix(id), prefix(namespace));
+	ObjectUserSecretAction.create(connection, prefix(id));
+	return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
+    }
+
     public Boolean userExists(String id) throws EcsManagementClientException {
 	return ObjectUserAction.exists(connection, prefix(id),
 		broker.getNamespace());
