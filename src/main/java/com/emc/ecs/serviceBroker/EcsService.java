@@ -18,6 +18,7 @@ import com.emc.ecs.managementClient.BucketQuotaAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.NamespaceAction;
 import com.emc.ecs.managementClient.NamespaceQuotaAction;
+import com.emc.ecs.managementClient.NamespaceRetentionAction;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
@@ -27,6 +28,8 @@ import com.emc.ecs.managementClient.model.BucketUserAcl;
 import com.emc.ecs.managementClient.model.NamespaceCreate;
 import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.managementClient.model.ObjectBucketCreate;
+import com.emc.ecs.managementClient.model.RetentionClassCreate;
+import com.emc.ecs.managementClient.model.RetentionClassUpdate;
 import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
@@ -261,14 +264,25 @@ public class EcsService {
 	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
 		replicationGroupID, parameters));
-	
+
 	if (parameters.containsKey("quota")) {
 	    @SuppressWarnings("unchecked")
-	    Map<String, Integer> quota =
-		    (Map<String, Integer>) parameters.get("quota");
-	    NamespaceQuotaParam  quotaParam = new NamespaceQuotaParam(id,
+	    Map<String, Integer> quota = (Map<String, Integer>) parameters
+		    .get("quota");
+	    NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(id,
 		    quota.get("limit"), quota.get("warn"));
 	    NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
+	}
+
+	if (parameters.containsKey("retention")) {
+	    @SuppressWarnings("unchecked")
+	    Map<String, Integer> retention = (Map<String, Integer>) parameters
+		    .get("retention");
+	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {
+		NamespaceRetentionAction.create(connection, prefix(id),
+			new RetentionClassCreate(entry.getKey(),
+				entry.getValue()));
+	    }
 	}
     }
 
@@ -292,5 +306,24 @@ public class EcsService {
 	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.update(connection, prefix(id),
 		new NamespaceUpdate(parameters));
+
+	if (parameters.containsKey("retention")) {
+	    @SuppressWarnings("unchecked")
+	    Map<String, Integer> retention = (Map<String, Integer>) parameters.get("retention");
+	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {
+		if (NamespaceRetentionAction.exists(connection, id, entry.getKey())) {
+		    if (-1 == entry.getValue()) {
+			NamespaceRetentionAction.delete(connection, prefix(id), entry.getKey());
+		    } else {
+			NamespaceRetentionAction.update(connection, prefix(id),
+				entry.getKey(), new RetentionClassUpdate(entry.getValue()));
+		    }
+		} else {
+		    NamespaceRetentionAction.create(connection, prefix(id),
+			    new RetentionClassCreate(entry.getKey(),
+				    entry.getValue()));
+		}
+	    }
+	}
     }
 }
