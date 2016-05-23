@@ -257,15 +257,6 @@ public class EcsServiceTest {
     }
 
     /**
-     * When initializing the ecs-service, if the repo-bucket and user do not exist,
-     * the service will create these.
-     */
-    @Test
-    public void initializeCreateRepoBucketAndUser() {
-	
-    }
-
-    /**
      * When creating a new namespace the settings in the plan will carry
      * through to the created service.  Any settings not implemented in
      * the service, the plan or the parameters will be kept as null.
