@@ -14,6 +14,10 @@ import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 
 public class Fixtures {
     public static final String NAMESPACE = "ns1";
+    public static final String BASE_URL_ID = "urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2";
+    public static final String BASE_URL_NAME = "MyBaseURL";
+    public static final String DEFAULT_BASE_URL_NAME = "DefaultBaseURL";
+    public static final String BASE_URL = "s3.mydomain.example.com";
     public static final String PREFIX = "ecs-cf-broker-";
     public static final String REPO_BUCKET = "ecs-cf-broker-repository";
     public static final String REPO_USER = "ecs-cf-broker-user";

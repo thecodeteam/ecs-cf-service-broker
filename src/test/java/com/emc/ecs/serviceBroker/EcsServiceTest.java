@@ -6,6 +6,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.emc.ecs.managementClient.BaseUrlAction;
 import com.emc.ecs.managementClient.BucketAction;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.managementClient.NamespaceAction;
@@ -28,6 +30,8 @@ import com.emc.ecs.managementClient.NamespaceRetentionAction;
 import com.emc.ecs.managementClient.ObjectUserAction;
 import com.emc.ecs.managementClient.ObjectUserSecretAction;
 import com.emc.ecs.managementClient.ReplicationGroupAction;
+import com.emc.ecs.managementClient.model.BaseUrl;
+import com.emc.ecs.managementClient.model.BaseUrlInfo;
 import com.emc.ecs.managementClient.model.DataServiceReplicationGroup;
 import com.emc.ecs.managementClient.model.NamespaceCreate;
 import com.emc.ecs.managementClient.model.NamespaceUpdate;
@@ -110,9 +114,64 @@ public class EcsServiceTest {
      * When initializing the ecs-service, if the object-endpoint is not set
      * statically, but base-url is, the service will look up the endpoint from the
      * base-url.
+     * 
+     * @throws EcsManagementClientException 
+     * @throws EcsManagementResourceNotFoundException 
      */
+    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
+	    BucketAction.class, ObjectUserAction.class,
+	    ObjectUserSecretAction.class })
     @Test
-    public void initializeBaseUrlLookup() {
+    public void initializeBaseUrlLookup() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
+
+	when(broker.getBaseUrl()).thenReturn(BASE_URL_NAME);
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	when(broker.getRepositoryUser()).thenReturn("user");
+	when(broker.getRepositoryBucket()).thenReturn("repository");
+
+	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
+	rg.setName(RG_NAME);
+	rg.setId(RG_ID);
+	PowerMockito.mockStatic(BucketAction.class);
+	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
+	when(ReplicationGroupAction.list(connection))
+		.thenReturn(Arrays.asList(rg));
+
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(BASE_URL_NAME);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+	
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(BASE_URL_NAME);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+
+	UserSecretKey secretKey = new UserSecretKey();
+	secretKey.setSecretKey(TEST);
+	PowerMockito.mockStatic(ObjectUserSecretAction.class);
+	when(ObjectUserSecretAction.list(connection, REPO_USER))
+		.thenReturn(Arrays.asList(secretKey));
+
+	ecs.initialize();
+	String objEndpoint = "http://" + BASE_URL + ":9020";
+	assertEquals(objEndpoint, ecs.getObjectEndpoint());
+	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
     
     /**
@@ -120,10 +179,61 @@ public class EcsServiceTest {
      * set statically nor the base-url, the service will lookup an endpoint
      * named default in the base-url list. If one is found, it will set this as
      * the repo endpoint.
+     * @throws EcsManagementClientException 
+     * @throws EcsManagementResourceNotFoundException 
      */
+    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
+	    BucketAction.class, ObjectUserAction.class,
+	    ObjectUserSecretAction.class })
     @Test
-    public void initializeBaseUrlDefaultLookup() {
+    public void initializeBaseUrlDefaultLookup() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
+
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	when(broker.getRepositoryUser()).thenReturn("user");
+	when(broker.getRepositoryBucket()).thenReturn("repository");
+
+	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
+	rg.setName(RG_NAME);
+	rg.setId(RG_ID);
+	PowerMockito.mockStatic(BucketAction.class);
+	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
+	when(ReplicationGroupAction.list(connection))
+		.thenReturn(Arrays.asList(rg));
+
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(DEFAULT_BASE_URL_NAME);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
 	
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+
+	UserSecretKey secretKey = new UserSecretKey();
+	secretKey.setSecretKey(TEST);
+	PowerMockito.mockStatic(ObjectUserSecretAction.class);
+	when(ObjectUserSecretAction.list(connection, REPO_USER))
+		.thenReturn(Arrays.asList(secretKey));
+
+	ecs.initialize();
+	String objEndpoint = "http://" + BASE_URL + ":9020";
+	assertEquals(objEndpoint, ecs.getObjectEndpoint());
+	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
     
     /**
@@ -131,10 +241,19 @@ public class EcsServiceTest {
      * set statically nor the base-url, the service will lookup an endpoint
      * named default in the base-url list. If none is found, it will throw an
      * exception.
+     * @throws EcsManagementClientException 
+     * @throws EcsManagementResourceNotFoundException 
      */
-    @Test
-    public void initializeBaseUrlDefaultLookupFails() {
-	
+    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
+	    BucketAction.class, ObjectUserAction.class,
+	    ObjectUserSecretAction.class })
+    @Test(expected=EcsManagementClientException.class)
+    public void initializeBaseUrlDefaultLookupFails() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Collections.emptyList());
+
+	ecs.initialize();
     }
 
     /**
@@ -290,17 +409,6 @@ public class EcsServiceTest {
 	assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
 	assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
-
-    /**
-     * When changing a namespace plan that does not include a default quota, and
-     * a quota is specified in the parameters with the value of -1, then the
-     * quota should be removed.
-     */
-    
-    /**
-     * When changing a namespace plan that includes a default quota, and a quota
-     * is specified in the parameters, then the quota change should be ignored.
-     */
     
     /**
      * When changing namespace plan with user specified parameters, the params
@@ -527,5 +635,25 @@ public class EcsServiceTest {
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
 	assertEquals("thirty-days", rcCaptor.getValue());
 	assertEquals(2592000, updateCaptor.getValue().getPeriod());
+    }
+
+    /**
+     * A namespace should be able to be deleted.
+     * @throws Exception 
+     */
+    @PrepareForTest({ NamespaceAction.class })
+    @Test
+    public void deleteNamespace() throws Exception {
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, "delete",
+		same(connection), anyString());
+	when(broker.getPrefix()).thenReturn(PREFIX);
+
+	ecs.deleteNamespace(NAMESPACE);
+
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	PowerMockito.verifyStatic();
+	NamespaceAction.delete(same(connection), nsCaptor.capture());
+	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
     }
 }
