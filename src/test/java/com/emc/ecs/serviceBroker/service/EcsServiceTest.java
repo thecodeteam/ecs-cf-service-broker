@@ -1,4 +1,4 @@
-package com.emc.ecs.serviceBroker;
+package com.emc.ecs.serviceBroker.service;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static org.junit.Assert.*;
@@ -38,9 +38,12 @@ import com.emc.ecs.managementClient.model.NamespaceUpdate;
 import com.emc.ecs.managementClient.model.RetentionClassCreate;
 import com.emc.ecs.managementClient.model.RetentionClassUpdate;
 import com.emc.ecs.managementClient.model.UserSecretKey;
+import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
 import com.emc.ecs.serviceBroker.model.NamespaceQuotaParam;
+import com.emc.ecs.serviceBroker.service.EcsService;
 
 @RunWith(PowerMockRunner.class)
 public class EcsServiceTest {

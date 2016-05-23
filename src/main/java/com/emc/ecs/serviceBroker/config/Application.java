@@ -13,9 +13,9 @@ import org.springframework.context.annotation.ComponentScan;
 import com.emc.ecs.managementClient.Connection;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.serviceBroker.service.EcsService;
 import com.emc.ecs.serviceBroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.serviceBroker.service.EcsServiceInstanceService;
 

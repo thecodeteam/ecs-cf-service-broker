@@ -18,12 +18,12 @@ import com.emc.ecs.managementClient.NamespaceRetentionActionTest;
 import com.emc.ecs.managementClient.ObjectUserActionTest;
 import com.emc.ecs.managementClient.ObjectUserSecretActionTest;
 import com.emc.ecs.managementClient.ReplicationGroupActionTest;
-import com.emc.ecs.serviceBroker.EcsServiceTest;
 import com.emc.ecs.serviceBroker.config.CatalogConfigTest;
 import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepositoryTest;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepositoryTest;
 import com.emc.ecs.serviceBroker.service.EcsServiceInstanceServiceTest;
+import com.emc.ecs.serviceBroker.service.EcsServiceTest;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 

@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
 import com.emc.ecs.serviceBroker.model.PlanProxy;
 import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;

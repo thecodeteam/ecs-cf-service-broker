@@ -1,4 +1,4 @@
-package com.emc.ecs.serviceBroker;
+package com.emc.ecs.serviceBroker.service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +31,8 @@ import com.emc.ecs.managementClient.model.ObjectBucketCreate;
 import com.emc.ecs.managementClient.model.RetentionClassCreate;
 import com.emc.ecs.managementClient.model.RetentionClassUpdate;
 import com.emc.ecs.managementClient.model.UserSecretKey;
+import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
 import com.emc.ecs.serviceBroker.model.NamespaceQuotaParam;

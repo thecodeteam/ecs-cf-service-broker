@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.EcsService;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
 import com.emc.ecs.serviceBroker.repository.ServiceInstance;
