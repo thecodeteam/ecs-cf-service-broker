@@ -5,12 +5,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceBindingFixture;
+import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
 
+import com.emc.ecs.serviceBroker.EcsManagementClientException;
+import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.model.PlanProxy;
 import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.serviceBroker.repository.ServiceInstance;
+import com.emc.ecs.serviceBroker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
     public static final String NAMESPACE = "ns1";
@@ -32,6 +40,8 @@ public class Fixtures {
     public static final String ORG_ID = "55083e67-f841-4c7e-9a19-2bf4d0cac6b9";
     public static final String SPACE_ID = "305c3c4d-ca6c-435d-b77f-046f8bc70e79";
     public static final String EXTERNAL_ADMIN = "group1@foo.com";
+    public static final String APP_GUID = "eb92048d-6d84-42e0-a293-0b604e53bc6f";
+    public static final String BINDING_ID = "cf2f8326-3465-4810-9da1-54d328935b81";
 
     public static ServiceDefinitionProxy namespaceServiceFixture() {
 	/*
@@ -104,5 +114,40 @@ public class Fixtures {
     public static DeleteServiceInstanceRequest namespaceDeleteRequestFixture() {
 	return new DeleteServiceInstanceRequest(NAMESPACE, SERVICE_ID, PLAN_ID1,
 		null);
+    }
+
+    public static CreateServiceInstanceBindingRequest instanceBindingRequestFixture() {
+	Map<String, Object> bindResource = new HashMap<>();
+	bindResource.put("app_guid", APP_GUID);
+	Map<String, Object> params = new HashMap<>();
+	return new CreateServiceInstanceBindingRequest(SERVICE_ID, PLAN_ID1,
+		APP_GUID, bindResource, params)
+			.withBindingId(BINDING_ID)
+			.withServiceInstanceId(NAMESPACE);
+    }
+
+    public static ServiceInstance serviceInstanceFixture() {
+	return new ServiceInstance(ServiceInstanceFixture
+		.buildCreateServiceInstanceRequest(false));
+    }
+
+    public static ServiceInstanceBinding bindingInstanceFixture()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	Map<String, Object> creds = new HashMap<String, Object>();
+	creds.put("accessKey", "user");
+	creds.put("bucket", "bucket");
+	creds.put("secretKey", "password");
+	creds.put("endpoint", OBJ_ENDPOINT);
+	ServiceInstanceBinding binding = new ServiceInstanceBinding(
+		ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
+	binding.setBindingId("service-inst-bind-one-id");
+	binding.setCredentials(creds);
+	return binding;
+    }
+
+    public static DeleteServiceInstanceBindingRequest instanceBindingRemoveFixture() {
+	return new DeleteServiceInstanceBindingRequest(NAMESPACE, BINDING_ID,
+		SERVICE_ID, PLAN_ID1, null);
     }
 }

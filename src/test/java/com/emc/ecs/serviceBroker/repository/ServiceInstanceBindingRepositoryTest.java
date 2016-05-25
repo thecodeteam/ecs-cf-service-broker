@@ -1,7 +1,7 @@
 package com.emc.ecs.serviceBroker.repository;
 
 import static org.junit.Assert.assertEquals;
-
+import static com.emc.ecs.common.Fixtures.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
-import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,9 +36,5 @@ public class ServiceInstanceBindingRepositoryTest {
 		ServiceInstance instance2 = repository.find(instance.getServiceInstanceId());
 		assertEquals(instance.getServiceInstanceId(), instance2.getServiceInstanceId());
 		repository.delete(instance.getServiceInstanceId());
-	}
-
-	private ServiceInstance serviceInstanceFixture() {
-		return new ServiceInstance(ServiceInstanceFixture.buildCreateServiceInstanceRequest(false));
 	}
 }

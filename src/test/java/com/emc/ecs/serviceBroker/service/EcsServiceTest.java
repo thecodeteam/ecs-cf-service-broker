@@ -250,8 +250,10 @@ public class EcsServiceTest {
     @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
 	    BucketAction.class, ObjectUserAction.class,
 	    ObjectUserSecretAction.class })
-    @Test(expected=EcsManagementClientException.class)
-    public void initializeBaseUrlDefaultLookupFails() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+    @Test(expected = EcsManagementClientException.class)
+    public void initializeBaseUrlDefaultLookupFails()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
 	PowerMockito.mockStatic(BaseUrlAction.class);
 	when(BaseUrlAction.list(same(connection)))
 		.thenReturn(Collections.emptyList());

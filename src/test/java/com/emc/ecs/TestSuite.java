@@ -22,6 +22,7 @@ import com.emc.ecs.serviceBroker.config.CatalogConfigTest;
 import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepositoryTest;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepositoryTest;
+import com.emc.ecs.serviceBroker.service.EcsServiceInstanceBindingServiceTest;
 import com.emc.ecs.serviceBroker.service.EcsServiceInstanceServiceTest;
 import com.emc.ecs.serviceBroker.service.EcsServiceTest;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -45,6 +46,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
     ServiceDefinitionProxyTest.class,
     ServiceInstanceBindingRepositoryTest.class,
     ServiceInstanceRepositoryTest.class,
+    EcsServiceInstanceBindingServiceTest.class,
     EcsServiceInstanceServiceTest.class
     })
 public class TestSuite {

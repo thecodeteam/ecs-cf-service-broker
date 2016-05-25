@@ -1,6 +1,6 @@
 package com.emc.ecs.serviceBroker.service;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static com.emc.ecs.common.Fixtures.*;
 
@@ -39,8 +39,15 @@ public class EcsServiceInstanceServiceTest {
 
     @Autowired
     @InjectMocks
-    EcsServiceInstanceService instanceService;
+    EcsServiceInstanceService instSvc;
 
+    /**
+     * The instance-service can create a namespace with empty params.
+     * 
+     * @throws EcsManagementClientException
+     * @throws IOException
+     * @throws JAXBException
+     */
     @Test
     public void testCreateNamespaceService()
 	    throws EcsManagementClientException, IOException, JAXBException {
@@ -50,8 +57,7 @@ public class EcsServiceInstanceServiceTest {
 	when(ecs.namespaceExists(NAMESPACE)).thenReturn(false).thenReturn(true);
 
 	Map<String, Object> params = new HashMap<>();
-	instanceService.createServiceInstance(
-		namespaceCreateRequestFixture(params));
+	instSvc.createServiceInstance(namespaceCreateRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
 	verify(ecs, times(2)).namespaceExists(NAMESPACE);
@@ -59,19 +65,31 @@ public class EcsServiceInstanceServiceTest {
 		params);
     }
 
+    /**
+     * The instance-service can delete a namespace.
+     *  
+     * @throws EcsManagementClientException
+     */
     @Test
     public void testDeleteNamespaceService()
 	    throws EcsManagementClientException {
 	when(catalog.findServiceDefinition(SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	instanceService
-		.deleteServiceInstance(namespaceDeleteRequestFixture());
+	instSvc.deleteServiceInstance(namespaceDeleteRequestFixture());
 
 	verify(repository, times(1)).delete(NAMESPACE);
 	verify(ecs, times(1)).deleteNamespace(NAMESPACE);
     }
 
+    /**
+     * The instance-service can change a namespace's plan with empty
+     * params.
+     * 
+     * @throws IOException
+     * @throws JAXBException
+     * @throws EcsManagementClientException
+     */
     @Test
     public void testChangeNamespaceService()
 	    throws IOException, JAXBException, EcsManagementClientException {
@@ -79,11 +97,11 @@ public class EcsServiceInstanceServiceTest {
 
 	when(catalog.findServiceDefinition(SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
-	when(repository.find(NAMESPACE))
-		.thenReturn(new ServiceInstance(namespaceCreateRequestFixture(params)));
+	when(repository.find(NAMESPACE)).thenReturn(
+		new ServiceInstance(namespaceCreateRequestFixture(params)));
 
-	instanceService.updateServiceInstance(
-		namespaceUpdateRequestFixture(params));
+	instSvc
+		.updateServiceInstance(namespaceUpdateRequestFixture(params));
 
 	verify(repository, times(1)).find(NAMESPACE);
 	verify(repository, times(1)).delete(NAMESPACE);
