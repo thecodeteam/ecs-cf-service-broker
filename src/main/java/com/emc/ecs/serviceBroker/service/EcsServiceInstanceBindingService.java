@@ -117,8 +117,14 @@ public class EcsServiceInstanceBindingService
 	    throws ServiceBrokerException {
 	String bindingId = request.getBindingId();
 	String instanceId = request.getServiceInstanceId();
+	String serviceDefinitionId = request.getServiceDefinitionId();
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceDefinitionId);
+	String serviceType = (String) service.getServiceSettings()
+		    .get(SERVICE_TYPE);
 	try {
-	    ecs.removeUserFromBucket(instanceId, bindingId);
+	    if (BUCKET.equals(serviceType))
+		ecs.removeUserFromBucket(instanceId, bindingId);
 	    ecs.deleteUser(bindingId);
 	    repository.delete(bindingId);
 	} catch (Exception e) {

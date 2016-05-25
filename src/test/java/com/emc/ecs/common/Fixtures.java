@@ -157,7 +157,7 @@ public class Fixtures {
 		null);
     }
 
-    public static CreateServiceInstanceBindingRequest instanceBindingRequestFixture() {
+    public static CreateServiceInstanceBindingRequest namespaceBindingRequestFixture() {
 	Map<String, Object> bindResource = new HashMap<>();
 	bindResource.put("app_guid", APP_GUID);
 	Map<String, Object> params = new HashMap<>();
@@ -165,6 +165,26 @@ public class Fixtures {
 		APP_GUID, bindResource, params)
 			.withBindingId(BINDING_ID)
 			.withServiceInstanceId(NAMESPACE);
+    }
+
+    public static CreateServiceInstanceBindingRequest bucketBindingPermissionRequestFixture() {
+	Map<String, Object> bindResource = new HashMap<>();
+	bindResource.put("app_guid", APP_GUID);
+	Map<String, Object> params = new HashMap<>();
+	params.put("permissions", Arrays.asList("READ", "WRITE"));
+	return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID, BUCKET_PLAN_ID1,
+		APP_GUID, bindResource, params)
+			.withBindingId(BINDING_ID)
+			.withServiceInstanceId(BUCKET_NAME);
+    }
+
+    public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture() {
+	Map<String, Object> bindResource = new HashMap<>();
+	bindResource.put("app_guid", APP_GUID);
+	return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID, BUCKET_PLAN_ID1,
+		APP_GUID, bindResource, null)
+			.withBindingId(BINDING_ID)
+			.withServiceInstanceId(BUCKET_NAME);
     }
 
     public static ServiceInstance serviceInstanceFixture() {
@@ -187,8 +207,13 @@ public class Fixtures {
 	return binding;
     }
 
-    public static DeleteServiceInstanceBindingRequest instanceBindingRemoveFixture() {
+    public static DeleteServiceInstanceBindingRequest namespaceBindingRemoveFixture() {
 	return new DeleteServiceInstanceBindingRequest(NAMESPACE, BINDING_ID,
 		NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, null);
+    }
+
+    public static DeleteServiceInstanceBindingRequest bucketBindingRemoveFixture() {
+	return new DeleteServiceInstanceBindingRequest(BUCKET_NAME, BINDING_ID,
+		BUCKET_SERVICE_ID, BUCKET_PLAN_ID1, null);
     }
 }
