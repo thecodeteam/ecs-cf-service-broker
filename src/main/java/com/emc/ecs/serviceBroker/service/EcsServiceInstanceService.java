@@ -203,7 +203,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
 	ecs.createBucket(serviceInstanceId, serviceDefinitionId, planId);
 
-	if (ecs.bucketExists(serviceInstanceId))
+	if (! ecs.bucketExists(serviceInstanceId))
 	    throw new ServiceBrokerException(
 		    "Failed to create new ECS bucket: " + serviceInstanceId);
     }

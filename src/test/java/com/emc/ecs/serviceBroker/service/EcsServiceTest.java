@@ -279,13 +279,13 @@ public class EcsServiceTest {
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
 	Map<String, Object> params = new HashMap<>();
-	ecs.createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID1, params);
+	ecs.createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 
 	PowerMockito.verifyStatic();
 
@@ -331,13 +331,13 @@ public class EcsServiceTest {
 		.forClass(NamespaceUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
 	Map<String, Object> params = new HashMap<>();
-	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID2, params);
+	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceAction.update(same(connection), idCaptor.capture(),
 		updateCaptor.capture());
@@ -379,12 +379,12 @@ public class EcsServiceTest {
 		any(NamespaceQuotaParam.class));
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID1, params);
+	ecs.createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceAction.create(same(connection), createCaptor.capture());
 	NamespaceCreate create = createCaptor.getValue();
@@ -433,12 +433,12 @@ public class EcsServiceTest {
 		.forClass(NamespaceUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID1, params);
+	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceAction.update(same(connection), idCaptor.capture(),
 		updateCaptor.capture());
@@ -473,12 +473,12 @@ public class EcsServiceTest {
 		any(RetentionClassCreate.class));
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.createNamespace(NAMESPACE, SERVICE_ID, PLAN_ID3, params);
+	ecs.createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID3, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
@@ -531,12 +531,12 @@ public class EcsServiceTest {
 		.forClass(RetentionClassCreate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID2, params);
+	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.create(same(connection), nsCaptor.capture(),
 		createCaptor.capture());
@@ -574,12 +574,12 @@ public class EcsServiceTest {
 	ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID2, params);
+	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.delete(same(connection), nsCaptor.capture(),
 		rcCaptor.capture());
@@ -619,12 +619,12 @@ public class EcsServiceTest {
 		.forClass(RetentionClassUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(SERVICE_ID))
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, SERVICE_ID, PLAN_ID2, params);
+	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(SERVICE_ID);
+	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.update(same(connection), nsCaptor.capture(),
 		rcCaptor.capture(), updateCaptor.capture());

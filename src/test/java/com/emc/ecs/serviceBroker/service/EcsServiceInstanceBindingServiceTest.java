@@ -49,7 +49,7 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test
     public void testCreateNamespaceUser()
 	    throws IOException, JAXBException, EcsManagementClientException {
-	when(catalog.findServiceDefinition(eq(SERVICE_ID)))
+	when(catalog.findServiceDefinition(eq(NAMESPACE_SERVICE_ID)))
 		.thenReturn(namespaceServiceFixture());
 	when(ecs.userExists(BINDING_ID)).thenReturn(false);
 	when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
@@ -74,7 +74,7 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test(expected = ServiceInstanceBindingExistsException.class)
     public void testCreateExistingNamespaceUserFailes()
 	    throws EcsManagementClientException {
-	when(catalog.findServiceDefinition(eq(SERVICE_ID)))
+	when(catalog.findServiceDefinition(eq(NAMESPACE_SERVICE_ID)))
 		.thenReturn(namespaceServiceFixture());
 	when(ecs.userExists(BINDING_ID)).thenReturn(true);
 
@@ -88,7 +88,7 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test
     public void testRemoveNamespaceUser() throws EcsManagementClientException {
-	when(catalog.findServiceDefinition(eq(SERVICE_ID)))
+	when(catalog.findServiceDefinition(eq(NAMESPACE_SERVICE_ID)))
 		.thenReturn(namespaceServiceFixture());
 	bindSvc.deleteServiceInstanceBinding(instanceBindingRemoveFixture());
 	verify(ecs, times(1)).deleteUser(BINDING_ID);
