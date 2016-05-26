@@ -32,14 +32,14 @@ public class EcsServiceInstanceBindingServiceTest {
     private EcsService ecs;
 
     @Mock
-    ServiceInstanceBindingRepository repository;
+    private ServiceInstanceBindingRepository repository;
 
     @Mock
     private CatalogConfig catalog;
 
     @Autowired
     @InjectMocks
-    EcsServiceInstanceBindingService bindSvc;
+    private EcsServiceInstanceBindingService bindSvc;
 
     /**
      * The binding-service can create a user in a namespace, so long as the user

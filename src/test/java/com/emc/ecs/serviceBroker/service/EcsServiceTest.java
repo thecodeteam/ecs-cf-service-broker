@@ -60,7 +60,7 @@ public class EcsServiceTest {
 
     @Autowired
     @InjectMocks
-    EcsService ecs;
+    private EcsService ecs;
 
     /**
      * When initializing the ecs-service, and object-endpoint, repo-user &
