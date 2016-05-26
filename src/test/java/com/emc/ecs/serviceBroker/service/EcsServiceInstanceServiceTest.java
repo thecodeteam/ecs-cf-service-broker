@@ -50,7 +50,8 @@ public class EcsServiceInstanceServiceTest {
      * 
      */
     @Test
-    public void testCreateBucketService() throws EcsManagementClientException, IOException, JAXBException, EcsManagementResourceNotFoundException {
+    public void testCreateBucketService() throws EcsManagementClientException,
+	    IOException, JAXBException, EcsManagementResourceNotFoundException {
 	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(bucketServiceFixture());
 	Map<String, Object> params = new HashMap<>();
