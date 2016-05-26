@@ -13,12 +13,12 @@ import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceReques
 import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceBindingFixture;
 import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
 
-import com.emc.ecs.serviceBroker.EcsManagementClientException;
-import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.serviceBroker.model.PlanProxy;
-import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
-import com.emc.ecs.serviceBroker.repository.ServiceInstance;
-import com.emc.ecs.serviceBroker.repository.ServiceInstanceBinding;
+import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
+import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
+import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
+import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
     public static final String NAMESPACE = "ns1";
