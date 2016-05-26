@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
 import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
@@ -38,7 +37,7 @@ public class EcsServiceInstanceServiceTest {
 
     @Autowired
     @InjectMocks
-    EcsServiceInstanceService instSvc;
+    private EcsServiceInstanceService instSvc;
 
     /**
      * The instance-service can create a bucket with empty params.
