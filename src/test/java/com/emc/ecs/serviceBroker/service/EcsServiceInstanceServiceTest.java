@@ -19,7 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
 import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
-import com.emc.ecs.serviceBroker.config.CatalogConfig;
+import com.emc.ecs.serviceBroker.model.PlanProxy;
+import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.serviceBroker.repository.ServiceInstance;
 import com.emc.ecs.serviceBroker.repository.ServiceInstanceRepository;
 
@@ -34,9 +35,6 @@ public class EcsServiceInstanceServiceTest {
 
     @Mock
     private BrokerConfig broker;
-
-    @Mock
-    private CatalogConfig catalog;
 
     @Autowired
     @InjectMocks
@@ -53,18 +51,14 @@ public class EcsServiceInstanceServiceTest {
      */
     @Test
     public void testCreateBucketService() throws EcsManagementClientException, IOException, JAXBException, EcsManagementResourceNotFoundException {
-	when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
+	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(bucketServiceFixture());
-	when(ecs.bucketExists(BUCKET_NAME)).thenReturn(false)
-		.thenReturn(true);
-
 	Map<String, Object> params = new HashMap<>();
 	instSvc.createServiceInstance(bucketCreateRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
-	verify(ecs, times(2)).bucketExists(BUCKET_NAME);
-	verify(ecs, times(1)).createBucket(BUCKET_NAME, BUCKET_SERVICE_ID,
-		BUCKET_PLAN_ID1);
+	verify(ecs, times(1)).createBucket(eq(BUCKET_NAME),
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class));
     }
 
     /**
@@ -74,7 +68,7 @@ public class EcsServiceInstanceServiceTest {
      */
     @Test
     public void testDeleteBucketService() throws EcsManagementClientException {
-	when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
+	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(bucketServiceFixture());
 
 	instSvc.deleteServiceInstance(bucketDeleteRequestFixture());
@@ -94,7 +88,7 @@ public class EcsServiceInstanceServiceTest {
     public void testChangeBucketService()
 	    throws IOException, JAXBException, EcsManagementClientException {
 	Map<String, Object> params = new HashMap<>();
-	when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
+	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(bucketServiceFixture());
 	when(repository.find(BUCKET_NAME)).thenReturn(
 		new ServiceInstance(bucketCreateRequestFixture(params)));
@@ -118,7 +112,7 @@ public class EcsServiceInstanceServiceTest {
     @Test
     public void testCreateNamespaceService()
 	    throws EcsManagementClientException, IOException, JAXBException {
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
 	when(ecs.namespaceExists(NAMESPACE)).thenReturn(false).thenReturn(true);
@@ -140,7 +134,7 @@ public class EcsServiceInstanceServiceTest {
     @Test
     public void testDeleteNamespaceService()
 	    throws EcsManagementClientException {
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
 	instSvc.deleteServiceInstance(namespaceDeleteRequestFixture());
@@ -161,7 +155,7 @@ public class EcsServiceInstanceServiceTest {
 	    throws IOException, JAXBException, EcsManagementClientException {
 	Map<String, Object> params = new HashMap<>();
 
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 	when(repository.find(NAMESPACE)).thenReturn(
 		new ServiceInstance(namespaceCreateRequestFixture(params)));

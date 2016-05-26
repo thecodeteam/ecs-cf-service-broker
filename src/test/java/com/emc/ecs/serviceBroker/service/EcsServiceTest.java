@@ -43,6 +43,8 @@ import com.emc.ecs.serviceBroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.serviceBroker.config.BrokerConfig;
 import com.emc.ecs.serviceBroker.config.CatalogConfig;
 import com.emc.ecs.serviceBroker.model.NamespaceQuotaParam;
+import com.emc.ecs.serviceBroker.model.PlanProxy;
+import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.serviceBroker.service.EcsService;
 
 @RunWith(PowerMockRunner.class)
@@ -682,5 +684,51 @@ public class EcsServiceTest {
 		nsCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
 	assertEquals(PREFIX + "user1", userCaptor.getValue());
+    }
+
+    /**
+     * A service can lookup a service definition from the catalog
+     * @throws EcsManagementClientException 
+     */
+    @Test
+    public void testlookupServiceDefinition() throws EcsManagementClientException {
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+	ServiceDefinitionProxy service = ecs
+		.lookupServiceDefinition(NAMESPACE_SERVICE_ID);
+	assertEquals(NAMESPACE_SERVICE_ID, service.getId());
+    }
+
+    /**
+     * A service can lookup a plan from the catalog
+     * @throws EcsManagementClientException 
+     */
+    @Test
+    public void testlookupPlan() throws EcsManagementClientException {
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = ecs
+		.lookupPlan(service, BUCKET_PLAN_ID1);
+	assertEquals(BUCKET_PLAN_ID1, plan.getId());
+    }
+
+    /**
+     * A lookup of a non-existant service definition ID fails
+     * @throws EcsManagementClientException 
+     */
+    @Test(expected = EcsManagementClientException.class)
+    public void testLookupMissingServiceDefinitionFails()
+	    throws EcsManagementClientException {
+	ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID);
+    }
+
+    /**
+     * A lookup of a non-existant plan ID fails
+     * @throws EcsManagementClientException 
+     */
+    @Test(expected = EcsManagementClientException.class)
+    public void testLookupMissingPlanFails()
+	    throws EcsManagementClientException {
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	ecs.lookupPlan(service, NAMESPACE_PLAN_ID1);
     }
 }

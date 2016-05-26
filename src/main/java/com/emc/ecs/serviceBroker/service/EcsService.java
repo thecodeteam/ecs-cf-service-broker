@@ -3,12 +3,15 @@ package com.emc.ecs.serviceBroker.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.glassfish.hk2.utilities.reflection.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
 import org.springframework.stereotype.Service;
 
 import com.emc.ecs.managementClient.BaseUrlAction;
@@ -74,18 +77,22 @@ public class EcsService {
 	BucketAction.delete(connection, prefix(id), broker.getNamespace());
     }
 
-    public void createBucket(String id, String serviceId, String planId)
+    public void createBucket(String id, ServiceDefinitionProxy service,
+	    PlanProxy plan) throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	createBucket(id, service, plan, false);
+    }
+
+    public void createBucket(String id, ServiceDefinitionProxy service,
+	    PlanProxy plan, Boolean errorOnExists)
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	ServiceDefinitionProxy service = catalog
-		.findServiceDefinition(serviceId);
-	if (service == null)
-	    throw new EcsManagementClientException(
-		    SERVICE_NOT_FOUND + serviceId);
 
-	PlanProxy plan = service.findPlan(planId);
-	if (plan == null)
-	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
+	if (bucketExists(id)) {
+	    if (errorOnExists)
+		throw new ServiceInstanceExistsException(id, service.getId());
+	    return;
+	}
 
 	ObjectBucketCreate createParam = new ObjectBucketCreate();
 	createParam.setName(prefix(id));
@@ -225,9 +232,12 @@ public class EcsService {
 	    EcsManagementResourceNotFoundException {
 	String bucketName = broker.getRepositoryBucket();
 	String userName = broker.getRepositoryUser();
-	if (!bucketExists(bucketName))
-	    createBucket(bucketName, broker.getRepositoryServiceId(),
-		    broker.getRepositoryPlanId());
+	if (!bucketExists(bucketName)) {
+	    ServiceDefinitionProxy service = lookupServiceDefinition(
+		    broker.getRepositoryServiceId());
+	    PlanProxy plan = lookupPlan(service, broker.getRepositoryPlanId());
+	    createBucket(bucketName, service, plan);
+	}
 
 	if (!userExists(userName)) {
 	    UserSecretKey secretKey = createUser(userName);
@@ -338,6 +348,27 @@ public class EcsService {
 				    entry.getValue()));
 		}
 	    }
+	}
+    }
+
+    public ServiceDefinitionProxy lookupServiceDefinition(
+	    String serviceDefinitionId) throws EcsManagementClientException {
+	ServiceDefinitionProxy service = catalog
+		.findServiceDefinition(serviceDefinitionId);
+	if (service == null)
+	    throw new EcsManagementClientException(
+		    SERVICE_NOT_FOUND + serviceDefinitionId);
+	return service;
+    }
+
+    public PlanProxy lookupPlan(ServiceDefinitionProxy service, String planId)
+	    throws EcsManagementClientException {
+
+	try {
+	    return service.findPlan(planId);
+	} catch (NoSuchElementException e) {
+	    Logger.printThrowable(e);
+	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);	    
 	}
     }
 }
