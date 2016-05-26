@@ -3,13 +3,11 @@ package com.emc.ecs.serviceBroker.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import org.glassfish.hk2.utilities.reflection.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
 import org.springframework.stereotype.Service;
@@ -46,7 +44,6 @@ import com.emc.ecs.serviceBroker.model.ServiceDefinitionProxy;
 public class EcsService {
 
     private static final String RETENTION = "retention";
-    private static final String PLAN_NOT_FOUND = "No plan matching plan id: ";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
     @Autowired
@@ -113,18 +110,8 @@ public class EcsService {
 		    broker.getNamespace(), limit, warning);
     }
 
-    public void changeBucketPlan(String id, String serviceId, String planId)
-	    throws EcsManagementClientException {
-	ServiceDefinitionProxy service = catalog
-		.findServiceDefinition(serviceId);
-	if (service == null)
-	    throw new EcsManagementClientException(
-		    SERVICE_NOT_FOUND + serviceId);
-
-	PlanProxy plan = service.findPlan(planId);
-	if (plan == null)
-	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
-
+    public void changeBucketPlan(String id, ServiceDefinitionProxy service,
+	    PlanProxy plan) throws EcsManagementClientException {
 	int limit = plan.getQuotaLimit();
 	int warning = plan.getQuotaWarning();
 	if (limit == -1 && warning == -1) {
@@ -235,8 +222,8 @@ public class EcsService {
 	if (!bucketExists(bucketName)) {
 	    ServiceDefinitionProxy service = lookupServiceDefinition(
 		    broker.getRepositoryServiceId());
-	    PlanProxy plan = lookupPlan(service, broker.getRepositoryPlanId());
-	    createBucket(bucketName, service, plan);
+	    createBucket(bucketName, service,
+		    service.findPlan(broker.getRepositoryPlanId()));
 	}
 
 	if (!userExists(userName)) {
@@ -303,19 +290,9 @@ public class EcsService {
 	NamespaceAction.delete(connection, prefix(id));
     }
 
-    public void changeNamespacePlan(String id, String serviceId, String planId,
+    public void changeNamespacePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
 	    Map<String, Object> parameters)
 	    throws EcsManagementClientException {
-	ServiceDefinitionProxy service = catalog
-		.findServiceDefinition(serviceId);
-	if (service == null)
-	    throw new EcsManagementClientException(
-		    SERVICE_NOT_FOUND + serviceId);
-
-	PlanProxy plan = service.findPlan(planId);
-	if (plan == null)
-	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
-
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.update(connection, prefix(id),
@@ -353,16 +330,5 @@ public class EcsService {
 	    throw new EcsManagementClientException(
 		    SERVICE_NOT_FOUND + serviceDefinitionId);
 	return service;
-    }
-
-    public PlanProxy lookupPlan(ServiceDefinitionProxy service, String planId)
-	    throws EcsManagementClientException {
-
-	try {
-	    return service.findPlan(planId);
-	} catch (NoSuchElementException e) {
-	    Logger.printThrowable(e);
-	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);	    
-	}
     }
 }

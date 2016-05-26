@@ -99,8 +99,8 @@ public class EcsServiceInstanceServiceTest {
 	verify(repository, times(1)).find(BUCKET_NAME);
 	verify(repository, times(1)).delete(BUCKET_NAME);
 	verify(repository, times(1)).save(any(ServiceInstance.class));
-	verify(ecs, times(1)).changeBucketPlan(BUCKET_NAME,
-		BUCKET_SERVICE_ID, BUCKET_PLAN_ID1);
+	verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class));
     }
 
     /**
@@ -163,7 +163,7 @@ public class EcsServiceInstanceServiceTest {
 	verify(repository, times(1)).find(NAMESPACE);
 	verify(repository, times(1)).delete(NAMESPACE);
 	verify(repository, times(1)).save(any(ServiceInstance.class));
-	verify(ecs, times(1)).changeNamespacePlan(NAMESPACE,
-		NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
+	verify(ecs, times(1)).changeNamespacePlan(eq(NAMESPACE),
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class), eq(params));
     }
 }

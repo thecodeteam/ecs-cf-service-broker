@@ -57,7 +57,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	try {
 	    ServiceDefinitionProxy service = ecs
 		    .lookupServiceDefinition(serviceDefinitionId);
-	    PlanProxy plan = ecs.lookupPlan(service, planId);
+	    PlanProxy plan = service.findPlan(planId);
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
 	    if (BUCKET.equals(serviceType)) {
@@ -122,12 +122,13 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
+	    PlanProxy plan = service.findPlan(planId);
 	    if (BUCKET.equals(serviceType)) {
 		ecs.changeBucketPlan(serviceInstanceId,
-			instance.getServiceDefinitionId(), planId);
+			service, plan );
 	    } else if (NAMESPACE.equals(serviceType)) {
 		ecs.changeNamespacePlan(serviceInstanceId,
-			instance.getServiceDefinitionId(), planId, params);
+			service, plan, params);
 	    } else {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);

@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -282,13 +281,9 @@ public class EcsServiceTest {
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(service);
 
 	Map<String, Object> params = new HashMap<>();
 	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, params);
-
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 
 	PowerMockito.verifyStatic();
 
@@ -332,15 +327,13 @@ public class EcsServiceTest {
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
-
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
 
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
 	Map<String, Object> params = new HashMap<>();
-	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceAction.update(same(connection), idCaptor.capture(),
 		updateCaptor.capture());
@@ -388,7 +381,6 @@ public class EcsServiceTest {
 
 	ecs.createNamespace(NAMESPACE, service, plan, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceAction.create(same(connection), createCaptor.capture());
 	NamespaceCreate create = createCaptor.getValue();
@@ -437,12 +429,11 @@ public class EcsServiceTest {
 		.forClass(NamespaceUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service .findPlan(NAMESPACE_PLAN_ID1);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan , params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceAction.update(same(connection), idCaptor.capture(),
 		updateCaptor.capture());
@@ -484,7 +475,6 @@ public class EcsServiceTest {
 
 	ecs.createNamespace(NAMESPACE, service, plan, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
@@ -537,12 +527,11 @@ public class EcsServiceTest {
 		.forClass(RetentionClassCreate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service .findPlan(NAMESPACE_PLAN_ID2);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan , params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.create(same(connection), nsCaptor.capture(),
 		createCaptor.capture());
@@ -580,12 +569,11 @@ public class EcsServiceTest {
 	ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan , params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.delete(same(connection), nsCaptor.capture(),
 		rcCaptor.capture());
@@ -625,12 +613,11 @@ public class EcsServiceTest {
 		.forClass(RetentionClassUpdate.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
 
-	ecs.changeNamespacePlan(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID2, params);
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
 
-	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.update(same(connection), nsCaptor.capture(),
 		rcCaptor.capture(), updateCaptor.capture());
@@ -704,18 +691,6 @@ public class EcsServiceTest {
     }
 
     /**
-     * A service can lookup a plan from the catalog
-     * @throws EcsManagementClientException 
-     */
-    @Test
-    public void testlookupPlan() throws EcsManagementClientException {
-	ServiceDefinitionProxy service = bucketServiceFixture();
-	PlanProxy plan = ecs
-		.lookupPlan(service, BUCKET_PLAN_ID1);
-	assertEquals(BUCKET_PLAN_ID1, plan.getId());
-    }
-
-    /**
      * A lookup of a non-existant service definition ID fails
      * @throws EcsManagementClientException 
      */
@@ -723,16 +698,5 @@ public class EcsServiceTest {
     public void testLookupMissingServiceDefinitionFails()
 	    throws EcsManagementClientException {
 	ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID);
-    }
-
-    /**
-     * A lookup of a non-existant plan ID fails
-     * @throws EcsManagementClientException 
-     */
-    @Test(expected = EcsManagementClientException.class)
-    public void testLookupMissingPlanFails()
-	    throws EcsManagementClientException {
-	ServiceDefinitionProxy service = bucketServiceFixture();
-	ecs.lookupPlan(service, NAMESPACE_PLAN_ID1);
     }
 }
