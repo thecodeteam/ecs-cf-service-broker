@@ -156,13 +156,13 @@ public class Connection {
 				.header("X-SDS-AUTH-TOKEN", authToken)
 				.header("Accept", "application/xml");
 		Response response;
-		if (method == GET) {
+		if (GET.equals(method)) {
 			response = request.get();
-		} else if (method == POST) {
+		} else if (POST.equals(method)) {
 			response = request.post(Entity.xml(arg));
-		} else if (method == PUT) {
+		} else if (PUT.equals(method)) {
 			response = request.put(Entity.xml(arg));
-		} else if (method == DELETE) {
+		} else if (DELETE.equals(method)) {
 			response = request.delete();
 		} else {
 			throw new EcsManagementClientException(
