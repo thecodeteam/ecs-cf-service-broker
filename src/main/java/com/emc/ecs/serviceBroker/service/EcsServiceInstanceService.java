@@ -68,7 +68,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);
 	    }
-
 	    repository.save(instance);
 	    return new CreateServiceInstanceResponse();
 	} catch (Exception e) {
@@ -84,7 +83,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	String serviceInstanceId = request.getServiceInstanceId();
 	String serviceDefinitionId = request.getServiceDefinitionId();
 	try {
-	    ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
+	    ServiceDefinitionProxy service = ecs
+		    .lookupServiceDefinition(serviceDefinitionId);
 
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
@@ -113,22 +113,23 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	String serviceDefinitionId = request.getServiceDefinitionId();
 	String planId = request.getPlanId();
 	Map<String, Object> params = request.getParameters();
-	
+
 	try {
-	    ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
+	    ServiceDefinitionProxy service = ecs
+		    .lookupServiceDefinition(serviceDefinitionId);
 	    ServiceInstance instance = repository.find(serviceInstanceId);
 	    if (instance == null)
-		throw new ServiceInstanceDoesNotExistException(serviceInstanceId);
-	    
+		throw new ServiceInstanceDoesNotExistException(
+			serviceInstanceId);
+
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
 	    PlanProxy plan = service.findPlan(planId);
 	    if (BUCKET.equals(serviceType)) {
-		ecs.changeBucketPlan(serviceInstanceId,
-			service, plan );
+		ecs.changeBucketPlan(serviceInstanceId, service, plan);
 	    } else if (NAMESPACE.equals(serviceType)) {
-		ecs.changeNamespacePlan(serviceInstanceId,
-			service, plan, params);
+		ecs.changeNamespacePlan(serviceInstanceId, service, plan,
+			params);
 	    } else {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);

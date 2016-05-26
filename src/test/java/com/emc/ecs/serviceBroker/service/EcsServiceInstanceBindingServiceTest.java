@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -19,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
-import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 
 import com.emc.ecs.managementClient.model.UserSecretKey;
 import com.emc.ecs.serviceBroker.EcsManagementClientException;
@@ -62,6 +60,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	userSecretKey.setSecretKey("TEST_KEY");
 	when(ecs.createUser(BINDING_ID, NAMESPACE))
 		.thenReturn(userSecretKey);
+	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
 
 	bindSvc.createServiceInstanceBinding(namespaceBindingRequestFixture());
 	verify(ecs, times(1)).createUser(BINDING_ID,
@@ -89,6 +89,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	userSecretKey.setSecretKey("TEST_KEY");
 	when(ecs.createUser(BINDING_ID))
 		.thenReturn(userSecretKey);
+	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+		.thenReturn(bucketServiceFixture());
 
 	bindSvc.createServiceInstanceBinding(bucketBindingPermissionRequestFixture());
 	verify(ecs, times(1)).createUser(BINDING_ID);
@@ -118,6 +120,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	userSecretKey.setSecretKey("TEST_KEY");
 	when(ecs.createUser(BINDING_ID))
 		.thenReturn(userSecretKey);
+	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+		.thenReturn(bucketServiceFixture());
 	bindSvc.createServiceInstanceBinding(bucketBindingRequestFixture());
 	verify(ecs, times(1)).createUser(BINDING_ID);
 	verify(ecs, times(1)).userExists(BINDING_ID);

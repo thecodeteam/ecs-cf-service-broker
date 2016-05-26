@@ -31,7 +31,6 @@ import com.emc.ecs.serviceBroker.repository.ServiceInstanceBindingRepository;
 public class EcsServiceInstanceBindingService
 	implements ServiceInstanceBindingService {
     private static final String NO_SERVICE_MATCHING_TYPE = "No service matching type: ";
-    private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
     private static final String SERVICE_TYPE = "service-type";
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
@@ -64,20 +63,17 @@ public class EcsServiceInstanceBindingService
 	Map<String, Object> parameters = request.getParameters();
 	credentials.put("accessKey", ecs.prefix(bindingId));
 	credentials.put("bucket", ecs.prefix(instanceId));
-	ServiceDefinitionProxy service = catalog
-		.findServiceDefinition(serviceDefinitionId);
 	try {
-	    if (service == null)
-		throw new EcsManagementClientException(
-			SERVICE_NOT_FOUND + serviceDefinitionId);
+	    ServiceDefinitionProxy service = ecs
+		    .lookupServiceDefinition(serviceDefinitionId);
 
 	    if (ecs.userExists(bindingId))
 		throw new ServiceInstanceBindingExistsException(instanceId,
 			bindingId);
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
+
 	    UserSecretKey userSecret;
-	    URL baseUrl = new URL(ecs.getObjectEndpoint());
 	    if (NAMESPACE.equals(serviceType)) {
 		userSecret = ecs.createUser(bindingId, instanceId);
 	    } else if (BUCKET.equals(serviceType)) {
@@ -85,19 +81,21 @@ public class EcsServiceInstanceBindingService
 		if (parameters != null) {
 		    @SuppressWarnings("unchecked")
 		    List<String> permissions = (List<String>) parameters
-		    .get("permissions");
+			    .get("permissions");
 		    ecs.addUserToBucket(instanceId, bindingId, permissions);
 		} else {
 		    ecs.addUserToBucket(instanceId, bindingId);
-		}		
+		}
 	    } else {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);
 	    }
+
+	    URL baseUrl = new URL(ecs.getObjectEndpoint());
 	    String userInfo = bindingId + ":" + userSecret.getSecretKey();
-	    String s3Url = baseUrl.getProtocol() + "://"
-		    + ecs.prefix(userInfo) + "@" + baseUrl.getHost() + ":"
-		    + baseUrl.getPort() + "/" + ecs.prefix(instanceId);
+	    String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
+		    + "@" + baseUrl.getHost() + ":" + baseUrl.getPort() + "/"
+		    + ecs.prefix(instanceId);
 	    credentials.put("secretKey", userSecret.getSecretKey());
 	    credentials.put("endpoint", ecs.getObjectEndpoint());
 	    credentials.put("s3Url", s3Url);
@@ -121,7 +119,7 @@ public class EcsServiceInstanceBindingService
 	ServiceDefinitionProxy service = catalog
 		.findServiceDefinition(serviceDefinitionId);
 	String serviceType = (String) service.getServiceSettings()
-		    .get(SERVICE_TYPE);
+		.get(SERVICE_TYPE);
 	try {
 	    if (BUCKET.equals(serviceType))
 		ecs.removeUserFromBucket(instanceId, bindingId);
