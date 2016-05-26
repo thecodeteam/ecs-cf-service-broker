@@ -267,18 +267,11 @@ public class EcsService {
 	return NamespaceAction.exists(connection, prefix(id));
     }
 
-    public void createNamespace(String id, String serviceId, String planId,
-	    Map<String, Object> parameters)
+    public void createNamespace(String id, ServiceDefinitionProxy service,
+	    PlanProxy plan, Map<String, Object> parameters)
 	    throws EcsManagementClientException {
-	ServiceDefinitionProxy service = catalog
-		.findServiceDefinition(serviceId);
-	if (service == null)
-	    throw new EcsManagementClientException(
-		    SERVICE_NOT_FOUND + serviceId);
-
-	PlanProxy plan = service.findPlan(planId);
-	if (plan == null)
-	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
+	if (namespaceExists(id))
+	    throw new ServiceInstanceExistsException(id, service.getId());
 
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
@@ -322,6 +315,7 @@ public class EcsService {
 	PlanProxy plan = service.findPlan(planId);
 	if (plan == null)
 	    throw new EcsManagementClientException(PLAN_NOT_FOUND + planId);
+
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
 	NamespaceAction.update(connection, prefix(id),

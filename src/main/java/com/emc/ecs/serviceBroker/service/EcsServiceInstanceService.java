@@ -63,8 +63,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    if (BUCKET.equals(serviceType)) {
 		ecs.createBucket(serviceInstanceId, service, plan);
 	    } else if (NAMESPACE.equals(serviceType)) {
-		createNamespaceUnlessExists(serviceInstanceId,
-			serviceDefinitionId, planId, params);
+		ecs.createNamespace(serviceInstanceId, service, plan, params);
 	    } else {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);
@@ -147,20 +146,5 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     public GetLastServiceOperationResponse getLastOperation(
 	    GetLastServiceOperationRequest request) {
 	return new GetLastServiceOperationResponse();
-    }
-
-    private void createNamespaceUnlessExists(String serviceInstanceId,
-	    String serviceDefinitionId, String planId,
-	    Map<String, Object> params) throws EcsManagementClientException {
-	if (ecs.namespaceExists(serviceInstanceId))
-	    throw new ServiceInstanceExistsException(serviceInstanceId,
-		    serviceDefinitionId);
-
-	ecs.createNamespace(serviceInstanceId, serviceDefinitionId, planId,
-		params);
-
-	if (!ecs.namespaceExists(serviceInstanceId))
-	    throw new ServiceBrokerException(
-		    "Failed to create new ECS namespace: " + serviceInstanceId);
     }
 }

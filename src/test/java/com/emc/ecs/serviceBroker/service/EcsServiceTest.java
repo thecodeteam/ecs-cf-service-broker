@@ -279,13 +279,14 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(NamespaceQuotaAction.class);
 	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
-
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.getPlans().get(0);
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
+		.thenReturn(service);
 
 	Map<String, Object> params = new HashMap<>();
-	ecs.createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
+	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, params);
 
 	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 
@@ -355,7 +356,7 @@ public class EcsServiceTest {
      * When creating plan with user specified parameters, the params should be
      * set, except when overridden by a plan or service setting. Therefore,
      * default-bucket-quota will not be "10", it will be "5" since that's the
-     * setting in the plan. Other settings will carry through.
+     * setting in the plan. Othcreateer settings will carry through.
      * 
      * @throws Exception
      */
@@ -379,12 +380,13 @@ public class EcsServiceTest {
 	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
 		same(connection), anyString(),
 		any(NamespaceQuotaParam.class));
-
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.getPlans().get(0);
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
+		.thenReturn(service);
 
-	ecs.createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, params);
+	ecs.createNamespace(NAMESPACE, service, plan, params);
 
 	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();
@@ -473,12 +475,14 @@ public class EcsServiceTest {
 	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "create",
 		same(connection), anyString(),
 		any(RetentionClassCreate.class));
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.getPlans().get(2);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID3, params);
+	ecs.createNamespace(NAMESPACE, service, plan, params);
 
 	Mockito.verify(catalog, times(1)).findServiceDefinition(NAMESPACE_SERVICE_ID);
 	PowerMockito.verifyStatic();

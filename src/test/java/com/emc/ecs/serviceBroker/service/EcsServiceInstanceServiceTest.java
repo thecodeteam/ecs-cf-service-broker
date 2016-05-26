@@ -116,15 +116,12 @@ public class EcsServiceInstanceServiceTest {
 	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	when(ecs.namespaceExists(NAMESPACE)).thenReturn(false).thenReturn(true);
-
 	Map<String, Object> params = new HashMap<>();
 	instSvc.createServiceInstance(namespaceCreateRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
-	verify(ecs, times(2)).namespaceExists(NAMESPACE);
-	verify(ecs, times(1)).createNamespace(NAMESPACE, NAMESPACE_SERVICE_ID,
-		NAMESPACE_PLAN_ID1, params);
+	verify(ecs, times(1)).createNamespace(eq(NAMESPACE), any(ServiceDefinitionProxy.class),
+		any(PlanProxy.class), eq(params));
     }
 
     /**
