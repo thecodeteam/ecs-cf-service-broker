@@ -33,9 +33,6 @@ public class EcsServiceInstanceServiceTest {
     @Mock
     private ServiceInstanceRepository repository;
 
-    @Mock
-    private BrokerConfig broker;
-
     @Autowired
     @InjectMocks
     EcsServiceInstanceService instSvc;

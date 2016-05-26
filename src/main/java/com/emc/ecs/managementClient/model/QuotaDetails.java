@@ -4,10 +4,6 @@ public class QuotaDetails {
 	private long blockSize;
 	private long notificationSize;
 
-	public QuotaDetails() {
-		super();
-	}
-
 	public long getBlockSize() {
 		return blockSize;
 	}

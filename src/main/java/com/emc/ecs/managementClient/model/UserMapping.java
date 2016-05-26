@@ -6,13 +6,13 @@ import javax.xml.bind.annotation.XmlElement;
 
 public class UserMapping {
 
+    private String domain;
+    private AttributeList attributes;
+    private GroupList groups;
+
     public static class Attribute {
 	private String key;
 	private String value;
-
-	public Attribute() {
-	    super();
-	}
 
 	public String getKey() {
 	    return key;
@@ -34,10 +34,6 @@ public class UserMapping {
     public static class AttributeList {
 	private List<Attribute> attributes;
 
-	public AttributeList() {
-	    super();
-	}
-
 	@XmlElement(name = "attribute")
 	public List<Attribute> getAttributes() {
 	    return attributes;
@@ -51,10 +47,6 @@ public class UserMapping {
     public static class GroupList {
 	private List<String> groups;
 
-	public GroupList() {
-	    super();
-	}
-
 	@XmlElement(name = "group")
 	public List<String> getGroups() {
 	    return groups;
@@ -63,14 +55,6 @@ public class UserMapping {
 	public void setGroups(List<String> groups) {
 	    this.groups = groups;
 	}
-    }
-
-    private String domain;
-    private AttributeList attributes;
-    private GroupList groups;
-
-    public UserMapping() {
-	super();
     }
 
     public String getDomain() {

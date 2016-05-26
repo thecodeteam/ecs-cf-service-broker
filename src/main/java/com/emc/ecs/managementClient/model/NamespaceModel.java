@@ -15,10 +15,6 @@ public class NamespaceModel {
     private String externalGroupAdmins;
     private UserMapping userMapping;
 
-    public NamespaceModel() {
-	super();
-    }
-
     @XmlElement(name = "default_object_project")
     public String getDefaultObjectProject() {
 	return defaultObjectProject;

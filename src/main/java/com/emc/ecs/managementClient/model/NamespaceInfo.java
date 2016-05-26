@@ -15,10 +15,6 @@ public class NamespaceInfo extends NamespaceModel {
     private Vdc vdc;
     private Boolean internal;
 
-    public NamespaceInfo() {
-	super();
-    }
-
     public String getId() {
         return id;
     }

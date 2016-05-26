@@ -10,10 +10,6 @@ public class Namespace extends NamespaceModel {
 	private	Vdc vdc;
 	private Boolean internal;
 
-	public Namespace() {
-		super();
-	}
-
 	public String getName() {
 		return name;
 	}

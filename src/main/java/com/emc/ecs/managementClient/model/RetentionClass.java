@@ -4,10 +4,6 @@ public class RetentionClass {
 	private String name;
 	private int period;
 
-	public RetentionClass() {
-		super();
-	}	
-
 	public String getName() {
 		return name;
 	}
