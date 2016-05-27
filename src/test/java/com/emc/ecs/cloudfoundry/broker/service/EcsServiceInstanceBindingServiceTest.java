@@ -13,7 +13,6 @@ import static com.emc.ecs.common.Fixtures.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,7 +99,7 @@ public class EcsServiceInstanceBindingServiceTest {
 	verify(repository).save(any(ServiceInstanceBinding.class));
 	List<String> permissions = Arrays.asList("READ", "WRITE");
 	verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID),
-		Matchers.eq(permissions));
+		eq(permissions));
     }
 
     /**
