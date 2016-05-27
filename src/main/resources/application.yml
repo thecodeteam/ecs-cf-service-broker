@@ -41,8 +41,8 @@ catalog:
       bindable: true
       plan-updatable: true
       tags:
-        - ecs-store
-        - object
+        - s3
+        - namespace
       service-settings:
         service-type: namespace
       metadata:
@@ -78,6 +78,7 @@ catalog:
       stale-allowed: true
       tags:
         - s3
+        - bucket
       service-settings:
         service-type: bucket
       metadata:
