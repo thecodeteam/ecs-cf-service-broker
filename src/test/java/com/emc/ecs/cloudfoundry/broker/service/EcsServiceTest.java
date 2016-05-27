@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -283,7 +284,7 @@ public class EcsServiceTest {
 	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	Map<String, Object> params = new HashMap<>();
-	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, params);
+	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, Optional.of(params));
 
 	PowerMockito.verifyStatic();
 
@@ -346,10 +347,57 @@ public class EcsServiceTest {
     }
 
     /**
+     * When creating a plan with no user specified parameters, the plan or
+     * service settings will be used. The default-bucket-quota will be "5".
+     * @throws Exception 
+     */
+    @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
+    @Test
+    public void createNamespaceWithoutParamsTest() throws Exception {
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, "create",
+		same(connection), any(NamespaceUpdate.class));
+	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
+		.forClass(NamespaceCreate.class);
+	
+	PowerMockito.mockStatic(NamespaceQuotaAction.class);
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
+		same(connection), anyString(),
+		any(NamespaceQuotaParam.class));
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.getPlans().get(0);
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+		.thenReturn(service);
+	
+	ecs.createNamespace(NAMESPACE, service, plan, Optional.empty());
+
+	PowerMockito.verifyStatic();
+	NamespaceAction.create(same(connection), createCaptor.capture());
+	NamespaceCreate create = createCaptor.getValue();
+	assertEquals(PREFIX + NAMESPACE, create.getNamespace());
+	assertEquals(null, create.getExternalGroupAdmins());
+	assertEquals(null, create.getIsEncryptionEnabled());
+	assertEquals(null, create.getIsComplianceEnabled());
+	assertEquals(null, create.getIsStaleAllowed());
+	assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
+	
+	PowerMockito.verifyStatic();
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
+		.forClass(NamespaceQuotaParam.class);
+	NamespaceQuotaAction.create(same(connection), idCaptor.capture(),
+		quotaParamCaptor.capture());
+	assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+	assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
+	assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
+    }
+
+    /**
      * When creating plan with user specified parameters, the params should be
-     * set, except when overridden by a plan or service setting. Therefore,
+     * set, except when overridden by a plan or service settings. Therefore,
      * default-bucket-quota will not be "10", it will be "5" since that's the
-     * setting in the plan. Othcreateer settings will carry through.
+     * setting in the plan. Other parameter settings will carry through.
      * 
      * @throws Exception
      */
@@ -379,7 +427,7 @@ public class EcsServiceTest {
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
 
-	ecs.createNamespace(NAMESPACE, service, plan, params);
+	ecs.createNamespace(NAMESPACE, service, plan, Optional.of(params));
 
 	PowerMockito.verifyStatic();
 	NamespaceAction.create(same(connection), createCaptor.capture());
@@ -473,7 +521,7 @@ public class EcsServiceTest {
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
-	ecs.createNamespace(NAMESPACE, service, plan, params);
+	ecs.createNamespace(NAMESPACE, service, plan, Optional.of(params));
 
 	PowerMockito.verifyStatic();
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor

@@ -1,6 +1,7 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -255,10 +256,12 @@ public class EcsService {
     }
 
     public void createNamespace(String id, ServiceDefinitionProxy service,
-	    PlanProxy plan, Map<String, Object> parameters)
+	    PlanProxy plan, Optional<Map<String,Object>> maybeParameters)
 	    throws EcsManagementClientException {
 	if (namespaceExists(id))
 	    throw new ServiceInstanceExistsException(id, service.getId());
+
+	Map<String, Object> parameters = maybeParameters.orElse(new HashMap<>());
 
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());

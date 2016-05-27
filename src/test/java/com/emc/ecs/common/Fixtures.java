@@ -122,6 +122,11 @@ public class Fixtures {
 		serviceSettings, null, plans, null, null);
     }
 
+    public static CreateServiceInstanceRequest namespaceCreateRequestFixture() {
+	return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, ORG_ID,
+		SPACE_ID).withServiceInstanceId(NAMESPACE);
+    }
+    
     public static CreateServiceInstanceRequest namespaceCreateRequestFixture(
 	    Map<String, Object> params) {
 	return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, ORG_ID,

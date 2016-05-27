@@ -7,6 +7,7 @@ import static com.emc.ecs.common.Fixtures.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.bind.JAXBException;
 
@@ -120,7 +121,26 @@ public class EcsServiceInstanceServiceTest {
 
 	verify(repository).save(any(ServiceInstance.class));
 	verify(ecs, times(1)).createNamespace(eq(NAMESPACE), any(ServiceDefinitionProxy.class),
-		any(PlanProxy.class), eq(params));
+		any(PlanProxy.class), eq(Optional.of(params)));
+    }
+
+    /**
+     * The instance-service can create a namespace with null params.
+     *
+     * @throws EcsManagementClientException 
+     * @throws JAXBException 
+     * @throws IOException 
+     */
+    @Test
+    public void testCreateNamespaceServiceNullParams() throws EcsManagementClientException, IOException, JAXBException {
+	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+
+	instSvc.createServiceInstance(namespaceCreateRequestFixture());
+
+	verify(repository).save(any(ServiceInstance.class));
+	verify(ecs, times(1)).createNamespace(eq(NAMESPACE), any(ServiceDefinitionProxy.class),
+		any(PlanProxy.class), eq(Optional.empty()));
     }
 
     /**

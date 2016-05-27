@@ -2,6 +2,7 @@ package com.emc.ecs.cloudfoundry.broker.service;
 
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -53,7 +54,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	String serviceInstanceId = request.getServiceInstanceId();
 	String serviceDefinitionId = request.getServiceDefinitionId();
 	String planId = request.getPlanId();
-	Map<String, Object> params = request.getParameters();
 	try {
 	    ServiceDefinitionProxy service = ecs
 		    .lookupServiceDefinition(serviceDefinitionId);
@@ -63,7 +63,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    if (BUCKET.equals(serviceType)) {
 		ecs.createBucket(serviceInstanceId, service, plan);
 	    } else if (NAMESPACE.equals(serviceType)) {
-		ecs.createNamespace(serviceInstanceId, service, plan, params);
+		ecs.createNamespace(serviceInstanceId, service, plan,
+			Optional.ofNullable(request.getParameters()));
 	    } else {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);
