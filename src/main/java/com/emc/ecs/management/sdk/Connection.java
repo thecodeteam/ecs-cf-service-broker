@@ -7,6 +7,7 @@ import java.net.URL;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
@@ -91,7 +92,7 @@ public class Connection {
 			sslContext.init(null, trustMgrFactory.getTrustManagers(), null);
 			return sslContext;
 		} catch (Exception e) {
-			throw new EcsManagementClientException(e.getMessage());
+			throw new EcsManagementClientException(e);
 		}
 	}
 
@@ -118,7 +119,7 @@ public class Connection {
 		try {
 			handleResponse(response);
 		} catch (EcsManagementResourceNotFoundException e) {
-			throw new EcsManagementClientException(e.getMessage());
+			throw new EcsManagementClientException(e);
 		}
 		this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
 		this.authRetries = 0;
@@ -137,7 +138,7 @@ public class Connection {
 		try {
 			handleResponse(response);
 		} catch (EcsManagementResourceNotFoundException e) {
-			throw new EcsManagementClientException(e.getMessage());
+			throw new EcsManagementClientException(e);
 		}
 		return response;
 	}
@@ -184,6 +185,7 @@ public class Connection {
 		try {
 			handleResponse(response);
 		} catch (EcsManagementResourceNotFoundException e) {
+		    	Logger.getAnonymousLogger().log(Level.INFO, "info", e);
 			return false;
 		}
 		return true;
