@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "namespace_create")
 public class NamespaceCreate extends NamespaceModel {
+    private static final String NOADMIN = "-noadmin";
     private String namespace;
 
     public NamespaceCreate() {
@@ -16,6 +17,7 @@ public class NamespaceCreate extends NamespaceModel {
 	    String replicationGroupURI) {
 	super();
 	this.namespace = namespace;
+	this.setNamespaceAdmins(namespace + NOADMIN);
 	this.setNamespaceAdmins(namespaceAdmins);
 	this.setDefaultDataServicesVpool(replicationGroupURI);
 	this.setAllowedVpoolsList(replicationGroupURI);
