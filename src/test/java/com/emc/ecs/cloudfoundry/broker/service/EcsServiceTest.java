@@ -117,11 +117,11 @@ public class EcsServiceTest {
 
     /**
      * When initializing the ecs-service, if the object-endpoint is not set
-     * statically, but base-url is, the service will look up the endpoint from the
-     * base-url.
+     * statically, but base-url is, the service will look up the endpoint from
+     * the base-url.
      * 
-     * @throws EcsManagementClientException 
-     * @throws EcsManagementResourceNotFoundException 
+     * @throws EcsManagementClientException
+     * @throws EcsManagementResourceNotFoundException
      */
     @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
 	    BucketAction.class, ObjectUserAction.class,
@@ -159,7 +159,7 @@ public class EcsServiceTest {
 	baseUrl.setName(BASE_URL_NAME);
 	when(BaseUrlAction.list(same(connection)))
 		.thenReturn(Arrays.asList(baseUrl));
-	
+
 	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
 	baseUrlInfo.setId(BASE_URL_ID);
 	baseUrlInfo.setName(BASE_URL_NAME);
@@ -178,20 +178,23 @@ public class EcsServiceTest {
 	assertEquals(objEndpoint, ecs.getObjectEndpoint());
 	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
-    
+
     /**
      * When initializing the ecs-service, if neither the object-endpoint is not
      * set statically nor the base-url, the service will lookup an endpoint
      * named default in the base-url list. If one is found, it will set this as
      * the repo endpoint.
-     * @throws EcsManagementClientException 
-     * @throws EcsManagementResourceNotFoundException 
+     * 
+     * @throws EcsManagementClientException
+     * @throws EcsManagementResourceNotFoundException
      */
     @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
 	    BucketAction.class, ObjectUserAction.class,
 	    ObjectUserSecretAction.class })
     @Test
-    public void initializeBaseUrlDefaultLookup() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+    public void initializeBaseUrlDefaultLookup()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
 	PowerMockito.mockStatic(ReplicationGroupAction.class);
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
@@ -221,7 +224,7 @@ public class EcsServiceTest {
 	baseUrl.setName(DEFAULT_BASE_URL_NAME);
 	when(BaseUrlAction.list(same(connection)))
 		.thenReturn(Arrays.asList(baseUrl));
-	
+
 	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
 	baseUrlInfo.setId(BASE_URL_ID);
 	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
@@ -240,14 +243,15 @@ public class EcsServiceTest {
 	assertEquals(objEndpoint, ecs.getObjectEndpoint());
 	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
-    
+
     /**
      * When initializing the ecs-service, if neither the object-endpoint is not
      * set statically nor the base-url, the service will lookup an endpoint
      * named default in the base-url list. If none is found, it will throw an
      * exception.
-     * @throws EcsManagementClientException 
-     * @throws EcsManagementResourceNotFoundException 
+     * 
+     * @throws EcsManagementClientException
+     * @throws EcsManagementResourceNotFoundException
      */
     @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
 	    BucketAction.class, ObjectUserAction.class,
@@ -264,9 +268,9 @@ public class EcsServiceTest {
     }
 
     /**
-     * When creating a new namespace the settings in the plan will carry
-     * through to the created service.  Any settings not implemented in
-     * the service, the plan or the parameters will be kept as null.
+     * When creating a new namespace the settings in the plan will carry through
+     * to the created service. Any settings not implemented in the service, the
+     * plan or the parameters will be kept as null.
      * 
      * @throws Exception
      */
@@ -284,12 +288,13 @@ public class EcsServiceTest {
 	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	Map<String, Object> params = new HashMap<>();
-	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, Optional.of(params));
+	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan,
+		Optional.of(params));
 
 	PowerMockito.verifyStatic();
 
-	ArgumentCaptor<NamespaceCreate> createCaptor =
-		    ArgumentCaptor.forClass(NamespaceCreate.class);
+	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
+		.forClass(NamespaceCreate.class);
 	NamespaceAction.create(same(connection), createCaptor.capture());
 	NamespaceCreate create = createCaptor.getValue();
 	assertEquals(PREFIX + NAMESPACE, create.getNamespace());
@@ -322,8 +327,7 @@ public class EcsServiceTest {
     public void changeNamespacePlanTest() throws Exception {
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, "update",
-		same(connection), anyString(),
-		any(NamespaceUpdate.class));
+		same(connection), anyString(), any(NamespaceUpdate.class));
 
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
@@ -349,7 +353,8 @@ public class EcsServiceTest {
     /**
      * When creating a plan with no user specified parameters, the plan or
      * service settings will be used. The default-bucket-quota will be "5".
-     * @throws Exception 
+     * 
+     * @throws Exception
      */
     @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
     @Test
@@ -359,17 +364,16 @@ public class EcsServiceTest {
 		same(connection), any(NamespaceUpdate.class));
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
-	
+
 	PowerMockito.mockStatic(NamespaceQuotaAction.class);
 	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
-		same(connection), anyString(),
-		any(NamespaceQuotaParam.class));
+		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
 	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
-	
+
 	ecs.createNamespace(NAMESPACE, service, plan, Optional.empty());
 
 	PowerMockito.verifyStatic();
@@ -381,7 +385,7 @@ public class EcsServiceTest {
 	assertEquals(null, create.getIsComplianceEnabled());
 	assertEquals(null, create.getIsStaleAllowed());
 	assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
-	
+
 	PowerMockito.verifyStatic();
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
@@ -416,11 +420,10 @@ public class EcsServiceTest {
 		same(connection), any(NamespaceUpdate.class));
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
-	
+
 	PowerMockito.mockStatic(NamespaceQuotaAction.class);
 	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
-		same(connection), anyString(),
-		any(NamespaceQuotaParam.class));
+		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
 	when(broker.getPrefix()).thenReturn(PREFIX);
@@ -438,7 +441,7 @@ public class EcsServiceTest {
 	assertTrue(create.getIsComplianceEnabled());
 	assertTrue(create.getIsStaleAllowed());
 	assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
-	
+
 	PowerMockito.verifyStatic();
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
@@ -449,7 +452,7 @@ public class EcsServiceTest {
 	assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
 	assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
-    
+
     /**
      * When changing namespace plan with user specified parameters, the params
      * should be set, except when overridden by a plan or service setting.
@@ -470,8 +473,7 @@ public class EcsServiceTest {
 
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, "update",
-		same(connection), anyString(),
-		any(NamespaceUpdate.class));
+		same(connection), anyString(), any(NamespaceUpdate.class));
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
@@ -479,8 +481,8 @@ public class EcsServiceTest {
 	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
-	PlanProxy plan = service .findPlan(NAMESPACE_PLAN_ID1);
-	ecs.changeNamespacePlan(NAMESPACE, service, plan , params);
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
 
 	PowerMockito.verifyStatic();
 	NamespaceAction.update(same(connection), idCaptor.capture(),
@@ -501,19 +503,17 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceRetentionAction.class} )
+    @PrepareForTest({ NamespaceAction.class, NamespaceRetentionAction.class })
     @Test
     public void createNamespaceWithRetention() throws Exception {
 	Map<String, Object> params = new HashMap<>();
 
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, "update",
-		same(connection), anyString(),
-		any(NamespaceCreate.class));
+		same(connection), anyString(), any(NamespaceCreate.class));
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
 	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "create",
-		same(connection), anyString(),
-		any(RetentionClassCreate.class));
+		same(connection), anyString(), any(RetentionClassCreate.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(2);
 
@@ -537,7 +537,7 @@ public class EcsServiceTest {
 	ArgumentCaptor<RetentionClassCreate> retentionCreateCaptor = ArgumentCaptor
 		.forClass(RetentionClassCreate.class);
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-	NamespaceRetentionAction.create(same(connection), idCaptor .capture(),
+	NamespaceRetentionAction.create(same(connection), idCaptor.capture(),
 		retentionCreateCaptor.capture());
 	RetentionClassCreate retention = retentionCreateCaptor.getValue();
 	assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
@@ -565,11 +565,10 @@ public class EcsServiceTest {
 
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
 	PowerMockito.when(NamespaceRetentionAction.class, "exists",
-		same(connection), anyString(),
-		any(RetentionClassUpdate.class)).thenReturn(false);
+		same(connection), anyString(), any(RetentionClassUpdate.class))
+		.thenReturn(false);
 	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "create",
-		same(connection), anyString(),
-		any(RetentionClassCreate.class));
+		same(connection), anyString(), any(RetentionClassCreate.class));
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<RetentionClassCreate> createCaptor = ArgumentCaptor
 		.forClass(RetentionClassCreate.class);
@@ -577,8 +576,8 @@ public class EcsServiceTest {
 	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
-	PlanProxy plan = service .findPlan(NAMESPACE_PLAN_ID2);
-	ecs.changeNamespacePlan(NAMESPACE, service, plan , params);
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
 
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.create(same(connection), nsCaptor.capture(),
@@ -587,11 +586,10 @@ public class EcsServiceTest {
 	assertEquals("thirty-days", createCaptor.getValue().getName());
 	assertEquals(2592000, createCaptor.getValue().getPeriod());
     }
-    
+
     /**
      * When changing a namespace plan and a retention-class is specified in the
-     * parameters with the value -1, then the retention class should be
-     * removed.
+     * parameters with the value -1, then the retention class should be removed.
      * 
      * @throws Exception
      */
@@ -609,8 +607,8 @@ public class EcsServiceTest {
 
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
 	PowerMockito.when(NamespaceRetentionAction.class, "exists",
-		same(connection), anyString(),
-		any(RetentionClassUpdate.class)).thenReturn(true);
+		same(connection), anyString(), any(RetentionClassUpdate.class))
+		.thenReturn(true);
 	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "delete",
 		same(connection), anyString(), anyString());
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
@@ -620,7 +618,7 @@ public class EcsServiceTest {
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
-	ecs.changeNamespacePlan(NAMESPACE, service, plan , params);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
 
 	PowerMockito.verifyStatic();
 	NamespaceRetentionAction.delete(same(connection), nsCaptor.capture(),
@@ -628,7 +626,7 @@ public class EcsServiceTest {
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
 	assertEquals("thirty-days", rcCaptor.getValue());
     }
-    
+
     /**
      * When changing a namespace plan and a retention-class is specified in the
      * parameters with a different value than the existing value, then the
@@ -650,8 +648,8 @@ public class EcsServiceTest {
 
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
 	PowerMockito.when(NamespaceRetentionAction.class, "exists",
-		same(connection), anyString(),
-		any(RetentionClassUpdate.class)).thenReturn(true);
+		same(connection), anyString(), any(RetentionClassUpdate.class))
+		.thenReturn(true);
 	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "update",
 		same(connection), anyString(), anyString(),
 		any(RetentionClassUpdate.class));
@@ -676,7 +674,8 @@ public class EcsServiceTest {
 
     /**
      * A namespace should be able to be deleted.
-     * @throws Exception 
+     * 
+     * @throws Exception
      */
     @PrepareForTest({ NamespaceAction.class })
     @Test
@@ -696,9 +695,10 @@ public class EcsServiceTest {
 
     /**
      * A user can be created within a specific namespace
-     * @throws Exception 
+     * 
+     * @throws Exception
      */
-    @PrepareForTest({ObjectUserAction.class, ObjectUserSecretAction.class})
+    @PrepareForTest({ ObjectUserAction.class, ObjectUserSecretAction.class })
     @Test
     public void createUserInNamespace() throws Exception {
 	PowerMockito.mockStatic(ObjectUserAction.class);
@@ -709,15 +709,18 @@ public class EcsServiceTest {
 	PowerMockito.when(ObjectUserSecretAction.class, "create",
 		same(connection), anyString()).thenReturn(new UserSecretKey());
 
-	PowerMockito.when(ObjectUserSecretAction.class, "list", same(connection),
-		anyString()).thenReturn(Arrays.asList(new UserSecretKey()));
+	PowerMockito
+		.when(ObjectUserSecretAction.class, "list", same(connection),
+			anyString())
+		.thenReturn(Arrays.asList(new UserSecretKey()));
 
 	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ecs.createUser("user1", NAMESPACE);
-	
+
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
-	ArgumentCaptor<String> userCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> userCaptor = ArgumentCaptor
+		.forClass(String.class);
 	PowerMockito.verifyStatic();
 	ObjectUserAction.create(same(connection), userCaptor.capture(),
 		nsCaptor.capture());
@@ -727,10 +730,12 @@ public class EcsServiceTest {
 
     /**
      * A service can lookup a service definition from the catalog
-     * @throws EcsManagementClientException 
+     * 
+     * @throws EcsManagementClientException
      */
     @Test
-    public void testlookupServiceDefinition() throws EcsManagementClientException {
+    public void testlookupServiceDefinition()
+	    throws EcsManagementClientException {
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 	ServiceDefinitionProxy service = ecs
@@ -740,11 +745,160 @@ public class EcsServiceTest {
 
     /**
      * A lookup of a non-existant service definition ID fails
-     * @throws EcsManagementClientException 
+     * 
+     * @throws EcsManagementClientException
      */
     @Test(expected = EcsManagementClientException.class)
     public void testLookupMissingServiceDefinitionFails()
 	    throws EcsManagementClientException {
 	ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID);
+    }
+
+    /**
+     * A service can lookup a namespace URL using the default base URL in the
+     * broker config without SSL, which is default.
+     * 
+     * @throws EcsManagementClientException
+     */
+    @PrepareForTest({ BaseUrlAction.class })
+    @Test
+    public void testNamespaceURLNoSSLDefaultBaseURL()
+	    throws EcsManagementClientException {
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+
+	when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(DEFAULT_BASE_URL_NAME);
+
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	baseUrlInfo.setNamespaceInHost(true);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+
+	assertEquals("http://" + NAMESPACE + "." + BASE_URL + ":9020",
+		ecs.getNamespaceURL(NAMESPACE, service, plan,
+			Optional.ofNullable(null)));
+    }
+
+    /**
+     * A service can lookup a namespace URL using the a specific base URL with
+     * SSL set in the service.
+     * 
+     * @throws EcsManagementClientException
+     */
+    @PrepareForTest({ BaseUrlAction.class })
+    @Test
+    public void testNamespaceURLSSLDefaultBaseURL() throws EcsManagementClientException {
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	Map<String, Object> serviceSettings = service.getServiceSettings();
+	serviceSettings.put("use-ssl", true);
+	service.setServiceSettings(serviceSettings);
+
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+
+	when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(DEFAULT_BASE_URL_NAME);
+
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	baseUrlInfo.setNamespaceInHost(true);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+
+	assertEquals("https://" + NAMESPACE + "." + BASE_URL + ":9021",
+		ecs.getNamespaceURL(NAMESPACE, service, plan,
+			Optional.ofNullable(null)));
+    }
+
+    /**
+     * A service can lookup a namespace URL using the parameter supplied base
+     * URL, and without SSL.
+     * 
+     * @throws EcsManagementClientException
+     */
+    @PrepareForTest({ BaseUrlAction.class })
+    @Test
+    public void testNamespaceURLNoSSLParamBaseURL()
+	    throws EcsManagementClientException {
+	HashMap<String, Object> params = new HashMap<>();
+	params.put("base-url", BASE_URL_NAME);
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(BASE_URL_NAME);
+
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(BASE_URL_NAME);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	baseUrlInfo.setNamespaceInHost(true);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+
+	assertEquals("http://" + NAMESPACE + "." + BASE_URL + ":9020",
+		ecs.getNamespaceURL(NAMESPACE, service, plan,
+			Optional.ofNullable(params)));
+    }
+
+    /**
+     * A service can lookup a namespace URL using the parameter supplied base
+     * URL, and with SSL.
+     * 
+     * @throws EcsManagementClientException
+     */
+    @PrepareForTest({ BaseUrlAction.class })
+    @Test
+    public void testNamespaceURLSSLParamBaseURL() throws EcsManagementClientException {
+	HashMap<String, Object> params = new HashMap<>();
+	params.put("base-url", BASE_URL_NAME);
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	Map<String, Object> serviceSettings = service.getServiceSettings();
+	serviceSettings.put("use-ssl", true);
+	service.setServiceSettings(serviceSettings);
+
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(BASE_URL_NAME);
+
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(BASE_URL_NAME);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	baseUrlInfo.setNamespaceInHost(true);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+
+	assertEquals("https://" + NAMESPACE + "." + BASE_URL + ":9021",
+		ecs.getNamespaceURL(NAMESPACE, service, plan,
+			Optional.ofNullable(params)));
     }
 }

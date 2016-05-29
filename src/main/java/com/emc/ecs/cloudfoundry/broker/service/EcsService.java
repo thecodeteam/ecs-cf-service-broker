@@ -209,6 +209,37 @@ public class EcsService {
 	    broker.setRepositoryEndpoint(objectEndpoint);
     }
 
+    public String getNamespaceURL(String namespace,
+	    ServiceDefinitionProxy service, PlanProxy plan,
+	    Optional<Map<String, Object>> maybeParameters)
+	    throws EcsManagementClientException {
+	Map<String, Object> parameters = maybeParameters
+		.orElse(new HashMap<>());
+	parameters.putAll(plan.getServiceSettings());
+	parameters.putAll(service.getServiceSettings());
+
+	return getNamespaceURL(namespace, parameters);
+    }
+
+    private String getNamespaceURL(String namespace,
+	    Map<String, Object> parameters)
+	    throws EcsManagementClientException {
+	String baseUrl = (String) parameters.getOrDefault("base-url",
+		broker.getBaseUrl());
+	Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", false);
+	return getNamespaceURL(namespace, useSSL, baseUrl);
+    }
+
+    private String getNamespaceURL(String namespace, boolean useSSL,
+	    String baseURL) throws EcsManagementClientException {
+	List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
+	String urlId = baseUrlList.stream()
+		.filter(b -> baseURL.equals(b.getName())).findFirst().get()
+		.getId();
+	return BaseUrlAction.get(connection, urlId).getNamespaceUrl(namespace,
+		useSSL);
+    }
+
     private void lookupReplicationGroupID()
 	    throws EcsManagementClientException {
 	replicationGroupID = ReplicationGroupAction.list(connection).stream()
@@ -256,12 +287,13 @@ public class EcsService {
     }
 
     public void createNamespace(String id, ServiceDefinitionProxy service,
-	    PlanProxy plan, Optional<Map<String,Object>> maybeParameters)
+	    PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
 	    throws EcsManagementClientException {
 	if (namespaceExists(id))
 	    throw new ServiceInstanceExistsException(id, service.getId());
 
-	Map<String, Object> parameters = maybeParameters.orElse(new HashMap<>());
+	Map<String, Object> parameters = maybeParameters
+		.orElse(new HashMap<>());
 
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
@@ -293,8 +325,8 @@ public class EcsService {
 	NamespaceAction.delete(connection, prefix(id));
     }
 
-    public void changeNamespacePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
-	    Map<String, Object> parameters)
+    public void changeNamespacePlan(String id, ServiceDefinitionProxy service,
+	    PlanProxy plan, Map<String, Object> parameters)
 	    throws EcsManagementClientException {
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
