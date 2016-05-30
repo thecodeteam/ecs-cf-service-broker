@@ -6,10 +6,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "broker")
 public class BrokerConfig {
-
-    // TODO support multiple Cloud Foundry instances per
-    // http://docs.cloudfoundry.org/services/supporting-multiple-cf-instances.html
-
     private String managementEndpoint;
     private String namespace;
     private String replicationGroup;

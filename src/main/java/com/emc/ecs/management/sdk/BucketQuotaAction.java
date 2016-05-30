@@ -9,23 +9,24 @@ import com.emc.ecs.management.sdk.model.BucketQuotaParam;
 
 public final class BucketQuotaAction {
 
-	private BucketQuotaAction() {}
+    private BucketQuotaAction() {
+    }
 
-	public static void create(Connection connection, String id,
-			String namespace, long limit, long warn)
-					throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET,
-				id, QUOTA);
-		connection.handleRemoteCall(PUT, uri,
-				new BucketQuotaParam(namespace, limit, warn));
-	}
+    public static void create(Connection connection, String id,
+	    String namespace, long limit, long warn)
+	    throws EcsManagementClientException {
+	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET, id,
+		QUOTA);
+	connection.handleRemoteCall(PUT, uri,
+		new BucketQuotaParam(namespace, limit, warn));
+    }
 
-	public static void delete(Connection connection, String id,
-			String namespace) throws EcsManagementClientException {
-		UriBuilder uri = connection.getUriBuilder()
-				.segment(OBJECT, BUCKET, id, QUOTA)
-				.queryParam(NAMESPACE, namespace);
-		connection.handleRemoteCall(DELETE, uri, null);
-	}
+    public static void delete(Connection connection, String id,
+	    String namespace) throws EcsManagementClientException {
+	UriBuilder uri = connection.getUriBuilder()
+		.segment(OBJECT, BUCKET, id, QUOTA)
+		.queryParam(NAMESPACE, namespace);
+	connection.handleRemoteCall(DELETE, uri, null);
+    }
 
 }

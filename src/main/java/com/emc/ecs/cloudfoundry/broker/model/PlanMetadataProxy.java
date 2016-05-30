@@ -58,5 +58,4 @@ public class PlanMetadataProxy {
     public void setStorageLimit(int storageLimit) {
 	this.storageLimit = storageLimit;
     }
-
 }

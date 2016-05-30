@@ -23,5 +23,4 @@ public class Constants {
     public static final String DELETE = "delete";
 
     private Constants() {}
-
 }

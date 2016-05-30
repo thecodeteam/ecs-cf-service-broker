@@ -14,34 +14,33 @@ import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 @Configuration
 public class CatalogConfig {
 
-	private List<ServiceDefinitionProxy> services;
+    private List<ServiceDefinitionProxy> services;
 
-	public CatalogConfig() {
-		super();
-	}
+    public CatalogConfig() {
+	super();
+    }
 
-	public CatalogConfig(List<ServiceDefinitionProxy> services) {
-		super();
-		this.services = services;
-	}
+    public CatalogConfig(List<ServiceDefinitionProxy> services) {
+	super();
+	this.services = services;
+    }
 
-	@Bean
-	public Catalog catalog() {
-		return new Catalog(services.stream()
-				.map(s -> s.unproxy())
-				.collect(Collectors.toList()));
-	}
+    @Bean
+    public Catalog catalog() {
+	return new Catalog(services.stream().map(s -> s.unproxy())
+		.collect(Collectors.toList()));
+    }
 
-	public List<ServiceDefinitionProxy> getServices() {
-		return services;
-	}
+    public List<ServiceDefinitionProxy> getServices() {
+	return services;
+    }
 
-	public void setServices(List<ServiceDefinitionProxy> services) {
-		this.services = services;
-	}
+    public void setServices(List<ServiceDefinitionProxy> services) {
+	this.services = services;
+    }
 
-	public ServiceDefinitionProxy findServiceDefinition(String serviceId) {
-		return services.stream().filter(s -> s.getId().equals(serviceId))
-				.findFirst().get();
-	}
+    public ServiceDefinitionProxy findServiceDefinition(String serviceId) {
+	return services.stream().filter(s -> s.getId().equals(serviceId))
+		.findFirst().get();
+    }
 }

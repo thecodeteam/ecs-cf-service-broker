@@ -52,5 +52,4 @@ public class BucketAclAcl {
 	    List<BucketCustomGroupAcl> customGroupAccessList) {
 	this.customGroupAccessList = customGroupAccessList;
     }
-
 }

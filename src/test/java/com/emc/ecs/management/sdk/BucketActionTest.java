@@ -13,41 +13,41 @@ import com.emc.ecs.common.EcsActionTest;
 import com.emc.ecs.management.sdk.BucketAction;
 
 public class BucketActionTest extends EcsActionTest {
-	private String bucket = "testbucket2";
+    private String bucket = "testbucket2";
 
-	@Before
-	public void setUp() throws EcsManagementClientException {
-		connection.login();
-	}
+    @Before
+    public void setUp() throws EcsManagementClientException {
+	connection.login();
+    }
 
-	@After
-	public void cleanup() throws EcsManagementClientException {
-		connection.logout();
-	}
+    @After
+    public void cleanup() throws EcsManagementClientException {
+	connection.logout();
+    }
 
-	@Test
-	public void testBucketDoesNotExist() throws EcsManagementClientException {
-		assertFalse(BucketAction.exists(connection, bucket, namespace));
-	}
+    @Test
+    public void testBucketDoesNotExist() throws EcsManagementClientException {
+	assertFalse(BucketAction.exists(connection, bucket, namespace));
+    }
 
-	@Test
-	public void createExistsAndDeleteBucket()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		assertFalse(BucketAction.exists(connection, bucket, namespace));
-		BucketAction.create(connection, bucket, namespace, replicationGroup);
-		assertTrue(BucketAction.exists(connection, bucket, namespace));
-		BucketAction.delete(connection, bucket, namespace);
-		assertFalse(BucketAction.exists(connection, bucket, namespace));
-	}
+    @Test
+    public void createExistsAndDeleteBucket()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	assertFalse(BucketAction.exists(connection, bucket, namespace));
+	BucketAction.create(connection, bucket, namespace, replicationGroup);
+	assertTrue(BucketAction.exists(connection, bucket, namespace));
+	BucketAction.delete(connection, bucket, namespace);
+	assertFalse(BucketAction.exists(connection, bucket, namespace));
+    }
 
-	@Test
-	public void testGetBucket() throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		BucketAction.create(connection, bucket, namespace, replicationGroup);
-		assertTrue(BucketAction.get(connection, bucket, namespace).getName()
-				.equals(bucket));
-		BucketAction.delete(connection, bucket, namespace);
-	}
+    @Test
+    public void testGetBucket() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	BucketAction.create(connection, bucket, namespace, replicationGroup);
+	assertTrue(BucketAction.get(connection, bucket, namespace).getName()
+		.equals(bucket));
+	BucketAction.delete(connection, bucket, namespace);
+    }
 
 }

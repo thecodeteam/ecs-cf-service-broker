@@ -4,22 +4,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "vdc")
 public class Vdc {
-	private String id;
-	private Link link;
+    private String id;
+    private Link link;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+	return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+	this.id = id;
+    }
 
-	public Link getLink() {
-		return link;
-	}
+    public Link getLink() {
+	return link;
+    }
 
-	public void setLink(Link link) {
-		this.link = link;
-	}
+    public void setLink(Link link) {
+	this.link = link;
+    }
 }

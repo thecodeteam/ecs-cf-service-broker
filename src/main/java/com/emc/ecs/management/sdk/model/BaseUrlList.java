@@ -8,24 +8,24 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "base_urls")
 public class BaseUrlList {
 
-	private List<BaseUrl> baseUrls;
+    private List<BaseUrl> baseUrls;
 
-	public BaseUrlList() {
-		super();
-	}
+    public BaseUrlList() {
+	super();
+    }
 
-	public BaseUrlList(List<BaseUrl> baseUrls) {
-		super();
-		this.baseUrls = baseUrls;
-	}
+    public BaseUrlList(List<BaseUrl> baseUrls) {
+	super();
+	this.baseUrls = baseUrls;
+    }
 
-	@XmlElement(name = "base_url")
-	public List<BaseUrl> getBaseUrls() {
-		return baseUrls;
-	}
+    @XmlElement(name = "base_url")
+    public List<BaseUrl> getBaseUrls() {
+	return baseUrls;
+    }
 
-	public void setBaseUrls(List<BaseUrl> baseUrls) {
-		this.baseUrls = baseUrls;
-	}
+    public void setBaseUrls(List<BaseUrl> baseUrls) {
+	this.baseUrls = baseUrls;
+    }
 
 }

@@ -31,7 +31,6 @@ public final class NamespaceAction {
 			replicationGroup));
     }
 
-
     public static void create(Connection connection,
 	    NamespaceCreate createParam) throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,

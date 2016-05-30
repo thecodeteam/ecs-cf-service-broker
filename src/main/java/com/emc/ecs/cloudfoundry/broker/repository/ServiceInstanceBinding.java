@@ -10,89 +10,89 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBinding {
-	
-	@JsonSerialize
-	@JsonProperty("binding_id")
-	private String bindingId;
-	
-	@JsonSerialize
-	@JsonProperty("service_id")
-	private String serviceDefinitionId;
-	
-	@JsonSerialize
-	@JsonProperty("plan_id")
-	private String planId;
 
-	@JsonSerialize
-	@JsonProperty("bind_resource")
-	private Map<String, Object> bindResource;
+    @JsonSerialize
+    @JsonProperty("binding_id")
+    private String bindingId;
 
-	@JsonSerialize
-	@JsonProperty("parameters")
-	private Map<String, Object> parameters;
-	
-	@JsonSerialize
-	@JsonProperty("credentials")
-	private Map<String, Object> credentials;
-	
-	public ServiceInstanceBinding() {
-	    super();
-	}
+    @JsonSerialize
+    @JsonProperty("service_id")
+    private String serviceDefinitionId;
 
-	public ServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
-		super();
-		this.serviceDefinitionId = request.getServiceDefinitionId();
-		this.planId = request.getPlanId();
-		this.bindResource = request.getBindResource();
-		this.parameters = request.getParameters();
-	}
+    @JsonSerialize
+    @JsonProperty("plan_id")
+    private String planId;
 
-	public Map<String, Object> getBindResource() {
-		return bindResource;
-	}
+    @JsonSerialize
+    @JsonProperty("bind_resource")
+    private Map<String, Object> bindResource;
 
-	public void setBindResource(Map<String, Object> bindResource) {
-		this.bindResource = bindResource;
-	}
+    @JsonSerialize
+    @JsonProperty("parameters")
+    private Map<String, Object> parameters;
 
-	public Map<String, Object> getParameters() {
-		return parameters;
-	}
+    @JsonSerialize
+    @JsonProperty("credentials")
+    private Map<String, Object> credentials;
 
-	public void setParameters(Map<String, Object> parameters) {
-		this.parameters = parameters;
-	}
+    public ServiceInstanceBinding() {
+	super();
+    }
 
-	public String getPlanId() {
-		return planId;
-	}
+    public ServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
+	super();
+	this.serviceDefinitionId = request.getServiceDefinitionId();
+	this.planId = request.getPlanId();
+	this.bindResource = request.getBindResource();
+	this.parameters = request.getParameters();
+    }
 
-	public void setPlanId(String planId) {
-		this.planId = planId;
-	}
+    public Map<String, Object> getBindResource() {
+	return bindResource;
+    }
 
-	public String getServiceDefinitionId() {
-		return serviceDefinitionId;
-	}
+    public void setBindResource(Map<String, Object> bindResource) {
+	this.bindResource = bindResource;
+    }
 
-	public void setServiceDefinitionId(String serviceDefinitionId) {
-		this.serviceDefinitionId = serviceDefinitionId;
-	}
+    public Map<String, Object> getParameters() {
+	return parameters;
+    }
 
-	public Map<String, Object> getCredentials() {
-		return credentials;
-	}
+    public void setParameters(Map<String, Object> parameters) {
+	this.parameters = parameters;
+    }
 
-	public void setCredentials(Map<String, Object> credentials) {
-		this.credentials = credentials;
-	}
+    public String getPlanId() {
+	return planId;
+    }
 
-	public String getBindingId() {
-		return bindingId;
-	}
+    public void setPlanId(String planId) {
+	this.planId = planId;
+    }
 
-	public void setBindingId(String bindingId) {
-		this.bindingId = bindingId;
-	}
+    public String getServiceDefinitionId() {
+	return serviceDefinitionId;
+    }
+
+    public void setServiceDefinitionId(String serviceDefinitionId) {
+	this.serviceDefinitionId = serviceDefinitionId;
+    }
+
+    public Map<String, Object> getCredentials() {
+	return credentials;
+    }
+
+    public void setCredentials(Map<String, Object> credentials) {
+	this.credentials = credentials;
+    }
+
+    public String getBindingId() {
+	return bindingId;
+    }
+
+    public void setBindingId(String bindingId) {
+	this.bindingId = bindingId;
+    }
 
 }
