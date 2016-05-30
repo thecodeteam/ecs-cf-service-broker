@@ -2,7 +2,7 @@ package com.emc.ecs.common;
 
 import java.net.URL;
 
-import com.emc.ecs.managementClient.Connection;
+import com.emc.ecs.management.sdk.Connection;
 
 public abstract class EcsActionTest {
 	protected URL certificate = getClass().getClassLoader()

@@ -1,10 +1,5 @@
 language: java
-before_script:
-  - "./gradlew simulate &"
-  - "sleep 5"
 env:
   - SPRING_PROFILES_ACTIVE=development
-after_script:
-  - "kill %1"
 jdk:
   - oraclejdk8
