@@ -8,15 +8,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "data_service_vpools")
 public class DataServiceReplicationGroupList {
 
-	private List<DataServiceReplicationGroup> replicationGroups;
+    private List<DataServiceReplicationGroup> replicationGroups;
 
-	@XmlElement(name = "data_service_vpool")
-	public List<DataServiceReplicationGroup> getReplicationGroups() {
-		return replicationGroups;
-	}
+    @XmlElement(name = "data_service_vpool")
+    public List<DataServiceReplicationGroup> getReplicationGroups() {
+	return replicationGroups;
+    }
 
-	public void setReplicationGroups(
-			final List<DataServiceReplicationGroup> replicationGroups) {
-		this.replicationGroups = replicationGroups;
-	}
+    public void setReplicationGroups(
+	    final List<DataServiceReplicationGroup> replicationGroups) {
+	this.replicationGroups = replicationGroups;
+    }
 }

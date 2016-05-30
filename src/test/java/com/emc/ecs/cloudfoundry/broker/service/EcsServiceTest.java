@@ -50,6 +50,12 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @RunWith(PowerMockRunner.class)
 public class EcsServiceTest {
 
+    private static final String _9020 = ":9020";
+    private static final String RETENTION = "retention";
+    private static final String THIRTY_DAYS = "thirty-days";
+    private static final String UPDATE = "update";
+    private static final String CREATE = "create";
+
     @Mock
     private Connection connection;
 
@@ -174,7 +180,7 @@ public class EcsServiceTest {
 		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
-	String objEndpoint = "http://" + BASE_URL + ":9020";
+	String objEndpoint = "http://" + BASE_URL + _9020;
 	assertEquals(objEndpoint, ecs.getObjectEndpoint());
 	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
@@ -239,7 +245,7 @@ public class EcsServiceTest {
 		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
-	String objEndpoint = "http://" + BASE_URL + ":9020";
+	String objEndpoint = "http://" + BASE_URL + _9020;
 	assertEquals(objEndpoint, ecs.getObjectEndpoint());
 	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
@@ -278,10 +284,10 @@ public class EcsServiceTest {
     @Test
     public void createNamespaceDefaultTest() throws Exception {
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
 		same(connection), any(NamespaceCreate.class));
 	PowerMockito.mockStatic(NamespaceQuotaAction.class);
-	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
@@ -326,7 +332,7 @@ public class EcsServiceTest {
     @Test
     public void changeNamespacePlanTest() throws Exception {
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
 		same(connection), anyString(), any(NamespaceUpdate.class));
 
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
@@ -360,13 +366,13 @@ public class EcsServiceTest {
     @Test
     public void createNamespaceWithoutParamsTest() throws Exception {
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
 		same(connection), any(NamespaceUpdate.class));
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
 
 	PowerMockito.mockStatic(NamespaceQuotaAction.class);
-	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
@@ -416,13 +422,13 @@ public class EcsServiceTest {
 	params.put("default-bucket-quota", 10);
 
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
 		same(connection), any(NamespaceUpdate.class));
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
 
 	PowerMockito.mockStatic(NamespaceQuotaAction.class);
-	PowerMockito.doNothing().when(NamespaceQuotaAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
@@ -472,7 +478,7 @@ public class EcsServiceTest {
 	params.put("default-bucket-quota", 10);
 
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
 		same(connection), anyString(), any(NamespaceUpdate.class));
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
@@ -509,10 +515,10 @@ public class EcsServiceTest {
 	Map<String, Object> params = new HashMap<>();
 
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
 		same(connection), anyString(), any(NamespaceCreate.class));
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceRetentionAction.class, CREATE,
 		same(connection), anyString(), any(RetentionClassCreate.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(2);
@@ -555,19 +561,19 @@ public class EcsServiceTest {
     @Test
     public void changeNamespacePlanNewRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
-	retention.put("thirty-days", 2592000);
+	retention.put(THIRTY_DAYS, 2592000);
 	Map<String, Object> params = new HashMap<>();
-	params.put("retention", retention);
+	params.put(RETENTION, retention);
 
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
 		same(connection), anyString(), any(NamespaceUpdate.class));
 
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
 	PowerMockito.when(NamespaceRetentionAction.class, "exists",
 		same(connection), anyString(), any(RetentionClassUpdate.class))
 		.thenReturn(false);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "create",
+	PowerMockito.doNothing().when(NamespaceRetentionAction.class, CREATE,
 		same(connection), anyString(), any(RetentionClassCreate.class));
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<RetentionClassCreate> createCaptor = ArgumentCaptor
@@ -583,7 +589,7 @@ public class EcsServiceTest {
 	NamespaceRetentionAction.create(same(connection), nsCaptor.capture(),
 		createCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
-	assertEquals("thirty-days", createCaptor.getValue().getName());
+	assertEquals(THIRTY_DAYS, createCaptor.getValue().getName());
 	assertEquals(2592000, createCaptor.getValue().getPeriod());
     }
 
@@ -597,12 +603,12 @@ public class EcsServiceTest {
     @Test
     public void changeNamespacePlanRemoveRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
-	retention.put("thirty-days", -1);
+	retention.put(THIRTY_DAYS, -1);
 	Map<String, Object> params = new HashMap<>();
-	params.put("retention", retention);
+	params.put(RETENTION, retention);
 
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
 		same(connection), anyString(), any(NamespaceUpdate.class));
 
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
@@ -624,7 +630,7 @@ public class EcsServiceTest {
 	NamespaceRetentionAction.delete(same(connection), nsCaptor.capture(),
 		rcCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
-	assertEquals("thirty-days", rcCaptor.getValue());
+	assertEquals(THIRTY_DAYS, rcCaptor.getValue());
     }
 
     /**
@@ -638,19 +644,19 @@ public class EcsServiceTest {
     @Test
     public void changeNamespacePlanChangeRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
-	retention.put("thirty-days", 2592000);
+	retention.put(THIRTY_DAYS, 2592000);
 	Map<String, Object> params = new HashMap<>();
-	params.put("retention", retention);
+	params.put(RETENTION, retention);
 
 	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
 		same(connection), anyString(), any(NamespaceUpdate.class));
 
 	PowerMockito.mockStatic(NamespaceRetentionAction.class);
 	PowerMockito.when(NamespaceRetentionAction.class, "exists",
 		same(connection), anyString(), any(RetentionClassUpdate.class))
 		.thenReturn(true);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "update",
+	PowerMockito.doNothing().when(NamespaceRetentionAction.class, UPDATE,
 		same(connection), anyString(), anyString(),
 		any(RetentionClassUpdate.class));
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
@@ -668,7 +674,7 @@ public class EcsServiceTest {
 	NamespaceRetentionAction.update(same(connection), nsCaptor.capture(),
 		rcCaptor.capture(), updateCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
-	assertEquals("thirty-days", rcCaptor.getValue());
+	assertEquals(THIRTY_DAYS, rcCaptor.getValue());
 	assertEquals(2592000, updateCaptor.getValue().getPeriod());
     }
 
@@ -702,11 +708,11 @@ public class EcsServiceTest {
     @Test
     public void createUserInNamespace() throws Exception {
 	PowerMockito.mockStatic(ObjectUserAction.class);
-	PowerMockito.doNothing().when(ObjectUserAction.class, "create",
+	PowerMockito.doNothing().when(ObjectUserAction.class, CREATE,
 		same(connection), anyString(), anyString());
 
 	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	PowerMockito.when(ObjectUserSecretAction.class, "create",
+	PowerMockito.when(ObjectUserSecretAction.class, CREATE,
 		same(connection), anyString()).thenReturn(new UserSecretKey());
 
 	PowerMockito
@@ -784,7 +790,7 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	assertEquals("http://" + NAMESPACE + "." + BASE_URL + ":9020",
+	assertEquals("http://" + NAMESPACE + "." + BASE_URL + _9020,
 		ecs.getNamespaceURL(NAMESPACE, service, plan,
 			Optional.ofNullable(null)));
     }
@@ -858,7 +864,7 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	assertEquals("http://" + NAMESPACE + "." + BASE_URL + ":9020",
+	assertEquals("http://" + NAMESPACE + "." + BASE_URL + _9020,
 		ecs.getNamespaceURL(NAMESPACE, service, plan,
 			Optional.ofNullable(params)));
     }
