@@ -22,48 +22,46 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ServiceInstanceBindingRepository {
 
-	private S3JerseyClient s3;
-	private String bucket;
-	private final ObjectMapper objectMapper = new ObjectMapper();
+    private S3JerseyClient s3;
+    private String bucket;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-	@Autowired
-	private BrokerConfig broker;
-	
-	@PostConstruct
-	public void initialize()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException, URISyntaxException {
-		S3Config s3Config = new S3Config(
-				new URI(broker.getRepositoryEndpoint()));
-		s3Config.withIdentity(broker.getPrefixedUserName())
-				.withSecretKey(broker.getRepositorySecret());
-		this.s3 = new S3JerseyClient(s3Config);
-		this.bucket = broker.getPrefixedBucketName();
-	}
+    @Autowired
+    private BrokerConfig broker;
 
-	public void save(ServiceInstanceBinding binding)
-			throws IOException, JAXBException {
-		PipedInputStream input = new PipedInputStream();
-		PipedOutputStream output = new PipedOutputStream(input);
-		objectMapper.writeValue(output, binding);
-		output.close();
-		s3.putObject(bucket, getFilename(binding.getBindingId()), input, null);
-	}
+    @PostConstruct
+    public void initialize() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException, URISyntaxException {
+	S3Config s3Config = new S3Config(
+		new URI(broker.getRepositoryEndpoint()));
+	s3Config.withIdentity(broker.getPrefixedUserName())
+		.withSecretKey(broker.getRepositorySecret());
+	this.s3 = new S3JerseyClient(s3Config);
+	this.bucket = broker.getPrefixedBucketName();
+    }
 
-	public ServiceInstanceBinding find(String id)
-			throws IOException {
-		GetObjectResult<InputStream> input = s3.getObject(bucket,
-				getFilename(id));
-		return objectMapper.readValue(input.getObject(),
-			ServiceInstanceBinding.class);
-	}
+    public void save(ServiceInstanceBinding binding)
+	    throws IOException, JAXBException {
+	PipedInputStream input = new PipedInputStream();
+	PipedOutputStream output = new PipedOutputStream(input);
+	objectMapper.writeValue(output, binding);
+	output.close();
+	s3.putObject(bucket, getFilename(binding.getBindingId()), input, null);
+    }
 
-	public void delete(String id) {
-		s3.deleteObject(bucket, getFilename(id));
-	}
+    public ServiceInstanceBinding find(String id) throws IOException {
+	GetObjectResult<InputStream> input = s3.getObject(bucket,
+		getFilename(id));
+	return objectMapper.readValue(input.getObject(),
+		ServiceInstanceBinding.class);
+    }
 
-	private String getFilename(String id) {
-		return "service-instance-binding/" + id + ".json";
-	}
+    public void delete(String id) {
+	s3.deleteObject(bucket, getFilename(id));
+    }
+
+    private String getFilename(String id) {
+	return "service-instance-binding/" + id + ".json";
+    }
 
 }

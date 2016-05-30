@@ -1,7 +1,6 @@
 package com.emc.ecs.management.sdk;
 
 public class Constants {
-
     public static final String OBJECT = "object";
     public static final String NAMESPACES = "namespaces";
     public static final String NAMESPACE = "namespace";
@@ -17,12 +16,11 @@ public class Constants {
     public static final String VDC = "vdc";
     public static final String DATA_SERVICE = "data-service";
     public static final String VPOOLS = "vpools";
-    
+
     public static final String GET = "get";
     public static final String PUT = "put";
     public static final String POST = "post";
     public static final String DELETE = "delete";
 
     private Constants() {}
-
 }

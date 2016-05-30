@@ -22,67 +22,66 @@ import com.emc.ecs.management.sdk.Connection;
 @EnableAutoConfiguration
 @ComponentScan
 public class Application {
-	
-	@Autowired
-	private BrokerConfig broker;
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
+    @Autowired
+    private BrokerConfig broker;
 
-	@Bean
-	public Connection ecsConnection() {
-		URL certificate = getClass().getClassLoader()
-				.getResource(broker.getCertificate());
-		return new Connection(broker.getManagementEndpoint(),
-				broker.getUsername(), broker.getPassword(), certificate);
-	}
-	
-	@Bean
-	public BrokerApiVersion brokerApiVersion() {
-		return new BrokerApiVersion(broker.getBrokerApiVersion());
-	}
-	
-	@Bean
-	public EcsService ecsService() throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		return new EcsService();
-	}
-	
-	@Bean
-	public EcsServiceInstanceBindingService ecsServiceInstanceBindingService()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException, URISyntaxException {
-		return new EcsServiceInstanceBindingService();
-	}
-	
-	@Bean
-	public ServiceInstanceRepository serviceInstanceRepository()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException, URISyntaxException {
-		return new ServiceInstanceRepository();
-	}
+    public static void main(String[] args) {
+	SpringApplication.run(Application.class, args);
+    }
 
-	@Bean
-	public EcsServiceInstanceService ecsServiceInstanceService()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException, URISyntaxException {
-		return new EcsServiceInstanceService();
-	}
-	
-	@Bean
-	public ServiceInstanceBindingRepository serviceInstanceBindingRepository()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException, URISyntaxException {
-		return new ServiceInstanceBindingRepository();
-	}
-	
-	public BrokerConfig getBroker() {
-		return broker;
-	}
+    @Bean
+    public Connection ecsConnection() {
+	URL certificate = getClass().getClassLoader()
+		.getResource(broker.getCertificate());
+	return new Connection(broker.getManagementEndpoint(),
+		broker.getUsername(), broker.getPassword(), certificate);
+    }
 
-	public void setBroker(BrokerConfig broker) {
-		this.broker = broker;
-	}
-   	
+    @Bean
+    public BrokerApiVersion brokerApiVersion() {
+	return new BrokerApiVersion(broker.getBrokerApiVersion());
+    }
+
+    @Bean
+    public EcsService ecsService() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	return new EcsService();
+    }
+
+    @Bean
+    public EcsServiceInstanceBindingService ecsServiceInstanceBindingService()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException, URISyntaxException {
+	return new EcsServiceInstanceBindingService();
+    }
+
+    @Bean
+    public ServiceInstanceRepository serviceInstanceRepository()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException, URISyntaxException {
+	return new ServiceInstanceRepository();
+    }
+
+    @Bean
+    public EcsServiceInstanceService ecsServiceInstanceService()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException, URISyntaxException {
+	return new EcsServiceInstanceService();
+    }
+
+    @Bean
+    public ServiceInstanceBindingRepository serviceInstanceBindingRepository()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException, URISyntaxException {
+	return new ServiceInstanceBindingRepository();
+    }
+
+    public BrokerConfig getBroker() {
+	return broker;
+    }
+
+    public void setBroker(BrokerConfig broker) {
+	this.broker = broker;
+    }
 }

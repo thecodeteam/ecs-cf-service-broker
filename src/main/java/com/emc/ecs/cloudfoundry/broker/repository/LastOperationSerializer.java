@@ -7,51 +7,50 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class LastOperationSerializer {
 
-	@JsonSerialize
-	@JsonProperty("operation_state")
-	private OperationState operationState;
-	
-	@JsonSerialize
-	private String description;
+    @JsonSerialize
+    @JsonProperty("operation_state")
+    private OperationState operationState;
 
-	@JsonSerialize
-	@JsonProperty("delete_operation")
-	private boolean deleteOperation;
+    @JsonSerialize
+    private String description;
 
-	public LastOperationSerializer() {
-		super();
-	}
+    @JsonSerialize
+    @JsonProperty("delete_operation")
+    private boolean deleteOperation;
 
-	public LastOperationSerializer(final OperationState operationState, final String description,
-										   final boolean deleteOperation) {
-		super();
-		this.setOperationState(operationState);
-		this.setDescription(description);
-		this.setDeleteOperation(deleteOperation);
-	}
+    public LastOperationSerializer() {
+	super();
+    }
 
-	public OperationState getOperationState() {
-		return operationState;
-	}
+    public LastOperationSerializer(final OperationState operationState,
+	    final String description, final boolean deleteOperation) {
+	super();
+	this.setOperationState(operationState);
+	this.setDescription(description);
+	this.setDeleteOperation(deleteOperation);
+    }
 
-	public void setOperationState(OperationState operationState) {
-		this.operationState = operationState;
-	}
+    public OperationState getOperationState() {
+	return operationState;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public void setOperationState(OperationState operationState) {
+	this.operationState = operationState;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public String getDescription() {
+	return description;
+    }
 
-	public boolean isDeleteOperation() {
-		return deleteOperation;
-	}
+    public void setDescription(String description) {
+	this.description = description;
+    }
 
-	public void setDeleteOperation(boolean deleteOperation) {
-		this.deleteOperation = deleteOperation;
-	}
+    public boolean isDeleteOperation() {
+	return deleteOperation;
+    }
 
+    public void setDeleteOperation(boolean deleteOperation) {
+	this.deleteOperation = deleteOperation;
+    }
 }

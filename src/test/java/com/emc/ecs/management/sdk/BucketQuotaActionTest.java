@@ -14,33 +14,33 @@ import com.emc.ecs.management.sdk.BucketQuotaAction;
 import com.emc.ecs.management.sdk.model.ObjectBucketInfo;
 
 public class BucketQuotaActionTest extends EcsActionTest {
-	private String bucket = "testbucket3";
+    private String bucket = "testbucket3";
 
-	@Before
-	public void setUp() throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		connection.login();
-		BucketAction.create(connection, bucket, namespace, replicationGroup);
-	}
+    @Before
+    public void setUp() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	connection.login();
+	BucketAction.create(connection, bucket, namespace, replicationGroup);
+    }
 
-	@After
-	public void cleanup() throws EcsManagementClientException {
-		BucketAction.delete(connection, bucket, namespace);
-		connection.logout();
-	}
+    @After
+    public void cleanup() throws EcsManagementClientException {
+	BucketAction.delete(connection, bucket, namespace);
+	connection.logout();
+    }
 
-	@Test
-	public void testApplyRemoveBucketQuota()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		BucketQuotaAction.create(connection, bucket, namespace, 10, 8);
-		ObjectBucketInfo bucketInfo = BucketAction.get(connection, bucket,
-				namespace);
-		assertEquals(10, bucketInfo.getBlockSize());
-		assertEquals(8, bucketInfo.getNotificationSize());
-		BucketQuotaAction.delete(connection, bucket, namespace);
-		bucketInfo = BucketAction.get(connection, bucket, namespace);
-		assertEquals(-1, bucketInfo.getBlockSize());
-		assertEquals(-1, bucketInfo.getNotificationSize());
-	}
+    @Test
+    public void testApplyRemoveBucketQuota()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	BucketQuotaAction.create(connection, bucket, namespace, 10, 8);
+	ObjectBucketInfo bucketInfo = BucketAction.get(connection, bucket,
+		namespace);
+	assertEquals(10, bucketInfo.getBlockSize());
+	assertEquals(8, bucketInfo.getNotificationSize());
+	BucketQuotaAction.delete(connection, bucket, namespace);
+	bucketInfo = BucketAction.get(connection, bucket, namespace);
+	assertEquals(-1, bucketInfo.getBlockSize());
+	assertEquals(-1, bucketInfo.getNotificationSize());
+    }
 }

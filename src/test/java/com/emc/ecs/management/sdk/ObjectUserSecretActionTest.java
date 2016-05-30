@@ -15,31 +15,31 @@ import com.emc.ecs.management.sdk.ObjectUserSecretAction;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 
 public class ObjectUserSecretActionTest extends EcsActionTest {
-	private String user = "testuser2";
+    private String user = "testuser2";
 
-	@Before
-	public void setUp() throws EcsManagementClientException {
-		connection.login();
-		ObjectUserAction.create(connection, user, namespace);
-	}
+    @Before
+    public void setUp() throws EcsManagementClientException {
+	connection.login();
+	ObjectUserAction.create(connection, user, namespace);
+    }
 
-	@After
-	public void cleanup() throws EcsManagementClientException {
-		ObjectUserAction.delete(connection, user);
-		connection.logout();
-	}
+    @After
+    public void cleanup() throws EcsManagementClientException {
+	ObjectUserAction.delete(connection, user);
+	connection.logout();
+    }
 
-	@Test
-	public void createUserSecretKey() throws EcsManagementClientException {
-		UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
-		assertNotNull(secret.getSecretKey());
-	}
+    @Test
+    public void createUserSecretKey() throws EcsManagementClientException {
+	UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
+	assertNotNull(secret.getSecretKey());
+    }
 
-	@Test
-	public void listUserSecretKey() throws EcsManagementClientException {
-		UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
-		List<UserSecretKey> secretKeys = ObjectUserSecretAction.list(connection,
-				user);
-		assertEquals(secret.getSecretKey(), secretKeys.get(0).getSecretKey());
-	}
+    @Test
+    public void listUserSecretKey() throws EcsManagementClientException {
+	UserSecretKey secret = ObjectUserSecretAction.create(connection, user);
+	List<UserSecretKey> secretKeys = ObjectUserSecretAction.list(connection,
+		user);
+	assertEquals(secret.getSecretKey(), secretKeys.get(0).getSecretKey());
+    }
 }

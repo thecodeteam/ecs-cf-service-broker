@@ -24,21 +24,22 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingReposito
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
-	initializers = ConfigFileApplicationContextInitializer.class)
+    initializers = ConfigFileApplicationContextInitializer.class)
 @ActiveProfiles("development")
 public class ServiceInstanceRepositoryTest {
-	
-	@Autowired
-	private ServiceInstanceBindingRepository repository;
 
-	@Test
-	public void testSaveFindDelete()
-			throws IOException, JAXBException, EcsManagementClientException,
-			EcsManagementResourceNotFoundException, URISyntaxException {
-		ServiceInstanceBinding binding = bindingInstanceFixture();
-		repository.save(binding);
-		ServiceInstanceBinding binding2 = repository.find(binding.getBindingId());
-		assertEquals(binding.getBindingId(), binding2.getBindingId());
-		repository.delete(binding.getBindingId());
-	}
+    @Autowired
+    private ServiceInstanceBindingRepository repository;
+
+    @Test
+    public void testSaveFindDelete()
+	    throws IOException, JAXBException, EcsManagementClientException,
+	    EcsManagementResourceNotFoundException, URISyntaxException {
+	ServiceInstanceBinding binding = bindingInstanceFixture();
+	repository.save(binding);
+	ServiceInstanceBinding binding2 = repository
+		.find(binding.getBindingId());
+	assertEquals(binding.getBindingId(), binding2.getBindingId());
+	repository.delete(binding.getBindingId());
+    }
 }

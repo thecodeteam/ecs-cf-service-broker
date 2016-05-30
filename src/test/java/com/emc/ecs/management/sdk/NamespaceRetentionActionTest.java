@@ -21,7 +21,7 @@ public class NamespaceRetentionActionTest extends EcsActionTest {
     public void setUp() throws EcsManagementClientException {
 	connection.login();
     }
-    
+
     @After
     public void cleanup() throws EcsManagementClientException {
 	connection.logout();

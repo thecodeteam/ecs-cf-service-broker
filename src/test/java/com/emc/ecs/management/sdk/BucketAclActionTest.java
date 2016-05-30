@@ -19,37 +19,37 @@ import com.emc.ecs.management.sdk.model.BucketAcl;
 import com.emc.ecs.management.sdk.model.BucketUserAcl;
 
 public class BucketAclActionTest extends EcsActionTest {
-	private String bucket = "testbucket4";
-	private String user = "testuser3";
+    private String bucket = "testbucket4";
+    private String user = "testuser3";
 
-	@Before
-	public void setUp() throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		connection.login();
-		BucketAction.create(connection, bucket, namespace, replicationGroup);
-		ObjectUserAction.create(connection, user, namespace);
-	}
+    @Before
+    public void setUp() throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	connection.login();
+	BucketAction.create(connection, bucket, namespace, replicationGroup);
+	ObjectUserAction.create(connection, user, namespace);
+    }
 
-	@After
-	public void cleanup() throws EcsManagementClientException {
-		ObjectUserAction.delete(connection, user);
-		BucketAction.delete(connection, bucket, namespace);
-		connection.logout();
-	}
+    @After
+    public void cleanup() throws EcsManagementClientException {
+	ObjectUserAction.delete(connection, user);
+	BucketAction.delete(connection, bucket, namespace);
+	connection.logout();
+    }
 
-	@Test
-	public void testApplyCheckRemoveBucketUserAcl()
-			throws EcsManagementClientException,
-			EcsManagementResourceNotFoundException {
-		BucketAcl acl = BucketAclAction.get(connection, bucket, namespace);
-		List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-		userAcl.add(new BucketUserAcl(user, Arrays.asList("full_control")));
-		acl.getAcl().setUserAccessList(userAcl);
-		BucketAclAction.update(connection, bucket, acl);
-		BucketAcl bucketAcl = BucketAclAction.get(connection, bucket,
-				namespace);
-		long userAclCount = bucketAcl.getAcl().getUserAccessList().stream()
-				.filter(userAcl1 -> userAcl1.getUser().equals(user)).count();
-		assertTrue(userAclCount == 1);
-	}
+    @Test
+    public void testApplyCheckRemoveBucketUserAcl()
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	BucketAcl acl = BucketAclAction.get(connection, bucket, namespace);
+	List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
+	userAcl.add(new BucketUserAcl(user, Arrays.asList("full_control")));
+	acl.getAcl().setUserAccessList(userAcl);
+	BucketAclAction.update(connection, bucket, acl);
+	BucketAcl bucketAcl = BucketAclAction.get(connection, bucket,
+		namespace);
+	long userAclCount = bucketAcl.getAcl().getUserAccessList().stream()
+		.filter(userAcl1 -> userAcl1.getUser().equals(user)).count();
+	assertTrue(userAclCount == 1);
+    }
 }

@@ -8,34 +8,33 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "user_acl")
 public class BucketUserAcl {
 
-	private String user;
-	private List<String> permissions;
+    private String user;
+    private List<String> permissions;
 
-	public BucketUserAcl() {
-		super();
-	}
+    public BucketUserAcl() {
+	super();
+    }
 
-	public BucketUserAcl(String user, List<String> permissions) {
-		super();
-		this.user = user;
-		this.permissions = permissions;
-	}
+    public BucketUserAcl(String user, List<String> permissions) {
+	super();
+	this.user = user;
+	this.permissions = permissions;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public String getUser() {
+	return user;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public void setUser(String user) {
+	this.user = user;
+    }
 
-	@XmlElement(name = "permission")
-	public List<String> getPermissions() {
-		return permissions;
-	}
+    @XmlElement(name = "permission")
+    public List<String> getPermissions() {
+	return permissions;
+    }
 
-	public void setPermissions(List<String> permissions) {
-		this.permissions = permissions;
-	}
-
+    public void setPermissions(List<String> permissions) {
+	this.permissions = permissions;
+    }
 }

@@ -7,15 +7,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "tags")
 public class TagList {
-	private List<String> tags;
+    private List<String> tags;
 
-	@XmlElement(name = "tag")
-	public List<String> getTags() {
-		return tags;
-	}
+    @XmlElement(name = "tag")
+    public List<String> getTags() {
+	return tags;
+    }
 
-	public void setTags(List<String> tags) {
-		this.tags = tags;
-	}
+    public void setTags(List<String> tags) {
+	this.tags = tags;
+    }
 
 }
