@@ -14,15 +14,6 @@ public class BucketAcl {
 		super();
 	}
 
-	public BucketAcl(String bucket, String namespace, String permission,
-			BucketAclAcl acl) {
-		super();
-		this.bucket = bucket;
-		this.namespace = namespace;
-		this.permission = permission;
-		this.acl = acl;
-	}
-
 	public String getPermission() {
 		return permission;
 	}
