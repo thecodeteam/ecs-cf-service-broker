@@ -1,25 +1,33 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.bind.JAXBException;
 
 import static com.emc.ecs.common.Fixtures.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
+import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
+import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.cloudfoundry.broker.service.EcsService;
@@ -53,20 +61,36 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test
     public void testCreateNamespaceUser()
 	    throws IOException, JAXBException, EcsManagementClientException {
+	ServiceDefinitionProxy service = namespaceServiceFixture();
 	when(catalog.findServiceDefinition(eq(NAMESPACE_SERVICE_ID)))
 		.thenReturn(namespaceServiceFixture());
 	when(ecs.userExists(BINDING_ID)).thenReturn(false);
 	when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
 	UserSecretKey userSecretKey = new UserSecretKey();
 	userSecretKey.setSecretKey("TEST_KEY");
-	when(ecs.createUser(BINDING_ID, NAMESPACE))
-		.thenReturn(userSecretKey);
+	when(ecs.createUser(BINDING_ID, NAMESPACE)).thenReturn(userSecretKey);
 	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
-		.thenReturn(namespaceServiceFixture());
+		.thenReturn(service);
+	when(ecs.getNamespaceURL(eq(NAMESPACE),
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+		eq(Optional.of(new HashMap<>()))))
+			.thenReturn("http://ns1.example.com:9020");
+	ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
+		.forClass(ServiceInstanceBinding.class);
+	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
+	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
+	when(ecs.prefix(NAMESPACE)).thenReturn(NAMESPACE);
+	Mockito.doNothing().when(repository).save(bindingCaptor.capture());
 
 	bindSvc.createServiceInstanceBinding(namespaceBindingRequestFixture());
-	verify(ecs, times(1)).createUser(BINDING_ID,
-		NAMESPACE);
+
+	Map<String, Object> creds = bindingCaptor .getValue().getCredentials();
+	String s3Url = "http://" + BINDING_ID + ":TEST_KEY" + "@ns1.example.com:9020";
+	assertEquals(s3Url, creds.get("s3Url"));
+	assertEquals(BINDING_ID, creds.get("accessKey"));
+	assertEquals(null, creds.get("bucket"));
+	assertEquals("TEST_KEY", creds.get("secretKey"));
+	verify(ecs, times(1)).createUser(BINDING_ID, NAMESPACE);
 	verify(ecs, times(1)).userExists(BINDING_ID);
 	verify(repository).save(any(ServiceInstanceBinding.class));
     }
@@ -88,12 +112,25 @@ public class EcsServiceInstanceBindingServiceTest {
 	when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
 	UserSecretKey userSecretKey = new UserSecretKey();
 	userSecretKey.setSecretKey("TEST_KEY");
-	when(ecs.createUser(BINDING_ID))
-		.thenReturn(userSecretKey);
+	when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
 	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(bucketServiceFixture());
+	ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
+		.forClass(ServiceInstanceBinding.class);
+	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
+	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
+	when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
+	Mockito.doNothing().when(repository).save(bindingCaptor.capture());
 
-	bindSvc.createServiceInstanceBinding(bucketBindingPermissionRequestFixture());
+	bindSvc.createServiceInstanceBinding(
+		bucketBindingPermissionRequestFixture());
+
+	Map<String, Object> creds = bindingCaptor .getValue().getCredentials();
+	String s3Url = "http://" + BINDING_ID + ":TEST_KEY" + "@127.0.0.1:9020/" + BUCKET_NAME;
+	assertEquals(s3Url, creds.get("s3Url"));
+	assertEquals(BINDING_ID, creds.get("accessKey"));
+	assertEquals(BUCKET_NAME, creds.get("bucket"));
+	assertEquals("TEST_KEY", creds.get("secretKey"));
 	verify(ecs, times(1)).createUser(BINDING_ID);
 	verify(ecs, times(1)).userExists(BINDING_ID);
 	verify(repository).save(any(ServiceInstanceBinding.class));
@@ -119,14 +156,26 @@ public class EcsServiceInstanceBindingServiceTest {
 	when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
 	UserSecretKey userSecretKey = new UserSecretKey();
 	userSecretKey.setSecretKey("TEST_KEY");
-	when(ecs.createUser(BINDING_ID))
-		.thenReturn(userSecretKey);
+	when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
 	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(bucketServiceFixture());
+	ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
+		.forClass(ServiceInstanceBinding.class);
+	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
+	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
+	when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
+	Mockito.doNothing().when(repository).save(bindingCaptor.capture());
+
 	bindSvc.createServiceInstanceBinding(bucketBindingRequestFixture());
+
+	Map<String, Object> creds = bindingCaptor.getValue().getCredentials();
+	String s3Url = "http://" + BINDING_ID + ":TEST_KEY" + "@127.0.0.1:9020/" + BUCKET_NAME;
+	assertEquals(s3Url, creds.get("s3Url"));
+	assertEquals(BINDING_ID, creds.get("accessKey"));
+	assertEquals(BUCKET_NAME, creds.get("bucket"));
+	assertEquals("TEST_KEY", creds.get("secretKey"));
 	verify(ecs, times(1)).createUser(BINDING_ID);
 	verify(ecs, times(1)).userExists(BINDING_ID);
-	verify(repository).save(any(ServiceInstanceBinding.class));
 	verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID));
     }
 
@@ -159,7 +208,8 @@ public class EcsServiceInstanceBindingServiceTest {
 		.thenReturn(namespaceServiceFixture());
 	when(ecs.userExists(BINDING_ID)).thenReturn(true);
 
-	bindSvc.createServiceInstanceBinding(bucketBindingPermissionRequestFixture());
+	bindSvc.createServiceInstanceBinding(
+		bucketBindingPermissionRequestFixture());
     }
 
     /**

@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.bind.JAXBException;
 
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
+import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
@@ -62,20 +64,31 @@ public class EcsServiceInstanceBindingService
 	Map<String, Object> credentials = new HashMap<>();
 	Map<String, Object> parameters = request.getParameters();
 	credentials.put("accessKey", ecs.prefix(bindingId));
-	credentials.put("bucket", ecs.prefix(instanceId));
 	try {
-	    ServiceDefinitionProxy service = ecs
-		    .lookupServiceDefinition(serviceDefinitionId);
-
 	    if (ecs.userExists(bindingId))
 		throw new ServiceInstanceBindingExistsException(instanceId,
 			bindingId);
+	    binding.setBindingId(bindingId);
+
+	    ServiceDefinitionProxy service = ecs
+		    .lookupServiceDefinition(serviceDefinitionId);
+	    PlanProxy plan = service.findPlan(request.getPlanId());
+
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
 
 	    UserSecretKey userSecret;
+	    String s3Url;
+	    String endpoint;
+
 	    if (NAMESPACE.equals(serviceType)) {
 		userSecret = ecs.createUser(bindingId, instanceId);
+		endpoint = ecs.getNamespaceURL(instanceId, service, plan,
+			Optional.ofNullable(parameters));
+		URL baseUrl = new URL(endpoint);
+		String userInfo = bindingId + ":" + userSecret.getSecretKey();
+		s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
+	    		+ "@" + baseUrl.getHost() + ":" + baseUrl.getPort();
 	    } else if (BUCKET.equals(serviceType)) {
 		userSecret = ecs.createUser(bindingId);
 		if (parameters != null) {
@@ -86,21 +99,23 @@ public class EcsServiceInstanceBindingService
 		} else {
 		    ecs.addUserToBucket(instanceId, bindingId);
 		}
+		credentials.put("bucket", ecs.prefix(instanceId));
+		endpoint = ecs.getObjectEndpoint();
+		URL baseUrl = new URL(endpoint);
+		String userInfo = bindingId + ":" + userSecret.getSecretKey();
+		s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
+	    		+ "@" + baseUrl.getHost() + ":" + baseUrl.getPort()
+	    		+ "/" + ecs.prefix(instanceId);
 	    } else {
 		throw new EcsManagementClientException(
 			NO_SERVICE_MATCHING_TYPE + serviceType);
 	    }
 
-	    URL baseUrl = new URL(ecs.getObjectEndpoint());
-	    String userInfo = bindingId + ":" + userSecret.getSecretKey();
-	    String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
-		    + "@" + baseUrl.getHost() + ":" + baseUrl.getPort() + "/"
-		    + ecs.prefix(instanceId);
-	    credentials.put("secretKey", userSecret.getSecretKey());
-	    credentials.put("endpoint", ecs.getObjectEndpoint());
 	    credentials.put("s3Url", s3Url);
-	    binding.setBindingId(bindingId);
+	    credentials.put("endpoint", endpoint);
+	    credentials.put("secretKey", userSecret.getSecretKey());
 	    binding.setCredentials(credentials);
+
 	    repository.save(binding);
 	} catch (IOException | JAXBException | EcsManagementClientException e) {
 	    throw new ServiceBrokerException(e);
