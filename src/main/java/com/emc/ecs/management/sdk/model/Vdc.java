@@ -7,10 +7,6 @@ public class Vdc {
 	private String id;
 	private Link link;
 
-	public Vdc() {
-		super();
-	}
-
 	public String getId() {
 		return id;
 	}

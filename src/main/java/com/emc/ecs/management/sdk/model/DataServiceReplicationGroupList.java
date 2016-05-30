@@ -10,10 +10,6 @@ public class DataServiceReplicationGroupList {
 
 	private List<DataServiceReplicationGroup> replicationGroups;
 
-	public DataServiceReplicationGroupList() {
-		super();
-	}
-
 	@XmlElement(name = "data_service_vpool")
 	public List<DataServiceReplicationGroup> getReplicationGroups() {
 		return replicationGroups;

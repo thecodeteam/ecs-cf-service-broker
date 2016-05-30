@@ -9,10 +9,6 @@ public class EcsManagementClientError {
 	private String details;
 	private Boolean retryable;
 
-	public EcsManagementClientError() {
-		super();
-	}
-
 	public long getCode() {
 		return code;
 	}

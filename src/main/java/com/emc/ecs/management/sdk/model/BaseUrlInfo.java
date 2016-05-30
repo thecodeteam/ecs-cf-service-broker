@@ -14,10 +14,6 @@ public class BaseUrlInfo {
 	private String baseurl;
 	private Boolean namespaceInHost = false;
 
-	public BaseUrlInfo() {
-		super();
-	}
-
 	public String getId() {
 		return id;
 	}
