@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
@@ -120,7 +119,7 @@ public class EcsServiceInstanceBindingServiceTest {
 	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
 	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
 	when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
-	Mockito.doNothing().when(repository).save(bindingCaptor.capture());
+	doNothing().when(repository).save(bindingCaptor.capture());
 
 	bindSvc.createServiceInstanceBinding(
 		bucketBindingPermissionRequestFixture());
@@ -164,7 +163,7 @@ public class EcsServiceInstanceBindingServiceTest {
 	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
 	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
 	when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
-	Mockito.doNothing().when(repository).save(bindingCaptor.capture());
+	doNothing().when(repository).save(bindingCaptor.capture());
 
 	bindSvc.createServiceInstanceBinding(bucketBindingRequestFixture());
 

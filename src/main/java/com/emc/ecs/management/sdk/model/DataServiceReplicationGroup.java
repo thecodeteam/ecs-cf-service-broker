@@ -21,10 +21,6 @@ public class DataServiceReplicationGroup {
 	private Vdc vdc;
 	private Boolean internal;
 
-	public DataServiceReplicationGroup() {
-		super();
-	}
-
 	public String getDescription() {
 		return description;
 	}
