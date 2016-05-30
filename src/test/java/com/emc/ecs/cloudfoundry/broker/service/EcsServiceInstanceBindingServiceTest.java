@@ -80,7 +80,7 @@ public class EcsServiceInstanceBindingServiceTest {
 	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
 	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
 	when(ecs.prefix(NAMESPACE)).thenReturn(NAMESPACE);
-	Mockito.doNothing().when(repository).save(bindingCaptor.capture());
+	doNothing().when(repository).save(bindingCaptor.capture());
 
 	bindSvc.createServiceInstanceBinding(namespaceBindingRequestFixture());
 

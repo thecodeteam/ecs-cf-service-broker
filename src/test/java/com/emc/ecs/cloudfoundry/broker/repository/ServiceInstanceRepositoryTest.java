@@ -21,7 +21,6 @@ import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.config.Application;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
-import com.emc.ecs.cloudfoundry.broker.service.EcsService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
@@ -30,10 +29,7 @@ import com.emc.ecs.cloudfoundry.broker.service.EcsService;
 public class ServiceInstanceRepositoryTest {
 	
 	@Autowired
-	EcsService ecs;
-	
-	@Autowired
-	ServiceInstanceBindingRepository repository;
+	private ServiceInstanceBindingRepository repository;
 
 	@Test
 	public void testSaveFindDelete()
