@@ -27,10 +27,6 @@ public class BrokerConfig {
 	private String brokerApiVersion = "2.8";
 	private String certificate = "localhost.pem";
 
-	public BrokerConfig() {
-		super();
-	}
-
 	public String getManagementEndpoint() {
 		return managementEndpoint;
 	}

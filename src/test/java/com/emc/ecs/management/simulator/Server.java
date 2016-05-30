@@ -1,4 +1,4 @@
-package com.emc.ecs.apiSimulator;
+package com.emc.ecs.management.simulator;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;

@@ -4,10 +4,6 @@ public class VArrayMapping {
 	private String name;
 	private String value;
 
-	public VArrayMapping() {
-		super();
-	}
-
 	public String getName() {
 		return name;
 	}

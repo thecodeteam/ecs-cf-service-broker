@@ -26,7 +26,7 @@ public class CatalogConfig {
 	}
 
 	@Bean
-	Catalog catalog() {
+	public Catalog catalog() {
 		return new Catalog(services.stream()
 				.map(s -> s.unproxy())
 				.collect(Collectors.toList()));

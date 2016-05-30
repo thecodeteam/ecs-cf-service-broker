@@ -83,17 +83,11 @@ public class CatalogConfigTest {
 	private void testServiceDefinitionMetadata(Map<String, Object> metadata,
 			String displayName, String imageUrl, String providerDisplayName,
 			String documentationUrl, String supportUrl) {
-		assertEquals("ecs-bucket", metadata.get("displayName"));
-		assertEquals(
-				"http://www.emc.com/images/products/header-image-icon-ecs.png",
-				metadata.get("imageUrl"));
-		assertEquals("EMC Corporation", metadata.get("providerDisplayName"));
-		assertEquals("https://community.emc.com/docs/DOC-45012",
-				metadata.get("documentationUrl"));
-		assertEquals(
-				"http://www.emc.com/products-solutions/trial-software-download/ecs.htm",
-				metadata.get("supportUrl"));
-
+	    assertEquals(displayName, metadata.get("displayName"));
+	    assertEquals(imageUrl, metadata.get("imageUrl"));
+	    assertEquals(providerDisplayName, metadata.get("providerDisplayName"));
+	    assertEquals(documentationUrl, metadata.get("documentationUrl"));
+	    assertEquals(supportUrl, metadata.get("supportUrl"));
 	}
 
 	private void testPlan(Plan plan, String id, String name, String description,

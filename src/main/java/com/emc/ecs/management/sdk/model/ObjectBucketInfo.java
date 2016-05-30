@@ -30,10 +30,6 @@ public class ObjectBucketInfo {
 	private Vdc vdc;
 	private List<String> tags;
 
-	public ObjectBucketInfo() {
-		super();
-	}
-
 	public String getCreated() {
 		return created;
 	}

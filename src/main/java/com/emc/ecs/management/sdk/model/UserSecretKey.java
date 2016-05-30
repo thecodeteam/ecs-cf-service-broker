@@ -11,10 +11,6 @@ public class UserSecretKey {
 	private String keyTimestamp;
 	private Link link;
 
-	public UserSecretKey() {
-		super();
-	}
-
 	@XmlElement(name = "secret_key")
 	public String getSecretKey() {
 		return secretKey;

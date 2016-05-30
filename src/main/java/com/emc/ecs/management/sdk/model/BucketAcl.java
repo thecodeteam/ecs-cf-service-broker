@@ -10,10 +10,6 @@ public class BucketAcl {
 	private String permission;
 	private BucketAclAcl acl;
 
-	public BucketAcl() {
-		super();
-	}
-
 	public String getPermission() {
 		return permission;
 	}

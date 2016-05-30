@@ -26,10 +26,6 @@ public class Application {
 	@Autowired
 	private BrokerConfig broker;
 
-	public Application() {
-		super();
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
