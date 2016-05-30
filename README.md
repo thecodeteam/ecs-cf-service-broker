@@ -137,8 +137,13 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | compliance-enabled  | false          | Boolean    | Enable compliance adhearance of retention      |
 | namespace         | access-during-outage| false          | Boolean    | Enable potentially stale data during outage    |
 | namespace         | default-bucket-quota| -1             | Integer    | Default quota applied to bucket (-1 for none)  |            
+| namespace         | quota*              | -              | JSON Object| Quota applied to namespace                     |            
+| namespace         | retention**         | -              | JSON Object| Retention policies applied to namespace        |            
 | namespace binding | base-url            | -              | String     | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false          | Boolean    | Use SSL for object endpoint                    |
+
+* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
+** Retention policies are defined with the following format: `{retention: {<policy name>: <seconds retained>}}` 
 
 For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).

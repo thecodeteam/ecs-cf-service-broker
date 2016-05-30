@@ -44,6 +44,7 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @Service
 public class EcsService {
 
+    private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
 
@@ -300,10 +301,10 @@ public class EcsService {
 	NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
 		replicationGroupID, parameters));
 
-	if (parameters.containsKey("quota")) {
+	if (parameters.containsKey(QUOTA)) {
 	    @SuppressWarnings("unchecked")
 	    Map<String, Integer> quota = (Map<String, Integer>) parameters
-		    .get("quota");
+		    .get(QUOTA);
 	    NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(id,
 		    quota.get("limit"), quota.get("warn"));
 	    NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
