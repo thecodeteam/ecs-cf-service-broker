@@ -76,3 +76,10 @@ test {
 	include '**/TestSuite.class'
 	exclude 'com.emc.ecs.*.*.class'
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
