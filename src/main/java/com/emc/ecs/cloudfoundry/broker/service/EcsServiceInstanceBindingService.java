@@ -83,7 +83,7 @@ public class EcsServiceInstanceBindingService
 
 	    if (NAMESPACE.equals(serviceType)) {
 		userSecret = ecs.createUser(bindingId, instanceId);
-		endpoint = ecs.getNamespaceURL(instanceId, service, plan,
+		endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
 			Optional.ofNullable(parameters));
 		URL baseUrl = new URL(endpoint);
 		String userInfo = bindingId + ":" + userSecret.getSecretKey();
