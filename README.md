@@ -45,9 +45,9 @@ bundled ECS simulator.  For more info, check the
 
 | Parameter          | Default Value  | Required | Description                                        |
 | ------------------ |:--------------:| -------- | -------------------------------------------------- |
-| managementEndpoint | -              | true     | Base URL for the ECS API endpoint                  |
-| replicationGroup   | -              | true     | ID (not name) of replication group                 |
-| namespace          | -              | true     | ECS Namespace name                                 |
+| managementEndpoint | -              | true     | ECS management API URI (https://<ip>:<port>)       |
+| replicationGroup   | -              | true     | Name (not ID) of replication group                 |
+| namespace          | -              | true     | Default ECS Namespace name                         |
 | baseUrl            | -              | false    | ECS Base URL name (otherwise, a default is picked) | 
 | objectEndpoint     | -              | false    | Override endpoint for the object endpoint          |
 | repositoryEndpoint | objectEndpoint | false    | Override endpoint for broker metadata storage      |
@@ -125,55 +125,20 @@ Valid permissions include:
 The service broker catalog can be configured through YAML based configuration.  You can create the file manually,
 via PCF or another build tool.  Just add a `catalog` section to the `src/main/resources/application.yml` file:
 
-```yaml
-catalog:
-  services:
-    - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
-      name: ecs-bucket
-      description: Elastic Cloud S3 Object Storage Bucket
-      bindable: true
-      planUpdatable: true
-      head-type: s3
-      file-system-enabled: false
-      stale-allowed: true
-      tags:
-        - s3
-        - object
-      metadata:
-        displayName: ecs-bucket
-        imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
-        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
-        providerDisplayName: EMC Corporation
-        documentationUrl: https://community.emc.com/docs/DOC-45012
-        supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
-      plans:
-        - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
-          name: 5gb
-          description: Free Trial
-          quota-limit: 5
-          quota-warning: 4
-          metadata:
-            costs:
-              - amount:
-                  usd: 0.0
-                unit: MONTHLY
-            bullets:
-              - Shared object storage
-              - 5 GB Storage
-              - S3 protocol and HDFS access
-        - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
-          name: unlimited
-          description: Pay per GB for Month
-          metadata:
-            costs:
-              - amount:
-                  usd: 0.03
-                unit: PER GB PER MONTH
-            bullets:
-              - Shared object storage
-              - Unlimited Storage
-              - S3 protocol and HDFS access
-```
+The following feature flags are supported by the bucket & namespace.  All parameters are optional, and can be set at the service or plan level in the `service-settings` block.  Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.  While buckets don't currently support service-settings or command-line parameters, these will be added soon.
+
+| Resource          | Parameter           | Default Value  | Type       |  Description                                   |
+| :---------------- | :-------------------| :------------: | :--------- | :--------------------------------------------- |
+| bucket binding    | base-url            | -              | String     | Base URL name for object URI                   |
+| bucket binding    | use-ssl             | false          | Boolean    | Use SSL for object endpoint                    |
+| bucket binding    | permissions         | -              | JSON List  | List of permissions for user in bucket ACL     |
+| namespace         | domain-group-admins | -              | JSON List  | List of domain admins to be added to namespace |
+| namespace         | encrypted           | false          | Boolean    | Enable encryption of namespace                 |
+| namespace         | compliance-enabled  | false          | Boolean    | Enable compliance adhearance of retention      |
+| namespace         | access-during-outage| false          | Boolean    | Enable potentially stale data during outage    |
+| namespace         | default-bucket-quota| -1             | Integer    | Default quota applied to bucket (-1 for none)  |            
+| namespace binding | base-url            | -              | String     | Base URL name for object URI                   |
+| namespace binding | use-ssl             | false          | Boolean    | Use SSL for object endpoint                    |
 
 For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
