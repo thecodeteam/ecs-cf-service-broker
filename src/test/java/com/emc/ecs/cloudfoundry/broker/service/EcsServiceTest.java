@@ -50,6 +50,9 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @RunWith(PowerMockRunner.class)
 public class EcsServiceTest {
 
+    private static final String HTTPS = "https://";
+    private static final int THIRTY_DAYS_IN_SEC = 2592000;
+    private static final String HTTP = "http://";
     private static final String _9020 = ":9020";
     private static final String RETENTION = "retention";
     private static final String THIRTY_DAYS = "thirty-days";
@@ -180,7 +183,8 @@ public class EcsServiceTest {
 		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
-	String objEndpoint = "http://" + BASE_URL + _9020;
+	String objEndpoint = new StringBuilder().append(HTTP).append(BASE_URL)
+		.append(_9020).toString();
 	assertEquals(objEndpoint, ecs.getObjectEndpoint());
 	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
@@ -245,7 +249,8 @@ public class EcsServiceTest {
 		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
-	String objEndpoint = "http://" + BASE_URL + _9020;
+	String objEndpoint = new StringBuilder().append(HTTP).append(BASE_URL)
+		.append(_9020).toString();
 	assertEquals(objEndpoint, ecs.getObjectEndpoint());
 	verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
     }
@@ -561,7 +566,7 @@ public class EcsServiceTest {
     @Test
     public void changeNamespacePlanNewRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
-	retention.put(THIRTY_DAYS, 2592000);
+	retention.put(THIRTY_DAYS, THIRTY_DAYS_IN_SEC);
 	Map<String, Object> params = new HashMap<>();
 	params.put(RETENTION, retention);
 
@@ -590,7 +595,7 @@ public class EcsServiceTest {
 		createCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
 	assertEquals(THIRTY_DAYS, createCaptor.getValue().getName());
-	assertEquals(2592000, createCaptor.getValue().getPeriod());
+	assertEquals(THIRTY_DAYS_IN_SEC, createCaptor.getValue().getPeriod());
     }
 
     /**
@@ -644,7 +649,7 @@ public class EcsServiceTest {
     @Test
     public void changeNamespacePlanChangeRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
-	retention.put(THIRTY_DAYS, 2592000);
+	retention.put(THIRTY_DAYS, THIRTY_DAYS_IN_SEC);
 	Map<String, Object> params = new HashMap<>();
 	params.put(RETENTION, retention);
 
@@ -675,7 +680,7 @@ public class EcsServiceTest {
 		rcCaptor.capture(), updateCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
 	assertEquals(THIRTY_DAYS, rcCaptor.getValue());
-	assertEquals(2592000, updateCaptor.getValue().getPeriod());
+	assertEquals(THIRTY_DAYS_IN_SEC, updateCaptor.getValue().getPeriod());
     }
 
     /**
@@ -790,9 +795,15 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	assertEquals("http://" + NAMESPACE + "." + BASE_URL + _9020,
-		ecs.getNamespaceURL(NAMESPACE, service, plan,
-			Optional.ofNullable(null)));
+	String expectedUrl = new StringBuilder()
+		.append(HTTP)
+		.append(NAMESPACE)
+		.append(".")
+		.append(BASE_URL)
+		.append(_9020)
+		.toString();
+	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
+		Optional.ofNullable(null)));
     }
 
     /**
@@ -803,7 +814,8 @@ public class EcsServiceTest {
      */
     @PrepareForTest({ BaseUrlAction.class })
     @Test
-    public void testNamespaceURLSSLDefaultBaseURL() throws EcsManagementClientException {
+    public void testNamespaceURLSSLDefaultBaseURL()
+	    throws EcsManagementClientException {
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	Map<String, Object> serviceSettings = service.getServiceSettings();
 	serviceSettings.put("use-ssl", true);
@@ -828,7 +840,14 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	assertEquals("https://" + NAMESPACE + "." + BASE_URL + ":9021",
+	String expectedUrl = new StringBuilder()
+		.append(HTTPS)
+		.append(NAMESPACE)
+		.append(".")
+		.append(BASE_URL)
+		.append(":9021")
+		.toString();
+	assertEquals(expectedUrl,
 		ecs.getNamespaceURL(NAMESPACE, service, plan,
 			Optional.ofNullable(null)));
     }
@@ -864,7 +883,14 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	assertEquals("http://" + NAMESPACE + "." + BASE_URL + _9020,
+	String expectedUrl = new StringBuilder()
+		.append(HTTP)
+		.append(NAMESPACE)
+		.append(".")
+		.append(BASE_URL)
+		.append(_9020)
+		.toString();
+	assertEquals(expectedUrl,
 		ecs.getNamespaceURL(NAMESPACE, service, plan,
 			Optional.ofNullable(params)));
     }
@@ -877,7 +903,8 @@ public class EcsServiceTest {
      */
     @PrepareForTest({ BaseUrlAction.class })
     @Test
-    public void testNamespaceURLSSLParamBaseURL() throws EcsManagementClientException {
+    public void testNamespaceURLSSLParamBaseURL()
+	    throws EcsManagementClientException {
 	HashMap<String, Object> params = new HashMap<>();
 	params.put("base-url", BASE_URL_NAME);
 	ServiceDefinitionProxy service = namespaceServiceFixture();
@@ -903,8 +930,14 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	assertEquals("https://" + NAMESPACE + "." + BASE_URL + ":9021",
-		ecs.getNamespaceURL(NAMESPACE, service, plan,
-			Optional.ofNullable(params)));
+	String expectedURl = new StringBuilder()
+		.append(HTTPS)
+		.append(NAMESPACE)
+		.append(".")
+		.append(BASE_URL)
+		.append(":9021")
+		.toString();
+	assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
+		Optional.ofNullable(params)));
     }
 }

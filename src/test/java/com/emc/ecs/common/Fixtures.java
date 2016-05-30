@@ -21,6 +21,9 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
+    private static final String FREE_TRIAL = "Free Trial";
+    private static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
+    private static final String _5GB = "5gb";
     public static final String NAMESPACE = "ns1";
     public static final String BASE_URL_ID =
 	    "urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2";
@@ -65,8 +68,8 @@ public class Fixtures {
 	/*
 	 * Plan 1: 5gb quota with 4gb notification
 	 */
-	PlanProxy bucketPlan1 = new PlanProxy(BUCKET_PLAN_ID1, "5gb",
-		"Free Trial", null, true);
+	PlanProxy bucketPlan1 = new PlanProxy(BUCKET_PLAN_ID1, _5GB,
+		FREE_TRIAL, null, true);
 	bucketPlan1.setQuotaLimit(5);
 	bucketPlan1.setQuotaWarning(4);
 
@@ -89,8 +92,8 @@ public class Fixtures {
 	Map<String, Object> quota = new HashMap<>();
 	quota.put("limit", 5);
 	quota.put("warn", 4);
-	PlanProxy namespacePlan1 = new PlanProxy(NAMESPACE_PLAN_ID1, "5gb",
-		"Free Trial", null, true);
+	PlanProxy namespacePlan1 = new PlanProxy(NAMESPACE_PLAN_ID1, _5GB,
+		FREE_TRIAL, null, true);
 	settings1.put("default-bucket-quota", 5);
 	settings1.put("quota", quota);
 	namespacePlan1.setServiceSettings(settings1);
@@ -101,7 +104,7 @@ public class Fixtures {
 	 */
 	Map<String, Object> settings2 = new HashMap<>();
 	PlanProxy namespacePlan2 = new PlanProxy(NAMESPACE_PLAN_ID2,
-		"Unlimited", "Pay per GB Per Month", null, false);
+		"Unlimited", PAY_PER_GB_PER_MONTH, null, false);
 	settings2.put("encrypted", true);
 	settings2.put("domain-group-admins", EXTERNAL_ADMIN);
 	settings2.put("compliance-enabled", true);
@@ -116,7 +119,7 @@ public class Fixtures {
 	retention.put("one-year", 31536000);
 	Map<String, Object> settings3 = new HashMap<>();
 	PlanProxy namespacePlan3 = new PlanProxy(NAMESPACE_PLAN_ID3,
-		"Compliant", "Pay per GB Per Month", null, false);
+		"Compliant", PAY_PER_GB_PER_MONTH, null, false);
 	settings3.put("encrypted", true);
 	settings3.put("compliance-enabled", true);
 	settings3.put("access-during-outage", true);

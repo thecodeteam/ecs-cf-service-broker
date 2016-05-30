@@ -36,6 +36,10 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @RunWith(MockitoJUnitRunner.class)
 public class EcsServiceInstanceBindingServiceTest {
 
+    private static final String HTTP = "http://";
+
+    private static final String SECRET_KEY = "secretKey";
+
     private static final String TEST_KEY = "TEST_KEY";
 
     @Mock
@@ -86,11 +90,16 @@ public class EcsServiceInstanceBindingServiceTest {
 	bindSvc.createServiceInstanceBinding(namespaceBindingRequestFixture());
 
 	Map<String, Object> creds = bindingCaptor .getValue().getCredentials();
-	String s3Url = "http://" + BINDING_ID + ":TEST_KEY" + "@ns1.example.com:9020";
+	String s3Url = new StringBuilder()
+		.append(HTTP)
+		.append(BINDING_ID)
+		.append(":TEST_KEY")
+		.append("@ns1.example.com:9020")
+		.toString();
 	assertEquals(s3Url, creds.get("s3Url"));
 	assertEquals(BINDING_ID, creds.get("accessKey"));
 	assertEquals(null, creds.get("bucket"));
-	assertEquals(TEST_KEY, creds.get("secretKey"));
+	assertEquals(TEST_KEY, creds.get(SECRET_KEY));
 	verify(ecs, times(1)).createUser(BINDING_ID, NAMESPACE);
 	verify(ecs, times(1)).userExists(BINDING_ID);
 	verify(repository).save(any(ServiceInstanceBinding.class));
@@ -127,11 +136,17 @@ public class EcsServiceInstanceBindingServiceTest {
 		bucketBindingPermissionRequestFixture());
 
 	Map<String, Object> creds = bindingCaptor .getValue().getCredentials();
-	String s3Url = "http://" + BINDING_ID + ":TEST_KEY" + "@127.0.0.1:9020/" + BUCKET_NAME;
+	String s3Url = new StringBuilder()
+		.append(HTTP)
+		.append(BINDING_ID)
+		.append(":TEST_KEY")
+		.append("@127.0.0.1:9020/")
+		.append(BUCKET_NAME)
+		.toString();
 	assertEquals(s3Url, creds.get("s3Url"));
 	assertEquals(BINDING_ID, creds.get("accessKey"));
 	assertEquals(BUCKET_NAME, creds.get("bucket"));
-	assertEquals(TEST_KEY, creds.get("secretKey"));
+	assertEquals(TEST_KEY, creds.get(SECRET_KEY));
 	verify(ecs, times(1)).createUser(BINDING_ID);
 	verify(ecs, times(1)).userExists(BINDING_ID);
 	verify(repository).save(any(ServiceInstanceBinding.class));
@@ -170,11 +185,17 @@ public class EcsServiceInstanceBindingServiceTest {
 	bindSvc.createServiceInstanceBinding(bucketBindingRequestFixture());
 
 	Map<String, Object> creds = bindingCaptor.getValue().getCredentials();
-	String s3Url = "http://" + BINDING_ID + ":TEST_KEY" + "@127.0.0.1:9020/" + BUCKET_NAME;
+	String s3Url = new StringBuilder()
+		.append(HTTP)
+		.append(BINDING_ID)
+		.append(":TEST_KEY")
+		.append("@127.0.0.1:9020/")
+		.append(BUCKET_NAME)
+		.toString();
 	assertEquals(s3Url, creds.get("s3Url"));
 	assertEquals(BINDING_ID, creds.get("accessKey"));
 	assertEquals(BUCKET_NAME, creds.get("bucket"));
-	assertEquals(TEST_KEY, creds.get("secretKey"));
+	assertEquals(TEST_KEY, creds.get(SECRET_KEY));
 	verify(ecs, times(1)).createUser(BINDING_ID);
 	verify(ecs, times(1)).userExists(BINDING_ID);
 	verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID));
