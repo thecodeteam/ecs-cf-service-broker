@@ -12,9 +12,6 @@ import org.junit.Test;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.common.EcsActionTest;
-import com.emc.ecs.management.sdk.BucketAclAction;
-import com.emc.ecs.management.sdk.BucketAction;
-import com.emc.ecs.management.sdk.ObjectUserAction;
 import com.emc.ecs.management.sdk.model.BucketAcl;
 import com.emc.ecs.management.sdk.model.BucketUserAcl;
 

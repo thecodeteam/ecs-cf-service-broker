@@ -12,7 +12,6 @@ import static com.emc.ecs.common.Fixtures.*;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.common.EcsActionTest;
-import com.emc.ecs.management.sdk.ReplicationGroupAction;
 import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
 
 public class ReplicationGroupActionTest extends EcsActionTest {

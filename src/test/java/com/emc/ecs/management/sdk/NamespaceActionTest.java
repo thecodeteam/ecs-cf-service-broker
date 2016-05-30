@@ -14,6 +14,8 @@ import com.emc.ecs.management.sdk.model.NamespaceUpdate;
 
 public class NamespaceActionTest extends EcsActionTest {
 
+    private static final String NOADMIN = "noadmin";
+
     @Before
     public void setUp() throws EcsManagementClientException {
 	connection.login();
@@ -35,7 +37,7 @@ public class NamespaceActionTest extends EcsActionTest {
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	assertFalse(NamespaceAction.exists(connection, namespace));
-	NamespaceAction.create(connection, namespace, "noadmin",
+	NamespaceAction.create(connection, namespace, NOADMIN,
 		replicationGroup);
 	assertTrue(NamespaceAction.exists(connection, namespace));
 	NamespaceAction.delete(connection, namespace);
@@ -45,7 +47,7 @@ public class NamespaceActionTest extends EcsActionTest {
     @Test
     public void getNamespaceTest() throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	NamespaceAction.create(connection, namespace, "noadmin",
+	NamespaceAction.create(connection, namespace, NOADMIN,
 		replicationGroup);
 	assertTrue(NamespaceAction.get(connection, namespace).getName()
 		.equals(namespace));
@@ -54,7 +56,7 @@ public class NamespaceActionTest extends EcsActionTest {
 
     @Test
     public void updateNamespaceTest() throws EcsManagementClientException {
-	NamespaceAction.create(connection, namespace, "noadmin",
+	NamespaceAction.create(connection, namespace, NOADMIN,
 		replicationGroup);
 	assertFalse(NamespaceAction.get(connection, namespace)
 		.getIsEncryptionEnabled());

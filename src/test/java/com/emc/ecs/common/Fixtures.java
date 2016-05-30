@@ -21,6 +21,8 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
+    private static final String ONE_YEAR = "one-year";
+    private static final int ONE_YEAR_IN_SECS = 31536000;
     private static final String FREE_TRIAL = "Free Trial";
     private static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
     private static final String _5GB = "5gb";
@@ -116,7 +118,7 @@ public class Fixtures {
 	 * one-year retention.
 	 */
 	Map<String, Object> retention = new HashMap<>();
-	retention.put("one-year", 31536000);
+	retention.put(ONE_YEAR, ONE_YEAR_IN_SECS);
 	Map<String, Object> settings3 = new HashMap<>();
 	PlanProxy namespacePlan3 = new PlanProxy(NAMESPACE_PLAN_ID3,
 		"Compliant", PAY_PER_GB_PER_MONTH, null, false);
