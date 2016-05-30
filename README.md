@@ -11,8 +11,10 @@ bucket.
 This service broker supports a number of Cloud Foundry and ECS features
 including:
  * Create and Delete Object Storage Buckets
- * Bind one or more Cloud Foundry applications to a bucket, with unique credentials and permissions for each application
+ * Create and Delete Object Storage Namespaces
+ * Bind one or more Cloud Foundry applications to a bucket or namespace, with unique credentials and permissions for each application
  * Support quota enforced plans for buckets to limit the amount of capacity
+ * Support for encryption and retention of namespaces
  * Change plans of an existing bucket
  * Browse Cloud Foundry instance and binding metadata through an internal bucket
  * Specify an ECS namespace and replication group for provisioning
@@ -25,11 +27,11 @@ including:
 To build, make sure that you have a Java 8 runtime environment, and use Gradle.
 
 ```
-# start up the ecs-simulator to satisfy the test-suite
-./gradlew simulate &
+# The ecs-simulator starts automatically when the test-suite is run
+./gradlew test
 
 # Then build the project
-SPRING_PROFILES_ACTIVE=development ./gradlew build
+./gradlew assemble
 ```
 
 ## Configuration
@@ -73,7 +75,7 @@ You can also start the simulator from the command-line:
 ./gradlew simulate
 ```
 
-Soon, we will add simulated support for other Cloud Foundry to broker interactions.
+The simulator is also useful when running certain JUnit tests outside of the TestSuite provided.  To run an individual test that references the ECS API, just start the simulator, and then execute a test. 
 
 ### Self-signed certificates
 
@@ -136,7 +138,6 @@ catalog:
       stale-allowed: true
       tags:
         - s3
-        - storage
         - object
       metadata:
         displayName: ecs-bucket
@@ -198,16 +199,10 @@ Local test suite can be run with either a live ECS platform, or using the includ
 can be found and/or changed via the
 [EcsActionTest class](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/common/EcsActionTest.java).
 
-First start the simulator either within Eclipse, or via the command-line:
-
-```
-./gradlew simulate
-```
-
 You can then run the test-suite with gradle:
 
 ```
-SPRING_PROFILES_ACTIVE=development ./gradlew test
+/gradlew test
 ```
 
 ## TODOs
