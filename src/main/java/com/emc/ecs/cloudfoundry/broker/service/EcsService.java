@@ -120,7 +120,8 @@ public class EcsService {
     }
 
     public void changeBucketPlan(String id, ServiceDefinitionProxy service,
-	    PlanProxy plan) throws EcsManagementClientException {
+	    PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
+	    throws EcsManagementClientException {
 	int limit = plan.getQuotaLimit();
 	int warning = plan.getQuotaWarning();
 	if (limit == -1 && warning == -1) {
