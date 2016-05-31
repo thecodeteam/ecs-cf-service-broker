@@ -1,8 +1,6 @@
-package com.emc.ecs.cloudfoundry.broker.model;
+package com.emc.ecs.management.sdk.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
-
-import com.emc.ecs.management.sdk.model.QuotaDetails;
 
 @XmlRootElement(name = "namespace_quota_details")
 public class NamespaceQuotaParam extends QuotaDetails {

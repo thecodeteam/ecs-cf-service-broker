@@ -7,10 +7,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.model.NamespaceQuotaParam;
 import com.emc.ecs.common.EcsActionTest;
 import com.emc.ecs.management.sdk.NamespaceQuotaAction;
 import com.emc.ecs.management.sdk.model.NamespaceQuotaDetails;
+import com.emc.ecs.management.sdk.model.NamespaceQuotaParam;
 
 public class NamespaceQuotaActionTest extends EcsActionTest {
 

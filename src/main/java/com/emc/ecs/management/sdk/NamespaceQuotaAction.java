@@ -6,8 +6,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.model.NamespaceQuotaParam;
 import com.emc.ecs.management.sdk.model.NamespaceQuotaDetails;
+import com.emc.ecs.management.sdk.model.NamespaceQuotaParam;
 
 public class NamespaceQuotaAction {
 
