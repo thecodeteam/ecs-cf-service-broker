@@ -52,10 +52,12 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @RunWith(PowerMockRunner.class)
 public class EcsServiceTest {
 
+    private static final String DOT = ".";
     private static final String HTTPS = "https://";
     private static final int THIRTY_DAYS_IN_SEC = 2592000;
     private static final String HTTP = "http://";
     private static final String _9020 = ":9020";
+    private static final String _9021 = ":9021";
     private static final String RETENTION = "retention";
     private static final String THIRTY_DAYS = "thirty-days";
     private static final String UPDATE = "update";
@@ -932,7 +934,7 @@ public class EcsServiceTest {
 		.thenReturn(baseUrlInfo);
 
 	String expectedUrl = new StringBuilder().append(HTTP).append(NAMESPACE)
-		.append(".").append(BASE_URL).append(_9020).toString();
+		.append(DOT).append(BASE_URL).append(_9020).toString();
 	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(null)));
     }
@@ -972,7 +974,7 @@ public class EcsServiceTest {
 		.thenReturn(baseUrlInfo);
 
 	String expectedUrl = new StringBuilder().append(HTTPS).append(NAMESPACE)
-		.append(".").append(BASE_URL).append(":9021").toString();
+		.append(DOT).append(BASE_URL).append(_9021).toString();
 	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(null)));
     }
@@ -1009,7 +1011,7 @@ public class EcsServiceTest {
 		.thenReturn(baseUrlInfo);
 
 	String expectedUrl = new StringBuilder().append(HTTP).append(NAMESPACE)
-		.append(".").append(BASE_URL).append(_9020).toString();
+		.append(DOT).append(BASE_URL).append(_9020).toString();
 	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(params)));
     }
@@ -1050,7 +1052,7 @@ public class EcsServiceTest {
 		.thenReturn(baseUrlInfo);
 
 	String expectedURl = new StringBuilder().append(HTTPS).append(NAMESPACE)
-		.append(".").append(BASE_URL).append(":9021").toString();
+		.append(DOT).append(BASE_URL).append(_9021).toString();
 	assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(params)));
     }

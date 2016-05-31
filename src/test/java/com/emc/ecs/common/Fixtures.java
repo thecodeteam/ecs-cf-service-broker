@@ -21,6 +21,7 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
+    private static final String UNLIMITED = "Unlimited";
     private static final String ONE_YEAR = "one-year";
     private static final int ONE_YEAR_IN_SECS = 31536000;
     private static final String FREE_TRIAL = "Free Trial";
@@ -79,7 +80,7 @@ public class Fixtures {
 	 * Plan 2: No quota, encrypted, filesystem, access-during-outage.
 	 */
 	Map<String, Object> settings2 = new HashMap<>();
-	PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, "Unlimited",
+	PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, UNLIMITED,
 		PAY_PER_GB_PER_MONTH, null, false);
 	settings2.put("encrypted", true);
 	settings2.put("access-during-outage", true);
@@ -117,7 +118,7 @@ public class Fixtures {
 	 */
 	Map<String, Object> settings2 = new HashMap<>();
 	PlanProxy namespacePlan2 = new PlanProxy(NAMESPACE_PLAN_ID2,
-		"Unlimited", PAY_PER_GB_PER_MONTH, null, false);
+		UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
 	settings2.put("encrypted", true);
 	settings2.put("domain-group-admins", EXTERNAL_ADMIN);
 	settings2.put("compliance-enabled", true);
