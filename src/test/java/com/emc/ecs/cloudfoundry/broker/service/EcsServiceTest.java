@@ -31,6 +31,7 @@ import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.service.EcsService;
 import com.emc.ecs.management.sdk.BaseUrlAction;
 import com.emc.ecs.management.sdk.BucketAction;
+import com.emc.ecs.management.sdk.BucketQuotaAction;
 import com.emc.ecs.management.sdk.Connection;
 import com.emc.ecs.management.sdk.NamespaceAction;
 import com.emc.ecs.management.sdk.NamespaceQuotaAction;
@@ -43,6 +44,7 @@ import com.emc.ecs.management.sdk.model.BaseUrlInfo;
 import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
 import com.emc.ecs.management.sdk.model.NamespaceCreate;
 import com.emc.ecs.management.sdk.model.NamespaceUpdate;
+import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
 import com.emc.ecs.management.sdk.model.RetentionClassCreate;
 import com.emc.ecs.management.sdk.model.RetentionClassUpdate;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
@@ -279,6 +281,139 @@ public class EcsServiceTest {
     }
 
     /**
+     * When creating a new bucket the settings in the plan will carry through to
+     * the created service. Any settings not implemented in the service, the
+     * plan or the parameters will be kept as null.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void createBucketDefaultTest() throws Exception {
+	PowerMockito.mockStatic(BucketAction.class);
+	PowerMockito.doNothing().when(BucketAction.class, CREATE,
+		same(connection), any(ObjectBucketCreate.class));
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
+		same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE),
+		eq(5), eq(4));
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+
+	Map<String, Object> params = new HashMap<>();
+	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
+
+	ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor
+		.forClass(ObjectBucketCreate.class);
+	PowerMockito.verifyStatic(times(1));
+	BucketAction.create(same(connection), createCaptor.capture());
+	ObjectBucketCreate create = createCaptor.getValue();
+	assertEquals(PREFIX + BUCKET_NAME, create.getName());
+	assertNull(create.getIsEncryptionEnabled());
+	assertNull(create.getIsStaleAllowed());
+	assertEquals(NAMESPACE, create.getNamespace());
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), eq(PREFIX + BUCKET_NAME),
+		eq(NAMESPACE), eq(5), eq(4));
+    }
+
+    /**
+     * When creating a bucket plan with no user specified parameters, the plan
+     * or service settings will be used. The plan service-settings will be
+     * observed.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void createBucketWithoutParamsTest() throws Exception {
+	PowerMockito.mockStatic(BucketAction.class);
+	PowerMockito.doNothing().when(BucketAction.class, CREATE,
+		same(connection), any(ObjectBucketCreate.class));
+
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
+		.thenReturn(service);
+
+	ecs.createBucket(BUCKET_NAME, service, plan, Optional.ofNullable(null));
+
+	ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor
+		.forClass(ObjectBucketCreate.class);
+	PowerMockito.verifyStatic(times(1));
+	BucketAction.create(same(connection), createCaptor.capture());
+
+	ObjectBucketCreate create = createCaptor.getValue();
+	assertEquals(PREFIX + BUCKET_NAME, create.getName());
+	assertEquals(NAMESPACE, create.getNamespace());
+	assertTrue(create.getIsEncryptionEnabled());
+	assertTrue(create.getIsStaleAllowed());
+	assertTrue(create.getFilesystemEnabled());
+	assertEquals("s3", create.getHeadType());
+
+	PowerMockito.verifyStatic(times(0));
+	BucketQuotaAction.create(any(Connection.class), anyString(),
+		anyString(), anyInt(), anyInt());
+    }
+
+    /**
+     * When creating plan with user specified parameters, the params should be
+     * set, except when overridden by a plan or service settings. Therefore,
+     * quota will not be "10", it will be "5" since that's the setting in the
+     * plan. Other parameter settings will carry through.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void createBucketWithParamsTest() throws Exception {
+	Map<String, Object> params = new HashMap<>();
+	params.put("encrypted", true);
+	params.put("access-during-outage", true);
+	Map<String, Object> quota = new HashMap<>();
+	quota.put("warn", 9);
+	quota.put("limit", 10);
+	params.put("quota", quota);
+
+	PowerMockito.mockStatic(BucketAction.class);
+	PowerMockito.doNothing().when(BucketAction.class, CREATE,
+		same(connection), any(ObjectBucketCreate.class));
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
+		same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE),
+		eq(10), eq(9));
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+
+	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
+
+	ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor
+		.forClass(ObjectBucketCreate.class);
+	PowerMockito.verifyStatic(times(1));
+	BucketAction.create(same(connection), createCaptor.capture());
+
+	ObjectBucketCreate create = createCaptor.getValue();
+	assertEquals(PREFIX + BUCKET_NAME, create.getName());
+	assertTrue(create.getIsEncryptionEnabled());
+	assertTrue(create.getIsStaleAllowed());
+	assertNull(create.getFilesystemEnabled());
+	assertEquals(NAMESPACE, create.getNamespace());
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), eq(PREFIX + BUCKET_NAME),
+		eq(NAMESPACE), eq(5), eq(4));
+    }
+
+    /**
      * When creating a new namespace the settings in the plan will carry through
      * to the created service. Any settings not implemented in the service, the
      * plan or the parameters will be kept as null.
@@ -385,7 +520,8 @@ public class EcsServiceTest {
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
 
-	ecs.createNamespace(NAMESPACE, service, plan, Optional.empty());
+	ecs.createNamespace(NAMESPACE, service, plan,
+		Optional.ofNullable(null));
 
 	PowerMockito.verifyStatic();
 	NamespaceAction.create(same(connection), createCaptor.capture());
@@ -795,13 +931,8 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	String expectedUrl = new StringBuilder()
-		.append(HTTP)
-		.append(NAMESPACE)
-		.append(".")
-		.append(BASE_URL)
-		.append(_9020)
-		.toString();
+	String expectedUrl = new StringBuilder().append(HTTP).append(NAMESPACE)
+		.append(".").append(BASE_URL).append(_9020).toString();
 	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(null)));
     }
@@ -840,16 +971,10 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	String expectedUrl = new StringBuilder()
-		.append(HTTPS)
-		.append(NAMESPACE)
-		.append(".")
-		.append(BASE_URL)
-		.append(":9021")
-		.toString();
-	assertEquals(expectedUrl,
-		ecs.getNamespaceURL(NAMESPACE, service, plan,
-			Optional.ofNullable(null)));
+	String expectedUrl = new StringBuilder().append(HTTPS).append(NAMESPACE)
+		.append(".").append(BASE_URL).append(":9021").toString();
+	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
+		Optional.ofNullable(null)));
     }
 
     /**
@@ -883,16 +1008,10 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	String expectedUrl = new StringBuilder()
-		.append(HTTP)
-		.append(NAMESPACE)
-		.append(".")
-		.append(BASE_URL)
-		.append(_9020)
-		.toString();
-	assertEquals(expectedUrl,
-		ecs.getNamespaceURL(NAMESPACE, service, plan,
-			Optional.ofNullable(params)));
+	String expectedUrl = new StringBuilder().append(HTTP).append(NAMESPACE)
+		.append(".").append(BASE_URL).append(_9020).toString();
+	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
+		Optional.ofNullable(params)));
     }
 
     /**
@@ -930,13 +1049,8 @@ public class EcsServiceTest {
 	when(BaseUrlAction.get(connection, BASE_URL_ID))
 		.thenReturn(baseUrlInfo);
 
-	String expectedURl = new StringBuilder()
-		.append(HTTPS)
-		.append(NAMESPACE)
-		.append(".")
-		.append(BASE_URL)
-		.append(":9021")
-		.toString();
+	String expectedURl = new StringBuilder().append(HTTPS).append(NAMESPACE)
+		.append(".").append(BASE_URL).append(":9021").toString();
 	assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(params)));
     }

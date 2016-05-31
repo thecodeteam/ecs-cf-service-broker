@@ -24,9 +24,6 @@ public class ServiceDefinitionProxy {
     private List<PlanProxy> plans;
     private List<String> requires;
     private DashboardClientProxy dashboardClient;
-    private String headType = "s3";
-    private Boolean fileSystemEnabled = false;
-    private Boolean staleAllowed = false;
 
     public ServiceDefinitionProxy() {
 	super();
@@ -144,30 +141,6 @@ public class ServiceDefinitionProxy {
 
     public void setDashboardClient(DashboardClientProxy dashboardClient) {
 	this.dashboardClient = dashboardClient;
-    }
-
-    public String getHeadType() {
-	return headType;
-    }
-
-    public void setHeadType(String headType) {
-	this.headType = headType;
-    }
-
-    public Boolean getFileSystemEnabled() {
-	return fileSystemEnabled;
-    }
-
-    public void setFileSystemEnabled(Boolean fileSystemEnabled) {
-	this.fileSystemEnabled = fileSystemEnabled;
-    }
-
-    public Boolean getStaleAllowed() {
-	return staleAllowed;
-    }
-
-    public void setStaleAllowed(Boolean staleAllowed) {
-	this.staleAllowed = staleAllowed;
     }
 
     public PlanProxy findPlan(String planId) {

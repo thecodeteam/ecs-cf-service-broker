@@ -79,11 +79,19 @@ public class EcsService {
     public void createBucket(String id, ServiceDefinitionProxy service,
 	    PlanProxy plan) throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	createBucket(id, service, plan, false);
+	createBucket(id, service, plan, Optional.ofNullable(null), false);
     }
 
     public void createBucket(String id, ServiceDefinitionProxy service,
-	    PlanProxy plan, Boolean errorOnExists)
+	    PlanProxy plan, Optional<Map<String, Object>> parameters)
+	    throws EcsManagementClientException,
+	    EcsManagementResourceNotFoundException {
+	createBucket(id, service, plan, parameters, false);
+    }
+
+    public void createBucket(String id, ServiceDefinitionProxy service,
+	    PlanProxy plan, Optional<Map<String, Object>> maybeParameters,
+	    Boolean errorOnExists)
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 
@@ -93,15 +101,14 @@ public class EcsService {
 	    return;
 	}
 
-	ObjectBucketCreate createParam = new ObjectBucketCreate();
-	createParam.setName(prefix(id));
-	createParam.setNamespace(broker.getNamespace());
-	createParam.setVpool(replicationGroupID);
-	createParam.setHeadType(service.getHeadType());
-	createParam.setFilesystemEnabled(service.getFileSystemEnabled());
-	createParam.setIsStaleAllowed(service.getStaleAllowed());
+	Map<String, Object> parameters = maybeParameters
+		.orElse(new HashMap<>());
+	
+	parameters.putAll(plan.getServiceSettings());
+	parameters.putAll(service.getServiceSettings());
 
-	BucketAction.create(connection, createParam);
+	BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
+		broker.getNamespace(), replicationGroupID, parameters));
 
 	int limit = plan.getQuotaLimit();
 	int warning = plan.getQuotaWarning();

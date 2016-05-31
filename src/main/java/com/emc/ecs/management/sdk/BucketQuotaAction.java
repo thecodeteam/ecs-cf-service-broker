@@ -13,7 +13,7 @@ public final class BucketQuotaAction {
     }
 
     public static void create(Connection connection, String id,
-	    String namespace, long limit, long warn)
+	    String namespace, int limit, int warn)
 	    throws EcsManagementClientException {
 	UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET, id,
 		QUOTA);

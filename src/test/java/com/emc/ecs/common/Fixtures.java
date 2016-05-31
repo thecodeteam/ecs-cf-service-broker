@@ -75,7 +75,18 @@ public class Fixtures {
 	bucketPlan1.setQuotaLimit(5);
 	bucketPlan1.setQuotaWarning(4);
 
-	List<PlanProxy> plans = Arrays.asList(bucketPlan1);
+	/*
+	 * Plan 2: No quota, encrypted, filesystem, access-during-outage.
+	 */
+	Map<String, Object> settings2 = new HashMap<>();
+	PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, "Unlimited",
+		PAY_PER_GB_PER_MONTH, null, false);
+	settings2.put("encrypted", true);
+	settings2.put("access-during-outage", true);
+	settings2.put("file-accessible", true);
+	bucketPlan2.setServiceSettings(settings2);
+
+	List<PlanProxy> plans = Arrays.asList(bucketPlan1, bucketPlan2);
 
 	List<String> tags = Arrays.asList("ecs-bucket", "s3", "swift");
 	Map<String, Object> serviceSettings = new HashMap<>();
