@@ -36,6 +36,8 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @RunWith(MockitoJUnitRunner.class)
 public class EcsServiceInstanceBindingServiceTest {
 
+    private static final String COLON = ":";
+
     private static final String HTTP = "http://";
 
     private static final String SECRET_KEY = "secretKey";
@@ -83,7 +85,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
 		.forClass(ServiceInstanceBinding.class);
 	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
+	when(ecs.prefix(BINDING_ID + COLON + TEST_KEY))
+		.thenReturn(BINDING_ID + COLON + TEST_KEY);
 	when(ecs.prefix(NAMESPACE)).thenReturn(NAMESPACE);
 	doNothing().when(repository).save(bindingCaptor.capture());
 
@@ -93,7 +96,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	String s3Url = new StringBuilder()
 		.append(HTTP)
 		.append(BINDING_ID)
-		.append(":TEST_KEY")
+		.append(COLON)
+		.append(TEST_KEY)
 		.append("@ns1.example.com:9020")
 		.toString();
 	assertEquals(s3Url, creds.get("s3Url"));
@@ -128,7 +132,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
 		.forClass(ServiceInstanceBinding.class);
 	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
+	when(ecs.prefix(BINDING_ID + COLON + TEST_KEY))
+		.thenReturn(BINDING_ID + COLON + TEST_KEY);
 	when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
 	doNothing().when(repository).save(bindingCaptor.capture());
 
@@ -139,7 +144,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	String s3Url = new StringBuilder()
 		.append(HTTP)
 		.append(BINDING_ID)
-		.append(":TEST_KEY")
+		.append(COLON)
+		.append(TEST_KEY)
 		.append("@127.0.0.1:9020/")
 		.append(BUCKET_NAME)
 		.toString();
@@ -178,7 +184,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
 		.forClass(ServiceInstanceBinding.class);
 	when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-	when(ecs.prefix(BINDING_ID + ":TEST_KEY")).thenReturn(BINDING_ID + ":TEST_KEY");
+	when(ecs.prefix(BINDING_ID + COLON + TEST_KEY))
+		.thenReturn(BINDING_ID + COLON + TEST_KEY);
 	when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
 	doNothing().when(repository).save(bindingCaptor.capture());
 
@@ -188,7 +195,8 @@ public class EcsServiceInstanceBindingServiceTest {
 	String s3Url = new StringBuilder()
 		.append(HTTP)
 		.append(BINDING_ID)
-		.append(":TEST_KEY")
+		.append(COLON)
+		.append(TEST_KEY)
 		.append("@127.0.0.1:9020/")
 		.append(BUCKET_NAME)
 		.toString();

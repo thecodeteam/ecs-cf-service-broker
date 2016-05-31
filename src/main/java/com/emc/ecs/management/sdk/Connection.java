@@ -185,7 +185,7 @@ public class Connection {
 	try {
 	    handleResponse(response);
 	} catch (EcsManagementResourceNotFoundException e) {
-	    Logger.getAnonymousLogger().log(Level.INFO, "info", e);
+	    Logger.getAnonymousLogger().log(Level.FINE, "info", e);
 	    return false;
 	}
 	return true;

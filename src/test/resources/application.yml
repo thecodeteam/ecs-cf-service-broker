@@ -49,13 +49,13 @@ catalog:
       description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       plan-updatable: true
-      head-type: s3
-      file-system-enabled: false
-      stale-allowed: true
       tags:
         - s3
       service-settings:
         service-type: bucket
+        head-type: s3
+        file-access: false
+        access-during-outage: true
       metadata:
         displayName: ecs-bucket
         imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png

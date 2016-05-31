@@ -132,7 +132,8 @@ public class EcsServiceInstanceServiceTest {
      * @throws IOException 
      */
     @Test
-    public void testCreateNamespaceServiceNullParams() throws EcsManagementClientException, IOException, JAXBException {
+    public void testCreateNamespaceServiceNullParams()
+	    throws EcsManagementClientException, IOException, JAXBException {
 	when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 

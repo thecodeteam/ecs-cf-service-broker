@@ -21,6 +21,9 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
+    private static final String UNLIMITED = "Unlimited";
+    private static final String ONE_YEAR = "one-year";
+    private static final int ONE_YEAR_IN_SECS = 31536000;
     private static final String FREE_TRIAL = "Free Trial";
     private static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
     private static final String _5GB = "5gb";
@@ -73,7 +76,18 @@ public class Fixtures {
 	bucketPlan1.setQuotaLimit(5);
 	bucketPlan1.setQuotaWarning(4);
 
-	List<PlanProxy> plans = Arrays.asList(bucketPlan1);
+	/*
+	 * Plan 2: No quota, encrypted, filesystem, access-during-outage.
+	 */
+	Map<String, Object> settings2 = new HashMap<>();
+	PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, UNLIMITED,
+		PAY_PER_GB_PER_MONTH, null, false);
+	settings2.put("encrypted", true);
+	settings2.put("access-during-outage", true);
+	settings2.put("file-accessible", true);
+	bucketPlan2.setServiceSettings(settings2);
+
+	List<PlanProxy> plans = Arrays.asList(bucketPlan1, bucketPlan2);
 
 	List<String> tags = Arrays.asList("ecs-bucket", "s3", "swift");
 	Map<String, Object> serviceSettings = new HashMap<>();
@@ -104,7 +118,7 @@ public class Fixtures {
 	 */
 	Map<String, Object> settings2 = new HashMap<>();
 	PlanProxy namespacePlan2 = new PlanProxy(NAMESPACE_PLAN_ID2,
-		"Unlimited", PAY_PER_GB_PER_MONTH, null, false);
+		UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
 	settings2.put("encrypted", true);
 	settings2.put("domain-group-admins", EXTERNAL_ADMIN);
 	settings2.put("compliance-enabled", true);
@@ -116,7 +130,7 @@ public class Fixtures {
 	 * one-year retention.
 	 */
 	Map<String, Object> retention = new HashMap<>();
-	retention.put("one-year", 31536000);
+	retention.put(ONE_YEAR, ONE_YEAR_IN_SECS);
 	Map<String, Object> settings3 = new HashMap<>();
 	PlanProxy namespacePlan3 = new PlanProxy(NAMESPACE_PLAN_ID3,
 		"Compliant", PAY_PER_GB_PER_MONTH, null, false);
