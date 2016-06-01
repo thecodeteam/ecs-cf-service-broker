@@ -44,6 +44,8 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @Service
 public class EcsService {
 
+    private static final String WARN = "warn";
+    private static final String LIMIT = "limit";
     private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
@@ -110,13 +112,14 @@ public class EcsService {
 	BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
 		broker.getNamespace(), replicationGroupID, parameters));
 
-	int limit = plan.getQuotaLimit();
-	int warning = plan.getQuotaWarning();
-
-	// no quota needed if neither is set
-	if (limit != -1 || warning != -1)
+	if (parameters.containsKey(QUOTA)) {
+	    @SuppressWarnings("unchecked")
+	    Map<String, Integer> quota = (Map<String, Integer>) parameters
+		    .get(QUOTA);
 	    BucketQuotaAction.create(connection, prefix(id),
-		    broker.getNamespace(), limit, warning);
+		    broker.getNamespace(), (int) quota.get(LIMIT),
+		    (int) quota.get(WARN));
+	}
     }
 
     public void changeBucketPlan(String id, ServiceDefinitionProxy service,
@@ -314,7 +317,7 @@ public class EcsService {
 	    Map<String, Integer> quota = (Map<String, Integer>) parameters
 		    .get(QUOTA);
 	    NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(id,
-		    quota.get("limit"), quota.get("warn"));
+		    (int) quota.get(LIMIT), (int) quota.get(WARN));
 	    NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
 	}
 

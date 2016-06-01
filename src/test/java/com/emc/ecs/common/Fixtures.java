@@ -71,10 +71,14 @@ public class Fixtures {
 	/*
 	 * Plan 1: 5gb quota with 4gb notification
 	 */
+	Map<String, Object> settings1 = new HashMap<>();
+	Map<String, Object> quota = new HashMap<>();
+	quota.put("limit", 5);
+	quota.put("warn", 4);
+	settings1.put("quota", quota);
 	PlanProxy bucketPlan1 = new PlanProxy(BUCKET_PLAN_ID1, _5GB,
 		FREE_TRIAL, null, true);
-	bucketPlan1.setQuotaLimit(5);
-	bucketPlan1.setQuotaWarning(4);
+	bucketPlan1.setServiceSettings(settings1);
 
 	/*
 	 * Plan 2: No quota, encrypted, filesystem, access-during-outage.
