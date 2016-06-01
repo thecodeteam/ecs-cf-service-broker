@@ -1,0 +1,23 @@
+{
+	"scenarioName": "testbucket3",
+    "requiredScenarioState": "Quota updated",
+    "newScenarioState": "Started",
+    "request": {
+        "method": "POST",
+        "url": "/object/bucket/testbucket3/deactivate?namespace=ns1",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		}
+	}
+}

@@ -2,9 +2,10 @@ package com.emc.ecs.management.sdk;
 
 import static com.emc.ecs.management.sdk.Constants.*;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.management.sdk.model.BucketQuotaDetails;
 import com.emc.ecs.management.sdk.model.BucketQuotaParam;
 
 public final class BucketQuotaAction {
@@ -27,6 +28,15 @@ public final class BucketQuotaAction {
 		.segment(OBJECT, BUCKET, id, QUOTA)
 		.queryParam(NAMESPACE, namespace);
 	connection.handleRemoteCall(DELETE, uri, null);
+    }
+
+    public static BucketQuotaDetails get(Connection connection, String id,
+	    String namespace) throws EcsManagementClientException {
+	UriBuilder uri = connection.getUriBuilder()
+		.segment(OBJECT, BUCKET, id, QUOTA)
+		.queryParam(NAMESPACE, namespace);
+	 Response response = connection.handleRemoteCall(GET, uri, null);
+	 return	response.readEntity(BucketQuotaDetails.class);
     }
 
 }
