@@ -32,7 +32,7 @@ public class Application {
 
     @Bean
     public Connection ecsConnection() {
-	URL certificate = getClass().getClassLoader()
+	URL certificate = Thread.currentThread().getContextClassLoader()
 		.getResource(broker.getCertificate());
 	return new Connection(broker.getManagementEndpoint(),
 		broker.getUsername(), broker.getPassword(), certificate);

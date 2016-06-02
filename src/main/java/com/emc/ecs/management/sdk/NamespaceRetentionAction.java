@@ -10,7 +10,7 @@ import com.emc.ecs.management.sdk.model.RetentionClassCreate;
 import com.emc.ecs.management.sdk.model.RetentionClassDetails;
 import com.emc.ecs.management.sdk.model.RetentionClassUpdate;
 
-public class NamespaceRetentionAction {
+public final class NamespaceRetentionAction {
 
     private NamespaceRetentionAction() {}
 

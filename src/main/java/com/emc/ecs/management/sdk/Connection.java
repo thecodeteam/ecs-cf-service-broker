@@ -96,7 +96,7 @@ public class Connection {
 	}
     }
 
-    private HostnameVerifier getHostnameVerifier() {
+    private static HostnameVerifier getHostnameVerifier() {
 	return new HostnameVerifier() {
 	    @Override
 	    public boolean verify(String hostname, SSLSession session) {

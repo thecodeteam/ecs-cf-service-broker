@@ -1,6 +1,6 @@
 package com.emc.ecs.management.sdk;
 
-public class Constants {
+public final class Constants {
     public static final String OBJECT = "object";
     public static final String NAMESPACES = "namespaces";
     public static final String NAMESPACE = "namespace";

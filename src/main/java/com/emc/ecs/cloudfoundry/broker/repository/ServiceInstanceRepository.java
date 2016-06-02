@@ -60,7 +60,7 @@ public class ServiceInstanceRepository {
 	s3.deleteObject(bucket, getFilename(id));
     }
 
-    private String getFilename(String id) {
+    private static String getFilename(String id) {
 	return "service-instance/" + id + ".json";
     }
 
