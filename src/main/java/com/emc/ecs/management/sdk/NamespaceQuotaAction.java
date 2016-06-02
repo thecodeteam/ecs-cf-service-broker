@@ -9,7 +9,7 @@ import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.management.sdk.model.NamespaceQuotaDetails;
 import com.emc.ecs.management.sdk.model.NamespaceQuotaParam;
 
-public class NamespaceQuotaAction {
+public final class NamespaceQuotaAction {
 
     private NamespaceQuotaAction() {}
 
