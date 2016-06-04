@@ -44,6 +44,7 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @Service
 public class EcsService {
 
+    private static final String UNCHECKED = "unchecked";
     private static final String WARN = "warn";
     private static final String LIMIT = "limit";
     private static final String QUOTA = "quota";
@@ -113,7 +114,7 @@ public class EcsService {
 		broker.getNamespace(), replicationGroupID, parameters));
 
 	if (parameters.containsKey(QUOTA)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> quota = (Map<String, Integer>) parameters
 		    .get(QUOTA);
 	    BucketQuotaAction.create(connection, prefix(id),
@@ -129,11 +130,11 @@ public class EcsService {
 		.orElse(new HashMap<>());
 	parameters.putAll(plan.getServiceSettings());
 	parameters.putAll(service.getServiceSettings());
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings(UNCHECKED)
 	Map<String, Object> quota = (Map<String, Object>) parameters
 		.getOrDefault("quota", new HashMap<>());
-	int limit = (int) quota.getOrDefault("limit", -1);
-	int warn = (int) quota.getOrDefault("warn", -1);
+	int limit = (int) quota.getOrDefault(LIMIT, -1);
+	int warn = (int) quota.getOrDefault(WARN, -1);
 
 	if (limit == -1 && warn == -1) {
 	    BucketQuotaAction.delete(connection, prefix(id),
@@ -321,7 +322,7 @@ public class EcsService {
 		replicationGroupID, parameters));
 
 	if (parameters.containsKey(QUOTA)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> quota = (Map<String, Integer>) parameters
 		    .get(QUOTA);
 	    NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(id,
@@ -330,7 +331,7 @@ public class EcsService {
 	}
 
 	if (parameters.containsKey(RETENTION)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> retention = (Map<String, Integer>) parameters
 		    .get(RETENTION);
 	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {
@@ -354,7 +355,7 @@ public class EcsService {
 		new NamespaceUpdate(parameters));
 
 	if (parameters.containsKey(RETENTION)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> retention = (Map<String, Integer>) parameters
 		    .get(RETENTION);
 	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {

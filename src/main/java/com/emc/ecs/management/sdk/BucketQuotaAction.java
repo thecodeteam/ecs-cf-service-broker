@@ -35,8 +35,8 @@ public final class BucketQuotaAction {
 	UriBuilder uri = connection.getUriBuilder()
 		.segment(OBJECT, BUCKET, id, QUOTA)
 		.queryParam(NAMESPACE, namespace);
-	 Response response = connection.handleRemoteCall(GET, uri, null);
-	 return	response.readEntity(BucketQuotaDetails.class);
+	Response response = connection.handleRemoteCall(GET, uri, null);
+	return	response.readEntity(BucketQuotaDetails.class);
     }
 
 }
