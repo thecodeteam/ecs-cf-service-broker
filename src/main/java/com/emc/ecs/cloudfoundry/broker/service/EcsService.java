@@ -125,14 +125,22 @@ public class EcsService {
     public void changeBucketPlan(String id, ServiceDefinitionProxy service,
 	    PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
 	    throws EcsManagementClientException {
-	int limit = plan.getQuotaLimit();
-	int warning = plan.getQuotaWarning();
-	if (limit == -1 && warning == -1) {
+	Map<String, Object> parameters = maybeParameters
+		.orElse(new HashMap<>());
+	parameters.putAll(plan.getServiceSettings());
+	parameters.putAll(service.getServiceSettings());
+	@SuppressWarnings("unchecked")
+	Map<String, Object> quota = (Map<String, Object>) parameters
+		.getOrDefault("quota", new HashMap<>());
+	int limit = (int) quota.getOrDefault("limit", -1);
+	int warn = (int) quota.getOrDefault("warn", -1);
+
+	if (limit == -1 && warn == -1) {
 	    BucketQuotaAction.delete(connection, prefix(id),
 		    broker.getNamespace());
 	} else {
 	    BucketQuotaAction.create(connection, prefix(id),
-		    broker.getNamespace(), limit, warning);
+		    broker.getNamespace(), limit, warn);
 	}
     }
 

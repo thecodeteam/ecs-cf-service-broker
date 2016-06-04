@@ -62,6 +62,7 @@ public class EcsServiceTest {
     private static final String THIRTY_DAYS = "thirty-days";
     private static final String UPDATE = "update";
     private static final String CREATE = "create";
+    private static final String DELETE = "delete";
 
     @Mock
     private Connection connection;
@@ -413,6 +414,200 @@ public class EcsServiceTest {
 	PowerMockito.verifyStatic(times(1));
 	BucketQuotaAction.create(same(connection), eq(PREFIX + BUCKET_NAME),
 		eq(NAMESPACE), eq(5), eq(4));
+    }
+
+    /**
+     * When changing plans from one with a quota to one without a quota any
+     * existing quota should be deleted.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void changeBucketPlanTestNoQuota() throws Exception {
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, DELETE,
+		same(connection), eq(BUCKET_NAME), eq(NAMESPACE));
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(null));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.delete(same(connection), idCaptor.capture(),
+		nsCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one without a quota and quota parameters are
+     * supplied, the quota parameters must dictate the quota created.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void changeBucketPlanTestParametersQuota() throws Exception {
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
+		same(connection), eq(BUCKET_NAME), eq(NAMESPACE), eq(5), eq(4));
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
+	Map<String, Object> quota = new HashMap<>();
+	quota.put("limit", 100);
+	quota.put("warn", 80);
+	Map<String, Object> params = new HashMap<>();
+	params.put("quota", quota);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(params));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<Integer> limitCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+	ArgumentCaptor<Integer> warnCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), idCaptor.capture(),
+		nsCaptor.capture(), limitCaptor.capture(),
+		warnCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+	assertEquals(Integer.valueOf(100), limitCaptor.getValue());
+	assertEquals(Integer.valueOf(80), warnCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one with a quota and quota parameters are
+     * supplied, the quota parameters must be ignored.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void changeBucketPlanTestParametersIgnoredQuota() throws Exception {
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
+		same(connection), eq(BUCKET_NAME), eq(NAMESPACE), eq(5), eq(4));
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+	Map<String, Object> quota = new HashMap<>();
+	quota.put("limit", 100);
+	quota.put("warn", 80);
+	Map<String, Object> params = new HashMap<>();
+	params.put("quota", quota);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(params));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<Integer> limitCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+	ArgumentCaptor<Integer> warnCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), idCaptor.capture(),
+		nsCaptor.capture(), limitCaptor.capture(),
+		warnCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+	assertEquals(Integer.valueOf(5), limitCaptor.getValue());
+	assertEquals(Integer.valueOf(4), warnCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one without a quota to one with a quota the new
+     * quota should be created.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
+    @Test
+    public void changeBucketPlanTestNewQuota() throws Exception {
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
+		same(connection), eq(BUCKET_NAME), eq(NAMESPACE), eq(5), eq(4));
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(null));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<Integer> limitCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+	ArgumentCaptor<Integer> warnCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), idCaptor.capture(),
+		nsCaptor.capture(), limitCaptor.capture(),
+		warnCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+	assertEquals(Integer.valueOf(5), limitCaptor.getValue());
+	assertEquals(Integer.valueOf(4), warnCaptor.getValue());
+    }
+
+    /**
+     * When changing namespace plan with user specified parameters, the params
+     * should be set, except when overridden by a plan or service setting.
+     * Therefore, default-bucket-quota will not be "10", it will be "5" since
+     * that's the setting in the plan. Other settings will carry through.
+     * 
+     * @throws Exception
+     */
+    @PrepareForTest({ NamespaceAction.class })
+    @Test
+    public void changeBucketPlanWithParamsTest() throws Exception {
+	Map<String, Object> params = new HashMap<>();
+	params.put("domain-group-admins", EXTERNAL_ADMIN);
+	params.put("encrypted", true);
+	params.put("compliance-enabled", true);
+	params.put("access-during-outage", true);
+	params.put("default-bucket-quota", 10);
+
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
+		same(connection), anyString(), any(NamespaceUpdate.class));
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
+		.forClass(NamespaceUpdate.class);
+
+	when(broker.getPrefix()).thenReturn(PREFIX);
+
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
+
+	PowerMockito.verifyStatic();
+	NamespaceAction.update(same(connection), idCaptor.capture(),
+		updateCaptor.capture());
+	NamespaceUpdate update = updateCaptor.getValue();
+	assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+	assertEquals(EXTERNAL_ADMIN, update.getExternalGroupAdmins());
+	assertTrue(update.getIsEncryptionEnabled());
+	assertTrue(update.getIsComplianceEnabled());
+	assertTrue(update.getIsStaleAllowed());
+	assertEquals(Integer.valueOf(5), update.getDefaultBucketBlockSize());
     }
 
     /**
