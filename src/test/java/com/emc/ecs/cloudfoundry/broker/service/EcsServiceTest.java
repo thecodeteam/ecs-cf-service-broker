@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -87,6 +88,15 @@ public class EcsServiceTest {
     @Autowired
     @InjectMocks
     private EcsService ecs;
+    
+    @Before
+    public void setUp() {
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	when(broker.getRepositoryUser()).thenReturn(USER);
+	when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
+    }
 
     /**
      * When initializing the ecs-service, and object-endpoint, repo-user &
@@ -102,14 +112,8 @@ public class EcsServiceTest {
     public void initializeStaticConfigTest()
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-
 	when(broker.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
-	when(broker.getRepositoryUser()).thenReturn(USER);
-	when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
 
 	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
 	rg.setName(RG_NAME);
@@ -157,11 +161,6 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(ReplicationGroupAction.class);
 
 	when(broker.getBaseUrl()).thenReturn(BASE_URL_NAME);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
-	when(broker.getRepositoryUser()).thenReturn(USER);
-	when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
 
 	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
 	rg.setName(RG_NAME);
@@ -222,12 +221,6 @@ public class EcsServiceTest {
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	PowerMockito.mockStatic(ReplicationGroupAction.class);
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
-	when(broker.getRepositoryUser()).thenReturn(USER);
-	when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
 
 	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
 	rg.setName(RG_NAME);
@@ -313,8 +306,6 @@ public class EcsServiceTest {
 		eq(5), eq(4));
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 
 	Map<String, Object> params = new HashMap<>();
 	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
@@ -352,8 +343,6 @@ public class EcsServiceTest {
 
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 	when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(service);
 
@@ -405,8 +394,6 @@ public class EcsServiceTest {
 		eq(10), eq(9));
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 
 	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
 
@@ -439,8 +426,6 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
 	PowerMockito.doNothing().when(BucketQuotaAction.class, DELETE,
 		same(connection), eq(BUCKET_NAME), eq(NAMESPACE));
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 
@@ -469,8 +454,6 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
 	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
 		same(connection), eq(BUCKET_NAME), eq(NAMESPACE), eq(5), eq(4));
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 	Map<String, Object> quota = new HashMap<>();
@@ -511,8 +494,6 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
 	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
 		same(connection), eq(BUCKET_NAME), eq(NAMESPACE), eq(5), eq(4));
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 	Map<String, Object> quota = new HashMap<>();
@@ -553,8 +534,6 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
 	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
 		same(connection), eq(BUCKET_NAME), eq(NAMESPACE), eq(5), eq(4));
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
@@ -603,8 +582,6 @@ public class EcsServiceTest {
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
-
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
@@ -639,7 +616,6 @@ public class EcsServiceTest {
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	Map<String, Object> params = new HashMap<>();
 	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan,
@@ -686,7 +662,6 @@ public class EcsServiceTest {
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
@@ -724,7 +699,6 @@ public class EcsServiceTest {
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
 
@@ -781,7 +755,6 @@ public class EcsServiceTest {
 		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
 
@@ -833,8 +806,6 @@ public class EcsServiceTest {
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
-
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
@@ -872,7 +843,6 @@ public class EcsServiceTest {
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(2);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
@@ -928,8 +898,6 @@ public class EcsServiceTest {
 	ArgumentCaptor<RetentionClassCreate> createCaptor = ArgumentCaptor
 		.forClass(RetentionClassCreate.class);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
-
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
 	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
@@ -968,8 +936,6 @@ public class EcsServiceTest {
 		same(connection), anyString(), anyString());
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
@@ -1013,8 +979,6 @@ public class EcsServiceTest {
 	ArgumentCaptor<RetentionClassUpdate> updateCaptor = ArgumentCaptor
 		.forClass(RetentionClassUpdate.class);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
-
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
 	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
@@ -1038,7 +1002,6 @@ public class EcsServiceTest {
 	PowerMockito.mockStatic(NamespaceAction.class);
 	PowerMockito.doNothing().when(NamespaceAction.class, DELETE,
 		same(connection), anyString());
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ecs.deleteNamespace(NAMESPACE);
 
@@ -1068,8 +1031,6 @@ public class EcsServiceTest {
 		.when(ObjectUserSecretAction.class, "list", same(connection),
 			anyString())
 		.thenReturn(Arrays.asList(new UserSecretKey()));
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ecs.createUser(USER1, NAMESPACE);
 
