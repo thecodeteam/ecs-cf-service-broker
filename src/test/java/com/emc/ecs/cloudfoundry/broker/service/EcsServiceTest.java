@@ -50,6 +50,9 @@ import com.emc.ecs.management.sdk.model.RetentionClassUpdate;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 
 @RunWith(PowerMockRunner.class)
+@PrepareForTest({ ReplicationGroupAction.class, BucketAction.class,
+	ObjectUserAction.class, ObjectUserSecretAction.class,
+	BaseUrlAction.class, BucketQuotaAction.class })
 public class EcsServiceTest {
     private static final String BASE_URL = "base-url";
     private static final String USE_SSL = "use-ssl";
@@ -106,35 +109,12 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ ReplicationGroupAction.class, BucketAction.class,
-	    ObjectUserAction.class, ObjectUserSecretAction.class })
     @Test
     public void initializeStaticConfigTest()
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
+	setupInitTest();
 	when(broker.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-
-	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
-	rg.setName(RG_NAME);
-	rg.setId(RG_ID);
-	PowerMockito.mockStatic(BucketAction.class);
-	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-	when(ReplicationGroupAction.list(connection))
-		.thenReturn(Arrays.asList(rg));
-
-	PowerMockito.mockStatic(ObjectUserAction.class);
-	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
-		.thenReturn(true);
-
-	UserSecretKey secretKey = new UserSecretKey();
-	secretKey.setSecretKey(TEST);
-	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	when(ObjectUserSecretAction.list(connection, REPO_USER))
-		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
 
@@ -152,50 +132,12 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
-	    BucketAction.class, ObjectUserAction.class,
-	    ObjectUserSecretAction.class })
     @Test
     public void initializeBaseUrlLookup() throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-
+	setupInitTest();
+	setupBaseUrlTest(BASE_URL_NAME);
 	when(broker.getBaseUrl()).thenReturn(BASE_URL_NAME);
-
-	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
-	rg.setName(RG_NAME);
-	rg.setId(RG_ID);
-	PowerMockito.mockStatic(BucketAction.class);
-	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-	when(ReplicationGroupAction.list(connection))
-		.thenReturn(Arrays.asList(rg));
-
-	PowerMockito.mockStatic(ObjectUserAction.class);
-	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(BASE_URL_NAME);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
-
-	UserSecretKey secretKey = new UserSecretKey();
-	secretKey.setSecretKey(TEST);
-	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	when(ObjectUserSecretAction.list(connection, REPO_USER))
-		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
 	String objEndpoint = new StringBuilder().append(HTTP).append(BASE_URL)
@@ -213,49 +155,14 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
-	    BucketAction.class, ObjectUserAction.class,
-	    ObjectUserSecretAction.class })
     @Test
     public void initializeBaseUrlDefaultLookup()
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	PowerMockito.mockStatic(ReplicationGroupAction.class);
 
-	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
-	rg.setName(RG_NAME);
-	rg.setId(RG_ID);
-	PowerMockito.mockStatic(BucketAction.class);
-	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-	when(ReplicationGroupAction.list(connection))
-		.thenReturn(Arrays.asList(rg));
-
-	PowerMockito.mockStatic(ObjectUserAction.class);
-	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(DEFAULT_BASE_URL_NAME);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
-
-	UserSecretKey secretKey = new UserSecretKey();
-	secretKey.setSecretKey(TEST);
-	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	when(ObjectUserSecretAction.list(connection, REPO_USER))
-		.thenReturn(Arrays.asList(secretKey));
+	setupInitTest();
+	setupBaseUrlTest(DEFAULT_BASE_URL_NAME);
 
 	ecs.initialize();
 	String objEndpoint = new StringBuilder().append(HTTP).append(BASE_URL)
@@ -273,9 +180,6 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
-	    BucketAction.class, ObjectUserAction.class,
-	    ObjectUserSecretAction.class })
     @Test(expected = EcsManagementClientException.class)
     public void initializeBaseUrlDefaultLookupFails()
 	    throws EcsManagementClientException,
@@ -294,7 +198,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void createBucketDefaultTest() throws Exception {
 	PowerMockito.mockStatic(BucketAction.class);
@@ -332,7 +235,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void createBucketWithoutParamsTest() throws Exception {
 	PowerMockito.mockStatic(BucketAction.class);
@@ -374,7 +276,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void createBucketWithParamsTest() throws Exception {
 	Map<String, Object> params = new HashMap<>();
@@ -420,7 +321,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void changeBucketPlanTestNoQuota() throws Exception {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
@@ -448,7 +348,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void changeBucketPlanTestParametersQuota() throws Exception {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
@@ -488,7 +387,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void changeBucketPlanTestParametersIgnoredQuota() throws Exception {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
@@ -528,7 +426,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void changeBucketPlanTestNewQuota() throws Exception {
 	PowerMockito.mockStatic(BucketQuotaAction.class);
@@ -1222,5 +1119,45 @@ public class EcsServiceTest {
 		.append(DOT).append(BASE_URL).append(_9021).toString();
 	assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(params)));
+    }
+
+    private void setupInitTest() throws EcsManagementClientException {
+	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
+	rg.setName(RG_NAME);
+	rg.setId(RG_ID);
+	UserSecretKey secretKey = new UserSecretKey();
+	
+	secretKey.setSecretKey(TEST);
+	PowerMockito.mockStatic(BucketAction.class);
+	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
+	when(ReplicationGroupAction.list(connection))
+		.thenReturn(Arrays.asList(rg));
+
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(ObjectUserSecretAction.class);
+	when(ObjectUserSecretAction.list(connection, REPO_USER))
+		.thenReturn(Arrays.asList(secretKey));
+    }
+
+    private void setupBaseUrlTest(String name) throws EcsManagementClientException {
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(name);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(name);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
     }
 }
