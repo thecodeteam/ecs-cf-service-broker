@@ -44,6 +44,9 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 @Service
 public class EcsService {
 
+    private static final String UNCHECKED = "unchecked";
+    private static final String WARN = "warn";
+    private static final String LIMIT = "limit";
     private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
@@ -110,25 +113,35 @@ public class EcsService {
 	BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
 		broker.getNamespace(), replicationGroupID, parameters));
 
-	int limit = plan.getQuotaLimit();
-	int warning = plan.getQuotaWarning();
-
-	// no quota needed if neither is set
-	if (limit != -1 || warning != -1)
+	if (parameters.containsKey(QUOTA)) {
+	    @SuppressWarnings(UNCHECKED)
+	    Map<String, Integer> quota = (Map<String, Integer>) parameters
+		    .get(QUOTA);
 	    BucketQuotaAction.create(connection, prefix(id),
-		    broker.getNamespace(), limit, warning);
+		    broker.getNamespace(), (int) quota.get(LIMIT),
+		    (int) quota.get(WARN));
+	}
     }
 
     public void changeBucketPlan(String id, ServiceDefinitionProxy service,
-	    PlanProxy plan) throws EcsManagementClientException {
-	int limit = plan.getQuotaLimit();
-	int warning = plan.getQuotaWarning();
-	if (limit == -1 && warning == -1) {
+	    PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
+	    throws EcsManagementClientException {
+	Map<String, Object> parameters = maybeParameters
+		.orElse(new HashMap<>());
+	parameters.putAll(plan.getServiceSettings());
+	parameters.putAll(service.getServiceSettings());
+	@SuppressWarnings(UNCHECKED)
+	Map<String, Object> quota = (Map<String, Object>) parameters
+		.getOrDefault("quota", new HashMap<>());
+	int limit = (int) quota.getOrDefault(LIMIT, -1);
+	int warn = (int) quota.getOrDefault(WARN, -1);
+
+	if (limit == -1 && warn == -1) {
 	    BucketQuotaAction.delete(connection, prefix(id),
 		    broker.getNamespace());
 	} else {
 	    BucketQuotaAction.create(connection, prefix(id),
-		    broker.getNamespace(), limit, warning);
+		    broker.getNamespace(), limit, warn);
 	}
     }
 
@@ -309,16 +322,16 @@ public class EcsService {
 		replicationGroupID, parameters));
 
 	if (parameters.containsKey(QUOTA)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> quota = (Map<String, Integer>) parameters
 		    .get(QUOTA);
 	    NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(id,
-		    quota.get("limit"), quota.get("warn"));
+		    (int) quota.get(LIMIT), (int) quota.get(WARN));
 	    NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
 	}
 
 	if (parameters.containsKey(RETENTION)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> retention = (Map<String, Integer>) parameters
 		    .get(RETENTION);
 	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {
@@ -342,7 +355,7 @@ public class EcsService {
 		new NamespaceUpdate(parameters));
 
 	if (parameters.containsKey(RETENTION)) {
-	    @SuppressWarnings("unchecked")
+	    @SuppressWarnings(UNCHECKED)
 	    Map<String, Integer> retention = (Map<String, Integer>) parameters
 		    .get(RETENTION);
 	    for (Map.Entry<String, Integer> entry : retention.entrySet()) {

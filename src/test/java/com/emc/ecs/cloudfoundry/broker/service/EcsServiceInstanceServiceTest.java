@@ -59,7 +59,8 @@ public class EcsServiceInstanceServiceTest {
 
 	verify(repository).save(any(ServiceInstance.class));
 	verify(ecs, times(1)).createBucket(eq(BUCKET_NAME),
-		any(ServiceDefinitionProxy.class), any(PlanProxy.class));
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+		eq(Optional.ofNullable(params)));
     }
 
     /**
@@ -100,7 +101,8 @@ public class EcsServiceInstanceServiceTest {
 	verify(repository, times(1)).delete(BUCKET_NAME);
 	verify(repository, times(1)).save(any(ServiceInstance.class));
 	verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
-		any(ServiceDefinitionProxy.class), any(PlanProxy.class));
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+		eq(Optional.ofNullable(params)));
     }
 
     /**
@@ -120,8 +122,9 @@ public class EcsServiceInstanceServiceTest {
 	instSvc.createServiceInstance(namespaceCreateRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
-	verify(ecs, times(1)).createNamespace(eq(NAMESPACE), any(ServiceDefinitionProxy.class),
-		any(PlanProxy.class), eq(Optional.of(params)));
+	verify(ecs, times(1)).createNamespace(eq(NAMESPACE),
+		any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+		eq(Optional.of(params)));
     }
 
     /**

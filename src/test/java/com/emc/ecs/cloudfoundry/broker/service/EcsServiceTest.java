@@ -8,9 +8,11 @@ import static org.mockito.Mockito.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -27,8 +29,8 @@ import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
 import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
-import com.emc.ecs.cloudfoundry.broker.service.EcsService;
 import com.emc.ecs.management.sdk.BaseUrlAction;
+import com.emc.ecs.management.sdk.BucketAclAction;
 import com.emc.ecs.management.sdk.BucketAction;
 import com.emc.ecs.management.sdk.BucketQuotaAction;
 import com.emc.ecs.management.sdk.Connection;
@@ -40,6 +42,9 @@ import com.emc.ecs.management.sdk.ObjectUserSecretAction;
 import com.emc.ecs.management.sdk.ReplicationGroupAction;
 import com.emc.ecs.management.sdk.model.BaseUrl;
 import com.emc.ecs.management.sdk.model.BaseUrlInfo;
+import com.emc.ecs.management.sdk.model.BucketAcl;
+import com.emc.ecs.management.sdk.model.BucketAclAcl;
+import com.emc.ecs.management.sdk.model.BucketUserAcl;
 import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
 import com.emc.ecs.management.sdk.model.NamespaceCreate;
 import com.emc.ecs.management.sdk.model.NamespaceQuotaParam;
@@ -50,8 +55,25 @@ import com.emc.ecs.management.sdk.model.RetentionClassUpdate;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 
 @RunWith(PowerMockRunner.class)
+@PrepareForTest({ ReplicationGroupAction.class, BucketAction.class,
+	ObjectUserAction.class, ObjectUserSecretAction.class,
+	BaseUrlAction.class, BucketQuotaAction.class, NamespaceAction.class,
+	NamespaceQuotaAction.class, NamespaceRetentionAction.class,
+	BucketAclAction.class })
 public class EcsServiceTest {
-
+    private static final String BASE_URL = "base-url";
+    private static final String USE_SSL = "use-ssl";
+    private static final String USER1 = "user1";
+    private static final String EXISTS = "exists";
+    private static final String DEFAULT_BUCKET_QUOTA = "default-bucket-quota";
+    private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
+    private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
+    private static final String ENCRYPTED = "encrypted";
+    private static final String REPOSITORY = "repository";
+    private static final String USER = "user";
+    private static final String WARN = "warn";
+    private static final String QUOTA = "quota";
+    private static final String LIMIT = "limit";
     private static final String DOT = ".";
     private static final String HTTPS = "https://";
     private static final int THIRTY_DAYS_IN_SEC = 2592000;
@@ -62,6 +84,7 @@ public class EcsServiceTest {
     private static final String THIRTY_DAYS = "thirty-days";
     private static final String UPDATE = "update";
     private static final String CREATE = "create";
+    private static final String DELETE = "delete";
 
     @Mock
     private Connection connection;
@@ -76,6 +99,15 @@ public class EcsServiceTest {
     @InjectMocks
     private EcsService ecs;
 
+    @Before
+    public void setUp() {
+	when(broker.getPrefix()).thenReturn(PREFIX);
+	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
+	when(broker.getNamespace()).thenReturn(NAMESPACE);
+	when(broker.getRepositoryUser()).thenReturn(USER);
+	when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
+    }
+
     /**
      * When initializing the ecs-service, and object-endpoint, repo-user &
      * repo-bucket are set, the service will use these static settings. It the
@@ -84,41 +116,12 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ ReplicationGroupAction.class, BucketAction.class,
-	    ObjectUserAction.class, ObjectUserSecretAction.class })
     @Test
     public void initializeStaticConfigTest()
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-
+	setupInitTest();
 	when(broker.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
-	when(broker.getRepositoryUser()).thenReturn("user");
-	when(broker.getRepositoryBucket()).thenReturn("repository");
-
-	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
-	rg.setName(RG_NAME);
-	rg.setId(RG_ID);
-	PowerMockito.mockStatic(BucketAction.class);
-	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-	when(ReplicationGroupAction.list(connection))
-		.thenReturn(Arrays.asList(rg));
-
-	PowerMockito.mockStatic(ObjectUserAction.class);
-	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
-		.thenReturn(true);
-
-	UserSecretKey secretKey = new UserSecretKey();
-	secretKey.setSecretKey(TEST);
-	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	when(ObjectUserSecretAction.list(connection, REPO_USER))
-		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
 
@@ -136,55 +139,12 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
-	    BucketAction.class, ObjectUserAction.class,
-	    ObjectUserSecretAction.class })
     @Test
     public void initializeBaseUrlLookup() throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-
+	setupInitTest();
+	setupBaseUrlTest(BASE_URL_NAME, false);
 	when(broker.getBaseUrl()).thenReturn(BASE_URL_NAME);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
-	when(broker.getRepositoryUser()).thenReturn("user");
-	when(broker.getRepositoryBucket()).thenReturn("repository");
-
-	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
-	rg.setName(RG_NAME);
-	rg.setId(RG_ID);
-	PowerMockito.mockStatic(BucketAction.class);
-	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-	when(ReplicationGroupAction.list(connection))
-		.thenReturn(Arrays.asList(rg));
-
-	PowerMockito.mockStatic(ObjectUserAction.class);
-	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(BASE_URL_NAME);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
-
-	UserSecretKey secretKey = new UserSecretKey();
-	secretKey.setSecretKey(TEST);
-	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	when(ObjectUserSecretAction.list(connection, REPO_USER))
-		.thenReturn(Arrays.asList(secretKey));
 
 	ecs.initialize();
 	String objEndpoint = new StringBuilder().append(HTTP).append(BASE_URL)
@@ -202,55 +162,14 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
-	    BucketAction.class, ObjectUserAction.class,
-	    ObjectUserSecretAction.class })
     @Test
     public void initializeBaseUrlDefaultLookup()
 	    throws EcsManagementClientException,
 	    EcsManagementResourceNotFoundException {
 	PowerMockito.mockStatic(ReplicationGroupAction.class);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
-	when(broker.getRepositoryUser()).thenReturn("user");
-	when(broker.getRepositoryBucket()).thenReturn("repository");
-
-	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
-	rg.setName(RG_NAME);
-	rg.setId(RG_ID);
-	PowerMockito.mockStatic(BucketAction.class);
-	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(ReplicationGroupAction.class);
-	when(ReplicationGroupAction.list(connection))
-		.thenReturn(Arrays.asList(rg));
-
-	PowerMockito.mockStatic(ObjectUserAction.class);
-	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
-		.thenReturn(true);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(DEFAULT_BASE_URL_NAME);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
-
-	UserSecretKey secretKey = new UserSecretKey();
-	secretKey.setSecretKey(TEST);
-	PowerMockito.mockStatic(ObjectUserSecretAction.class);
-	when(ObjectUserSecretAction.list(connection, REPO_USER))
-		.thenReturn(Arrays.asList(secretKey));
+	setupInitTest();
+	setupBaseUrlTest(DEFAULT_BASE_URL_NAME, false);
 
 	ecs.initialize();
 	String objEndpoint = new StringBuilder().append(HTTP).append(BASE_URL)
@@ -268,9 +187,6 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
-    @PrepareForTest({ BaseUrlAction.class, ReplicationGroupAction.class,
-	    BucketAction.class, ObjectUserAction.class,
-	    ObjectUserSecretAction.class })
     @Test(expected = EcsManagementClientException.class)
     public void initializeBaseUrlDefaultLookupFails()
 	    throws EcsManagementClientException,
@@ -289,20 +205,13 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void createBucketDefaultTest() throws Exception {
-	PowerMockito.mockStatic(BucketAction.class);
-	PowerMockito.doNothing().when(BucketAction.class, CREATE,
-		same(connection), any(ObjectBucketCreate.class));
-	PowerMockito.mockStatic(BucketQuotaAction.class);
-	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
-		same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE),
-		eq(5), eq(4));
+	setupCreateBucketTest();
+	setupCreateBucketQuotaTest(5, 4);
+
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 
 	Map<String, Object> params = new HashMap<>();
 	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
@@ -329,19 +238,13 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void createBucketWithoutParamsTest() throws Exception {
-	PowerMockito.mockStatic(BucketAction.class);
-	PowerMockito.doNothing().when(BucketAction.class, CREATE,
-		same(connection), any(ObjectBucketCreate.class));
-
+	setupCreateBucketTest();
 	PowerMockito.mockStatic(BucketQuotaAction.class);
 
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 	when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
 		.thenReturn(service);
 
@@ -373,28 +276,21 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ BucketAction.class, BucketQuotaAction.class })
     @Test
     public void createBucketWithParamsTest() throws Exception {
-	Map<String, Object> params = new HashMap<>();
-	params.put("encrypted", true);
-	params.put("access-during-outage", true);
-	Map<String, Object> quota = new HashMap<>();
-	quota.put("warn", 9);
-	quota.put("limit", 10);
-	params.put("quota", quota);
+	setupCreateBucketTest();
+	setupCreateBucketQuotaTest(5, 4);
 
-	PowerMockito.mockStatic(BucketAction.class);
-	PowerMockito.doNothing().when(BucketAction.class, CREATE,
-		same(connection), any(ObjectBucketCreate.class));
-	PowerMockito.mockStatic(BucketQuotaAction.class);
-	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
-		same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE),
-		eq(10), eq(9));
+	Map<String, Object> params = new HashMap<>();
+	params.put(ENCRYPTED, true);
+	params.put(ACCESS_DURING_OUTAGE, true);
+	Map<String, Object> quota = new HashMap<>();
+	quota.put(WARN, 9);
+	quota.put(LIMIT, 10);
+	params.put(QUOTA, quota);
+
 	ServiceDefinitionProxy service = bucketServiceFixture();
 	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
-	when(broker.getPrefix()).thenReturn(PREFIX);
-	when(broker.getNamespace()).thenReturn(NAMESPACE);
 
 	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
 
@@ -416,24 +312,202 @@ public class EcsServiceTest {
     }
 
     /**
+     * When changing plans from one with a quota to one without a quota any
+     * existing quota should be deleted.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void changeBucketPlanTestNoQuota() throws Exception {
+	setupDeleteBucketQuotaTest();
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(null));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.delete(same(connection), idCaptor.capture(),
+		nsCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one without a quota and quota parameters are
+     * supplied, the quota parameters must dictate the quota created.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void changeBucketPlanTestParametersQuota() throws Exception {
+	setupCreateBucketQuotaTest(100, 80);
+
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
+
+	Map<String, Object> quota = new HashMap<>();
+	quota.put(LIMIT, 100);
+	quota.put(WARN, 80);
+	Map<String, Object> params = new HashMap<>();
+	params.put(QUOTA, quota);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(params));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<Integer> limitCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+	ArgumentCaptor<Integer> warnCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), idCaptor.capture(),
+		nsCaptor.capture(), limitCaptor.capture(),
+		warnCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+	assertEquals(Integer.valueOf(100), limitCaptor.getValue());
+	assertEquals(Integer.valueOf(80), warnCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one with a quota and quota parameters are
+     * supplied, the quota parameters must be ignored.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void changeBucketPlanTestParametersIgnoredQuota() throws Exception {
+	setupCreateBucketQuotaTest(5, 4);
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+	Map<String, Object> quota = new HashMap<>();
+	quota.put(LIMIT, 100);
+	quota.put(WARN, 80);
+	Map<String, Object> params = new HashMap<>();
+	params.put(QUOTA, quota);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(params));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<Integer> limitCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+	ArgumentCaptor<Integer> warnCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), idCaptor.capture(),
+		nsCaptor.capture(), limitCaptor.capture(),
+		warnCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+	assertEquals(Integer.valueOf(5), limitCaptor.getValue());
+	assertEquals(Integer.valueOf(4), warnCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one without a quota to one with a quota the new
+     * quota should be created.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void changeBucketPlanTestNewQuota() throws Exception {
+	setupCreateBucketQuotaTest(5, 4);
+
+	ServiceDefinitionProxy service = bucketServiceFixture();
+	PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+	ecs.changeBucketPlan(BUCKET_NAME, service, plan,
+		Optional.ofNullable(null));
+
+	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<Integer> limitCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+	ArgumentCaptor<Integer> warnCaptor = ArgumentCaptor
+		.forClass(Integer.class);
+
+	PowerMockito.verifyStatic(times(1));
+	BucketQuotaAction.create(same(connection), idCaptor.capture(),
+		nsCaptor.capture(), limitCaptor.capture(),
+		warnCaptor.capture());
+	assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+	assertEquals(NAMESPACE, nsCaptor.getValue());
+	assertEquals(Integer.valueOf(5), limitCaptor.getValue());
+	assertEquals(Integer.valueOf(4), warnCaptor.getValue());
+    }
+
+    /**
+     * A service must be able to remove a user from a bucket.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void removeUserFromBucketTest() throws Exception {
+	BucketAcl bucketAcl = new BucketAcl();
+	BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1,
+		Arrays.asList("full_control"));
+	BucketAclAcl acl = new BucketAclAcl();
+	acl.setUserAccessList(Arrays.asList(userAcl));
+	bucketAcl.setAcl(acl);
+	PowerMockito.mockStatic(BucketAclAction.class);
+	PowerMockito
+		.when(BucketAclAction.class, "get", same(connection),
+			eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+		.thenReturn(bucketAcl);
+	PowerMockito.doNothing().when(BucketAclAction.class, UPDATE,
+		same(connection), eq(PREFIX + BUCKET_NAME),
+		any(BucketAcl.class));
+
+	ecs.removeUserFromBucket(BUCKET_NAME, USER1);
+
+	PowerMockito.verifyStatic();
+	BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME),
+		eq(NAMESPACE));
+	ArgumentCaptor<BucketAcl> aclCaptor = ArgumentCaptor
+		.forClass(BucketAcl.class);
+	PowerMockito.verifyStatic();
+	BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME),
+		aclCaptor.capture());
+	List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl()
+		.getUserAccessList();
+	assertFalse(actualUserAcl.contains(userAcl));
+    }
+
+    /**
+     * A service must be able to delete a user.
+     * @throws EcsManagementClientException 
+     */
+    public void deleteUser() throws EcsManagementClientException {
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	ecs.deleteUser(USER1);
+	PowerMockito.verifyStatic();
+	ObjectUserAction.delete(same(connection), eq(PREFIX + USER1));
+    }
+
+    /**
      * When creating a new namespace the settings in the plan will carry through
      * to the created service. Any settings not implemented in the service, the
      * plan or the parameters will be kept as null.
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
     @Test
     public void createNamespaceDefaultTest() throws Exception {
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
-		same(connection), any(NamespaceCreate.class));
-	PowerMockito.mockStatic(NamespaceQuotaAction.class);
-	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
-		same(connection), anyString(), any(NamespaceQuotaParam.class));
+	setupCreateNamespaceTest();
+	setupCreateNamespaceQuotaTest();
+
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	Map<String, Object> params = new HashMap<>();
 	ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan,
@@ -470,17 +544,13 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class })
     @Test
     public void changeNamespacePlanTest() throws Exception {
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
-		same(connection), anyString(), any(NamespaceUpdate.class));
+	setupUpdateNamespaceTest();
 
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
@@ -504,21 +574,16 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
     @Test
     public void createNamespaceWithoutParamsTest() throws Exception {
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
-		same(connection), any(NamespaceUpdate.class));
+	setupCreateNamespaceTest();
+	setupCreateNamespaceQuotaTest();
+
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
 
-	PowerMockito.mockStatic(NamespaceQuotaAction.class);
-	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
-		same(connection), anyString(), any(NamespaceQuotaParam.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
 
@@ -554,28 +619,23 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceQuotaAction.class })
     @Test
     public void createNamespaceWithParamsTest() throws Exception {
-	Map<String, Object> params = new HashMap<>();
-	params.put("domain-group-admins", EXTERNAL_ADMIN);
-	params.put("encrypted", true);
-	params.put("compliance-enabled", true);
-	params.put("access-during-outage", true);
-	params.put("default-bucket-quota", 10);
+	setupCreateNamespaceTest();
 
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
-		same(connection), any(NamespaceUpdate.class));
+	Map<String, Object> params = new HashMap<>();
+	params.put(DOMAIN_GROUP_ADMINS, EXTERNAL_ADMIN);
+	params.put(ENCRYPTED, true);
+	params.put("compliance-enabled", true);
+	params.put(ACCESS_DURING_OUTAGE, true);
+	params.put(DEFAULT_BUCKET_QUOTA, 10);
+
 	ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
 		.forClass(NamespaceCreate.class);
 
-	PowerMockito.mockStatic(NamespaceQuotaAction.class);
-	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
-		same(connection), anyString(), any(NamespaceQuotaParam.class));
+	setupCreateNamespaceQuotaTest();
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(0);
-	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(service);
 
@@ -610,24 +670,20 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class })
     @Test
     public void changeNamespacePlanWithParamsTest() throws Exception {
 	Map<String, Object> params = new HashMap<>();
-	params.put("domain-group-admins", EXTERNAL_ADMIN);
-	params.put("encrypted", true);
+	params.put(DOMAIN_GROUP_ADMINS, EXTERNAL_ADMIN);
+	params.put(ENCRYPTED, true);
 	params.put("compliance-enabled", true);
-	params.put("access-during-outage", true);
-	params.put("default-bucket-quota", 10);
+	params.put(ACCESS_DURING_OUTAGE, true);
+	params.put(DEFAULT_BUCKET_QUOTA, 10);
 
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
-		same(connection), anyString(), any(NamespaceUpdate.class));
+	setupUpdateNamespaceTest();
+
 	ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
 		.forClass(NamespaceUpdate.class);
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
@@ -652,21 +708,15 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceRetentionAction.class })
     @Test
     public void createNamespaceWithRetention() throws Exception {
 	Map<String, Object> params = new HashMap<>();
+	setupUpdateNamespaceTest();
+	setupCreateNamespaceRetentionTest(false);
 
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
-		same(connection), anyString(), any(NamespaceCreate.class));
-	PowerMockito.mockStatic(NamespaceRetentionAction.class);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, CREATE,
-		same(connection), anyString(), any(RetentionClassCreate.class));
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.getPlans().get(2);
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
 	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
 		.thenReturn(namespaceServiceFixture());
 
@@ -700,7 +750,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceRetentionAction.class })
     @Test
     public void changeNamespacePlanNewRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
@@ -708,21 +757,12 @@ public class EcsServiceTest {
 	Map<String, Object> params = new HashMap<>();
 	params.put(RETENTION, retention);
 
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
-		same(connection), anyString(), any(NamespaceUpdate.class));
+	setupUpdateNamespaceTest();
+	setupCreateNamespaceRetentionTest(false);
 
-	PowerMockito.mockStatic(NamespaceRetentionAction.class);
-	PowerMockito.when(NamespaceRetentionAction.class, "exists",
-		same(connection), anyString(), any(RetentionClassUpdate.class))
-		.thenReturn(false);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, CREATE,
-		same(connection), anyString(), any(RetentionClassCreate.class));
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<RetentionClassCreate> createCaptor = ArgumentCaptor
 		.forClass(RetentionClassCreate.class);
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
@@ -742,7 +782,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceRetentionAction.class })
     @Test
     public void changeNamespacePlanRemoveRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
@@ -750,26 +789,17 @@ public class EcsServiceTest {
 	Map<String, Object> params = new HashMap<>();
 	params.put(RETENTION, retention);
 
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
-		same(connection), anyString(), any(NamespaceUpdate.class));
-
-	PowerMockito.mockStatic(NamespaceRetentionAction.class);
-	PowerMockito.when(NamespaceRetentionAction.class, "exists",
-		same(connection), anyString(), any(RetentionClassUpdate.class))
-		.thenReturn(true);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, "delete",
-		same(connection), anyString(), anyString());
-	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
-	ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
+	setupUpdateNamespaceTest();
+	setupCreateNamespaceRetentionTest(true);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
 	ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
 
 	PowerMockito.verifyStatic();
+
+	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+	ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
 	NamespaceRetentionAction.delete(same(connection), nsCaptor.capture(),
 		rcCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
@@ -783,7 +813,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ NamespaceAction.class, NamespaceRetentionAction.class })
     @Test
     public void changeNamespacePlanChangeRentention() throws Exception {
 	Map<String, Object> retention = new HashMap<>();
@@ -791,23 +820,13 @@ public class EcsServiceTest {
 	Map<String, Object> params = new HashMap<>();
 	params.put(RETENTION, retention);
 
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
-		same(connection), anyString(), any(NamespaceUpdate.class));
+	setupUpdateNamespaceTest();
+	setupCreateNamespaceRetentionTest(true);
 
-	PowerMockito.mockStatic(NamespaceRetentionAction.class);
-	PowerMockito.when(NamespaceRetentionAction.class, "exists",
-		same(connection), anyString(), any(RetentionClassUpdate.class))
-		.thenReturn(true);
-	PowerMockito.doNothing().when(NamespaceRetentionAction.class, UPDATE,
-		same(connection), anyString(), anyString(),
-		any(RetentionClassUpdate.class));
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<RetentionClassUpdate> updateCaptor = ArgumentCaptor
 		.forClass(RetentionClassUpdate.class);
-
-	when(broker.getPrefix()).thenReturn(PREFIX);
 
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
@@ -829,10 +848,7 @@ public class EcsServiceTest {
     @PrepareForTest({ NamespaceAction.class })
     @Test
     public void deleteNamespace() throws Exception {
-	PowerMockito.mockStatic(NamespaceAction.class);
-	PowerMockito.doNothing().when(NamespaceAction.class, "delete",
-		same(connection), anyString());
-	when(broker.getPrefix()).thenReturn(PREFIX);
+	setupDeleteNamespaceTest();
 
 	ecs.deleteNamespace(NAMESPACE);
 
@@ -847,7 +863,6 @@ public class EcsServiceTest {
      * 
      * @throws Exception
      */
-    @PrepareForTest({ ObjectUserAction.class, ObjectUserSecretAction.class })
     @Test
     public void createUserInNamespace() throws Exception {
 	PowerMockito.mockStatic(ObjectUserAction.class);
@@ -863,9 +878,7 @@ public class EcsServiceTest {
 			anyString())
 		.thenReturn(Arrays.asList(new UserSecretKey()));
 
-	when(broker.getPrefix()).thenReturn(PREFIX);
-
-	ecs.createUser("user1", NAMESPACE);
+	ecs.createUser(USER1, NAMESPACE);
 
 	ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 	ArgumentCaptor<String> userCaptor = ArgumentCaptor
@@ -874,7 +887,7 @@ public class EcsServiceTest {
 	ObjectUserAction.create(same(connection), userCaptor.capture(),
 		nsCaptor.capture());
 	assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
-	assertEquals(PREFIX + "user1", userCaptor.getValue());
+	assertEquals(PREFIX + USER1, userCaptor.getValue());
     }
 
     /**
@@ -909,7 +922,6 @@ public class EcsServiceTest {
      * 
      * @throws EcsManagementClientException
      */
-    @PrepareForTest({ BaseUrlAction.class })
     @Test
     public void testNamespaceURLNoSSLDefaultBaseURL()
 	    throws EcsManagementClientException {
@@ -917,21 +929,7 @@ public class EcsServiceTest {
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 
 	when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(DEFAULT_BASE_URL_NAME);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	baseUrlInfo.setNamespaceInHost(true);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
+	setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
 
 	String expectedUrl = new StringBuilder().append(HTTP).append(NAMESPACE)
 		.append(DOT).append(BASE_URL).append(_9020).toString();
@@ -945,34 +943,18 @@ public class EcsServiceTest {
      * 
      * @throws EcsManagementClientException
      */
-    @PrepareForTest({ BaseUrlAction.class })
     @Test
     public void testNamespaceURLSSLDefaultBaseURL()
 	    throws EcsManagementClientException {
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	Map<String, Object> serviceSettings = service.getServiceSettings();
-	serviceSettings.put("use-ssl", true);
+	serviceSettings.put(USE_SSL, true);
 	service.setServiceSettings(serviceSettings);
 
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 
 	when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(DEFAULT_BASE_URL_NAME);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(DEFAULT_BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	baseUrlInfo.setNamespaceInHost(true);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
-
+	setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
 	String expectedUrl = new StringBuilder().append(HTTPS).append(NAMESPACE)
 		.append(DOT).append(BASE_URL).append(_9021).toString();
 	assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
@@ -985,30 +967,15 @@ public class EcsServiceTest {
      * 
      * @throws EcsManagementClientException
      */
-    @PrepareForTest({ BaseUrlAction.class })
     @Test
     public void testNamespaceURLNoSSLParamBaseURL()
 	    throws EcsManagementClientException {
 	HashMap<String, Object> params = new HashMap<>();
-	params.put("base-url", BASE_URL_NAME);
+	params.put(BASE_URL, BASE_URL_NAME);
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(BASE_URL_NAME);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	baseUrlInfo.setNamespaceInHost(true);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
+	setupBaseUrlTest(BASE_URL_NAME, true);
 
 	String expectedUrl = new StringBuilder().append(HTTP).append(NAMESPACE)
 		.append(DOT).append(BASE_URL).append(_9020).toString();
@@ -1022,38 +989,124 @@ public class EcsServiceTest {
      * 
      * @throws EcsManagementClientException
      */
-    @PrepareForTest({ BaseUrlAction.class })
     @Test
     public void testNamespaceURLSSLParamBaseURL()
 	    throws EcsManagementClientException {
 	HashMap<String, Object> params = new HashMap<>();
-	params.put("base-url", BASE_URL_NAME);
+	params.put(BASE_URL, BASE_URL_NAME);
 	ServiceDefinitionProxy service = namespaceServiceFixture();
 	Map<String, Object> serviceSettings = service.getServiceSettings();
-	serviceSettings.put("use-ssl", true);
+	serviceSettings.put(USE_SSL, true);
 	service.setServiceSettings(serviceSettings);
-
 	PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 
-	BaseUrl baseUrl = new BaseUrl();
-	baseUrl.setId(BASE_URL_ID);
-	baseUrl.setName(BASE_URL_NAME);
-
-	PowerMockito.mockStatic(BaseUrlAction.class);
-	when(BaseUrlAction.list(same(connection)))
-		.thenReturn(Arrays.asList(baseUrl));
-
-	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
-	baseUrlInfo.setId(BASE_URL_ID);
-	baseUrlInfo.setName(BASE_URL_NAME);
-	baseUrlInfo.setBaseurl(BASE_URL);
-	baseUrlInfo.setNamespaceInHost(true);
-	when(BaseUrlAction.get(connection, BASE_URL_ID))
-		.thenReturn(baseUrlInfo);
+	setupBaseUrlTest(BASE_URL_NAME, true);
 
 	String expectedURl = new StringBuilder().append(HTTPS).append(NAMESPACE)
 		.append(DOT).append(BASE_URL).append(_9021).toString();
 	assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
 		Optional.ofNullable(params)));
+    }
+
+    private void setupInitTest() throws EcsManagementClientException {
+	DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
+	rg.setName(RG_NAME);
+	rg.setId(RG_ID);
+	UserSecretKey secretKey = new UserSecretKey();
+
+	secretKey.setSecretKey(TEST);
+	PowerMockito.mockStatic(BucketAction.class);
+	when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(ReplicationGroupAction.class);
+	when(ReplicationGroupAction.list(connection))
+		.thenReturn(Arrays.asList(rg));
+
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
+		.thenReturn(true);
+
+	PowerMockito.mockStatic(ObjectUserSecretAction.class);
+	when(ObjectUserSecretAction.list(connection, REPO_USER))
+		.thenReturn(Arrays.asList(secretKey));
+    }
+
+    private void setupBaseUrlTest(String name, boolean namespaceInHost)
+	    throws EcsManagementClientException {
+	PowerMockito.mockStatic(BaseUrlAction.class);
+	BaseUrl baseUrl = new BaseUrl();
+	baseUrl.setId(BASE_URL_ID);
+	baseUrl.setName(name);
+	when(BaseUrlAction.list(same(connection)))
+		.thenReturn(Arrays.asList(baseUrl));
+
+	BaseUrlInfo baseUrlInfo = new BaseUrlInfo();
+	baseUrlInfo.setId(BASE_URL_ID);
+	baseUrlInfo.setName(name);
+	baseUrlInfo.setNamespaceInHost(namespaceInHost);
+	baseUrlInfo.setBaseurl(BASE_URL);
+	when(BaseUrlAction.get(connection, BASE_URL_ID))
+		.thenReturn(baseUrlInfo);
+    }
+
+    private void setupCreateBucketQuotaTest(int limit, int warn)
+	    throws Exception {
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
+		same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE),
+		eq(limit), eq(warn));
+    }
+
+    private void setupCreateBucketTest() throws Exception {
+	PowerMockito.mockStatic(BucketAction.class);
+	PowerMockito.doNothing().when(BucketAction.class, CREATE,
+		same(connection), any(ObjectBucketCreate.class));
+    }
+
+    private void setupDeleteBucketQuotaTest() throws Exception {
+	PowerMockito.mockStatic(BucketQuotaAction.class);
+	PowerMockito.doNothing().when(BucketQuotaAction.class, DELETE,
+		same(connection), eq(BUCKET_NAME), eq(NAMESPACE));
+    }
+
+    private void setupUpdateNamespaceTest() throws Exception {
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
+		same(connection), anyString(), any(NamespaceUpdate.class));
+    }
+
+    private void setupCreateNamespaceQuotaTest() throws Exception {
+	PowerMockito.mockStatic(NamespaceQuotaAction.class);
+	PowerMockito.doNothing().when(NamespaceQuotaAction.class, CREATE,
+		same(connection), anyString(), any(NamespaceQuotaParam.class));
+    }
+
+    private void setupCreateNamespaceTest() throws Exception {
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
+		same(connection), any(NamespaceCreate.class));
+    }
+
+    private void setupDeleteNamespaceTest() throws Exception {
+	PowerMockito.mockStatic(NamespaceAction.class);
+	PowerMockito.doNothing().when(NamespaceAction.class, DELETE,
+		same(connection), anyString());
+    }
+
+    private void setupCreateNamespaceRetentionTest(boolean exists)
+	    throws Exception {
+	PowerMockito.mockStatic(NamespaceRetentionAction.class);
+	PowerMockito
+		.when(NamespaceRetentionAction.class, EXISTS, same(connection),
+			anyString(), any(RetentionClassUpdate.class))
+		.thenReturn(exists);
+	PowerMockito.doNothing().when(NamespaceRetentionAction.class, CREATE,
+		same(connection), anyString(), any(RetentionClassCreate.class));
+	PowerMockito.doNothing().when(NamespaceRetentionAction.class, UPDATE,
+		same(connection), anyString(), anyString(),
+		any(RetentionClassUpdate.class));
+	PowerMockito.doNothing().when(NamespaceRetentionAction.class, DELETE,
+		same(connection), anyString(), anyString());
     }
 }

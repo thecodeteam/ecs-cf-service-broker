@@ -61,7 +61,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 	    String serviceType = (String) service.getServiceSettings()
 		    .get(SERVICE_TYPE);
 	    if (BUCKET.equals(serviceType)) {
-		ecs.createBucket(serviceInstanceId, service, plan);
+		ecs.createBucket(serviceInstanceId, service, plan,
+			Optional.ofNullable(request.getParameters()));
 	    } else if (NAMESPACE.equals(serviceType)) {
 		ecs.createNamespace(serviceInstanceId, service, plan,
 			Optional.ofNullable(request.getParameters()));
@@ -127,7 +128,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 		    .get(SERVICE_TYPE);
 	    PlanProxy plan = service.findPlan(planId);
 	    if (BUCKET.equals(serviceType)) {
-		ecs.changeBucketPlan(serviceInstanceId, service, plan);
+		ecs.changeBucketPlan(serviceInstanceId, service, plan,
+			Optional.ofNullable(params));
 	    } else if (NAMESPACE.equals(serviceType)) {
 		ecs.changeNamespacePlan(serviceInstanceId, service, plan,
 			params);

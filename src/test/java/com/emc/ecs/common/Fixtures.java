@@ -21,6 +21,9 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
+    private static final String QUOTA = "quota";
+    private static final String WARN = "warn";
+    private static final String LIMIT = "limit";
     private static final String UNLIMITED = "Unlimited";
     private static final String ONE_YEAR = "one-year";
     private static final int ONE_YEAR_IN_SECS = 31536000;
@@ -71,10 +74,14 @@ public class Fixtures {
 	/*
 	 * Plan 1: 5gb quota with 4gb notification
 	 */
+	Map<String, Object> settings1 = new HashMap<>();
+	Map<String, Object> quota = new HashMap<>();
+	quota.put(LIMIT, 5);
+	quota.put(WARN, 4);
+	settings1.put(QUOTA, quota);
 	PlanProxy bucketPlan1 = new PlanProxy(BUCKET_PLAN_ID1, _5GB,
 		FREE_TRIAL, null, true);
-	bucketPlan1.setQuotaLimit(5);
-	bucketPlan1.setQuotaWarning(4);
+	bucketPlan1.setServiceSettings(settings1);
 
 	/*
 	 * Plan 2: No quota, encrypted, filesystem, access-during-outage.
@@ -104,12 +111,12 @@ public class Fixtures {
 	 */
 	Map<String, Object> settings1 = new HashMap<>();
 	Map<String, Object> quota = new HashMap<>();
-	quota.put("limit", 5);
-	quota.put("warn", 4);
+	quota.put(LIMIT, 5);
+	quota.put(WARN, 4);
 	PlanProxy namespacePlan1 = new PlanProxy(NAMESPACE_PLAN_ID1, _5GB,
 		FREE_TRIAL, null, true);
 	settings1.put("default-bucket-quota", 5);
-	settings1.put("quota", quota);
+	settings1.put(QUOTA, quota);
 	namespacePlan1.setServiceSettings(settings1);
 
 	/*

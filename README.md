@@ -124,26 +124,27 @@ Valid permissions include:
 The service broker catalog can be configured through YAML based configuration.  You can create the file manually,
 via PCF or another build tool.  Just add a `catalog` section to the `src/main/resources/application.yml` file:
 
-The following feature flags are supported by the bucket & namespace.  All parameters are optional, and can be set at the service or plan level in the `service-settings` block.  Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.  While buckets don't currently support service-settings or command-line parameters for retention & quotas, these will be added soon.
+The following feature flags are supported by the bucket & namespace.  All parameters are optional, and can be set at the service or plan level in the `service-settings` block.  Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.  While buckets don't currently support service-settings or command-line parameters for retention, this will be added soon.
 
-| Resource          | Parameter           | Default Value  | Type       |  Description                                   |
-| :---------------- | :-------------------| :------------: | :--------- | :--------------------------------------------- |
-| bucket            | encrypted           | false          | Boolean    | Enable encryption of namespace                 |
-| bucket            | access-during-outage| false          | Boolean    | Enable potentially stale data during outage    |
-| bucket            | file-access         | false          | Boolean    | Enable file-access (NFS, HDFS) for bucket      |
-| bucket            | head-type           | s3             | String     | Specify object type (s3, swift) for bucket     |
-| bucket binding    | base-url            | -              | String     | Base URL name for object URI                   |
-| bucket binding    | use-ssl             | false          | Boolean    | Use SSL for object endpoint                    |
-| bucket binding    | permissions         | -              | JSON List  | List of permissions for user in bucket ACL     |
-| namespace         | domain-group-admins | -              | JSON List  | List of domain admins to be added to namespace |
-| namespace         | encrypted           | false          | Boolean    | Enable encryption of namespace                 |
-| namespace         | compliance-enabled  | false          | Boolean    | Enable compliance adhearance of retention      |
-| namespace         | access-during-outage| false          | Boolean    | Enable potentially stale data during outage    |
-| namespace         | default-bucket-quota| -1             | Integer    | Default quota applied to bucket (-1 for none)  |            
-| namespace         | quota*              | -              | JSON Object| Quota applied to namespace                     |            
-| namespace         | retention**         | -              | JSON Object| Retention policies applied to namespace        |            
-| namespace binding | base-url            | -              | String     | Base URL name for object URI                   |
-| namespace binding | use-ssl             | false          | Boolean    | Use SSL for object endpoint                    |
+| Resource          | Parameter           | Default | Type     |  Description                                   |
+| :---------------- | :-------------------| :-----: | :------- | :--------------------------------------------- |
+| bucket            | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
+| bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
+| bucket            | file-access         | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
+| bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
+| bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
+| bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
+| bucket binding    | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
+| bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
+| namespace         | domain-group-admins | -       | JSON List| List of domain admins to be added to namespace |
+| namespace         | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
+| namespace         | compliance-enabled  | false   | Boolean  | Enable compliance adhearance of retention      |
+| namespace         | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
+| namespace         | default-bucket-quota| -1      | Integer  | Default quota applied to bucket (-1 for none)  |            
+| namespace         | quota*              | -       | JSON Map | Quota applied to namespace                     |            
+| namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |            
+| namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
+| namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 
 \* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
 
