@@ -447,7 +447,7 @@ public class EcsServiceTest {
     }
 
     /**
-     * A services must be able to remove a user from a bucket
+     * A service must be able to remove a user from a bucket.
      * 
      * @throws Exception
      */
@@ -481,6 +481,17 @@ public class EcsServiceTest {
 	List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl()
 		.getUserAccessList();
 	assertFalse(actualUserAcl.contains(userAcl));
+    }
+
+    /**
+     * A service must be able to delete a user.
+     * @throws EcsManagementClientException 
+     */
+    public void deleteUser() throws EcsManagementClientException {
+	PowerMockito.mockStatic(ObjectUserAction.class);
+	ecs.deleteUser(USER1);
+	PowerMockito.verifyStatic();
+	ObjectUserAction.delete(same(connection), eq(PREFIX + USER1));
     }
 
     /**
