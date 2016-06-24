@@ -1,0 +1,28 @@
+{
+	"scenarioName": "testbucket5",
+    "requiredScenarioState": "Created",
+    "newScenarioState": "Retention updated",
+    "request": {
+        "method": "PUT",
+        "url": "/object/bucket/testbucket5/retention",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        },
+        "bodyPatterns": [
+        	{
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><default_bucket_retention_update><namespace>ns1</namespace><period>2592000</period></default_bucket_retention_update>"
+        	}
+        ]
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		}
+	}
+}

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.emc.ecs.management.sdk.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import com.emc.ecs.management.sdk.BaseUrlAction;
 import com.emc.ecs.management.sdk.BucketAclAction;
 import com.emc.ecs.management.sdk.BucketAction;
 import com.emc.ecs.management.sdk.BucketQuotaAction;
+import com.emc.ecs.management.sdk.BucketRetentionAction;
 import com.emc.ecs.management.sdk.Connection;
 import com.emc.ecs.management.sdk.NamespaceAction;
 import com.emc.ecs.management.sdk.NamespaceQuotaAction;
@@ -40,27 +42,15 @@ import com.emc.ecs.management.sdk.NamespaceRetentionAction;
 import com.emc.ecs.management.sdk.ObjectUserAction;
 import com.emc.ecs.management.sdk.ObjectUserSecretAction;
 import com.emc.ecs.management.sdk.ReplicationGroupAction;
-import com.emc.ecs.management.sdk.model.BaseUrl;
-import com.emc.ecs.management.sdk.model.BaseUrlInfo;
-import com.emc.ecs.management.sdk.model.BucketAcl;
-import com.emc.ecs.management.sdk.model.BucketAclAcl;
-import com.emc.ecs.management.sdk.model.BucketUserAcl;
-import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
-import com.emc.ecs.management.sdk.model.NamespaceCreate;
-import com.emc.ecs.management.sdk.model.NamespaceQuotaParam;
-import com.emc.ecs.management.sdk.model.NamespaceUpdate;
-import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
-import com.emc.ecs.management.sdk.model.RetentionClassCreate;
-import com.emc.ecs.management.sdk.model.RetentionClassUpdate;
-import com.emc.ecs.management.sdk.model.UserSecretKey;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ ReplicationGroupAction.class, BucketAction.class,
 	ObjectUserAction.class, ObjectUserSecretAction.class,
-	BaseUrlAction.class, BucketQuotaAction.class, NamespaceAction.class,
-	NamespaceQuotaAction.class, NamespaceRetentionAction.class,
-	BucketAclAction.class })
+	BaseUrlAction.class, BucketQuotaAction.class, BucketRetentionAction.class,
+	NamespaceAction.class, NamespaceQuotaAction.class,
+	NamespaceRetentionAction.class, BucketAclAction.class })
 public class EcsServiceTest {
+    private static final String ONE_YEAR = "one-year";
     private static final String BASE_URL = "base-url";
     private static final String USE_SSL = "use-ssl";
     private static final String USER1 = "user1";
@@ -112,7 +102,7 @@ public class EcsServiceTest {
      * When initializing the ecs-service, and object-endpoint, repo-user &
      * repo-bucket are set, the service will use these static settings. It the
      * repo facilities exist, the ecs-service will continue.
-     * 
+     *
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
@@ -135,7 +125,7 @@ public class EcsServiceTest {
      * When initializing the ecs-service, if the object-endpoint is not set
      * statically, but base-url is, the service will look up the endpoint from
      * the base-url.
-     * 
+     *
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
@@ -158,7 +148,7 @@ public class EcsServiceTest {
      * set statically nor the base-url, the service will lookup an endpoint
      * named default in the base-url list. If one is found, it will set this as
      * the repo endpoint.
-     * 
+     *
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
@@ -183,7 +173,7 @@ public class EcsServiceTest {
      * set statically nor the base-url, the service will lookup an endpoint
      * named default in the base-url list. If none is found, it will throw an
      * exception.
-     * 
+     *
      * @throws EcsManagementClientException
      * @throws EcsManagementResourceNotFoundException
      */
@@ -202,7 +192,7 @@ public class EcsServiceTest {
      * When creating a new bucket the settings in the plan will carry through to
      * the created service. Any settings not implemented in the service, the
      * plan or the parameters will be kept as null.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -235,7 +225,7 @@ public class EcsServiceTest {
      * When creating a bucket plan with no user specified parameters, the plan
      * or service settings will be used. The plan service-settings will be
      * observed.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -273,7 +263,7 @@ public class EcsServiceTest {
      * set, except when overridden by a plan or service settings. Therefore,
      * quota will not be "10", it will be "5" since that's the setting in the
      * plan. Other parameter settings will carry through.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -314,7 +304,7 @@ public class EcsServiceTest {
     /**
      * When changing plans from one with a quota to one without a quota any
      * existing quota should be deleted.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -339,7 +329,7 @@ public class EcsServiceTest {
     /**
      * When changing plans from one without a quota and quota parameters are
      * supplied, the quota parameters must dictate the quota created.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -378,7 +368,7 @@ public class EcsServiceTest {
     /**
      * When changing plans from one with a quota and quota parameters are
      * supplied, the quota parameters must be ignored.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -416,7 +406,7 @@ public class EcsServiceTest {
     /**
      * When changing plans from one without a quota to one with a quota the new
      * quota should be created.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -448,7 +438,7 @@ public class EcsServiceTest {
 
     /**
      * A service must be able to remove a user from a bucket.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -461,7 +451,7 @@ public class EcsServiceTest {
 	bucketAcl.setAcl(acl);
 	PowerMockito.mockStatic(BucketAclAction.class);
 	PowerMockito
-		.when(BucketAclAction.class, "get", same(connection),
+		.when(BucketAclAction.class, GET, same(connection),
 			eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
 		.thenReturn(bucketAcl);
 	PowerMockito.doNothing().when(BucketAclAction.class, UPDATE,
@@ -485,7 +475,7 @@ public class EcsServiceTest {
 
     /**
      * A service must be able to delete a user.
-     * @throws EcsManagementClientException 
+     * @throws EcsManagementClientException
      */
     public void deleteUser() throws EcsManagementClientException {
 	PowerMockito.mockStatic(ObjectUserAction.class);
@@ -498,7 +488,7 @@ public class EcsServiceTest {
      * When creating a new namespace the settings in the plan will carry through
      * to the created service. Any settings not implemented in the service, the
      * plan or the parameters will be kept as null.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -541,7 +531,7 @@ public class EcsServiceTest {
      * When changing plans the params of the new plan should be set, on the
      * existing namespace. The resulting update action will have the settings of
      * the new plan.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -571,7 +561,7 @@ public class EcsServiceTest {
     /**
      * When creating a plan with no user specified parameters, the plan or
      * service settings will be used. The default-bucket-quota will be "5".
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -616,7 +606,7 @@ public class EcsServiceTest {
      * set, except when overridden by a plan or service settings. Therefore,
      * default-bucket-quota will not be "10", it will be "5" since that's the
      * setting in the plan. Other parameter settings will carry through.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -667,7 +657,7 @@ public class EcsServiceTest {
      * should be set, except when overridden by a plan or service setting.
      * Therefore, default-bucket-quota will not be "10", it will be "5" since
      * that's the setting in the plan. Other settings will carry through.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -705,7 +695,7 @@ public class EcsServiceTest {
      * When creating a namespace with retention-class defined in the plan and
      * the retention-class does not already exist, the retention class should be
      * created.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -740,14 +730,14 @@ public class EcsServiceTest {
 		retentionCreateCaptor.capture());
 	RetentionClassCreate retention = retentionCreateCaptor.getValue();
 	assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
-	assertEquals("one-year", retention.getName());
+	assertEquals(ONE_YEAR, retention.getName());
 	assertEquals(31536000, retention.getPeriod());
     }
 
     /**
      * When changing a namespace plan and a different retention-class is
      * specified in the parameters, then the retention class should be added.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -779,7 +769,7 @@ public class EcsServiceTest {
     /**
      * When changing a namespace plan and a retention-class is specified in the
      * parameters with the value -1, then the retention class should be removed.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -810,7 +800,7 @@ public class EcsServiceTest {
      * When changing a namespace plan and a retention-class is specified in the
      * parameters with a different value than the existing value, then the
      * retention-class should be changed.
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -841,8 +831,35 @@ public class EcsServiceTest {
     }
 
     /**
+     * When creating a namespace with retention-class defined in the plan and
+     * the retention-class does not already exist, the retention class should be
+     * created.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void createBucketWithRetention() throws Exception {
+	Map<String, Object> params = new HashMap<>();
+    params.put("default-retention", THIRTY_DAYS_IN_SEC);
+	setupCreateBucketTest();
+	setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+
+	ServiceDefinitionProxy service = namespaceServiceFixture();
+	PlanProxy plan = service.getPlans().get(2);
+
+	when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+		.thenReturn(namespaceServiceFixture());
+
+	ecs.createBucket(BUCKET_NAME, service, plan, Optional.of(params));
+
+	PowerMockito.verifyStatic();
+    BucketRetentionAction.update(same(connection), eq(NAMESPACE),
+			eq(PREFIX + BUCKET_NAME), eq(THIRTY_DAYS_IN_SEC));
+    }
+
+    /**
      * A namespace should be able to be deleted.
-     * 
+     *
      * @throws Exception
      */
     @PrepareForTest({ NamespaceAction.class })
@@ -860,7 +877,7 @@ public class EcsServiceTest {
 
     /**
      * A user can be created within a specific namespace
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -892,7 +909,7 @@ public class EcsServiceTest {
 
     /**
      * A service can lookup a service definition from the catalog
-     * 
+     *
      * @throws EcsManagementClientException
      */
     @Test
@@ -907,7 +924,7 @@ public class EcsServiceTest {
 
     /**
      * A lookup of a non-existant service definition ID fails
-     * 
+     *
      * @throws EcsManagementClientException
      */
     @Test(expected = EcsManagementClientException.class)
@@ -919,7 +936,7 @@ public class EcsServiceTest {
     /**
      * A service can lookup a namespace URL using the default base URL in the
      * broker config without SSL, which is default.
-     * 
+     *
      * @throws EcsManagementClientException
      */
     @Test
@@ -940,7 +957,7 @@ public class EcsServiceTest {
     /**
      * A service can lookup a namespace URL using the a specific base URL with
      * SSL set in the service.
-     * 
+     *
      * @throws EcsManagementClientException
      */
     @Test
@@ -964,7 +981,7 @@ public class EcsServiceTest {
     /**
      * A service can lookup a namespace URL using the parameter supplied base
      * URL, and without SSL.
-     * 
+     *
      * @throws EcsManagementClientException
      */
     @Test
@@ -986,7 +1003,7 @@ public class EcsServiceTest {
     /**
      * A service can lookup a namespace URL using the parameter supplied base
      * URL, and with SSL.
-     * 
+     *
      * @throws EcsManagementClientException
      */
     @Test
@@ -1108,5 +1125,16 @@ public class EcsServiceTest {
 		any(RetentionClassUpdate.class));
 	PowerMockito.doNothing().when(NamespaceRetentionAction.class, DELETE,
 		same(connection), anyString(), anyString());
+    }
+
+    private void setupCreateBucketRetentionTest(int retentionPeriod)
+	    throws Exception {
+    DefaultBucketRetention retention = new DefaultBucketRetention();
+    retention.setPeriod(retentionPeriod);
+	PowerMockito.mockStatic(BucketRetentionAction.class);
+	PowerMockito.doNothing().when(BucketRetentionAction.class, UPDATE,
+		same(connection), anyString(), anyString(), anyInt());
+	PowerMockito.when(BucketRetentionAction.class, GET,
+		same(connection), anyString(), anyString()).thenReturn(retention);
     }
 }

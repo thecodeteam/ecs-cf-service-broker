@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import com.emc.ecs.management.sdk.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
 import org.springframework.stereotype.Service;
@@ -19,17 +20,6 @@ import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
 import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
-import com.emc.ecs.management.sdk.BaseUrlAction;
-import com.emc.ecs.management.sdk.BucketAclAction;
-import com.emc.ecs.management.sdk.BucketAction;
-import com.emc.ecs.management.sdk.BucketQuotaAction;
-import com.emc.ecs.management.sdk.Connection;
-import com.emc.ecs.management.sdk.NamespaceAction;
-import com.emc.ecs.management.sdk.NamespaceQuotaAction;
-import com.emc.ecs.management.sdk.NamespaceRetentionAction;
-import com.emc.ecs.management.sdk.ObjectUserAction;
-import com.emc.ecs.management.sdk.ObjectUserSecretAction;
-import com.emc.ecs.management.sdk.ReplicationGroupAction;
 import com.emc.ecs.management.sdk.model.BaseUrl;
 import com.emc.ecs.management.sdk.model.BucketAcl;
 import com.emc.ecs.management.sdk.model.BucketUserAcl;
@@ -50,8 +40,9 @@ public class EcsService {
     private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
     private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
+	private static final String DEFAULT_RETENTION = "default-retention";
 
-    @Autowired
+	@Autowired
     private Connection connection;
 
     @Autowired
@@ -118,9 +109,13 @@ public class EcsService {
 	    Map<String, Integer> quota = (Map<String, Integer>) parameters
 		    .get(QUOTA);
 	    BucketQuotaAction.create(connection, prefix(id),
-		    broker.getNamespace(), (int) quota.get(LIMIT),
-		    (int) quota.get(WARN));
+		    broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
 	}
+
+    if (parameters.containsKey(DEFAULT_RETENTION)) {
+        BucketRetentionAction.update(connection, broker.getNamespace(),
+            prefix(id), (int) parameters.get(DEFAULT_RETENTION));
+    }
     }
 
     public void changeBucketPlan(String id, ServiceDefinitionProxy service,

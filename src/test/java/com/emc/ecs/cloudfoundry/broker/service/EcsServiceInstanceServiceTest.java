@@ -102,7 +102,7 @@ public class EcsServiceInstanceServiceTest {
 	verify(repository, times(1)).save(any(ServiceInstance.class));
 	verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
 		any(ServiceDefinitionProxy.class), any(PlanProxy.class),
-		eq(Optional.ofNullable(params)));
+			eq(Optional.ofNullable(params)));
     }
 
     /**

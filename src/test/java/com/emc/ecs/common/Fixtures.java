@@ -21,15 +21,18 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 
 public class Fixtures {
-    private static final String QUOTA = "quota";
-    private static final String WARN = "warn";
-    private static final String LIMIT = "limit";
-    private static final String UNLIMITED = "Unlimited";
-    private static final String ONE_YEAR = "one-year";
-    private static final int ONE_YEAR_IN_SECS = 31536000;
-    private static final String FREE_TRIAL = "Free Trial";
-    private static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
-    private static final String _5GB = "5gb";
+    public static final String QUOTA = "quota";
+    public static final String WARN = "warn";
+    public static final String LIMIT = "limit";
+    public static final String UNLIMITED = "Unlimited";
+	public static final String UNCHECKED = "unchecked";
+    public static final String ONE_YEAR = "one-year";
+    public static final int ONE_YEAR_IN_SECS = 31536000;
+    public static final String FREE_TRIAL = "Free Trial";
+    public static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
+    public static final String _5GB = "5gb";
+	public static final String GET = "get";
+	public static final String RETENTION = "retention";
     public static final String NAMESPACE = "ns1";
     public static final String BASE_URL_ID =
 	    "urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2";

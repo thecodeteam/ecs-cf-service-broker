@@ -1,5 +1,6 @@
 package com.emc.ecs;
 
+import com.emc.ecs.management.sdk.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -14,17 +15,6 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepositoryTest;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceBindingServiceTest;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceServiceTest;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceTest;
-import com.emc.ecs.management.sdk.BaseUrlActionTest;
-import com.emc.ecs.management.sdk.BucketAclActionTest;
-import com.emc.ecs.management.sdk.BucketActionTest;
-import com.emc.ecs.management.sdk.BucketQuotaActionTest;
-import com.emc.ecs.management.sdk.ConnectionTest;
-import com.emc.ecs.management.sdk.NamespaceActionTest;
-import com.emc.ecs.management.sdk.NamespaceQuotaActionTest;
-import com.emc.ecs.management.sdk.NamespaceRetentionActionTest;
-import com.emc.ecs.management.sdk.ObjectUserActionTest;
-import com.emc.ecs.management.sdk.ObjectUserSecretActionTest;
-import com.emc.ecs.management.sdk.ReplicationGroupActionTest;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
@@ -34,6 +24,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
     BucketAclActionTest.class,
     BucketActionTest.class,
     BucketQuotaActionTest.class,
+    BucketRetentionActionTest.class,
     ConnectionTest.class,
     NamespaceActionTest.class,
     NamespaceQuotaActionTest.class,
