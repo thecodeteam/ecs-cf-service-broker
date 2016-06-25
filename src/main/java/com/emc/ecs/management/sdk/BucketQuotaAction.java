@@ -24,7 +24,7 @@ public final class BucketQuotaAction {
     }
 
     public static void delete(Connection connection, String id,
-                              String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, id, QUOTA)
                 .queryParam(NAMESPACE, namespace);
@@ -32,7 +32,7 @@ public final class BucketQuotaAction {
     }
 
     public static BucketQuotaDetails get(Connection connection, String id,
-                                         String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, id, QUOTA)
                 .queryParam(NAMESPACE, namespace);

@@ -291,7 +291,7 @@ public class EcsService {
     }
 
     public void createNamespace(String id, ServiceDefinitionProxy service,
-                                PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
+            PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
             throws EcsManagementClientException {
         if (namespaceExists(id))
             throw new ServiceInstanceExistsException(id, service.getId());

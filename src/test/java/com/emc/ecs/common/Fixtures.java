@@ -72,7 +72,6 @@ public class Fixtures {
     public static final String FILE_ACCESSIBLE = "file-accessible";
     public static final String COMPLIANCE_ENABLED = "compliance-enabled";
     public static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
-    public static final String ENCRYPTED1 = "encrypted";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -130,7 +129,7 @@ public class Fixtures {
         Map<String, Object> settings2 = new HashMap<>();
         PlanProxy namespacePlan2 = new PlanProxy(NAMESPACE_PLAN_ID2,
                 UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
-        settings2.put(ENCRYPTED1, true);
+        settings2.put(ENCRYPTED, true);
         settings2.put(DOMAIN_GROUP_ADMINS, EXTERNAL_ADMIN);
         settings2.put(COMPLIANCE_ENABLED, true);
         settings2.put(ACCESS_DURING_OUTAGE, true);
