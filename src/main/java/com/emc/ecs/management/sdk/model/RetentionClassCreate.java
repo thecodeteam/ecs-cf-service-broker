@@ -6,12 +6,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class RetentionClassCreate extends RetentionClass {
 
     public RetentionClassCreate() {
-	super();
+        super();
     }
 
     public RetentionClassCreate(String name, int period) {
-	setName(name);
-	setPeriod(period);
+        setName(name);
+        setPeriod(period);
     }
 
 }

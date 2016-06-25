@@ -1,9 +1,8 @@
 package com.emc.ecs.management.sdk.model;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "tags")
 public class TagList {
@@ -11,11 +10,11 @@ public class TagList {
 
     @XmlElement(name = "tag")
     public List<String> getTags() {
-	return tags;
+        return tags;
     }
 
     public void setTags(List<String> tags) {
-	this.tags = tags;
+        this.tags = tags;
     }
 
 }

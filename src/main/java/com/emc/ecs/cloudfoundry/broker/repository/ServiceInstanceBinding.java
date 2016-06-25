@@ -1,12 +1,11 @@
 package com.emc.ecs.cloudfoundry.broker.repository;
 
-import java.util.Map;
-
-import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
+
+import java.util.Map;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBinding {
@@ -36,63 +35,63 @@ public class ServiceInstanceBinding {
     private Map<String, Object> credentials;
 
     public ServiceInstanceBinding() {
-	super();
+        super();
     }
 
     public ServiceInstanceBinding(CreateServiceInstanceBindingRequest request) {
-	super();
-	this.serviceDefinitionId = request.getServiceDefinitionId();
-	this.planId = request.getPlanId();
-	this.bindResource = request.getBindResource();
-	this.parameters = request.getParameters();
+        super();
+        this.serviceDefinitionId = request.getServiceDefinitionId();
+        this.planId = request.getPlanId();
+        this.bindResource = request.getBindResource();
+        this.parameters = request.getParameters();
     }
 
     public Map<String, Object> getBindResource() {
-	return bindResource;
+        return bindResource;
     }
 
     public void setBindResource(Map<String, Object> bindResource) {
-	this.bindResource = bindResource;
+        this.bindResource = bindResource;
     }
 
     public Map<String, Object> getParameters() {
-	return parameters;
+        return parameters;
     }
 
     public void setParameters(Map<String, Object> parameters) {
-	this.parameters = parameters;
+        this.parameters = parameters;
     }
 
     public String getPlanId() {
-	return planId;
+        return planId;
     }
 
     public void setPlanId(String planId) {
-	this.planId = planId;
+        this.planId = planId;
     }
 
     public String getServiceDefinitionId() {
-	return serviceDefinitionId;
+        return serviceDefinitionId;
     }
 
     public void setServiceDefinitionId(String serviceDefinitionId) {
-	this.serviceDefinitionId = serviceDefinitionId;
+        this.serviceDefinitionId = serviceDefinitionId;
     }
 
     public Map<String, Object> getCredentials() {
-	return credentials;
+        return credentials;
     }
 
     public void setCredentials(Map<String, Object> credentials) {
-	this.credentials = credentials;
+        this.credentials = credentials;
     }
 
     public String getBindingId() {
-	return bindingId;
+        return bindingId;
     }
 
     public void setBindingId(String bindingId) {
-	this.bindingId = bindingId;
+        this.bindingId = bindingId;
     }
 
 }

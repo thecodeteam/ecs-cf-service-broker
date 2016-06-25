@@ -8,23 +8,23 @@ public class BucketQuotaParam extends QuotaDetails {
     private String namespace;
 
     public BucketQuotaParam() {
-	super();
+        super();
     }
 
     public BucketQuotaParam(String namespace, long blockSize,
-	    long notificationSize) {
-	super();
-	this.namespace = namespace;
-	setBlockSize(blockSize);
-	setNotificationSize(notificationSize);
+                            long notificationSize) {
+        super();
+        this.namespace = namespace;
+        setBlockSize(blockSize);
+        setNotificationSize(notificationSize);
     }
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 
 }

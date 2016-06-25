@@ -22,5 +22,6 @@ public final class Constants {
     public static final String POST = "post";
     public static final String DELETE = "delete";
 
-    private Constants() {}
+    private Constants() {
+    }
 }

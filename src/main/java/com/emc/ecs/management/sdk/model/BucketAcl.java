@@ -11,34 +11,34 @@ public class BucketAcl {
     private BucketAclAcl acl;
 
     public String getPermission() {
-	return permission;
+        return permission;
     }
 
     public void setPermission(String permission) {
-	this.permission = permission;
+        this.permission = permission;
     }
 
     public BucketAclAcl getAcl() {
-	return acl;
+        return acl;
     }
 
     public void setAcl(BucketAclAcl acl) {
-	this.acl = acl;
+        this.acl = acl;
     }
 
     public String getBucket() {
-	return bucket;
+        return bucket;
     }
 
     public void setBucket(String bucket) {
-	this.bucket = bucket;
+        this.bucket = bucket;
     }
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 }

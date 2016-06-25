@@ -7,10 +7,10 @@ public class NamespaceQuotaDetailsUpdate extends QuotaDetails {
     private String namespace;
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 }

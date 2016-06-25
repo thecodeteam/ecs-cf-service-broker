@@ -7,7 +7,8 @@ public class DefaultBucketRetentionUpdate {
     private String namespace;
     private int period;
 
-    public DefaultBucketRetentionUpdate() {}
+    public DefaultBucketRetentionUpdate() {
+    }
 
     public DefaultBucketRetentionUpdate(String namespace, int period) {
         this.namespace = namespace;

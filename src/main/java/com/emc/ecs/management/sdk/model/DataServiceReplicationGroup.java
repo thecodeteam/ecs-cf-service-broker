@@ -1,9 +1,8 @@
 package com.emc.ecs.management.sdk.model;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "data_service_vpool")
 public class DataServiceReplicationGroup {
@@ -22,107 +21,107 @@ public class DataServiceReplicationGroup {
     private Boolean internal;
 
     public String getDescription() {
-	return description;
+        return description;
     }
 
     public void setDescription(String description) {
-	this.description = description;
+        this.description = description;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public VArrayMapping getVarrayMappings() {
-	return varrayMappings;
+        return varrayMappings;
     }
 
     public void setVarrayMappings(VArrayMapping varrayMappings) {
-	this.varrayMappings = varrayMappings;
+        this.varrayMappings = varrayMappings;
     }
 
     public Boolean getIsAllowAllNamespaces() {
-	return isAllowAllNamespaces;
+        return isAllowAllNamespaces;
     }
 
     public void setIsAllowAllNamespaces(Boolean isAllowAllNamespaces) {
-	this.isAllowAllNamespaces = isAllowAllNamespaces;
+        this.isAllowAllNamespaces = isAllowAllNamespaces;
     }
 
     public String getId() {
-	return id;
+        return id;
     }
 
     public void setId(String id) {
-	this.id = id;
+        this.id = id;
     }
 
     public Link getLink() {
-	return link;
+        return link;
     }
 
     public void setLink(Link link) {
-	this.link = link;
+        this.link = link;
     }
 
     @XmlAttribute(name = "creation_time")
     public String getCreationTime() {
-	return creationTime;
+        return creationTime;
     }
 
     public void setCreationTime(String creationTime) {
-	this.creationTime = creationTime;
+        this.creationTime = creationTime;
     }
 
     public List<TagList> getTags() {
-	return tags;
+        return tags;
     }
 
     public void setTags(List<TagList> tags) {
-	this.tags = tags;
+        this.tags = tags;
     }
 
     public Boolean getInactive() {
-	return inactive;
+        return inactive;
     }
 
     public void setInactive(Boolean inactive) {
-	this.inactive = inactive;
+        this.inactive = inactive;
     }
 
     public Boolean getGlobal() {
-	return global;
+        return global;
     }
 
     public void setGlobal(Boolean global) {
-	this.global = global;
+        this.global = global;
     }
 
     public Boolean getRemote() {
-	return remote;
+        return remote;
     }
 
     public void setRemote(Boolean remote) {
-	this.remote = remote;
+        this.remote = remote;
     }
 
     public Vdc getVdc() {
-	return vdc;
+        return vdc;
     }
 
     public void setVdc(Vdc vdc) {
-	this.vdc = vdc;
+        this.vdc = vdc;
     }
 
     public Boolean getInternal() {
-	return internal;
+        return internal;
     }
 
     public void setInternal(Boolean internal) {
-	this.internal = internal;
+        this.internal = internal;
     }
 }

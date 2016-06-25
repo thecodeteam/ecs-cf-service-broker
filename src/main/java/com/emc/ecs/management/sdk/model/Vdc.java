@@ -8,18 +8,18 @@ public class Vdc {
     private Link link;
 
     public String getId() {
-	return id;
+        return id;
     }
 
     public void setId(String id) {
-	this.id = id;
+        this.id = id;
     }
 
     public Link getLink() {
-	return link;
+        return link;
     }
 
     public void setLink(Link link) {
-	this.link = link;
+        this.link = link;
     }
 }

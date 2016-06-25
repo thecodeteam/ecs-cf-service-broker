@@ -1,40 +1,39 @@
 package com.emc.ecs.management.sdk;
 
-import static org.junit.Assert.*;
-
+import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.common.EcsActionTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.common.EcsActionTest;
-import com.emc.ecs.management.sdk.ObjectUserAction;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ObjectUserActionTest extends EcsActionTest {
     private String user = "testuser1";
 
     @Before
     public void setUp() throws EcsManagementClientException {
-	connection.login();
+        connection.login();
     }
 
     @After
     public void cleanup() throws EcsManagementClientException {
-	connection.logout();
+        connection.logout();
     }
 
     @Test
     public void testUserDoesNotExist() throws EcsManagementClientException {
-	assertFalse(ObjectUserAction.exists(connection, user, namespace));
+        assertFalse(ObjectUserAction.exists(connection, user, namespace));
     }
 
     @Test
     public void createExistsAndDeleteObjectUser()
-	    throws EcsManagementClientException {
-	ObjectUserAction.create(connection, user, namespace);
-	assertTrue(ObjectUserAction.exists(connection, user, namespace));
-	ObjectUserAction.delete(connection, user);
-	assertFalse(ObjectUserAction.exists(connection, user, namespace));
+            throws EcsManagementClientException {
+        ObjectUserAction.create(connection, user, namespace);
+        assertTrue(ObjectUserAction.exists(connection, user, namespace));
+        ObjectUserAction.delete(connection, user);
+        assertFalse(ObjectUserAction.exists(connection, user, namespace));
     }
 
 }

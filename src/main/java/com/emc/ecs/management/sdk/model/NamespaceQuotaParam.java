@@ -7,13 +7,13 @@ public class NamespaceQuotaParam extends QuotaDetails {
     private String namespace;
 
     public NamespaceQuotaParam() {
-	super();
+        super();
     }
 
     public NamespaceQuotaParam(String namespace, int limit, int warn) {
-	this.namespace = namespace;
-	setBlockSize(limit);
-	setNotificationSize(warn);
+        this.namespace = namespace;
+        setBlockSize(limit);
+        setNotificationSize(warn);
     }
 
     public String getNamespace() {

@@ -1,9 +1,8 @@
 package com.emc.ecs.management.sdk.model;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "data_service_vpools")
 public class DataServiceReplicationGroupList {
@@ -12,11 +11,11 @@ public class DataServiceReplicationGroupList {
 
     @XmlElement(name = "data_service_vpool")
     public List<DataServiceReplicationGroup> getReplicationGroups() {
-	return replicationGroups;
+        return replicationGroups;
     }
 
     public void setReplicationGroups(
-	    final List<DataServiceReplicationGroup> replicationGroups) {
-	this.replicationGroups = replicationGroups;
+            final List<DataServiceReplicationGroup> replicationGroups) {
+        this.replicationGroups = replicationGroups;
     }
 }

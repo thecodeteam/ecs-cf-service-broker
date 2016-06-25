@@ -11,38 +11,38 @@ public class UserSecretKeyCreate {
     private String secretKey;
 
     public UserSecretKeyCreate() {
-	super();
+        super();
     }
 
     public UserSecretKeyCreate(String secretKey) {
-	super();
-	this.secretKey = secretKey;
+        super();
+        this.secretKey = secretKey;
     }
 
     @XmlElement(name = "existing_key_expiry_time_mins")
     public String getExistingKeyExpiryTimeMins() {
-	return existingKeyExpiryTimeMins;
+        return existingKeyExpiryTimeMins;
     }
 
     public void setExistingKeyExpiryTimeMins(String existingKeyExpiryTimeMins) {
-	this.existingKeyExpiryTimeMins = existingKeyExpiryTimeMins;
+        this.existingKeyExpiryTimeMins = existingKeyExpiryTimeMins;
     }
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 
     @XmlElement(name = "secret_key")
     public String getSecretKey() {
-	return secretKey;
+        return secretKey;
     }
 
     public void setSecretKey(String secretKey) {
-	this.secretKey = secretKey;
+        this.secretKey = secretKey;
     }
 
 }

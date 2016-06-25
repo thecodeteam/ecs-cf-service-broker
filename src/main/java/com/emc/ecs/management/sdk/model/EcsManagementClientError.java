@@ -10,40 +10,40 @@ public class EcsManagementClientError {
     private Boolean retryable;
 
     public long getCode() {
-	return code;
+        return code;
     }
 
     public void setCode(long code) {
-	this.code = code;
+        this.code = code;
     }
 
     public String getDescription() {
-	return description;
+        return description;
     }
 
     public void setDescription(String description) {
-	this.description = description;
+        this.description = description;
     }
 
     public String getDetails() {
-	return details;
+        return details;
     }
 
     public void setDetails(String details) {
-	this.details = details;
+        this.details = details;
     }
 
     public Boolean getRetryable() {
-	return retryable;
+        return retryable;
     }
 
     public void setRetryable(Boolean retryable) {
-	this.retryable = retryable;
+        this.retryable = retryable;
     }
 
     @Override
     public String toString() {
-	return "Error: " + description + " (" + code + "): " + details
-		+ ". Retryable: " + retryable + ".";
+        return "Error: " + description + " (" + code + "): " + details
+                + ". Retryable: " + retryable + ".";
     }
 }
