@@ -72,8 +72,11 @@ public class Fixtures {
     public static final String BINDING_ID =
 	    "cf2f8326-3465-4810-9da1-54d328935b81";
     public static final String BUCKET_NAME = "testbucket1";
+	public static final String ACCESS_DURING_OUTAGE = "access-during-outage";
+	public static final String ENCRYPTED = "encrypted";
+	public static final String FILE_ACCESSIBLE = "file-accessible";
 
-    public static ServiceDefinitionProxy bucketServiceFixture() {
+	public static ServiceDefinitionProxy bucketServiceFixture() {
 	/*
 	 * Plan 1: 5gb quota with 4gb notification
 	 */
@@ -92,9 +95,9 @@ public class Fixtures {
 	Map<String, Object> settings2 = new HashMap<>();
 	PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, UNLIMITED,
 		PAY_PER_GB_PER_MONTH, null, false);
-	settings2.put("encrypted", true);
-	settings2.put("access-during-outage", true);
-	settings2.put("file-accessible", true);
+	settings2.put(ENCRYPTED, true);
+	settings2.put(ACCESS_DURING_OUTAGE, true);
+	settings2.put(FILE_ACCESSIBLE, true);
 	bucketPlan2.setServiceSettings(settings2);
 
 	List<PlanProxy> plans = Arrays.asList(bucketPlan1, bucketPlan2);

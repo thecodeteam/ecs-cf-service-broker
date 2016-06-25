@@ -90,8 +90,9 @@ public class EcsService {
 	    EcsManagementResourceNotFoundException {
 
 	if (bucketExists(id)) {
-	    if (errorOnExists)
-		throw new ServiceInstanceExistsException(id, service.getId());
+	    if (errorOnExists) {
+			throw new ServiceInstanceExistsException(id, service.getId());
+		}
 	    return;
 	}
 
@@ -127,7 +128,7 @@ public class EcsService {
 	parameters.putAll(service.getServiceSettings());
 	@SuppressWarnings(UNCHECKED)
 	Map<String, Object> quota = (Map<String, Object>) parameters
-		.getOrDefault("quota", new HashMap<>());
+		.getOrDefault(QUOTA, new HashMap<>());
 	int limit = (int) quota.getOrDefault(LIMIT, -1);
 	int warn = (int) quota.getOrDefault(WARN, -1);
 
@@ -292,8 +293,9 @@ public class EcsService {
     private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {
 	Optional<BaseUrl> maybeBaseUrl = baseUrlList.stream()
 		.filter(b -> "DefaultBaseUrl".equals(b.getName())).findAny();
-	if (maybeBaseUrl.isPresent())
-	    return maybeBaseUrl.get().getId();
+	if (maybeBaseUrl.isPresent()) {
+		return maybeBaseUrl.get().getId();
+	}
 	return baseUrlList.get(0).getId();
     }
 

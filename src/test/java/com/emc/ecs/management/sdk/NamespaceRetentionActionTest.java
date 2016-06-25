@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.common.EcsActionTest;
-import com.emc.ecs.management.sdk.NamespaceRetentionAction;
 import com.emc.ecs.management.sdk.model.RetentionClassCreate;
 import com.emc.ecs.management.sdk.model.RetentionClassDetails;
 import com.emc.ecs.management.sdk.model.RetentionClassUpdate;

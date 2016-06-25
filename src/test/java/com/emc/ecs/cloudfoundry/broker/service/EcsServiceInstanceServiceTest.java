@@ -24,8 +24,6 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
-import com.emc.ecs.cloudfoundry.broker.service.EcsService;
-import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceService;
 
 @RunWith(MockitoJUnitRunner.class)
 public class EcsServiceInstanceServiceTest {
@@ -52,14 +50,15 @@ public class EcsServiceInstanceServiceTest {
     @Test
     public void testCreateBucketService() throws EcsManagementClientException,
 	    IOException, JAXBException, EcsManagementResourceNotFoundException {
+		ServiceDefinitionProxy service = bucketServiceFixture();
 	when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
-		.thenReturn(bucketServiceFixture());
+		.thenReturn(service);
 	Map<String, Object> params = new HashMap<>();
 	instSvc.createServiceInstance(bucketCreateRequestFixture(params));
 
 	verify(repository).save(any(ServiceInstance.class));
 	verify(ecs, times(1)).createBucket(eq(BUCKET_NAME),
-		any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+		eq(service), any(PlanProxy.class),
 		eq(Optional.ofNullable(params)));
     }
 
@@ -143,7 +142,8 @@ public class EcsServiceInstanceServiceTest {
 	instSvc.createServiceInstance(namespaceCreateRequestFixture());
 
 	verify(repository).save(any(ServiceInstance.class));
-	verify(ecs, times(1)).createNamespace(eq(NAMESPACE), any(ServiceDefinitionProxy.class),
+	verify(ecs, times(1)).createNamespace(eq(NAMESPACE),
+	    any(ServiceDefinitionProxy.class),
 		any(PlanProxy.class), eq(Optional.empty()));
     }
 
