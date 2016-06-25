@@ -9,33 +9,33 @@ public class UserDeleteParam {
     private String namespace;
 
     public UserDeleteParam() {
-	super();
+        super();
     }
 
     public UserDeleteParam(String user) {
-	super();
-	this.user = user;
+        super();
+        this.user = user;
     }
 
     public UserDeleteParam(String user, String namespace) {
-	super();
-	this.user = user;
-	this.namespace = namespace;
+        super();
+        this.user = user;
+        this.namespace = namespace;
     }
 
     public String getUser() {
-	return user;
+        return user;
     }
 
     public void setUser(String user) {
-	this.user = user;
+        this.user = user;
     }
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 }

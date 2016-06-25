@@ -6,37 +6,37 @@ public class BaseUrl {
     private Link link;
 
     public BaseUrl() {
-	super();
+        super();
     }
 
     public BaseUrl(String id, Link link, String name) {
-	super();
-	this.id = id;
-	this.link = link;
-	this.name = name;
+        super();
+        this.id = id;
+        this.link = link;
+        this.name = name;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public String getId() {
-	return id;
+        return id;
     }
 
     public void setId(String id) {
-	this.id = id;
+        this.id = id;
     }
 
     public Link getLink() {
-	return link;
+        return link;
     }
 
     public void setLink(Link link) {
-	this.link = link;
+        this.link = link;
     }
 }

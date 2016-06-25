@@ -1,20 +1,13 @@
 package com.emc.ecs.management.sdk.model;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "retention_class_update")
-public class RetentionClassUpdate {
-
+@XmlRootElement(name = "default_bucket_retention")
+public class DefaultBucketRetention {
     private int period;
 
-    public RetentionClassUpdate() {
-        super();
-    }
-
-    public RetentionClassUpdate(int period) {
-        this.period = period;
-    }
-
+    @XmlElement
     public int getPeriod() {
         return period;
     }
@@ -22,5 +15,4 @@ public class RetentionClassUpdate {
     public void setPeriod(int period) {
         this.period = period;
     }
-
 }

@@ -1,22 +1,24 @@
-{"properties": [
-  {
-    "name": "broker-config.management-endpoint",
-    "type": "java.lang.String",
-    "description": "ECS Management API endpoint URL.  Should be a HTTP or HTTPS URL with port"
-  },
-  {
-    "name": "broker-config.namespace",
-    "type": "java.lang.String",
-    "description": "An ECS namespace in which to contrain broker created/managed resources."
-  },
-  {
-    "name": "broker-config.replication-group",
-    "type": "java.lang.String",
-    "description": "The ECS replication group in which to create object buckets."
-  },
-  {
-    "name": "broker-config.repository-endpoint",
-    "type": "java.lang.String",
-    "description": "Optionally specified endpoint for repository S3 operations for storing broker metadata."
-  }
-]}
+{
+  "properties": [
+    {
+      "name": "broker-config.management-endpoint",
+      "type": "java.lang.String",
+      "description": "ECS Management API endpoint URL.  Should be a HTTP or HTTPS URL with port"
+    },
+    {
+      "name": "broker-config.namespace",
+      "type": "java.lang.String",
+      "description": "An ECS namespace in which to contrain broker created/managed resources."
+    },
+    {
+      "name": "broker-config.replication-group",
+      "type": "java.lang.String",
+      "description": "The ECS replication group in which to create object buckets."
+    },
+    {
+      "name": "broker-config.repository-endpoint",
+      "type": "java.lang.String",
+      "description": "Optionally specified endpoint for repository S3 operations for storing broker metadata."
+    }
+  ]
+}

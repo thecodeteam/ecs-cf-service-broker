@@ -1,10 +1,10 @@
 package com.emc.ecs.cloudfoundry.broker.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class PlanProxy {
@@ -18,84 +18,84 @@ public class PlanProxy {
     private Map<String, Object> serviceSettings = new HashMap<>();
 
     public PlanProxy() {
-	super();
+        super();
     }
 
     public PlanProxy(String id, String name, String description,
-	    PlanMetadataProxy metadata, Boolean free) {
-	super();
-	this.id = id;
-	this.name = name;
-	this.description = description;
-	this.metadata = metadata;
-	this.free = free;
+                     PlanMetadataProxy metadata, Boolean free) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.metadata = metadata;
+        this.free = free;
     }
 
     public Plan unproxy() {
-	return new Plan(id, name, description, metadata.unproxy(), free);
+        return new Plan(id, name, description, metadata.unproxy(), free);
     }
 
     public String getId() {
-	return id;
+        return id;
     }
 
     public void setId(String id) {
-	this.id = id;
+        this.id = id;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public String getDescription() {
-	return description;
+        return description;
     }
 
     public void setDescription(String description) {
-	this.description = description;
+        this.description = description;
     }
 
     public PlanMetadataProxy getMetadata() {
-	return metadata;
+        return metadata;
     }
 
     public void setMetadata(PlanMetadataProxy metadata) {
-	this.metadata = metadata;
+        this.metadata = metadata;
     }
 
     public int getQuotaLimit() {
-	return quotaLimit;
+        return quotaLimit;
     }
 
     public void setQuotaLimit(int quotaLimit) {
-	this.quotaLimit = quotaLimit;
+        this.quotaLimit = quotaLimit;
     }
 
     public int getQuotaWarning() {
-	return quotaWarning;
+        return quotaWarning;
     }
 
     public void setQuotaWarning(int quotaWarning) {
-	this.quotaWarning = quotaWarning;
+        this.quotaWarning = quotaWarning;
     }
 
     public Boolean getFree() {
-	return free;
+        return free;
     }
 
     public void setFree(Boolean free) {
-	this.free = free;
+        this.free = free;
     }
 
     public Map<String, Object> getServiceSettings() {
-	return serviceSettings;
+        return serviceSettings;
     }
 
     public void setServiceSettings(Map<String, Object> serviceSettings) {
-	this.serviceSettings = serviceSettings;
+        this.serviceSettings = serviceSettings;
     }
 }

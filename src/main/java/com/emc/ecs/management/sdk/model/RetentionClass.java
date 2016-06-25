@@ -5,18 +5,18 @@ public class RetentionClass {
     private int period;
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public int getPeriod() {
-	return period;
+        return period;
     }
 
     public void setPeriod(int period) {
-	this.period = period;
+        this.period = period;
     }
 }

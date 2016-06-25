@@ -17,100 +17,100 @@ public class NamespaceModel {
 
     @XmlElement(name = "default_object_project")
     public String getDefaultObjectProject() {
-	return defaultObjectProject;
+        return defaultObjectProject;
     }
 
     public void setDefaultObjectProject(String defaultObjectProject) {
-	this.defaultObjectProject = defaultObjectProject;
+        this.defaultObjectProject = defaultObjectProject;
     }
 
     @XmlElement(name = "default_data_services_vpool")
     public String getDefaultDataServicesVpool() {
-	return defaultDataServicesVpool;
+        return defaultDataServicesVpool;
     }
 
     public void setDefaultDataServicesVpool(String defaultDataServicesVpool) {
-	this.defaultDataServicesVpool = defaultDataServicesVpool;
+        this.defaultDataServicesVpool = defaultDataServicesVpool;
     }
 
     @XmlElement(name = "allowed_vpools_list")
     public String getAllowedVpoolsList() {
-	return allowedVpoolsList;
+        return allowedVpoolsList;
     }
 
     public void setAllowedVpoolsList(String allowedVpoolsList) {
-	this.allowedVpoolsList = allowedVpoolsList;
+        this.allowedVpoolsList = allowedVpoolsList;
     }
 
     @XmlElement(name = "disallowed_vpools_list")
     public String getDisallowedVpoolsList() {
-	return disallowedVpoolsList;
+        return disallowedVpoolsList;
     }
 
     public void setDisallowedVpoolsList(String disallowedVpoolsList) {
-	this.disallowedVpoolsList = disallowedVpoolsList;
+        this.disallowedVpoolsList = disallowedVpoolsList;
     }
 
     @XmlElement(name = "namespace_admins")
     public String getNamespaceAdmins() {
-	return namespaceAdmins;
+        return namespaceAdmins;
     }
 
     public void setNamespaceAdmins(String namespaceAdmins) {
-	this.namespaceAdmins = namespaceAdmins;
+        this.namespaceAdmins = namespaceAdmins;
     }
 
     @XmlElement(name = "is_encryption_enabled")
     public Boolean getIsEncryptionEnabled() {
-	return isEncryptionEnabled;
+        return isEncryptionEnabled;
     }
 
     public void setIsEncryptionEnabled(Boolean isEncryptionEnabled) {
-	this.isEncryptionEnabled = isEncryptionEnabled;
+        this.isEncryptionEnabled = isEncryptionEnabled;
     }
 
     @XmlElement(name = "default_bucket_block_size")
     public Integer getDefaultBucketBlockSize() {
-	return defaultBucketBlockSize;
+        return defaultBucketBlockSize;
     }
 
     public void setDefaultBucketBlockSize(Integer defaultBucketBlockSize) {
-	this.defaultBucketBlockSize = defaultBucketBlockSize;
+        this.defaultBucketBlockSize = defaultBucketBlockSize;
     }
 
     @XmlElement(name = "is_stale_allowed")
     public Boolean getIsStaleAllowed() {
-	return isStaleAllowed;
+        return isStaleAllowed;
     }
 
     public void setIsStaleAllowed(Boolean isStaleAllowed) {
-	this.isStaleAllowed = isStaleAllowed;
+        this.isStaleAllowed = isStaleAllowed;
     }
 
     @XmlElement(name = "is_compliance_enabled")
     public Boolean getIsComplianceEnabled() {
-	return isComplianceEnabled;
+        return isComplianceEnabled;
     }
 
     public void setIsComplianceEnabled(Boolean complianceEnabled) {
-	this.isComplianceEnabled = complianceEnabled;
+        this.isComplianceEnabled = complianceEnabled;
     }
 
     @XmlElement(name = "external_group_admins")
     public String getExternalGroupAdmins() {
-	return externalGroupAdmins;
+        return externalGroupAdmins;
     }
 
     public void setExternalGroupAdmins(String externalGroupAdmins) {
-	this.externalGroupAdmins = externalGroupAdmins;
+        this.externalGroupAdmins = externalGroupAdmins;
     }
 
     @XmlElement(name = "user_mapping")
     public UserMapping getUserMapping() {
-	return userMapping;
+        return userMapping;
     }
 
     public void setUserMapping(UserMapping userMapping) {
-	this.userMapping = userMapping;
+        this.userMapping = userMapping;
     }
 }

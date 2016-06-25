@@ -10,30 +10,30 @@ public class Link {
     private String rel;
 
     public Link() {
-	super();
+        super();
     }
 
     public Link(String rel, String href) {
-	super();
-	this.rel = rel;
-	this.href = href;
+        super();
+        this.rel = rel;
+        this.href = href;
     }
 
     @XmlAttribute
     public String getHref() {
-	return href;
+        return href;
     }
 
     public void setHref(String href) {
-	this.href = href;
+        this.href = href;
     }
 
     @XmlAttribute
     public String getRel() {
-	return rel;
+        return rel;
     }
 
     public void setRel(String rel) {
-	this.rel = rel;
+        this.rel = rel;
     }
 }

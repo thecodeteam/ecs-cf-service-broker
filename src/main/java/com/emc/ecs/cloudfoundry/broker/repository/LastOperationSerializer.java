@@ -1,9 +1,8 @@
 package com.emc.ecs.cloudfoundry.broker.repository;
 
-import org.springframework.cloud.servicebroker.model.OperationState;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.springframework.cloud.servicebroker.model.OperationState;
 
 public class LastOperationSerializer {
 
@@ -19,38 +18,38 @@ public class LastOperationSerializer {
     private boolean deleteOperation;
 
     public LastOperationSerializer() {
-	super();
+        super();
     }
 
     public LastOperationSerializer(final OperationState operationState,
-	    final String description, final boolean deleteOperation) {
-	super();
-	this.setOperationState(operationState);
-	this.setDescription(description);
-	this.setDeleteOperation(deleteOperation);
+            final String description, final boolean deleteOperation) {
+        super();
+        this.setOperationState(operationState);
+        this.setDescription(description);
+        this.setDeleteOperation(deleteOperation);
     }
 
     public OperationState getOperationState() {
-	return operationState;
+        return operationState;
     }
 
     public void setOperationState(OperationState operationState) {
-	this.operationState = operationState;
+        this.operationState = operationState;
     }
 
     public String getDescription() {
-	return description;
+        return description;
     }
 
     public void setDescription(String description) {
-	this.description = description;
+        this.description = description;
     }
 
     public boolean isDeleteOperation() {
-	return deleteOperation;
+        return deleteOperation;
     }
 
     public void setDeleteOperation(boolean deleteOperation) {
-	this.deleteOperation = deleteOperation;
+        this.deleteOperation = deleteOperation;
     }
 }

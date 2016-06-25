@@ -1,13 +1,12 @@
 package com.emc.ecs.cloudfoundry.broker.repository;
 
-import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
-import org.springframework.cloud.servicebroker.model.OperationState;
-import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.OperationState;
+import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
@@ -48,52 +47,52 @@ public class ServiceInstance {
     }
 
     public ServiceInstance(CreateServiceInstanceRequest request) {
-	super();
-	this.serviceDefinitionId = request.getServiceDefinitionId();
-	this.planId = request.getPlanId();
-	this.organizationGuid = request.getOrganizationGuid();
-	this.spaceGuid = request.getSpaceGuid();
-	this.serviceInstanceId = request.getServiceInstanceId();
-	this.lastOperation = new LastOperationSerializer(
-		OperationState.IN_PROGRESS, "Provisioning", false);
+        super();
+        this.serviceDefinitionId = request.getServiceDefinitionId();
+        this.planId = request.getPlanId();
+        this.organizationGuid = request.getOrganizationGuid();
+        this.spaceGuid = request.getSpaceGuid();
+        this.serviceInstanceId = request.getServiceInstanceId();
+        this.lastOperation = new LastOperationSerializer(
+                OperationState.IN_PROGRESS, "Provisioning", false);
     }
 
     public String getServiceInstanceId() {
-	return serviceInstanceId;
+        return serviceInstanceId;
     }
 
     public String getServiceDefinitionId() {
-	return serviceDefinitionId;
+        return serviceDefinitionId;
     }
 
     public String getPlanId() {
-	return planId;
+        return planId;
     }
 
     public String getOrganizationGuid() {
-	return organizationGuid;
+        return organizationGuid;
     }
 
     public String getSpaceGuid() {
-	return spaceGuid;
+        return spaceGuid;
     }
 
     public String getDashboardUrl() {
-	return dashboardUrl;
+        return dashboardUrl;
     }
 
     public boolean isAsync() {
-	return async;
+        return async;
     }
 
     public LastOperationSerializer getServiceInstanceLastOperation() {
-	return lastOperation;
+        return lastOperation;
     }
 
     public void update(UpdateServiceInstanceRequest request) {
-	this.serviceDefinitionId = request.getServiceDefinitionId();
-	this.planId = request.getPlanId();
-	this.serviceInstanceId = request.getServiceInstanceId();
+        this.serviceDefinitionId = request.getServiceDefinitionId();
+        this.planId = request.getPlanId();
+        this.serviceInstanceId = request.getServiceInstanceId();
     }
 
 }

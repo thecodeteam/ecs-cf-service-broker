@@ -5,18 +5,18 @@ public class QuotaDetails {
     private long notificationSize;
 
     public long getBlockSize() {
-	return blockSize;
+        return blockSize;
     }
 
     public void setBlockSize(long blockSize) {
-	this.blockSize = blockSize;
+        this.blockSize = blockSize;
     }
 
     public long getNotificationSize() {
-	return notificationSize;
+        return notificationSize;
     }
 
     public void setNotificationSize(long notificationSize) {
-	this.notificationSize = notificationSize;
+        this.notificationSize = notificationSize;
     }
 }

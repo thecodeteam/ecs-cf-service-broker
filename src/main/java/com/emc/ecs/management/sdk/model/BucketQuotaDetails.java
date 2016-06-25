@@ -9,18 +9,18 @@ public class BucketQuotaDetails extends QuotaDetails {
     private String namespace;
 
     public String getBucketname() {
-	return bucketname;
+        return bucketname;
     }
 
     public void setBucketname(String bucketname) {
-	this.bucketname = bucketname;
+        this.bucketname = bucketname;
     }
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 }

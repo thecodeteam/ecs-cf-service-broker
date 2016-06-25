@@ -9,35 +9,35 @@ public class CostProxy {
     private String unit;
 
     public CostProxy() {
-	super();
+        super();
     }
 
     public CostProxy(Map<String, Object> amount, String unit) {
-	super();
-	this.amount = amount;
-	this.unit = unit;
+        super();
+        this.amount = amount;
+        this.unit = unit;
     }
 
     public Map<String, Object> getAmount() {
-	return amount;
+        return amount;
     }
 
     public void setAmount(Map<String, Object> amount) {
-	this.amount = amount;
+        this.amount = amount;
     }
 
     public String getUnit() {
-	return unit;
+        return unit;
     }
 
     public void setUnit(String unit) {
-	this.unit = unit;
+        this.unit = unit;
     }
 
     public Map<String, Object> unproxy() {
-	Map<String, Object> map = new HashMap<>();
-	map.put("amount", amount);
-	map.put("unit", unit);
-	return map;
+        Map<String, Object> map = new HashMap<>();
+        map.put("amount", amount);
+        map.put("unit", unit);
+        return map;
     }
 }

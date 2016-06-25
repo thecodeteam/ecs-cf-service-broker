@@ -1,9 +1,8 @@
 package com.emc.ecs.management.sdk.model;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "group_acl")
 public class BucketGroupAcl {
@@ -12,19 +11,19 @@ public class BucketGroupAcl {
     private List<String> permissions;
 
     public String getGroup() {
-	return group;
+        return group;
     }
 
     public void setGroup(String group) {
-	this.group = group;
+        this.group = group;
     }
 
     @XmlElement(name = "permission")
     public List<String> getPermissions() {
-	return permissions;
+        return permissions;
     }
 
     public void setPermissions(List<String> permissions) {
-	this.permissions = permissions;
+        this.permissions = permissions;
     }
 }

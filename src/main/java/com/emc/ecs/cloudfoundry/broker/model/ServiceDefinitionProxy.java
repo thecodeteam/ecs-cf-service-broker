@@ -1,14 +1,14 @@
 package com.emc.ecs.cloudfoundry.broker.model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.springframework.cloud.servicebroker.model.DashboardClient;
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class ServiceDefinitionProxy {
@@ -26,141 +26,141 @@ public class ServiceDefinitionProxy {
     private DashboardClientProxy dashboardClient;
 
     public ServiceDefinitionProxy() {
-	super();
+        super();
     }
 
     public ServiceDefinitionProxy(String id, String name, String description,
-	    Boolean bindable, Boolean planUpdatable, List<String> tags,
-	    Map<String, Object> serviceSettings, Map<String, Object> metadata,
-	    List<PlanProxy> plans, List<String> requires,
-	    DashboardClientProxy dashboardClient) {
-	super();
-	this.id = id;
-	this.name = name;
-	this.description = description;
-	this.bindable = bindable;
-	this.planUpdatable = planUpdatable;
-	this.tags = tags;
-	this.serviceSettings = serviceSettings;
-	this.metadata = metadata;
-	this.plans = plans;
-	this.requires = requires;
-	this.dashboardClient = dashboardClient;
+            Boolean bindable, Boolean planUpdatable, List<String> tags,
+            Map<String, Object> serviceSettings, Map<String, Object> metadata,
+            List<PlanProxy> plans, List<String> requires,
+            DashboardClientProxy dashboardClient) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.bindable = bindable;
+        this.planUpdatable = planUpdatable;
+        this.tags = tags;
+        this.serviceSettings = serviceSettings;
+        this.metadata = metadata;
+        this.plans = plans;
+        this.requires = requires;
+        this.dashboardClient = dashboardClient;
     }
 
     public ServiceDefinition unproxy() {
-	List<Plan> realPlans = null;
-	if (plans != null)
-	    realPlans = plans.stream().map(p -> p.unproxy())
-		    .collect(Collectors.toList());
+        List<Plan> realPlans = null;
+        if (plans != null)
+            realPlans = plans.stream().map(p -> p.unproxy())
+                    .collect(Collectors.toList());
 
-	DashboardClient realDashboardClient = null;
-	if (dashboardClient != null)
-	    realDashboardClient = dashboardClient.unproxy();
+        DashboardClient realDashboardClient = null;
+        if (dashboardClient != null)
+            realDashboardClient = dashboardClient.unproxy();
 
-	return new ServiceDefinition(id, name, description, bindable,
-		planUpdatable, realPlans, tags, metadata, requires,
-		realDashboardClient);
+        return new ServiceDefinition(id, name, description, bindable,
+                planUpdatable, realPlans, tags, metadata, requires,
+                realDashboardClient);
     }
 
     public String getId() {
-	return id;
+        return id;
     }
 
     public void setId(String id) {
-	this.id = id;
+        this.id = id;
     }
 
     public String getName() {
-	return name;
+        return name;
     }
 
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public String getDescription() {
-	return description;
+        return description;
     }
 
     public void setDescription(String description) {
-	this.description = description;
+        this.description = description;
     }
 
     public Boolean getBindable() {
-	return bindable;
+        return bindable;
     }
 
     public void setBindable(Boolean bindable) {
-	this.bindable = bindable;
+        this.bindable = bindable;
     }
 
     public Boolean getPlanUpdatable() {
-	return planUpdatable;
+        return planUpdatable;
     }
 
     public void setPlanUpdatable(Boolean planUpdatable) {
-	this.planUpdatable = planUpdatable;
+        this.planUpdatable = planUpdatable;
     }
 
     public List<String> getTags() {
-	return tags;
+        return tags;
     }
 
     public void setTags(List<String> tags) {
-	this.tags = tags;
+        this.tags = tags;
     }
 
     public Map<String, Object> getMetadata() {
-	return metadata;
+        return metadata;
     }
 
     public void setMetadata(Map<String, Object> metadata) {
-	this.metadata = metadata;
+        this.metadata = metadata;
     }
 
     public List<PlanProxy> getPlans() {
-	return plans;
+        return plans;
     }
 
     public void setPlans(List<PlanProxy> plans) {
-	this.plans = plans;
+        this.plans = plans;
     }
 
     public List<String> getRequires() {
-	return requires;
+        return requires;
     }
 
     public void setRequires(List<String> requires) {
-	this.requires = requires;
+        this.requires = requires;
     }
 
     public DashboardClientProxy getDashboardClient() {
-	return dashboardClient;
+        return dashboardClient;
     }
 
     public void setDashboardClient(DashboardClientProxy dashboardClient) {
-	this.dashboardClient = dashboardClient;
+        this.dashboardClient = dashboardClient;
     }
 
     public PlanProxy findPlan(String planId) {
-	return plans.stream().filter(p -> p.getId().equals(planId)).findFirst()
-		.get();
+        return plans.stream().filter(p -> p.getId().equals(planId)).findFirst()
+                .get();
     }
 
     public Map<String, Object> getServiceSettings() {
-	return serviceSettings;
+        return serviceSettings;
     }
 
     public void setServiceSettings(Map<String, Object> serviceSettings) {
-	this.serviceSettings = serviceSettings;
+        this.serviceSettings = serviceSettings;
     }
 
     public String getType() {
-	return type;
+        return type;
     }
 
     public void setType(String type) {
-	this.type = type;
+        this.type = type;
     }
 }

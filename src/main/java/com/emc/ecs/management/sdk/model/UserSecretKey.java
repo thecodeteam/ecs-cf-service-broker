@@ -13,37 +13,37 @@ public class UserSecretKey {
 
     @XmlElement(name = "secret_key")
     public String getSecretKey() {
-	return secretKey;
+        return secretKey;
     }
 
     public void setSecretKey(String secretKey) {
-	this.secretKey = secretKey;
+        this.secretKey = secretKey;
     }
 
     @XmlElement(name = "key_timestamp")
     public String getKeyTimestamp() {
-	return keyTimestamp;
+        return keyTimestamp;
     }
 
     public void setKeyTimestamp(String keyTimestamp) {
-	this.keyTimestamp = keyTimestamp;
+        this.keyTimestamp = keyTimestamp;
     }
 
     @XmlElement(name = "key_expiry_timestamp")
     public String getKeyExpiryTimestamp() {
-	return keyExpiryTimestamp;
+        return keyExpiryTimestamp;
     }
 
     public void setKeyExpiryTimestamp(String keyExpiryTimestamp) {
-	this.keyExpiryTimestamp = keyExpiryTimestamp;
+        this.keyExpiryTimestamp = keyExpiryTimestamp;
     }
 
     public Link getLink() {
-	return link;
+        return link;
     }
 
     public void setLink(Link link) {
-	this.link = link;
+        this.link = link;
     }
 
 }

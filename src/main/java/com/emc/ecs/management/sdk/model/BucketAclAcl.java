@@ -1,9 +1,8 @@
 package com.emc.ecs.management.sdk.model;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "acl")
 public class BucketAclAcl {
@@ -13,43 +12,43 @@ public class BucketAclAcl {
     private List<BucketCustomGroupAcl> customGroupAccessList;
 
     public BucketAclAcl() {
-	super();
+        super();
     }
 
     public BucketAclAcl(List<BucketUserAcl> userAccessList,
-	    List<BucketGroupAcl> groupAccessList,
-	    List<BucketCustomGroupAcl> customGroupAccessList) {
-	super();
-	this.userAccessList = userAccessList;
-	this.groupAccessList = groupAccessList;
-	this.customGroupAccessList = customGroupAccessList;
+                        List<BucketGroupAcl> groupAccessList,
+                        List<BucketCustomGroupAcl> customGroupAccessList) {
+        super();
+        this.userAccessList = userAccessList;
+        this.groupAccessList = groupAccessList;
+        this.customGroupAccessList = customGroupAccessList;
     }
 
     @XmlElement(name = "user_acl")
     public List<BucketUserAcl> getUserAccessList() {
-	return userAccessList;
+        return userAccessList;
     }
 
     public void setUserAccessList(List<BucketUserAcl> userAccessList) {
-	this.userAccessList = userAccessList;
+        this.userAccessList = userAccessList;
     }
 
     @XmlElement(name = "group_acl")
     public List<BucketGroupAcl> getGroupAccessList() {
-	return groupAccessList;
+        return groupAccessList;
     }
 
     public void setGroupAccessList(List<BucketGroupAcl> groupAccessList) {
-	this.groupAccessList = groupAccessList;
+        this.groupAccessList = groupAccessList;
     }
 
     @XmlElement(name = "custom_group_acl")
     public List<BucketCustomGroupAcl> getCustomGroupAccessList() {
-	return customGroupAccessList;
+        return customGroupAccessList;
     }
 
     public void setCustomGroupAccessList(
-	    List<BucketCustomGroupAcl> customGroupAccessList) {
-	this.customGroupAccessList = customGroupAccessList;
+            List<BucketCustomGroupAcl> customGroupAccessList) {
+        this.customGroupAccessList = customGroupAccessList;
     }
 }

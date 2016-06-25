@@ -1,8 +1,7 @@
 package com.emc.ecs.management.sdk.model;
 
-import java.util.List;
-
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "user_create_param")
 public class UserCreateParam {
@@ -11,37 +10,37 @@ public class UserCreateParam {
     private List<String> tags;
 
     public UserCreateParam() {
-	super();
+        super();
     }
 
     public UserCreateParam(String user, String namespace) {
-	super();
-	this.user = user;
-	this.namespace = namespace;
+        super();
+        this.user = user;
+        this.namespace = namespace;
     }
 
     public String getUser() {
-	return user;
+        return user;
     }
 
     public void setUser(String user) {
-	this.user = user;
+        this.user = user;
     }
 
     public String getNamespace() {
-	return namespace;
+        return namespace;
     }
 
     public void setNamespace(String namespace) {
-	this.namespace = namespace;
+        this.namespace = namespace;
     }
 
     public List<String> getTags() {
-	return tags;
+        return tags;
     }
 
     public void setTags(List<String> tags) {
-	this.tags = tags;
+        this.tags = tags;
     }
 
 }

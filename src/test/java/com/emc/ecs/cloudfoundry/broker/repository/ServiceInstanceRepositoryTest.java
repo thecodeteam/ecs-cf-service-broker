@@ -1,13 +1,8 @@
 package com.emc.ecs.cloudfoundry.broker.repository;
 
-import static org.junit.Assert.assertEquals;
-import static com.emc.ecs.common.Fixtures.*;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-
-import javax.xml.bind.JAXBException;
-
+import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.cloudfoundry.broker.config.Application;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +11,16 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.cloudfoundry.broker.config.Application;
-import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
-import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import static com.emc.ecs.common.Fixtures.bindingInstanceFixture;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
-    initializers = ConfigFileApplicationContextInitializer.class)
+        initializers = ConfigFileApplicationContextInitializer.class)
 @ActiveProfiles("development")
 public class ServiceInstanceRepositoryTest {
 
@@ -33,13 +29,13 @@ public class ServiceInstanceRepositoryTest {
 
     @Test
     public void testSaveFindDelete()
-	    throws IOException, JAXBException, EcsManagementClientException,
-	    EcsManagementResourceNotFoundException, URISyntaxException {
-	ServiceInstanceBinding binding = bindingInstanceFixture();
-	repository.save(binding);
-	ServiceInstanceBinding binding2 = repository
-		.find(binding.getBindingId());
-	assertEquals(binding.getBindingId(), binding2.getBindingId());
-	repository.delete(binding.getBindingId());
+            throws IOException, JAXBException, EcsManagementClientException,
+            EcsManagementResourceNotFoundException, URISyntaxException {
+        ServiceInstanceBinding binding = bindingInstanceFixture();
+        repository.save(binding);
+        ServiceInstanceBinding binding2 = repository
+                .find(binding.getBindingId());
+        assertEquals(binding.getBindingId(), binding2.getBindingId());
+        repository.delete(binding.getBindingId());
     }
 }
