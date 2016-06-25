@@ -23,7 +23,7 @@ public final class NamespaceQuotaAction {
     }
 
     public static NamespaceQuotaDetails get(Connection connection,
-                                            String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT,
                 NAMESPACES, NAMESPACE, namespace, QUOTA);
         Response response = connection.handleRemoteCall(GET, uri, null);

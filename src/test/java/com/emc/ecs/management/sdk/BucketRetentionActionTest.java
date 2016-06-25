@@ -30,10 +30,13 @@ public class BucketRetentionActionTest extends EcsActionTest {
 
     @Test
     public void getUpdateBucketRetention() throws Exception {
-        DefaultBucketRetention retention = BucketRetentionAction.get(connection, namespace, BUCKET);
+        DefaultBucketRetention retention =
+                BucketRetentionAction.get(connection, namespace, BUCKET);
         assertEquals(-1, retention.getPeriod());
-        BucketRetentionAction.update(connection, namespace, BUCKET, THIRTY_DAYS_IN_SEC);
-        DefaultBucketRetention retention2 = BucketRetentionAction.get(connection, namespace, BUCKET);
+        BucketRetentionAction.update(connection, namespace, BUCKET,
+                THIRTY_DAYS_IN_SEC);
+        DefaultBucketRetention retention2 =
+                BucketRetentionAction.get(connection, namespace, BUCKET);
         assertEquals(THIRTY_DAYS_IN_SEC, retention2.getPeriod());
     }
 }

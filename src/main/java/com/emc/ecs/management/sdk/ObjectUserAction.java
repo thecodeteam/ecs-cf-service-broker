@@ -14,14 +14,14 @@ public final class ObjectUserAction {
     }
 
     public static void create(Connection connection, String id,
-                              String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, USERS);
         connection.handleRemoteCall(POST, uri,
                 new UserCreateParam(id, namespace));
     }
 
     public static boolean exists(Connection connection, String id,
-                                 String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, USERS, id, INFO)
                 .queryParam(NAMESPACE, namespace);

@@ -16,7 +16,7 @@ public final class NamespaceRetentionAction {
     }
 
     public static Boolean exists(Connection connection, String namespace,
-                                 String retentionClass) throws EcsManagementClientException {
+            String retentionClass) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
                 NAMESPACE, namespace, RETENTION, retentionClass);
         return connection.existenceQuery(uri, null);
@@ -31,21 +31,24 @@ public final class NamespaceRetentionAction {
     }
 
     public static void delete(Connection connection, String namespace,
-                              String retentionClass) throws EcsManagementClientException {
+            String retentionClass) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
                 NAMESPACE, namespace, RETENTION, retentionClass);
         connection.makeRemoteCall(DELETE, uri, null);
     }
 
     public static RetentionClassDetails get(Connection connection,
-                                            String namespace, String retentionClass) throws EcsManagementClientException {
-        UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES, NAMESPACE, namespace, RETENTION, retentionClass);
+            String namespace, String retentionClass)
+            throws EcsManagementClientException {
+        UriBuilder uri = connection.getUriBuilder()
+                .segment(OBJECT, NAMESPACES, NAMESPACE, namespace, RETENTION,
+                retentionClass);
         Response response = connection.makeRemoteCall(GET, uri, null);
         return response.readEntity(RetentionClassDetails.class);
     }
 
     public static void update(Connection connection, String namespace,
-                              String retentionClass, RetentionClassUpdate retentionClassUpdate)
+            String retentionClass, RetentionClassUpdate retentionClassUpdate)
             throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
                 NAMESPACE, namespace, RETENTION, retentionClass);

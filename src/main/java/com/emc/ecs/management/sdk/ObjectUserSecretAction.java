@@ -26,7 +26,7 @@ public final class ObjectUserSecretAction {
     }
 
     public static UserSecretKey create(Connection connection, String id,
-                                       String key) throws EcsManagementClientException {
+            String key) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT,
                 USER_SECRET_KEYS, id);
         Response response = connection.handleRemoteCall(POST, uri,

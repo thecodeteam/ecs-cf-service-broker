@@ -38,7 +38,7 @@ import org.junit.runners.Suite.SuiteClasses;
         ServiceInstanceRepositoryTest.class,
         EcsServiceInstanceBindingServiceTest.class,
         EcsServiceInstanceServiceTest.class
-})
+    })
 public class TestSuite {
 
     @Rule

@@ -127,7 +127,7 @@ public class Connection {
     }
 
     protected Response handleRemoteCall(String method, UriBuilder uri,
-                                        Object arg) throws EcsManagementClientException {
+            Object arg) throws EcsManagementClientException {
         Response response = makeRemoteCall(method, uri, arg);
         try {
             handleResponse(response);

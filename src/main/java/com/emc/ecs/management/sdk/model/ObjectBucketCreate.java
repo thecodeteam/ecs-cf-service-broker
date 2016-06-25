@@ -15,7 +15,7 @@ public class ObjectBucketCreate {
     private Boolean isEncryptionEnabled;
 
     public ObjectBucketCreate(String name, String namespace,
-                              String replicationGroup, Map<String, Object> params) {
+            String replicationGroup, Map<String, Object> params) {
         super();
         this.name = name;
         this.namespace = namespace;

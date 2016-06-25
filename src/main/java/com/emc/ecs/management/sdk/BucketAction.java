@@ -30,7 +30,7 @@ public final class BucketAction {
     }
 
     public static boolean exists(Connection connection, String id,
-                                 String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, id, INFO)
                 .queryParam(NAMESPACE, namespace);

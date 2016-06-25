@@ -30,10 +30,10 @@ public class ServiceDefinitionProxy {
     }
 
     public ServiceDefinitionProxy(String id, String name, String description,
-                                  Boolean bindable, Boolean planUpdatable, List<String> tags,
-                                  Map<String, Object> serviceSettings, Map<String, Object> metadata,
-                                  List<PlanProxy> plans, List<String> requires,
-                                  DashboardClientProxy dashboardClient) {
+            Boolean bindable, Boolean planUpdatable, List<String> tags,
+            Map<String, Object> serviceSettings, Map<String, Object> metadata,
+            List<PlanProxy> plans, List<String> requires,
+            DashboardClientProxy dashboardClient) {
         super();
         this.id = id;
         this.name = name;

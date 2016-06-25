@@ -57,20 +57,20 @@ public class EcsService {
     }
 
     public void createBucket(String id, ServiceDefinitionProxy service,
-                             PlanProxy plan) throws EcsManagementClientException,
+            PlanProxy plan) throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
         createBucket(id, service, plan, Optional.ofNullable(null), false);
     }
 
     public void createBucket(String id, ServiceDefinitionProxy service,
-                             PlanProxy plan, Optional<Map<String, Object>> parameters)
+           PlanProxy plan, Optional<Map<String, Object>> parameters)
             throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
         createBucket(id, service, plan, parameters, false);
     }
 
     public void createBucket(String id, ServiceDefinitionProxy service,
-                             PlanProxy plan, Optional<Map<String, Object>> maybeParameters,
+           PlanProxy plan, Optional<Map<String, Object>> maybeParameters,
                              Boolean errorOnExists)
             throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
@@ -106,7 +106,7 @@ public class EcsService {
     }
 
     public void changeBucketPlan(String id, ServiceDefinitionProxy service,
-                                 PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
+            PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
             throws EcsManagementClientException {
         Map<String, Object> parameters = maybeParameters
                 .orElse(new HashMap<>());
@@ -161,7 +161,7 @@ public class EcsService {
     }
 
     public void addUserToBucket(String id, String username,
-                                List<String> permissions) throws EcsManagementClientException {
+            List<String> permissions) throws EcsManagementClientException {
         BucketAcl acl = BucketAclAction.get(connection, prefix(id),
                 broker.getNamespace());
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
@@ -213,8 +213,8 @@ public class EcsService {
     }
 
     public String getNamespaceURL(String namespace,
-                                  ServiceDefinitionProxy service, PlanProxy plan,
-                                  Optional<Map<String, Object>> maybeParameters)
+            ServiceDefinitionProxy service, PlanProxy plan,
+            Optional<Map<String, Object>> maybeParameters)
             throws EcsManagementClientException {
         Map<String, Object> parameters = maybeParameters
                 .orElse(new HashMap<>());
@@ -234,7 +234,7 @@ public class EcsService {
     }
 
     private String getNamespaceURL(String namespace, boolean useSSL,
-                                   String baseURL) throws EcsManagementClientException {
+            String baseURL) throws EcsManagementClientException {
         List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
         String urlId = baseUrlList.stream()
                 .filter(b -> baseURL.equals(b.getName())).findFirst().get()
@@ -330,7 +330,7 @@ public class EcsService {
     }
 
     public void changeNamespacePlan(String id, ServiceDefinitionProxy service,
-                                    PlanProxy plan, Map<String, Object> parameters)
+            PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());

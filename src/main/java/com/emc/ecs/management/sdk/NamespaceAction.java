@@ -33,7 +33,7 @@ public final class NamespaceAction {
     }
 
     public static void create(Connection connection,
-                              NamespaceCreate createParam) throws EcsManagementClientException {
+            NamespaceCreate createParam) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
                 NAMESPACE);
         connection.handleRemoteCall(POST, uri, createParam);
@@ -55,7 +55,7 @@ public final class NamespaceAction {
     }
 
     public static void update(Connection connection, String namespace,
-                              NamespaceUpdate updateParam) throws EcsManagementClientException {
+            NamespaceUpdate updateParam) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NAMESPACES,
                 NAMESPACE, namespace);
         connection.handleRemoteCall(PUT, uri, updateParam);

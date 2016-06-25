@@ -67,8 +67,8 @@ public class CatalogConfigTest {
     }
 
     private void testServiceDefinition(ServiceDefinition service, String id,
-                                       String name, String description, boolean bindable,
-                                       boolean updatable, List<String> requires, String dashboardUrl) {
+            String name, String description, boolean bindable,
+            boolean updatable, List<String> requires, String dashboardUrl) {
         assertEquals(id, service.getId());
         assertEquals(name, service.getName());
         assertEquals(description, service.getDescription());
@@ -79,8 +79,8 @@ public class CatalogConfigTest {
     }
 
     private void testServiceDefinitionMetadata(Map<String, Object> metadata,
-                                               String displayName, String imageUrl, String providerDisplayName,
-                                               String documentationUrl, String supportUrl) {
+            String displayName, String imageUrl, String providerDisplayName,
+            String documentationUrl, String supportUrl) {
         assertEquals(displayName, metadata.get("displayName"));
         assertEquals(imageUrl, metadata.get("imageUrl"));
         assertEquals(providerDisplayName, metadata.get("providerDisplayName"));

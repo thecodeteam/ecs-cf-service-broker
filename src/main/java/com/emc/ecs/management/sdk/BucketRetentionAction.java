@@ -15,7 +15,8 @@ public class BucketRetentionAction {
     }
 
     public static DefaultBucketRetention get(Connection connection,
-                                             String namespace, String bucket) throws EcsManagementClientException {
+            String namespace, String bucket)
+            throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, bucket, RETENTION)
                 .queryParam(NAMESPACE, namespace);
@@ -28,6 +29,7 @@ public class BucketRetentionAction {
             throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, bucket, RETENTION);
-        connection.makeRemoteCall(PUT, uri, new DefaultBucketRetentionUpdate(namespace, period));
+        connection.makeRemoteCall(PUT, uri,
+                new DefaultBucketRetentionUpdate(namespace, period));
     }
 }

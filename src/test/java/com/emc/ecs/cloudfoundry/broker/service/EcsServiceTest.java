@@ -33,9 +33,10 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ReplicationGroupAction.class, BucketAction.class,
         ObjectUserAction.class, ObjectUserSecretAction.class,
-        BaseUrlAction.class, BucketQuotaAction.class, BucketRetentionAction.class,
-        NamespaceAction.class, NamespaceQuotaAction.class,
-        NamespaceRetentionAction.class, BucketAclAction.class})
+        BaseUrlAction.class, BucketQuotaAction.class,
+        BucketRetentionAction.class, NamespaceAction.class,
+        NamespaceQuotaAction.class, NamespaceRetentionAction.class,
+        BucketAclAction.class})
 public class EcsServiceTest {
     private static final String ONE_YEAR = "one-year";
     private static final String BASE_URL = "base-url";
@@ -1123,6 +1124,7 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(BucketRetentionAction.class, UPDATE,
                 same(connection), anyString(), anyString(), anyInt());
         PowerMockito.when(BucketRetentionAction.class, GET,
-                same(connection), anyString(), anyString()).thenReturn(retention);
+                same(connection), anyString(), anyString())
+                .thenReturn(retention);
     }
 }

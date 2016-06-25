@@ -21,7 +21,7 @@ public final class BucketAclAction {
     }
 
     public static BucketAcl get(Connection connection, String id,
-                                String namespace) throws EcsManagementClientException {
+            String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, id, ACL)
                 .queryParam(NAMESPACE, namespace);

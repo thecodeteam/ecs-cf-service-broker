@@ -70,6 +70,9 @@ public class Fixtures {
     public static final String ACCESS_DURING_OUTAGE = "access-during-outage";
     public static final String ENCRYPTED = "encrypted";
     public static final String FILE_ACCESSIBLE = "file-accessible";
+    public static final String COMPLIANCE_ENABLED = "compliance-enabled";
+    public static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
+    public static final String ENCRYPTED1 = "encrypted";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -127,10 +130,10 @@ public class Fixtures {
         Map<String, Object> settings2 = new HashMap<>();
         PlanProxy namespacePlan2 = new PlanProxy(NAMESPACE_PLAN_ID2,
                 UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
-        settings2.put("encrypted", true);
-        settings2.put("domain-group-admins", EXTERNAL_ADMIN);
-        settings2.put("compliance-enabled", true);
-        settings2.put("access-during-outage", true);
+        settings2.put(ENCRYPTED1, true);
+        settings2.put(DOMAIN_GROUP_ADMINS, EXTERNAL_ADMIN);
+        settings2.put(COMPLIANCE_ENABLED, true);
+        settings2.put(ACCESS_DURING_OUTAGE, true);
         namespacePlan2.setServiceSettings(settings2);
 
 	/*
@@ -142,10 +145,10 @@ public class Fixtures {
         Map<String, Object> settings3 = new HashMap<>();
         PlanProxy namespacePlan3 = new PlanProxy(NAMESPACE_PLAN_ID3,
                 "Compliant", PAY_PER_GB_PER_MONTH, null, false);
-        settings3.put("encrypted", true);
-        settings3.put("compliance-enabled", true);
-        settings3.put("access-during-outage", true);
-        settings3.put("retention", retention);
+        settings3.put(ENCRYPTED, true);
+        settings3.put(COMPLIANCE_ENABLED, true);
+        settings3.put(ACCESS_DURING_OUTAGE, true);
+        settings3.put(RETENTION, retention);
         namespacePlan3.setServiceSettings(settings3);
 
         List<PlanProxy> plans = Arrays.asList(namespacePlan1, namespacePlan2,

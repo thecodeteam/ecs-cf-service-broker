@@ -29,7 +29,7 @@ public final class ReplicationGroupAction {
     }
 
     public static DataServiceReplicationGroup get(Connection connection,
-                                                  String id) throws EcsManagementClientException,
+            String id) throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
         List<DataServiceReplicationGroup> repGroups = list(connection);
         Optional<DataServiceReplicationGroup> optionalRg = repGroups.stream()
