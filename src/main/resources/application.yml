@@ -59,7 +59,7 @@ catalog:
           service-settings:
             quota:
               limit: 5
-              warning: 4
+              warn: 4
           metadata:
             costs:
               - amount:
@@ -97,7 +97,7 @@ catalog:
           service-settings:
             quota:
               limit: 5
-              warning: 4
+              warn: 4
           free: true
           metadata:
             costs:
