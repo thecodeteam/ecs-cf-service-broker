@@ -3,7 +3,7 @@ package com.emc.ecs.cloudfoundry.broker.config;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.ConfigFileApplicationContextInitializer;
+import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.cloud.servicebroker.model.Catalog;
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.cloud.servicebroker.model.ServiceDefinition;
