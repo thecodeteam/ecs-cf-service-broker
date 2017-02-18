@@ -5,7 +5,7 @@ import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.filter.LoggingFilter;
+import org.glassfish.jersey.logging.LoggingFeature;
 
 import javax.net.ssl.*;
 import javax.ws.rs.client.Client;
@@ -146,9 +146,8 @@ public class Connection {
         if (!isLoggedIn())
             login();
         Client jerseyClient = buildJerseyClient();
-        Logger logger = Logger.getLogger(LoggingFilter.class.getName());
         Builder request = jerseyClient.target(uri)
-                .register(new LoggingFilter(logger, true)).request()
+                .register(LoggingFeature.class).request()
                 .header("X-SDS-AUTH-TOKEN", authToken)
                 .header("Accept", "application/xml");
         Response response;
