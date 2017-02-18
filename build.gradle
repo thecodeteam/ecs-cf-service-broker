@@ -40,15 +40,16 @@ ext {
 dependencies {
     compile(group: 'org.springframework.boot', name: 'spring-boot-starter-jersey', version: springBootVersion)
     compile(group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: springBootVersion)
+    compile(group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: springBootVersion)
 
     compile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion)
-    compile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', classifier: 'tests', version: springCloudServiceBrokerVersion)
 	
     compile(group: 'com.emc.ecs', name: 'object-client', version: '3.0.0'){
     	exclude module: "slf4j-log4j12"
     }
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion)
+    testCompile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion, classifier: "tests")
     testCompile(group: 'com.github.tomakehurst', name: 'wiremock-standalone', version: '2.5.1')
     testCompile(group: 'org.powermock', name: 'powermock-api-mockito', version: '1.6.6')
     testCompile(group: 'org.powermock', name: 'powermock-module-junit4', version: '1.6.6')
