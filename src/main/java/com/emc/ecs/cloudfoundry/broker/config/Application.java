@@ -42,10 +42,15 @@ public class Application {
 
     @Bean
     public Connection ecsConnection() {
-        URL certificate = Thread.currentThread().getContextClassLoader()
-                .getResource(broker.getCertificate());
-        return new Connection(broker.getManagementEndpoint(),
-                broker.getUsername(), broker.getPassword(), certificate);
+    	if (broker.getCertificate() != null) {
+	        URL certificate = Thread.currentThread().getContextClassLoader()
+	                .getResource(broker.getCertificate());
+	        return new Connection(broker.getManagementEndpoint(),
+	                broker.getUsername(), broker.getPassword(), certificate);
+    	} else {
+    		return new Connection(broker.getManagementEndpoint(),
+	                broker.getUsername(), broker.getPassword());
+    	}
     }
 
     @Bean

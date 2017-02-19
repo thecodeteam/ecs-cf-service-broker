@@ -3,7 +3,6 @@ package com.emc.ecs.management.sdk;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 
@@ -63,19 +62,21 @@ public class Connection {
     }
 
     private Client buildJerseyClient() throws EcsManagementClientException {
-        /**
-         * Disable host name verification. Should be able to configure the ECS
-         * certificate with the correct host name to avoid this.
-         **/
-        HostnameVerifier hostnameVerifier = getHostnameVerifier();
-        HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
-        ClientBuilder builder = JerseyClientBuilder.newBuilder()
-                .register(hostnameVerifier);
-
-        if (certificate != null) {
-            builder.sslContext(getSSLContext());
-        }
-        return builder.build();
+	    ClientBuilder builder;
+	    if (certificate != null) {
+		    /**
+			 * Disable host name verification. Should be able to configure the ECS
+			 * certificate with the correct host name to avoid this.
+			 **/
+			HostnameVerifier hostnameVerifier = getHostnameVerifier();
+			HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
+			builder = ClientBuilder.newBuilder()
+				.register(hostnameVerifier);
+			builder.sslContext(getSSLContext());
+	    } else {
+	    	builder = ClientBuilder.newBuilder();
+	    }	
+		return builder.build();
     }
 
     private SSLContext getSSLContext() throws EcsManagementClientException {
