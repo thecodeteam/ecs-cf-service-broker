@@ -8,6 +8,7 @@ import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -39,7 +40,7 @@ public class ServiceInstanceRepository {
                 new URI(broker.getRepositoryEndpoint()));
         s3Config.withIdentity(broker.getPrefixedUserName())
                 .withSecretKey(broker.getRepositorySecret());
-        this.s3 = new S3JerseyClient(s3Config);
+        this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
         this.bucket = broker.getPrefixedBucketName();
     }
 
