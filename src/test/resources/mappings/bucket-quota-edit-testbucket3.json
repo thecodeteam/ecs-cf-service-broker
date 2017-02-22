@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><bucket_quota_param><blockSize>10</blockSize><namespace>ns1</namespace><notificationSize>8</notificationSize></bucket_quota_param>"
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><bucket_quota_param><blockSize>10</blockSize><notificationSize>8</notificationSize><namespace>ns1</namespace></bucket_quota_param>"
         	}
         ]
     },
