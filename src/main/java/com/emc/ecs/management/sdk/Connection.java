@@ -62,21 +62,21 @@ public class Connection {
     }
 
     private Client buildJerseyClient() throws EcsManagementClientException {
-	    ClientBuilder builder;
-	    if (certificate != null) {
-		    /**
-			 * Disable host name verification. Should be able to configure the ECS
-			 * certificate with the correct host name to avoid this.
-			 **/
-			HostnameVerifier hostnameVerifier = getHostnameVerifier();
-			HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
-			builder = ClientBuilder.newBuilder()
-				.register(hostnameVerifier);
-			builder.sslContext(getSSLContext());
-	    } else {
-	    	builder = ClientBuilder.newBuilder();
-	    }	
-		return builder.build();
+    ClientBuilder builder;
+    if (certificate != null) {
+	    /**
+		 * Disable host name verification. Should be able to configure the ECS
+		 * certificate with the correct host name to avoid this.
+		 **/
+		HostnameVerifier hostnameVerifier = getHostnameVerifier();
+		HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
+		builder = ClientBuilder.newBuilder()
+			.register(hostnameVerifier);
+		builder.sslContext(getSSLContext());
+    } else {
+    	builder = ClientBuilder.newBuilder();
+    }	
+	return builder.build();
     }
 
     private SSLContext getSSLContext() throws EcsManagementClientException {
