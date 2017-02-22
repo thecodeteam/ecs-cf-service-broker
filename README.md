@@ -1,5 +1,5 @@
 # ECS Cloud Foundry Service Broker
-[![Build Status](https://travis-ci.org/emccode/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/emccode/ecs-cf-service-broker) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/codedellemc/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/codedellemc/ecs-cf-service-broker) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
 ## Description
 
 This service broker enables Cloud Foundry applications to create, delete and
@@ -40,7 +40,7 @@ To build, make sure that you have a Java 8 runtime environment, and use Gradle.
 The service broker supports a number of configuration parameters that are available as environment variables or through
 Spring configuration.  All parameters are prefixed with the `broker-config.` string.  Default parameters point to the
 bundled ECS simulator.  For more info, check the
-[default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
+[default config](https://github.com/codedellemc/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
 
 | Parameter          | Default Value  | Required | Description                                        |
 | ------------------ |:--------------:| -------- | -------------------------------------------------- |
