@@ -38,7 +38,8 @@ public class ServiceInstanceBindingRepository {
                 new URI(broker.getRepositoryEndpoint()));
         s3Config.withIdentity(broker.getPrefixedUserName())
                 .withSecretKey(broker.getRepositorySecret());
-        this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+        this.s3 = new S3JerseyClient(s3Config,
+        		new URLConnectionClientHandler());
         this.bucket = broker.getPrefixedBucketName();
     }
 
