@@ -55,7 +55,7 @@ bundled ECS simulator.  For more info, check the
 | password           | ChangeMe       | false    | Password to authenticate to ECS management API     |
 | repositoryBucket   | repository     | false    | Internal bucket for metadata storage               |
 | prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users         |
-| brokerApiVersion   | 2.8            | false    | Version of the CF broker API to advertise          |
+| brokerApiVersion   | 2.10           | false    | Version of the CF broker API to advertise          |
 | certificate        | -              | false    | ECS SSL public key cert file                       |
 
 If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
