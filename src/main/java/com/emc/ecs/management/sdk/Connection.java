@@ -65,8 +65,8 @@ public class Connection {
         ClientBuilder builder;
         if (certificate != null) {
             /**
-            * Disable host name verification. Should be able to configure the ECS
-            * certificate with the correct host name to avoid this.
+            * Disable host name verification. Should be able to configure the
+            * ECS certificate with the correct host name to avoid this.
             **/
             HostnameVerifier hostnameVerifier = getHostnameVerifier();
             HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
