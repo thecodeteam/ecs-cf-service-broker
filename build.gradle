@@ -34,7 +34,7 @@ repositories {
 
 ext {
 	version = '0.0.1'
-	springCloudServiceBrokerVersion = '1.0.0.RELEASE'
+	springCloudServiceBrokerVersion = '1.0.1.RELEASE'
 }
 
 dependencies {
