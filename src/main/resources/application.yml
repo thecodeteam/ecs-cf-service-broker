@@ -19,16 +19,16 @@ spring:
 #   base-url:
 ---
 spring:
-  profiles: development
+  profiles: cloud
 security:
   user:
     password: password
 broker:
   certificate: localhost.pem
   namespace: ns1
-  replication-group: rg1
-  management-endpoint: https://127.0.0.1:4443
-  object-endpoint: http://127.0.0.1:9020
+  replication-group: rp
+  management-endpoint: https://34.192.158.6:4443
+  object-endpoint: http://34.192.158.6:9020
 ---
 broker:
   repository-service-id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
@@ -78,10 +78,13 @@ catalog:
       tags:
         - s3
         - bucket
+      requires:
+        - volume_mount
       service-settings:
         service-type: bucket
         head-type: s3
-        file-system-enabled: false
+        file-accessible: true
+
         access-during-outage: true
       metadata:
         displayName: ecs-bucket

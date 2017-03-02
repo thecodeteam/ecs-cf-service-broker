@@ -16,6 +16,8 @@ public final class Constants {
     public static final String VDC = "vdc";
     public static final String DATA_SERVICE = "data-service";
     public static final String VPOOLS = "vpools";
+    public static final String NFS = "nfs";
+    public static final String EXPORTS = "exports";
 
     public static final String GET = "get";
     public static final String PUT = "put";

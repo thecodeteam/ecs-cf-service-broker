@@ -225,6 +225,18 @@ public class Fixtures {
                 .withServiceInstanceId(BUCKET_NAME);
     }
 
+    public static CreateServiceInstanceBindingRequest bucketBindingExportRequestFixture() {
+        // TODO:  WIP, Not correct, yet
+        Map<String, Object> bindResource = new HashMap<>();
+        bindResource.put("app_guid", APP_GUID);
+        Map<String, Object> params = new HashMap<>();
+        params.put("export", "TEST");
+        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
+                BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
+                .withBindingId(BINDING_ID)
+                .withServiceInstanceId(BUCKET_NAME);
+    }
+
     public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture() {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);

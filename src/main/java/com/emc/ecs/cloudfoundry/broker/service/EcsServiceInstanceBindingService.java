@@ -11,10 +11,7 @@ import com.emc.ecs.management.sdk.model.UserSecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
-import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBindingResponse;
-import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
-import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingResponse;
-import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
+import org.springframework.cloud.servicebroker.model.*;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +19,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class EcsServiceInstanceBindingService
@@ -62,6 +56,7 @@ public class EcsServiceInstanceBindingService
         Map<String, Object> credentials = new HashMap<>();
         Map<String, Object> parameters = request.getParameters();
         credentials.put("accessKey", ecs.prefix(bindingId));
+        String mountPoint = null;
         try {
             if (ecs.userExists(bindingId))
                 throw new ServiceInstanceBindingExistsException(instanceId,
@@ -79,6 +74,12 @@ public class EcsServiceInstanceBindingService
             String s3Url;
             String endpoint;
 
+            /*
+                SERVICE TYPE:  namespace / bucket
+                VALID PARAMS:  null
+                               {"permissions: ["read", "write"]}
+                               {"mount": "mount point name"}
+             */
             if (NAMESPACE.equals(serviceType)) {
                 userSecret = ecs.createUser(bindingId, instanceId);
                 endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
@@ -93,7 +94,10 @@ public class EcsServiceInstanceBindingService
                     @SuppressWarnings("unchecked")
                     List<String> permissions = (List<String>) parameters
                             .get("permissions");
-                    ecs.addUserToBucket(instanceId, bindingId, permissions);
+                    if (permissions != null) {
+                        ecs.addUserToBucket(instanceId, bindingId, permissions);
+                    }
+                    mountPoint = (String) parameters.get("mount");
                 } else {
                     ecs.addUserToBucket(instanceId, bindingId);
                 }
@@ -118,8 +122,20 @@ public class EcsServiceInstanceBindingService
         } catch (IOException | JAXBException | EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
         }
+
+        List<VolumeMount> mounts = null;
+        // if this bucket supports filesystems, make a new volume mount array
+        if (mountPoint != null) {
+            Map<String, Object> opts = new HashMap<>();
+            opts.put("source", "34.192.158.6/ns1/ecs-cf-broker-c2d4b8e4-7b9b-4ded-ac23-f4b8ef4b6d33/");
+
+            mounts = new ArrayList<>();
+            mounts.add(new VolumeMount("nfsv3driver", mountPoint, VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED, new SharedVolumeDevice("my-new-guid", opts)));
+        }
+
         return new CreateServiceInstanceAppBindingResponse()
-                .withCredentials(credentials);
+                .withCredentials(credentials)
+                .withVolumeMounts(mounts);
     }
 
     @Override

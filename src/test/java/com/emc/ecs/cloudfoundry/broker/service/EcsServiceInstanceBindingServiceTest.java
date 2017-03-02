@@ -155,6 +155,59 @@ public class EcsServiceInstanceBindingServiceTest {
     }
 
     /**
+     * The binding-service can create a user for a bucket (with parameters to
+     * feed permissions), so long as the user doesn't exist.
+     *
+     * @throws JAXBException
+     * @throws IOException
+     * @throws EcsManagementClientException
+     */
+    @Test
+    public void testCreateBucketUserWithExport()
+            throws IOException, JAXBException, EcsManagementClientException {
+        // TODO:  This is just copied.  Need to make export specific
+        when(catalog.findServiceDefinition(eq(BUCKET_SERVICE_ID)))
+                .thenReturn(bucketServiceFixture());
+        when(ecs.userExists(BINDING_ID)).thenReturn(false);
+        when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
+        UserSecretKey userSecretKey = new UserSecretKey();
+        userSecretKey.setSecretKey(TEST_KEY);
+        when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+                .thenReturn(bucketServiceFixture());
+        ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
+                .forClass(ServiceInstanceBinding.class);
+        when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
+        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY))
+                .thenReturn(BINDING_ID + COLON + TEST_KEY);
+        when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
+        doNothing().when(repository).save(bindingCaptor.capture());
+
+        bindSvc.createServiceInstanceBinding(
+                bucketBindingPermissionRequestFixture());
+
+        Map<String, Object> creds = bindingCaptor.getValue().getCredentials();
+        String s3Url = new StringBuilder()
+                .append(HTTP)
+                .append(BINDING_ID)
+                .append(COLON)
+                .append(TEST_KEY)
+                .append("@127.0.0.1:9020/")
+                .append(BUCKET_NAME)
+                .toString();
+        assertEquals(s3Url, creds.get("s3Url"));
+        assertEquals(BINDING_ID, creds.get("accessKey"));
+        assertEquals(BUCKET_NAME, creds.get("bucket"));
+        assertEquals(TEST_KEY, creds.get(SECRET_KEY));
+        verify(ecs, times(1)).createUser(BINDING_ID);
+        verify(ecs, times(1)).userExists(BINDING_ID);
+        verify(repository).save(any(ServiceInstanceBinding.class));
+        List<String> permissions = Arrays.asList("READ", "WRITE");
+        verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID),
+                eq(permissions));
+    }
+
+    /**
      * The binding-service can create a user for a bucket (without parameters to
      * feed permissions), so long as the user doesn't exist.
      *
