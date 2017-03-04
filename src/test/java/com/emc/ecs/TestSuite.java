@@ -28,6 +28,7 @@ import org.junit.runners.Suite.SuiteClasses;
         NamespaceActionTest.class,
         NamespaceQuotaActionTest.class,
         NamespaceRetentionActionTest.class,
+        NFSExportActionTest.class,
         ObjectUserActionTest.class,
         ObjectUserSecretActionTest.class,
         ReplicationGroupActionTest.class,

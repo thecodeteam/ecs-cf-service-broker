@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
         BaseUrlAction.class, BucketQuotaAction.class,
         BucketRetentionAction.class, NamespaceAction.class,
         NamespaceQuotaAction.class, NamespaceRetentionAction.class,
-        BucketAclAction.class})
+        BucketAclAction.class, NFSExportAction.class})
 public class EcsServiceTest {
     private static final String ONE_YEAR = "one-year";
     private static final String BASE_URL = "base-url";
@@ -63,6 +63,7 @@ public class EcsServiceTest {
     private static final String UPDATE = "update";
     private static final String CREATE = "create";
     private static final String DELETE = "delete";
+    private static final String EXPORT_ID = "test-export-id";
 
     @Mock
     private Connection connection;
@@ -1012,6 +1013,41 @@ public class EcsServiceTest {
                 .append(DOT).append(BASE_URL).append(_9021).toString();
         assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
                 Optional.ofNullable(params)));
+    }
+
+    /**
+     * A service can add an export to a bucket
+     *
+     * @throws EcsManagementClientException
+     */
+    @Test
+    public void testAddNonexistentExportToBucket() throws Exception {
+        String absolutePath = new StringBuilder("/")
+                .append(NAMESPACE)
+                .append("/")
+                .append(PREFIX)
+                .append(BUCKET_NAME)
+                .append("/")
+                .append(EXPORT_NAME)
+                .toString();
+        PowerMockito.mockStatic(NFSExportAction.class);
+
+        when(NFSExportAction.list(same(connection), eq(absolutePath)))
+                .thenReturn(null);
+
+        PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
+
+        ecs.addExportToBucket(BUCKET_NAME, EXPORT_NAME);
+
+        ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
+        PowerMockito.verifyStatic();
+        NFSExportAction.list(same(connection), listPathCaptor.capture());
+        assertEquals(absolutePath, listPathCaptor.getValue());
+
+        ArgumentCaptor<String> createPathCaptor = ArgumentCaptor.forClass(String.class);
+        PowerMockito.verifyStatic();
+        NFSExportAction.create(same(connection), createPathCaptor.capture());
+        assertEquals(absolutePath, createPathCaptor.getValue());
     }
 
     private void setupInitTest() throws EcsManagementClientException {

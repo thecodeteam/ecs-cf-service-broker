@@ -1,0 +1,23 @@
+{
+  "scenarioName": "export-path1",
+  "requiredScenarioState": "Started",
+    "request": {
+        "method": "GET",
+        "url": "/object/nfs/exports?pathprefix=%2Fns1%2Fecs-cf-broker-bucket1%2Fexport-path",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		},
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><object_nfs_exports><successful>true</successful><marker></marker></object_nfs_exports>"
+    }
+}

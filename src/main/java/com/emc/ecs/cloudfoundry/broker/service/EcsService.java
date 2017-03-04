@@ -370,4 +370,20 @@ public class EcsService {
                     SERVICE_NOT_FOUND + serviceDefinitionId);
         return service;
     }
+
+    public String addExportToBucket(String instanceId, String relativeExportPath) throws EcsManagementClientException {
+        String namespace = broker.getNamespace();
+        String absoluteExportPath = new StringBuilder("/")
+                .append(namespace)
+                .append("/")
+                .append(prefix(instanceId))
+                .append("/")
+                .append(relativeExportPath)
+                .toString();
+        List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);
+        if (exports == null) {
+            NFSExportAction.create(connection, absoluteExportPath);
+        }
+        return absoluteExportPath;
+    }
 }

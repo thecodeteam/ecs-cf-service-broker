@@ -72,6 +72,7 @@ public class Fixtures {
     public static final String FILE_ACCESSIBLE = "file-accessible";
     public static final String COMPLIANCE_ENABLED = "compliance-enabled";
     public static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
+    public static final String EXPORT_NAME = "test_export";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -226,11 +227,10 @@ public class Fixtures {
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingExportRequestFixture() {
-        // TODO:  WIP, Not correct, yet
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
-        params.put("export", "TEST");
+        params.put("export", EXPORT_NAME);
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)

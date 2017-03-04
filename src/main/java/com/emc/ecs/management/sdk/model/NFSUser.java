@@ -3,7 +3,7 @@ package com.emc.ecs.management.sdk.model;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "nfs-add_user")
-public class NfsUsers {
+public class NFSUser {
 
 
     private String namespace;

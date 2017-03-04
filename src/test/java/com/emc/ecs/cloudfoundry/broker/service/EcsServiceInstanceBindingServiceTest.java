@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
+import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
+import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -36,6 +38,9 @@ public class EcsServiceInstanceBindingServiceTest {
     private static final String SECRET_KEY = "secretKey";
 
     private static final String TEST_KEY = "TEST_KEY";
+    private static final String NFS_SCHEME = "nfs://";
+    private static final String DRIVER = "nfsv3driver";
+    private static final String VOLUME_GUID = "VOLUME-TEST-GUID";
 
     @Mock
     private EcsService ecs;
@@ -156,7 +161,7 @@ public class EcsServiceInstanceBindingServiceTest {
 
     /**
      * The binding-service can create a user for a bucket (with parameters to
-     * feed permissions), so long as the user doesn't exist.
+     * feed export details), so long as the user doesn't exist.
      *
      * @throws JAXBException
      * @throws IOException
@@ -165,7 +170,6 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test
     public void testCreateBucketUserWithExport()
             throws IOException, JAXBException, EcsManagementClientException {
-        // TODO:  This is just copied.  Need to make export specific
         when(catalog.findServiceDefinition(eq(BUCKET_SERVICE_ID)))
                 .thenReturn(bucketServiceFixture());
         when(ecs.userExists(BINDING_ID)).thenReturn(false);
@@ -183,10 +187,22 @@ public class EcsServiceInstanceBindingServiceTest {
         when(ecs.prefix(BUCKET_NAME)).thenReturn(BUCKET_NAME);
         doNothing().when(repository).save(bindingCaptor.capture());
 
-        bindSvc.createServiceInstanceBinding(
-                bucketBindingPermissionRequestFixture());
+        String absolutePath = new StringBuilder("/")
+                .append(NAMESPACE)
+                .append("/")
+                .append(BUCKET_NAME)
+                .append("/")
+                .append(EXPORT_NAME)
+                .toString();
 
-        Map<String, Object> creds = bindingCaptor.getValue().getCredentials();
+        when(ecs.addExportToBucket(eq(BUCKET_NAME), eq(EXPORT_NAME)))
+                .thenReturn(absolutePath);
+
+        bindSvc.createServiceInstanceBinding(
+                bucketBindingExportRequestFixture());
+
+        ServiceInstanceBinding binding = bindingCaptor.getValue();
+        Map<String, Object> creds = binding.getCredentials();
         String s3Url = new StringBuilder()
                 .append(HTTP)
                 .append(BINDING_ID)
@@ -195,16 +211,43 @@ public class EcsServiceInstanceBindingServiceTest {
                 .append("@127.0.0.1:9020/")
                 .append(BUCKET_NAME)
                 .toString();
-        assertEquals(s3Url, creds.get("s3Url"));
         assertEquals(BINDING_ID, creds.get("accessKey"));
         assertEquals(BUCKET_NAME, creds.get("bucket"));
         assertEquals(TEST_KEY, creds.get(SECRET_KEY));
+        assertEquals(s3Url, creds.get("s3Url"));
+
+        List<VolumeMount> mounts = binding.getVolumeMounts();
+        String nfsUrl = new StringBuilder()
+                .append(NFS_SCHEME)
+                .append("127.0.0.1")
+                .append(absolutePath)
+                .toString();
+        VolumeMount mount = mounts.get(0);
+        SharedVolumeDevice device = (SharedVolumeDevice) mount.getDevice();
+        Map<String, Object> volumeOpts = device.getMountConfig();
+
+        assertEquals(1, mounts.size());
+        assertEquals(DRIVER, mount.getDriver());
+        assertEquals(VolumeMount.DeviceType.SHARED, mount.getDeviceType());
+        assertEquals("/var/vcap/data", mount.getContainerDir());
+        assertEquals(VolumeMount.Mode.READ_WRITE, mount.getMode());
+        assertEquals(String.class, device.getVolumeId().getClass());
+        assertEquals(nfsUrl, volumeOpts.get("source"));
+
+
         verify(ecs, times(1)).createUser(BINDING_ID);
         verify(ecs, times(1)).userExists(BINDING_ID);
         verify(repository).save(any(ServiceInstanceBinding.class));
-        List<String> permissions = Arrays.asList("READ", "WRITE");
-        verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID),
-                eq(permissions));
+        verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID));
+        verify(ecs, times(1)).addExportToBucket(eq(BUCKET_NAME), eq(EXPORT_NAME));
+    }
+
+    /**
+     * The binding-service can create a user for a bucket (with parameters to
+     * feed export details of an existing export), so longs as the user doesn't exist.
+     */
+    @Test
+    public void testCreateBucketUserWithExistingExport() {
     }
 
     /**

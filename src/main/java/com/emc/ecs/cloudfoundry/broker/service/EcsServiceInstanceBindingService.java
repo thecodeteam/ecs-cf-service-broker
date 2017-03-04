@@ -28,6 +28,8 @@ public class EcsServiceInstanceBindingService
     private static final String SERVICE_TYPE = "service-type";
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
+    private static final String VOLUME_DRIVER = "nfsv3driver";
+    private static final String DEFAULT_CONTAINER_DIR = "/var/vcap/data";
 
     @Autowired
     private EcsService ecs;
@@ -56,7 +58,6 @@ public class EcsServiceInstanceBindingService
         Map<String, Object> credentials = new HashMap<>();
         Map<String, Object> parameters = request.getParameters();
         credentials.put("accessKey", ecs.prefix(bindingId));
-        String mountPoint = null;
         try {
             if (ecs.userExists(bindingId))
                 throw new ServiceInstanceBindingExistsException(instanceId,
@@ -71,43 +72,66 @@ public class EcsServiceInstanceBindingService
                     .get(SERVICE_TYPE);
 
             UserSecretKey userSecret;
+            CreateServiceInstanceAppBindingResponse resp =  new CreateServiceInstanceAppBindingResponse();
             String s3Url;
             String endpoint;
 
-            /*
-                SERVICE TYPE:  namespace / bucket
-                VALID PARAMS:  null
-                               {"permissions: ["read", "write"]}
-                               {"mount": "mount point name"}
-             */
             if (NAMESPACE.equals(serviceType)) {
                 userSecret = ecs.createUser(bindingId, instanceId);
                 endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
                         Optional.ofNullable(parameters));
-                URL baseUrl = new URL(endpoint);
                 String userInfo = bindingId + ":" + userSecret.getSecretKey();
-                s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
-                        + "@" + baseUrl.getHost() + ":" + baseUrl.getPort();
+                URL baseUrl = new URL(endpoint);
+                s3Url = new StringBuilder(baseUrl.getProtocol())
+                        .append("://")
+                        .append(ecs.prefix(userInfo))
+                        .append("@")
+                        .append(baseUrl.getHost())
+                        .append(":")
+                        .append(baseUrl.getPort())
+                        .toString();
             } else if (BUCKET.equals(serviceType)) {
+                endpoint = ecs.getObjectEndpoint();
+                URL baseUrl = new URL(endpoint);
                 userSecret = ecs.createUser(bindingId);
+                List<String> permissions = null;
+                String export = null;
                 if (parameters != null) {
-                    @SuppressWarnings("unchecked")
-                    List<String> permissions = (List<String>) parameters
-                            .get("permissions");
-                    if (permissions != null) {
-                        ecs.addUserToBucket(instanceId, bindingId, permissions);
-                    }
-                    mountPoint = (String) parameters.get("mount");
+                    permissions = (List<String>) parameters.get("permissions");
+                    export = (String) parameters.get("export");
+                }
+                if (permissions != null) {
+                    ecs.addUserToBucket(instanceId, bindingId, permissions);
                 } else {
                     ecs.addUserToBucket(instanceId, bindingId);
                 }
+                if (export != null) {
+                    String volumeGUID = UUID.randomUUID().toString();
+                    String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
+                    Map<String, Object> opts = new HashMap<>();
+                    String nfsUrl = new StringBuilder("nfs://")
+                                .append(baseUrl.getHost())
+                                .append(absoluteExportPath)
+                                .toString();
+                    opts.put("source", nfsUrl);
+                    List<VolumeMount> mounts = new ArrayList<>();
+                    mounts.add(new VolumeMount(VOLUME_DRIVER, DEFAULT_CONTAINER_DIR, VolumeMount.Mode.READ_WRITE,
+                            VolumeMount.DeviceType.SHARED, new SharedVolumeDevice(volumeGUID, opts)));
+                    binding.setVolumeMounts(mounts);
+                    resp = resp.withVolumeMounts(mounts);
+                }
                 credentials.put("bucket", ecs.prefix(instanceId));
-                endpoint = ecs.getObjectEndpoint();
-                URL baseUrl = new URL(endpoint);
                 String userInfo = bindingId + ":" + userSecret.getSecretKey();
-                s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo)
-                        + "@" + baseUrl.getHost() + ":" + baseUrl.getPort()
-                        + "/" + ecs.prefix(instanceId);
+                s3Url = new StringBuilder(baseUrl.getProtocol())
+                            .append("://")
+                            .append(ecs.prefix(userInfo))
+                            .append("@")
+                            .append(baseUrl.getHost())
+                            .append(":")
+                            .append(baseUrl.getPort())
+                            .append("/")
+                            .append(ecs.prefix(instanceId))
+                            .toString();
             } else {
                 throw new EcsManagementClientException(
                         NO_SERVICE_MATCHING_TYPE + serviceType);
@@ -119,23 +143,11 @@ public class EcsServiceInstanceBindingService
             binding.setCredentials(credentials);
 
             repository.save(binding);
+            return resp.withCredentials(credentials);
+
         } catch (IOException | JAXBException | EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
         }
-
-        List<VolumeMount> mounts = null;
-        // if this bucket supports filesystems, make a new volume mount array
-        if (mountPoint != null) {
-            Map<String, Object> opts = new HashMap<>();
-            opts.put("source", "34.192.158.6/ns1/ecs-cf-broker-c2d4b8e4-7b9b-4ded-ac23-f4b8ef4b6d33/");
-
-            mounts = new ArrayList<>();
-            mounts.add(new VolumeMount("nfsv3driver", mountPoint, VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED, new SharedVolumeDevice("my-new-guid", opts)));
-        }
-
-        return new CreateServiceInstanceAppBindingResponse()
-                .withCredentials(credentials)
-                .withVolumeMounts(mounts);
     }
 
     @Override

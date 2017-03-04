@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
+import org.springframework.cloud.servicebroker.model.VolumeMount;
 
+import java.util.List;
 import java.util.Map;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
@@ -33,6 +35,10 @@ public class ServiceInstanceBinding {
     @JsonSerialize
     @JsonProperty("credentials")
     private Map<String, Object> credentials;
+
+    @JsonSerialize
+    @JsonProperty("volume_mounts")
+    private List<VolumeMount> volumeMounts;
 
     public ServiceInstanceBinding() {
         super();
@@ -94,4 +100,7 @@ public class ServiceInstanceBinding {
         this.bindingId = bindingId;
     }
 
+    public List<VolumeMount> getVolumeMounts() { return volumeMounts; }
+
+    public void setVolumeMounts(List<VolumeMount> volumeMounts) { this.volumeMounts = volumeMounts; }
 }

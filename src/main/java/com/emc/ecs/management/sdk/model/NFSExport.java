@@ -5,19 +5,27 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 @XmlRootElement(name = "object_nfs_export")
-public class NfsExports {
+public class NFSExport {
 
 
     private String path;
-    private String id;
-    private List<NfsExportsOptions> exportOptions;
+    private Integer id;
+    private List<NFSExportsOption> exportOptions;
+
+    public NFSExport() {
+    }
+
+    public NFSExport(String path, List<NFSExportsOption> exportOptions) {
+        this.path = path;
+        this.exportOptions = exportOptions;
+    }
 
     @XmlElement(name = "export-options")
-    public List<NfsExportsOptions> getExportOptions() {
+    public List<NFSExportsOption> getExportOptions() {
         return exportOptions;
     }
 
-    public void setExportOptions(List<NfsExportsOptions> exportOptions) {
+    public void setExportOptions(List<NFSExportsOption> exportOptions) {
         this.exportOptions = exportOptions;
     }
 
@@ -29,11 +37,11 @@ public class NfsExports {
         this.path = path;
     }
 
-    public String getId() {
+    public Integer getId() {
         return this.id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
