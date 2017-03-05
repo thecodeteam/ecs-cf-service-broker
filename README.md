@@ -1,5 +1,5 @@
 # ECS Cloud Foundry Service Broker
-[![Build Status](https://travis-ci.org/emccode/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/emccode/ecs-cf-service-broker) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/codedellemc/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/codedellemc/ecs-cf-service-broker) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
 ## Description
 
 This service broker enables Cloud Foundry applications to create, delete and
@@ -40,7 +40,7 @@ To build, make sure that you have a Java 8 runtime environment, and use Gradle.
 The service broker supports a number of configuration parameters that are available as environment variables or through
 Spring configuration.  All parameters are prefixed with the `broker-config.` string.  Default parameters point to the
 bundled ECS simulator.  For more info, check the
-[default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
+[default config](https://github.com/codedellemc/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
 
 | Parameter          | Default Value  | Required | Description                                        |
 | ------------------ |:--------------:| -------- | -------------------------------------------------- |
@@ -55,8 +55,8 @@ bundled ECS simulator.  For more info, check the
 | password           | ChangeMe       | false    | Password to authenticate to ECS management API     |
 | repositoryBucket   | repository     | false    | Internal bucket for metadata storage               |
 | prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users         |
-| brokerApiVersion   | 2.8            | false    | Version of the CF broker API to advertise          |
-| certificate        | localhost.pem  | false    | ECS SSL public key cert file                       |
+| brokerApiVersion   | 2.10           | false    | Version of the CF broker API to advertise          |
+| certificate        | -              | false    | ECS SSL public key cert file                       |
 
 If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
 
