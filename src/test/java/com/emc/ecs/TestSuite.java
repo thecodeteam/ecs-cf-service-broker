@@ -42,16 +42,27 @@ import org.junit.runners.Suite.SuiteClasses;
 public class TestSuite {
 
     @Rule
-    public static WireMockRule wireMockRule = new WireMockRule(
-            WireMockConfiguration.wireMockConfig().port(9020).httpsPort(4443));
+    public static WireMockRule wireMockRuleMgmt = new WireMockRule(
+        WireMockConfiguration.wireMockConfig()
+            .httpsPort(4443)
+            .usingFilesUnderClasspath("wiremockMgmt"));
+
+    @Rule
+    public static WireMockRule wireMockRuleS3 = new WireMockRule(
+        WireMockConfiguration.wireMockConfig()
+            .port(9020)
+            //.httpsPort(9021)
+            .usingFilesUnderClasspath("wiremockS3"));
 
     @BeforeClass
     public static void setUp() {
-        wireMockRule.start();
+        wireMockRuleMgmt.start();
+        wireMockRuleS3.start();
     }
 
     @AfterClass
     public static void tearDown() {
-        wireMockRule.shutdownServer();
+        wireMockRuleMgmt.shutdownServer();
+        wireMockRuleS3.shutdownServer();
     }
 }
