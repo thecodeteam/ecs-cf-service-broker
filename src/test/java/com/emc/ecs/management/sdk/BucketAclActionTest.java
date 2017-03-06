@@ -22,7 +22,7 @@ public class BucketAclActionTest extends EcsActionTest {
     public void setUp() throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
         connection.login();
-        BucketAction.create(connection, bucket, namespace, replicationGroup);
+        BucketAction.create(connection, bucket, namespace, replicationGroupID);
         ObjectUserAction.create(connection, user, namespace);
     }
 

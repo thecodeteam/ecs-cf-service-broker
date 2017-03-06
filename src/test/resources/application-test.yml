@@ -1,4 +1,12 @@
+security:
+  user:
+    password: password
 broker:
+  certificate: wiremock.pem
+  namespace: ns1
+  replication-group: rg1
+  management-endpoint: https://127.0.0.1:4443
+  object-endpoint: http://127.0.0.1:9020
   repository-service-id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
   repository-plan-id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
 catalog:
