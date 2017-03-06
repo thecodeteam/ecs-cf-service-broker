@@ -2,7 +2,7 @@ security:
   user:
     password: password
 broker:
-  certificate: localhost.pem
+  certificate: wiremock.pem
   namespace: ns1
   replication-group: rg1
   management-endpoint: https://127.0.0.1:4443

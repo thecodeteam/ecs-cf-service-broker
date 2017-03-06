@@ -6,7 +6,7 @@ import java.net.URL;
 
 public abstract class EcsActionTest {
     protected URL certificate = getClass().getClassLoader()
-            .getResource("localhost.pem");
+            .getResource("wiremock.pem");
     protected Connection connection = new Connection("https://127.0.0.1:4443",
             "root", "ChangeMe", certificate);
     protected String namespace = "ns1";
