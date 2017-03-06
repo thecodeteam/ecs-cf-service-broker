@@ -11,6 +11,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static com.emc.ecs.common.Fixtures.RG_ID;
+import static com.emc.ecs.common.Fixtures.RG_NAME;
 import static org.junit.Assert.assertTrue;
 
 public class ReplicationGroupActionTest extends EcsActionTest {
@@ -37,7 +38,7 @@ public class ReplicationGroupActionTest extends EcsActionTest {
             EcsManagementResourceNotFoundException {
         DataServiceReplicationGroup rg = ReplicationGroupAction.get(connection,
                 RG_ID);
-        assertTrue(rg.getName().equals("rg1"));
+        assertTrue(rg.getName().equals(RG_NAME));
         assertTrue(rg.getId().equals(RG_ID));
     }
 

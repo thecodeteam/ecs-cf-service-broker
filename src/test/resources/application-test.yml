@@ -2,7 +2,7 @@ security:
   user:
     password: password
 broker:
-  certificate: localhost.pem
+  certificate: wiremock.pem
   namespace: ns1
   replication-group: rg1
   management-endpoint: https://127.0.0.1:4443
@@ -17,8 +17,8 @@ catalog:
       bindable: true
       plan-updatable: true
       tags:
-        - ecs-store
-        - object
+        - s3
+        - namespace
       service-settings:
         service-type: namespace
       metadata:
@@ -35,7 +35,7 @@ catalog:
           service-settings:
             quota:
               limit: 5
-              warning: 4
+              warn: 4
           metadata:
             costs:
               - amount:
@@ -47,16 +47,17 @@ catalog:
               - S3 protocol and HDFS access
     - id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
       name: ecs-bucket
-      type: bucket
+      type: bucket      
       description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       plan-updatable: true
       tags:
         - s3
+        - bucket
       service-settings:
         service-type: bucket
         head-type: s3
-        file-access: false
+        file-system-enabled: false
         access-during-outage: true
       metadata:
         displayName: ecs-bucket
@@ -72,7 +73,8 @@ catalog:
           service-settings:
             quota:
               limit: 5
-              warning: 4
+              warn: 4
+          free: true
           metadata:
             costs:
               - amount:
