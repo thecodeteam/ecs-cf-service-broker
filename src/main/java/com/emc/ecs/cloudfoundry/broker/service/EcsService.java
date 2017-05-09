@@ -44,6 +44,10 @@ public class EcsService {
         return objectEndpoint;
     }
 
+    public String getNfsMountHost() {
+        return broker.getNfsMountHost();
+    }
+
     @PostConstruct
     public void initialize() throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
@@ -54,6 +58,12 @@ public class EcsService {
 
     public void deleteBucket(String id) throws EcsManagementClientException {
         BucketAction.delete(connection, prefix(id), broker.getNamespace());
+    }
+
+    // TODO add unit test
+    public Boolean getBucketFileEnabled(String id) throws EcsManagementClientException {
+        ObjectBucketInfo b = BucketAction.get(connection, prefix(id), broker.getNamespace());
+        return b.getFsAccessEnabled();
     }
 
     public void createBucket(String id, ServiceDefinitionProxy service,
@@ -144,6 +154,12 @@ public class EcsService {
         ObjectUserAction.create(connection, prefix(id), prefix(namespace));
         ObjectUserSecretAction.create(connection, prefix(id));
         return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
+    }
+
+    // TODO Add Unit Test
+    public String createUserMap(String id, int uid)
+            throws EcsManagementClientException {
+        return ObjectUserMapAction.create(connection, prefix(id), uid, broker.getNamespace());
     }
 
     public Boolean userExists(String id) throws EcsManagementClientException {

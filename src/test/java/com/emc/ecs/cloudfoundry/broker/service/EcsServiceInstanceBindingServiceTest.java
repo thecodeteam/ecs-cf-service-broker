@@ -24,6 +24,7 @@ import java.util.*;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -174,6 +175,8 @@ public class EcsServiceInstanceBindingServiceTest {
                 .thenReturn(bucketServiceFixture());
         when(ecs.userExists(BINDING_ID)).thenReturn(false);
         when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
+        when(ecs.getBucketFileEnabled(anyString())).thenReturn(true);
+        when(ecs.getNfsMountHost()).thenReturn("foo");
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
         when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
@@ -217,9 +220,10 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(s3Url, creds.get("s3Url"));
 
         List<VolumeMount> mounts = binding.getVolumeMounts();
+        assertNotNull(mounts);
         String nfsUrl = new StringBuilder()
                 .append(NFS_SCHEME)
-                .append("127.0.0.1")
+                .append("foo")
                 .append(absolutePath)
                 .toString();
         VolumeMount mount = mounts.get(0);

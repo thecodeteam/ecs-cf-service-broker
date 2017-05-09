@@ -7,6 +7,7 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
+import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -94,8 +95,13 @@ public class EcsServiceInstanceBindingService
                 endpoint = ecs.getObjectEndpoint();
                 URL baseUrl = new URL(endpoint);
                 userSecret = ecs.createUser(bindingId);
+                // TODO we need a way to get unique uids from the ecs service.  This is a
+                // TODO BAD HACK THAT MUST NOT REMAIN
+                int unixUid = (int)(2000 + System.currentTimeMillis() % 8000);
+                String userMapId = ecs.createUserMap(bindingId, unixUid);
                 List<String> permissions = null;
-                String export = null;
+                Boolean hasMounts = ecs.getBucketFileEnabled(instanceId);
+                String export = "";
                 if (parameters != null) {
                     permissions = (List<String>) parameters.get("permissions");
                     export = (String) parameters.get("export");
@@ -105,15 +111,20 @@ public class EcsServiceInstanceBindingService
                 } else {
                     ecs.addUserToBucket(instanceId, bindingId);
                 }
-                if (export != null) {
+                if (hasMounts) {
+                    String host = ecs.getNfsMountHost();
+                    if (host == null || host.isEmpty()) {
+                        host = baseUrl.getHost();
+                    }
                     String volumeGUID = UUID.randomUUID().toString();
                     String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
                     Map<String, Object> opts = new HashMap<>();
                     String nfsUrl = new StringBuilder("nfs://")
-                                .append(baseUrl.getHost())
+                                .append(host)
                                 .append(absoluteExportPath)
                                 .toString();
                     opts.put("source", nfsUrl);
+                    opts.put("uid", String.valueOf(unixUid));
                     List<VolumeMount> mounts = new ArrayList<>();
                     mounts.add(new VolumeMount(VOLUME_DRIVER, DEFAULT_CONTAINER_DIR, VolumeMount.Mode.READ_WRITE,
                             VolumeMount.DeviceType.SHARED, new SharedVolumeDevice(volumeGUID, opts)));

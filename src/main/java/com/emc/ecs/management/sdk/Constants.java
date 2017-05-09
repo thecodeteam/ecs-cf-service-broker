@@ -18,6 +18,8 @@ public final class Constants {
     public static final String VPOOLS = "vpools";
     public static final String NFS = "nfs";
     public static final String EXPORTS = "exports";
+    public static final String USER = "user";
+    public static final String GROUP = "group";
 
     public static final String GET = "get";
     public static final String PUT = "put";

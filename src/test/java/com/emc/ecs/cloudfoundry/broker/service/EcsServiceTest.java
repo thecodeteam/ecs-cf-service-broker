@@ -267,6 +267,7 @@ public class EcsServiceTest {
         quota.put(WARN, 9);
         quota.put(LIMIT, 10);
         params.put(QUOTA, quota);
+        params.put(FILE_ACCESSIBLE, true);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -282,7 +283,7 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, create.getName());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
-        assertNull(create.getFilesystemEnabled());
+        assertTrue(create.getFilesystemEnabled());
         assertEquals(NAMESPACE, create.getNamespace());
 
         PowerMockito.verifyStatic(times(1));

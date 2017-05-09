@@ -11,6 +11,7 @@ public class BrokerConfig {
     private String replicationGroup;
     private String baseUrl;
     private String objectEndpoint;
+    private String nfsMountHost;
     private String repositoryEndpoint;
     private String repositorySecret;
     private String repositoryServiceId;
@@ -160,4 +161,12 @@ public class BrokerConfig {
     public void setObjectEndpoint(String objectEndpoint) {
         this.objectEndpoint = objectEndpoint;
     }
+    public String getNfsMountHost() {
+        return nfsMountHost;
+    }
+
+    public void setNfsMountHost(String nfsMountHost) {
+        this.nfsMountHost = nfsMountHost;
+    }
+
 }

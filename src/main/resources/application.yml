@@ -31,8 +31,17 @@ broker:
   object-endpoint: http://34.192.158.6:9020
 ---
 broker:
+  management-endpoint: https://CHANGEME:4443
+  namespace: ns1
+  object-endpoint: https://ns1.34.192.158.6.xip.io:9021
+  repository-endpoint: https://ns1.34.192.158.6.xip.io:9021
+  replication-group: rp
   repository-service-id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
   repository-plan-id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
+  certificate: ecs_cert.pem
+security:
+  user:
+    password: ChangeMe
 catalog:
   services:
     - id: 09cac1c6-1b0a-11e6-b6ba-3e1d05defe78
