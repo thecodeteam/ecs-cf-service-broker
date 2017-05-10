@@ -15,7 +15,7 @@ public class ObjectUserMapAction {
             throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NFS, USERS);
         connection.handleRemoteCall(POST, uri,
-                new ObjectNFSAddUser(userId, Integer.toString(unixUid), namespace,userId + "-umap"));
+                new ObjectNFSAddUser(namespace, USER, userId, Integer.toString(unixUid), userId + "-umap"));
         return userId + "-umap";
     }
 

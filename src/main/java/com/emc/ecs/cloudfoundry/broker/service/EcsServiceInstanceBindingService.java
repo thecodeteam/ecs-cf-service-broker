@@ -95,10 +95,6 @@ public class EcsServiceInstanceBindingService
                 endpoint = ecs.getObjectEndpoint();
                 URL baseUrl = new URL(endpoint);
                 userSecret = ecs.createUser(bindingId);
-                // TODO we need a way to get unique uids from the ecs service.  This is a
-                // TODO BAD HACK THAT MUST NOT REMAIN
-                int unixUid = (int)(2000 + System.currentTimeMillis() % 8000);
-                String userMapId = ecs.createUserMap(bindingId, unixUid);
                 List<String> permissions = null;
                 Boolean hasMounts = ecs.getBucketFileEnabled(instanceId);
                 String export = "";
@@ -112,6 +108,11 @@ public class EcsServiceInstanceBindingService
                     ecs.addUserToBucket(instanceId, bindingId);
                 }
                 if (hasMounts) {
+                    // TODO we need a way to get unique uids from the ecs service.  This is a
+                    // TODO BAD HACK THAT MUST NOT REMAIN
+                    int unixUid = (int)(2000 + System.currentTimeMillis() % 8000);
+                    String userMapId = ecs.createUserMap(bindingId, unixUid);
+
                     String host = ecs.getNfsMountHost();
                     if (host == null || host.isEmpty()) {
                         host = baseUrl.getHost();

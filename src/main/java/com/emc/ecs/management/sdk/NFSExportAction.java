@@ -23,7 +23,7 @@ public class NFSExportAction {
 
     public static void create(Connection connection, String exportPath) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder().segment(OBJECT, NFS, EXPORTS);
-        NFSExportsOption opt = new NFSExportsOption("*", "rw");
+        NFSExportsOption opt = new NFSExportsOption("*","rw,sys,root=nobody");
         connection.handleRemoteCall(POST, uri, new NFSExport(exportPath, Arrays.asList(opt)));
     }
 
