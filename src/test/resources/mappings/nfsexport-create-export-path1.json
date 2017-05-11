@@ -15,7 +15,7 @@
     },
     "bodyPatterns": [
       {
-        "equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><object_nfs_export><export-options><host>*</host><security>rw</security></export-options><path>/ns1/ecs-cf-broker-bucket1/export-path</path></object_nfs_export>"
+        "equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><object_nfs_export><export-options><host>*</host><security>rw,sys,root=nobody</security></export-options><path>/ns1/ecs-cf-broker-bucket1/export-path</path></object_nfs_export>"
       }
     ]
   },
