@@ -60,7 +60,6 @@ public class EcsService {
         BucketAction.delete(connection, prefix(id), broker.getNamespace());
     }
 
-    // TODO add unit test
     public Boolean getBucketFileEnabled(String id) throws EcsManagementClientException {
         ObjectBucketInfo b = BucketAction.get(connection, prefix(id), broker.getNamespace());
         return b.getFsAccessEnabled();
@@ -156,7 +155,6 @@ public class EcsService {
         return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
     }
 
-    // TODO Add Unit Test
     public String createUserMap(String id, int uid)
             throws EcsManagementClientException {
         return ObjectUserMapAction.create(connection, prefix(id), uid, broker.getNamespace());
@@ -220,7 +218,6 @@ public class EcsService {
                 urlId = detectDefaultBaseUrlId(baseUrlList);
             }
 
-            // TODO: switch to TLS end-point and custom S3 trust manager
             objectEndpoint = BaseUrlAction.get(connection, urlId)
                     .getNamespaceUrl(broker.getNamespace(), false);
         }

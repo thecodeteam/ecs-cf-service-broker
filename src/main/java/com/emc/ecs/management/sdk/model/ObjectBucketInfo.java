@@ -11,7 +11,7 @@ public class ObjectBucketInfo {
     private String name;
     private String created;
     private String softquota;
-    private Boolean fsAccessEnabled;
+    private Boolean fsAccessEnabled = false;
     private Boolean locked;
     private String replicationGroup;
     private String namespace;

@@ -36,8 +36,9 @@ import static org.mockito.Mockito.*;
         BaseUrlAction.class, BucketQuotaAction.class,
         BucketRetentionAction.class, NamespaceAction.class,
         NamespaceQuotaAction.class, NamespaceRetentionAction.class,
-        BucketAclAction.class, NFSExportAction.class})
+        BucketAclAction.class, NFSExportAction.class, ObjectUserMapAction.class})
 public class EcsServiceTest {
+    private static final String FOO = "foo";
     private static final String ONE_YEAR = "one-year";
     private static final String BASE_URL = "base-url";
     private static final String USE_SSL = "use-ssl";
@@ -290,6 +291,28 @@ public class EcsServiceTest {
         BucketQuotaAction.create(same(connection), eq(PREFIX + BUCKET_NAME),
                 eq(NAMESPACE), eq(5), eq(4));
     }
+
+    /**
+     * Buckets are not file enabled by default
+     *
+     * @throws Exception
+     */
+    @Test
+    public void getBucketFileEnabledTest() throws Exception {
+        ObjectBucketInfo fakeBucket = new ObjectBucketInfo();
+
+        PowerMockito.mockStatic(BucketAction.class);
+        PowerMockito.when(BucketAction.class, GET,
+                same(connection), anyString(), anyString()).thenReturn(fakeBucket);
+
+        boolean isEnabled = ecs.getBucketFileEnabled(FOO);
+        assertEquals(false, isEnabled);
+
+        fakeBucket.setFsAccessEnabled(true);
+        isEnabled = ecs.getBucketFileEnabled(FOO);
+        assertEquals(true, isEnabled);
+    }
+
 
     /**
      * When changing plans from one with a quota to one without a quota any
@@ -896,6 +919,23 @@ public class EcsServiceTest {
                 nsCaptor.capture());
         assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
         assertEquals(PREFIX + USER1, userCaptor.getValue());
+    }
+
+    /**
+     * A uid to object user mapping can be created
+     *
+     * @throws Exception
+     */
+    @Test
+    public void createUserMap() throws Exception {
+        PowerMockito.mockStatic(ObjectUserMapAction.class);
+        PowerMockito.when(ObjectUserMapAction.class, CREATE, same(connection), anyString(), anyInt(), anyString()).thenReturn(FOO);
+
+        PowerMockito.mockStatic(ObjectUserSecretAction.class);
+
+        String ret = ecs.createUserMap(USER1, 42);
+
+        assertEquals(FOO, ret);
     }
 
     /**
