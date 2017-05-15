@@ -180,6 +180,7 @@ public class EcsServiceInstanceBindingServiceTest {
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
         when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
+        when(ecs.createUserMap(anyString(),anyInt())).thenThrow(new EcsManagementClientException("Bad request body (1013)")).thenReturn("foo");
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
                 .thenReturn(bucketServiceFixture());
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
@@ -240,6 +241,7 @@ public class EcsServiceInstanceBindingServiceTest {
 
 
         verify(ecs, times(1)).createUser(BINDING_ID);
+        verify(ecs, times(2)).createUserMap(anyString(), anyInt());
         verify(ecs, times(1)).userExists(BINDING_ID);
         verify(repository).save(any(ServiceInstanceBinding.class));
         verify(ecs, times(1)).addUserToBucket(eq(BUCKET_NAME), eq(BINDING_ID));
@@ -325,7 +327,7 @@ public class EcsServiceInstanceBindingServiceTest {
      * @throws EcsManagementClientException
      */
     @Test(expected = ServiceInstanceBindingExistsException.class)
-    public void testCreateExistingBucketUserFailes()
+    public void testCreateExistingBucketUserFails()
             throws EcsManagementClientException {
         when(catalog.findServiceDefinition(eq(BUCKET_SERVICE_ID)))
                 .thenReturn(namespaceServiceFixture());

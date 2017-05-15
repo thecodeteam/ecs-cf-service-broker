@@ -108,10 +108,19 @@ public class EcsServiceInstanceBindingService
                     ecs.addUserToBucket(instanceId, bindingId);
                 }
                 if (hasMounts) {
-                    // TODO we need a way to get unique uids from the ecs service.  This is a
-                    // TODO BAD HACK THAT MUST NOT REMAIN
                     int unixUid = (int)(2000 + System.currentTimeMillis() % 8000);
-                    String userMapId = ecs.createUserMap(bindingId, unixUid);
+                    while (true) {
+                        try {
+                            ecs.createUserMap(bindingId, unixUid);
+                            break;
+                        } catch (EcsManagementClientException e) {
+                            if (e.getMessage().contains("Bad request body (1013)")) {
+                                unixUid++;
+                            } else {
+                                throw e;
+                            }
+                        }
+                    }
 
                     String host = ecs.getNfsMountHost();
                     if (host == null || host.isEmpty()) {
