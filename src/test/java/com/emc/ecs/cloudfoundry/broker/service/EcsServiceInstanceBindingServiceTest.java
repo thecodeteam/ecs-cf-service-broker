@@ -180,7 +180,8 @@ public class EcsServiceInstanceBindingServiceTest {
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
         when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
-        when(ecs.createUserMap(anyString(),anyInt())).thenThrow(new EcsManagementClientException("Bad request body (1013)")).thenReturn("foo");
+        doThrow(new EcsManagementClientException("Bad request body (1013)")).doNothing().when(ecs).createUserMap(anyString(),anyInt());
+//        when(ecs.createUserMap(anyString(),anyInt())).thenThrow(new EcsManagementClientException("Bad request body (1013)")).thenDoNothing();
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
                 .thenReturn(bucketServiceFixture());
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor

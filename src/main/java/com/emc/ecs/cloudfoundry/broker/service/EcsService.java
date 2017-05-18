@@ -155,9 +155,14 @@ public class EcsService {
         return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
     }
 
-    public String createUserMap(String id, int uid)
+    public void createUserMap(String id, int uid)
             throws EcsManagementClientException {
-        return ObjectUserMapAction.create(connection, prefix(id), uid, broker.getNamespace());
+        ObjectUserMapAction.create(connection, prefix(id), uid, broker.getNamespace());
+    }
+
+    public void deleteUserMap(String id, String uid)
+            throws EcsManagementClientException {
+        ObjectUserMapAction.delete(connection, prefix(id), uid, broker.getNamespace());
     }
 
     public Boolean userExists(String id) throws EcsManagementClientException {

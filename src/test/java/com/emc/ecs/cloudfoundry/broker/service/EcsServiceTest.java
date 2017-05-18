@@ -922,23 +922,6 @@ public class EcsServiceTest {
     }
 
     /**
-     * A uid to object user mapping can be created
-     *
-     * @throws Exception
-     */
-    @Test
-    public void createUserMap() throws Exception {
-        PowerMockito.mockStatic(ObjectUserMapAction.class);
-        PowerMockito.when(ObjectUserMapAction.class, CREATE, same(connection), anyString(), anyInt(), anyString()).thenReturn(FOO);
-
-        PowerMockito.mockStatic(ObjectUserSecretAction.class);
-
-        String ret = ecs.createUserMap(USER1, 42);
-
-        assertEquals(FOO, ret);
-    }
-
-    /**
      * A service can lookup a service definition from the catalog
      *
      * @throws EcsManagementClientException

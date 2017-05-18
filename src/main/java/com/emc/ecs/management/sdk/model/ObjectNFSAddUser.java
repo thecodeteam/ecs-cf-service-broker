@@ -1,8 +1,7 @@
 package com.emc.ecs.management.sdk.model;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import static com.emc.ecs.management.sdk.Constants.USER;
 
 @XmlRootElement(name = "object_nfs_add_user")
 public class ObjectNFSAddUser {

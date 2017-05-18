@@ -7,7 +7,6 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
-import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -22,6 +21,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class EcsServiceInstanceBindingService
         implements ServiceInstanceBindingService {
@@ -31,6 +33,8 @@ public class EcsServiceInstanceBindingService
     private static final String BUCKET = "bucket";
     private static final String VOLUME_DRIVER = "nfsv3driver";
     private static final String DEFAULT_CONTAINER_DIR = "/var/vcap/data";
+
+    static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
     @Autowired
     private EcsService ecs;
@@ -186,6 +190,25 @@ public class EcsServiceInstanceBindingService
             if (BUCKET.equals(serviceType))
                 ecs.removeUserFromBucket(instanceId, bindingId);
             ecs.deleteUser(bindingId);
+            ServiceInstanceBinding binding = repository.find(bindingId);
+            if (binding == null) {
+                repository.delete(bindingId);
+                return;
+            }
+            List<VolumeMount> volumes = binding.getVolumeMounts();
+            if (volumes != null && volumes.size() == 0) {
+                repository.delete(bindingId);
+                return;
+            }
+            Map<String, Object> mountConfig = ((SharedVolumeDevice) volumes.get(0).getDevice()).getMountConfig();
+            String unixId = (String) mountConfig.get("uid");
+            try {
+                LOG.info("Deleting user map of instance Id and Binding Id " + instanceId + " " + bindingId);
+                ecs.deleteUserMap(unixId, bindingId);
+            } catch (EcsManagementClientException e) {
+                LOG.warn("Error deleting user map: " + e.getMessage());
+            }
+
             repository.delete(bindingId);
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
