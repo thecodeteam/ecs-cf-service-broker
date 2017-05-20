@@ -190,27 +190,33 @@ public class EcsServiceInstanceBindingService
             if (BUCKET.equals(serviceType))
                 ecs.removeUserFromBucket(instanceId, bindingId);
             ecs.deleteUser(bindingId);
+            LOG.error("looking up binding: " + bindingId);
             ServiceInstanceBinding binding = repository.find(bindingId);
             if (binding == null) {
+                // TODO -- is this gonna blow up?
                 repository.delete(bindingId);
                 return;
             }
+            LOG.error("binding found: " + bindingId);
+
             List<VolumeMount> volumes = binding.getVolumeMounts();
-            if (volumes != null && volumes.size() == 0) {
+            if (volumes == null || volumes.size() == 0) {
                 repository.delete(bindingId);
                 return;
             }
+
             Map<String, Object> mountConfig = ((SharedVolumeDevice) volumes.get(0).getDevice()).getMountConfig();
             String unixId = (String) mountConfig.get("uid");
             try {
-                LOG.info("Deleting user map of instance Id and Binding Id " + instanceId + " " + bindingId);
-                ecs.deleteUserMap(unixId, bindingId);
+                LOG.error("Deleting user map of instance Id and Binding Id " + instanceId + " " + bindingId);
+                ecs.deleteUserMap(bindingId, unixId);
             } catch (EcsManagementClientException e) {
-                LOG.warn("Error deleting user map: " + e.getMessage());
+                LOG.error("Error deleting user map: " + e.getMessage());
             }
 
             repository.delete(bindingId);
         } catch (Exception e) {
+            LOG.error("Error deleting binding: " + e);
             throw new ServiceBrokerException(e);
         }
     }
