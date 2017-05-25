@@ -43,7 +43,7 @@ public class CatalogConfigTest {
         Map<String, Object> metadata = ecsBucketService.getMetadata();
         testServiceDefinitionMetadata(metadata, "ecs-bucket",
                 "http://www.emc.com/images/products/header-image-icon-ecs.png",
-                "EMC Corporation", "https://community.emc.com/docs/DOC-45012",
+                "Dell EMC", "https://community.emc.com/docs/DOC-45012",
                 "http://www.emc.com/products-solutions/trial-software-download/ecs.htm");
     }
 
@@ -57,13 +57,13 @@ public class CatalogConfigTest {
         testPlan(plan0, "8e777d49-0a78-4cf4-810a-b5f5173b019d", "5gb",
                 "Free Trial", new Double(0.0), "MONTHLY",
                 Arrays.asList("Shared object storage", "5 GB Storage",
-                        "S3 protocol and HDFS access"));
+                        "S3 protocol access"));
 
         Plan plan1 = ecsBucketPlans.get(1);
         testPlan(plan1, "89d20694-9ab0-4a98-bc6a-868d6d4ecf31", "unlimited",
                 "Pay per GB for Month", new Double(0.03), "PER GB PER MONTH",
                 Arrays.asList("Shared object storage", "Unlimited Storage",
-                        "S3 protocol and HDFS access"));
+                        "S3 protocol access"));
     }
 
     private void testServiceDefinition(ServiceDefinition service, String id,
