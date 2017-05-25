@@ -20,6 +20,7 @@ including:
  * Provide a string prefix for bucket and user names
  * Support a self-signed SSL certificate for the ECS management API
  * Configure offered services & plans through a YAML based configuration
+ * Support file system mounts of file access enabled buckets via NFS
 
 ## Build
 
@@ -177,7 +178,7 @@ can be found and/or changed via the
 You can then run the test-suite with gradle:
 
 ```
-/gradlew test
+./gradlew test
 ```
 
 ## TODOs
