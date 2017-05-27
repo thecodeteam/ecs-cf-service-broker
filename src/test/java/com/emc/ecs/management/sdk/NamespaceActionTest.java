@@ -37,7 +37,7 @@ public class NamespaceActionTest extends EcsActionTest {
             EcsManagementResourceNotFoundException {
         assertFalse(NamespaceAction.exists(connection, namespace));
         NamespaceAction.create(connection, namespace, NOADMIN,
-                replicationGroup);
+        		replicationGroupID);
         assertTrue(NamespaceAction.exists(connection, namespace));
         NamespaceAction.delete(connection, namespace);
         assertFalse(NamespaceAction.exists(connection, namespace));
@@ -47,7 +47,7 @@ public class NamespaceActionTest extends EcsActionTest {
     public void getNamespaceTest() throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
         NamespaceAction.create(connection, namespace, NOADMIN,
-                replicationGroup);
+        		replicationGroupID);
         assertTrue(NamespaceAction.get(connection, namespace).getName()
                 .equals(namespace));
         NamespaceAction.delete(connection, namespace);
@@ -56,7 +56,7 @@ public class NamespaceActionTest extends EcsActionTest {
     @Test
     public void updateNamespaceTest() throws EcsManagementClientException {
         NamespaceAction.create(connection, namespace, NOADMIN,
-                replicationGroup);
+        		replicationGroupID);
         assertFalse(NamespaceAction.get(connection, namespace)
                 .getIsEncryptionEnabled());
         NamespaceUpdate update = new NamespaceUpdate();

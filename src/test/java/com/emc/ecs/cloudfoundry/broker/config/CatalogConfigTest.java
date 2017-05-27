@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
         initializers = ConfigFileApplicationContextInitializer.class)
-@ActiveProfiles("development")
+@ActiveProfiles("test")
 public class CatalogConfigTest {
 
     @Autowired

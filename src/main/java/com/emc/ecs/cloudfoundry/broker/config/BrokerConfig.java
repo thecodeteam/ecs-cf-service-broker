@@ -22,7 +22,7 @@ public class BrokerConfig {
     private String repositoryBucket = "repository";
     private String prefix = "ecs-cf-broker-";
     private String brokerApiVersion = "2.10";
-    private String certificate = "localhost.pem";
+    private String certificate;
 
     public String getManagementEndpoint() {
         return managementEndpoint;
