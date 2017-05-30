@@ -21,7 +21,7 @@ public class BrokerConfig {
     private String password = "ChangeMe";
     private String repositoryBucket = "repository";
     private String prefix = "ecs-cf-broker-";
-    private String brokerApiVersion = "2.10";
+    private String brokerApiVersion = "2.11";
     private String certificate;
 
     public String getManagementEndpoint() {
