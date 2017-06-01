@@ -47,10 +47,16 @@ public class ServiceInstanceRepository {
 
         S3Config s3Config = new S3Config(
                 new URI(broker.getRepositoryEndpoint()));
+
+        logger.info(format("Created S3 config %s", s3Config));
+
         s3Config.withIdentity(broker.getPrefixedUserName())
                 .withSecretKey(broker.getRepositorySecret());
         this.s3 = new S3JerseyClient(s3Config,
         		new URLConnectionClientHandler());
+
+        logger.info(format("JerseyClient S3 config %s", this.s3.getS3Config()));
+
         this.bucket = broker.getPrefixedBucketName();
     }
 
