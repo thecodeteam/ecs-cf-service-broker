@@ -43,6 +43,8 @@ public class ServiceInstanceRepository {
     @PostConstruct
     public void initialize() throws EcsManagementClientException,
             EcsManagementResourceNotFoundException, URISyntaxException {
+        logger.info(format("Creating S3 config with repository endpoint %s", broker.getRepositoryEndpoint()));
+
         S3Config s3Config = new S3Config(
                 new URI(broker.getRepositoryEndpoint()));
         s3Config.withIdentity(broker.getPrefixedUserName())
