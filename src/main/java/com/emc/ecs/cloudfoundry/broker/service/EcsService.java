@@ -88,7 +88,7 @@ public class EcsService {
             throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
 
-        logger.info("Creating bucket %s", id);
+        logger.info(String.format("Creating bucket %s", id));
 
         if (bucketExists(id)) {
             if (errorOnExists) {

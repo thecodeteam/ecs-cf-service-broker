@@ -6,6 +6,8 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
@@ -19,8 +21,13 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.lang.String.format;
+
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EcsServiceInstanceService.class);
+
     private static final String NO_SERVICE_MATCHING_TYPE = "No service matching type: ";
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
@@ -46,6 +53,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
+
+        logger.info(format("Creating service instance %s", serviceInstanceId));
+
         try {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
@@ -65,6 +75,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             repository.save(instance);
             return new CreateServiceInstanceResponse();
         } catch (Exception e) {
+            logger.error(format("Unexpected error creating service %s", serviceInstanceId), e);
             throw new ServiceBrokerException(e);
         }
     }
