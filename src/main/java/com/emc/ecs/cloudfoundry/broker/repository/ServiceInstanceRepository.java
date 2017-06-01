@@ -7,6 +7,8 @@ import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
@@ -21,7 +23,12 @@ import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static java.lang.String.format;
+
 public class ServiceInstanceRepository {
+
+
+    private static final Logger logger = LoggerFactory.getLogger(ServiceInstanceRepository.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private String bucket;
@@ -49,6 +56,7 @@ public class ServiceInstanceRepository {
             throws IOException, JAXBException {
 //        PipedInputStream input = new PipedInputStream();
 //        PipedOutputStream output = new PipedOutputStream(input);
+        logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s", this.s3.getS3Config().getHost(), this.s3.getS3Config().getNamespace(), this.s3.getS3Config().getProtocol(), this.s3.getS3Config().getIdentity(), this.s3.getS3Config().getPort()));
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         objectMapper.writeValue(output, instance);
@@ -56,6 +64,7 @@ public class ServiceInstanceRepository {
 
         ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
 
+        logger.info(format("Saving Repository - bucket: %s", bucket));
         s3.putObject(bucket, getFilename(instance.getServiceInstanceId()),
                 input, null);
     }
