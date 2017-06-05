@@ -56,6 +56,7 @@ public class EcsServiceInstanceBindingService
             CreateServiceInstanceBindingRequest request)
             throws ServiceInstanceBindingExistsException,
             ServiceBrokerException {
+        LOG.error("Creating service instance binding response");
         String instanceId = request.getServiceInstanceId();
         String bindingId = request.getBindingId();
         String serviceDefinitionId = request.getServiceDefinitionId();
@@ -83,6 +84,7 @@ public class EcsServiceInstanceBindingService
 
             if (NAMESPACE.equals(serviceType)) {
                 userSecret = ecs.createUser(bindingId, instanceId);
+                LOG.info("Created user with binding id: " + bindingId + ", instanceId: " + instanceId);
                 endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
                         Optional.ofNullable(parameters));
                 String userInfo = bindingId + ":" + userSecret.getSecretKey();
@@ -99,6 +101,7 @@ public class EcsServiceInstanceBindingService
                 endpoint = ecs.getObjectEndpoint();
                 URL baseUrl = new URL(endpoint);
                 userSecret = ecs.createUser(bindingId);
+                LOG.info("Created user with binding id: " + bindingId);
                 List<String> permissions = null;
                 Boolean hasMounts = ecs.getBucketFileEnabled(instanceId);
                 String export = "";
@@ -108,14 +111,17 @@ public class EcsServiceInstanceBindingService
                 }
                 if (permissions != null) {
                     ecs.addUserToBucket(instanceId, bindingId, permissions);
+                    LOG.info("Added user to bucket");
                 } else {
                     ecs.addUserToBucket(instanceId, bindingId);
+                    LOG.info("Added user to bucket");
                 }
                 if (hasMounts) {
                     int unixUid = (int)(2000 + System.currentTimeMillis() % 8000);
                     while (true) {
                         try {
                             ecs.createUserMap(bindingId, unixUid);
+                            LOG.info("Created user map binding id: " + bindingId + ", unixUid: " + unixUid);
                             break;
                         } catch (EcsManagementClientException e) {
                             if (e.getMessage().contains("Bad request body (1013)")) {
