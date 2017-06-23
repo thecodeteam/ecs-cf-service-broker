@@ -59,6 +59,8 @@ catalog:
       description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       plan-updatable: true
+      requires:
+      - volume_mount
       tags:
         - s3
         - bucket
@@ -129,6 +131,7 @@ catalog:
         documentationUrl: https://community.emc.com/docs/DOC-45012
         supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
       plans:
+      plans:
         - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
           name: 5gb
           description: Free Trial
@@ -145,8 +148,25 @@ catalog:
             bullets:
               - Shared object storage
               - 5 GB Storage
-              - S3 protocol access
-              - NFS protocol access
+              - S3 protocol and HDFS access
+        - id: ecs-nfs-plan-guid
+          name: 5gb-nfs
+          description: Free Trial with File Access
+          service-settings:
+            file-accessible: true
+            quota:
+              limit: 5
+              warn: 4
+          free: true
+          metadata:
+            costs:
+              - amount:
+                  usd: 0.0
+                unit: MONTHLY
+            bullets:
+              - Multiple Bucket Namespace
+              - 5 GB Storage
+              - S3 protocol, HDFS, and NFSv3 access
         - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
           name: unlimited
           description: Pay per GB for Month
@@ -158,5 +178,18 @@ catalog:
             bullets:
               - Shared object storage
               - Unlimited Storage
-              - S3 protocol access
-              - NFS protocol access
+              - S3 protocol and HDFS access
+        - id: ecs-nfs-plan-guid2
+          name: unlimited-nfs
+          description: Pay per GB for Month with File Access
+          service-settings:
+            file-accessible: true
+          metadata:
+            costs:
+              - amount:
+                  usd: 0.03
+                unit: PER GB PER MONTH
+            bullets:
+              - Shared object storage
+              - Unlimited Storage
+              - S3 protocol, HDFS and NFSv3 access
