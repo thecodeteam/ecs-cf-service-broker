@@ -131,7 +131,6 @@ catalog:
         documentationUrl: https://community.emc.com/docs/DOC-45012
         supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
       plans:
-      plans:
         - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
           name: 5gb
           description: Free Trial
