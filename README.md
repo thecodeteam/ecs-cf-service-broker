@@ -131,7 +131,7 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | :---------------- | :-------------------| :-----: | :------- | :--------------------------------------------- |
 | bucket            | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
 | bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
-| bucket            | file-access         | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
+| bucket            | file-accessible     | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
 | bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
 | bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
@@ -168,6 +168,48 @@ security:
     password: <password>
 ...
 ```
+### Volume Services
+
+Volume services allow bucket contents to be mounted into Cloud Foundry application containers as a file system.  This
+enables applications to interact with bucket contents as though they are ordinary files.
+
+#### Prerequisites
+There are a few prerequisites you must set up in your Cloud Foundry deployment in order to take advantage of volume
+ services.
+
+1) In your Cloud Foundry deployment, the property `cc.volume_services_enabled` must be set to `true`.
+
+2) The `nfsv3driver` job from [nfs-volume-release]() must be running and colocated on your diego cells.  See the README for details.
+
+3) The `ecs-bucket` service in your catalog must be configured to require volume mounts.  The example application.yml
+provided in this repo is already set up with this property:
+
+```yaml
+...
+catalog:
+  services:
+    - name: ecs-bucket
+      type: bucket
+      requires:
+      - volume_mount
+...
+```
+
+#### File system enabled service instances
+In order to use volume services once the prerequisites above are satisfied, your service instances must be created with
+`file-accessible` set to true.  This can be set either in the service plan exposed from your service catalog, or
+manually by the user during service instance creation:
+
+```bash
+cf create-service ecs-bucket 5gb mybucket -c '{"file-accessible":true}'
+```
+
+Buckets created in this manner will have file system access enabled, and file shares exposed.  When application bindings
+are created, new bucket users will be created to correspond to those bindings, and uid mappings will ensure that traffic
+coming from the application operates as the correct user.
+
+As of today, the application mount point is hard-coded to `/var/vcap/data` so that is where the file system will appear
+within the application container.  We expect to make this configurable in the future.
 
 ## Testing
 
@@ -183,4 +225,4 @@ You can then run the test-suite with gradle:
 
 ## TODOs
 
-Up to date tasks are on our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues) page.
+Up to date tasks are on our [Github issues](https://github.com/codedellemc/ecs-cf-service-broker/issues) page.
