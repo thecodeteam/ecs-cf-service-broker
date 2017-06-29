@@ -59,8 +59,6 @@ catalog:
       description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       plan-updatable: true
-      requires:
-      - volume_mount
       tags:
         - s3
         - bucket
@@ -124,7 +122,7 @@ catalog:
         access-during-outage: true
         file-accessible: true
       metadata:
-        displayName: ecs-bucket
+        displayName: ecs-file-bucket
         imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
         longDescription: Dell EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3 or NFS.
         providerDisplayName: Dell EMC
@@ -148,24 +146,6 @@ catalog:
               - Shared object storage
               - 5 GB Storage
               - S3 protocol and HDFS access
-        - id: ecs-nfs-plan-guid
-          name: 5gb-nfs
-          description: Free Trial with File Access
-          service-settings:
-            file-accessible: true
-            quota:
-              limit: 5
-              warn: 4
-          free: true
-          metadata:
-            costs:
-              - amount:
-                  usd: 0.0
-                unit: MONTHLY
-            bullets:
-              - Multiple Bucket Namespace
-              - 5 GB Storage
-              - S3 protocol, HDFS, and NFSv3 access
         - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
           name: unlimited
           description: Pay per GB for Month
@@ -178,17 +158,3 @@ catalog:
               - Shared object storage
               - Unlimited Storage
               - S3 protocol and HDFS access
-        - id: ecs-nfs-plan-guid2
-          name: unlimited-nfs
-          description: Pay per GB for Month with File Access
-          service-settings:
-            file-accessible: true
-          metadata:
-            costs:
-              - amount:
-                  usd: 0.03
-                unit: PER GB PER MONTH
-            bullets:
-              - Shared object storage
-              - Unlimited Storage
-              - S3 protocol, HDFS and NFSv3 access

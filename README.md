@@ -188,7 +188,7 @@ provided in this repo is already set up with this property:
 ...
 catalog:
   services:
-    - name: ecs-bucket
+    - name: ecs-file-bucket
       type: bucket
       requires:
       - volume_mount
@@ -197,8 +197,8 @@ catalog:
 
 #### File system enabled service instances
 In order to use volume services once the prerequisites above are satisfied, your service instances must be created with
-`file-accessible` set to true.  This can be set either in the service plan exposed from your service catalog, or
-manually by the user during service instance creation:
+`file-accessible` set to true.  This can be set either in the service or service plan exposed from your service catalog,
+or manually by the user during service instance creation:
 
 ```bash
 cf create-service ecs-bucket 5gb mybucket -c '{"file-accessible":true}'
