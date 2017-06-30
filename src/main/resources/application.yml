@@ -129,7 +129,7 @@ catalog:
         documentationUrl: https://community.emc.com/docs/DOC-45012
         supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
       plans:
-        - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
+        - id: b7c3f0b0-6867-44e3-b1b9-b255852010b3
           name: 5gb
           description: Free Trial
           service-settings:
@@ -146,7 +146,7 @@ catalog:
               - Shared object storage
               - 5 GB Storage
               - S3 protocol and HDFS access
-        - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
+        - id: 285817bc-e73d-4bb4-bd5d-aebe54ef792f
           name: unlimited
           description: Pay per GB for Month
           metadata:
