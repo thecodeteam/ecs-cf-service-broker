@@ -136,6 +136,7 @@ catalog:
             quota:
               limit: 5
               warn: 4
+            file-accessible: true
           free: true
           metadata:
             costs:
