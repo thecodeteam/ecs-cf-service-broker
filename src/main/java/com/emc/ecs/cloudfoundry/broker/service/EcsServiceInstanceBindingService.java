@@ -16,6 +16,7 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingSer
 import org.springframework.stereotype.Service;
 
 import javax.xml.bind.JAXBException;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -32,7 +33,8 @@ public class EcsServiceInstanceBindingService
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
     private static final String VOLUME_DRIVER = "nfsv3driver";
-    private static final String DEFAULT_CONTAINER_DIR = "/var/vcap/data";
+    private static final String DEFAULT_MOUNT = "/var/vcap/data";
+    public static final String MOUNT = "mount";
 
     static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
@@ -146,7 +148,7 @@ public class EcsServiceInstanceBindingService
                     opts.put("source", nfsUrl);
                     opts.put("uid", String.valueOf(unixUid));
                     List<VolumeMount> mounts = new ArrayList<>();
-                    mounts.add(new VolumeMount(VOLUME_DRIVER, DEFAULT_CONTAINER_DIR, VolumeMount.Mode.READ_WRITE,
+                    mounts.add(new VolumeMount(VOLUME_DRIVER, getContainerDir(parameters, bindingId), VolumeMount.Mode.READ_WRITE,
                             VolumeMount.DeviceType.SHARED, new SharedVolumeDevice(volumeGUID, opts)));
                     binding.setVolumeMounts(mounts);
                     resp = resp.withVolumeMounts(mounts);
@@ -179,6 +181,15 @@ public class EcsServiceInstanceBindingService
         } catch (IOException | JAXBException | EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
         }
+    }
+
+    protected String getContainerDir(Map<String, Object> parameters, String bindingId) {
+        if (parameters != null) {
+            Object mount = parameters.get(MOUNT);
+            if (mount != null) { return mount.toString(); }
+        }
+
+        return DEFAULT_MOUNT + File.separator + bindingId;
     }
 
     @Override

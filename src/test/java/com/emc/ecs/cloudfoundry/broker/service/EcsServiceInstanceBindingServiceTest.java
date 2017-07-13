@@ -19,6 +19,7 @@ import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.xml.bind.JAXBException;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -235,7 +236,7 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(1, mounts.size());
         assertEquals(DRIVER, mount.getDriver());
         assertEquals(VolumeMount.DeviceType.SHARED, mount.getDeviceType());
-        assertEquals("/var/vcap/data", mount.getContainerDir());
+        assertEquals("/var/vcap/data" + File.separator + BINDING_ID, mount.getContainerDir());
         assertEquals(VolumeMount.Mode.READ_WRITE, mount.getMode());
         assertEquals(String.class, device.getVolumeId().getClass());
         assertEquals(nfsUrl, volumeOpts.get("source"));
@@ -365,4 +366,15 @@ public class EcsServiceInstanceBindingServiceTest {
         verify(ecs, times(1)).removeUserFromBucket(BUCKET_NAME, BINDING_ID);
         verify(ecs, times(1)).deleteUser(BINDING_ID);
     }
+
+    @Test
+    public void testGetContainerDir() {
+        assertEquals(bindSvc.getContainerDir(null,"foo"), "/var/vcap/data/foo");
+        assertEquals(bindSvc.getContainerDir( new HashMap<>(),"foo"), "/var/vcap/data/foo");
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(EcsServiceInstanceBindingService.MOUNT, "/my/excellent/path");
+        parameters.put("otherStuff", "some random garbage");
+        assertEquals(bindSvc.getContainerDir( parameters,"foo"), "/my/excellent/path");
+    }
+
 }
