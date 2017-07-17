@@ -133,7 +133,8 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
 | bucket            | file-accessible     | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
 | bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
-| bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
+| bucket            | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
+| bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
 | bucket binding    | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
@@ -143,7 +144,8 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
 | namespace         | default-bucket-quota| -1      | Integer  | Default quota applied to bucket (-1 for none)  |            
 | namespace         | quota*              | -       | JSON Map | Quota applied to namespace                     |            
-| namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |            
+| namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |
+| namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 
