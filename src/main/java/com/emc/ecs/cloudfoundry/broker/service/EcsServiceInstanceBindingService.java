@@ -177,7 +177,9 @@ public class EcsServiceInstanceBindingService
             credentials.put("secretKey", userSecret.getSecretKey());
             binding.setCredentials(credentials);
 
+            LOG.info("saving binding...");
             repository.save(binding);
+            LOG.info("binding saved.");
             return resp.withCredentials(credentials);
 
         } catch (IOException | JAXBException | EcsManagementClientException e) {
@@ -197,8 +199,9 @@ public class EcsServiceInstanceBindingService
             }
         }
 
-        LOG.info("using default mount");
-        return DEFAULT_MOUNT + File.separator + bindingId;
+        String mount = DEFAULT_MOUNT + File.separator + bindingId;
+        LOG.info("using default mount: " + mount);
+        return mount;
     }
 
     @Override
