@@ -139,7 +139,9 @@ public class EcsServiceInstanceBindingService
                         host = baseUrl.getHost();
                     }
                     String volumeGUID = UUID.randomUUID().toString();
+                    LOG.info("Adding export:  " + export + " to bucket: " + instanceId);
                     String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
+                    LOG.info("export added.");
                     Map<String, Object> opts = new HashMap<>();
                     String nfsUrl = new StringBuilder("nfs://")
                                 .append(host)
