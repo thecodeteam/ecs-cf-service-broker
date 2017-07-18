@@ -123,7 +123,7 @@ public class EcsServiceInstanceBindingService
                     while (true) {
                         try {
                             ecs.createUserMap(bindingId, unixUid);
-                            LOG.info("Created user map binding id: " + bindingId + ", unixUid: " + unixUid);
+                            LOG.info("Created user map. Binding id: " + bindingId + ", unixUid: " + unixUid);
                             break;
                         } catch (EcsManagementClientException e) {
                             if (e.getMessage().contains("Bad request body (1013)")) {
@@ -187,10 +187,17 @@ public class EcsServiceInstanceBindingService
 
     protected String getContainerDir(Map<String, Object> parameters, String bindingId) {
         if (parameters != null) {
-            Object mount = parameters.get(MOUNT);
-            if (mount != null) { return mount.toString(); }
+            Object o = parameters.get(MOUNT);
+            if (o != null && o instanceof String) {
+                String mount = (String) o;
+                if (!mount.isEmpty()) {
+                    LOG.info("mount parameter found returning: " + mount);
+                    return mount;
+                }
+            }
         }
 
+        LOG.info("using default mount");
         return DEFAULT_MOUNT + File.separator + bindingId;
     }
 
