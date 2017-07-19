@@ -66,11 +66,8 @@ public class ServiceInstanceBindingRepository {
 
     public void save(ServiceInstanceBinding binding)
             throws IOException, JAXBException {
-        PipedInputStream input = new PipedInputStream();
-        PipedOutputStream output = new PipedOutputStream(input);
-        objectMapper.writeValue(output, binding);
-        output.close();
-        s3.putObject(bucket, getFilename(binding.getBindingId()), input, null);
+        String serialized = objectMapper.writeValueAsString(binding);
+        s3.putObject(bucket, getFilename(binding.getBindingId()), serialized, null);
     }
 
     public ServiceInstanceBinding find(String id) throws IOException {
