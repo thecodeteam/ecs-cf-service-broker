@@ -1,5 +1,5 @@
 # ECS Cloud Foundry Service Broker
-[![Build Status](https://travis-ci.org/codedellemc/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/codedellemc/ecs-cf-service-broker) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://persi.ci.cf-app.com/api/v1/pipelines/persi/jobs/ecs-broker-unit/badge)](https://persi.ci.cf-app.com/teams/main/pipelines/persi/jobs/ecs-broker-unit) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
 ## Description
 
 This service broker enables Cloud Foundry applications to create, delete and
