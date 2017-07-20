@@ -134,9 +134,9 @@ public class ServiceInstanceBindingRepository {
         @Override
         public VolumeDevice deserialize(JsonParser jp, DeserializationContext ctxt)
                 throws IOException, JsonProcessingException {
-            LOG.error("trying to unmarshall volume mount");
+            LOG.debug("trying to unmarshall volume mount");
             SharedVolumeDevice s = jp.getCodec().readValue(jp, SharedVolumeDevice.class);
-            LOG.error("unmarshalled volume mount: " + s.getVolumeId());
+            LOG.debug("unmarshalled volume mount: " + s.getVolumeId());
 
             return s;
         }

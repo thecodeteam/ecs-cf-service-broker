@@ -58,7 +58,7 @@ public class EcsServiceInstanceBindingService
             CreateServiceInstanceBindingRequest request)
             throws ServiceInstanceBindingExistsException,
             ServiceBrokerException {
-        LOG.error("Creating service instance binding response");
+        LOG.info("Creating service instance binding response");
         String instanceId = request.getServiceInstanceId();
         String bindingId = request.getBindingId();
         String serviceDefinitionId = request.getServiceDefinitionId();
@@ -193,14 +193,12 @@ public class EcsServiceInstanceBindingService
             if (o != null && o instanceof String) {
                 String mount = (String) o;
                 if (!mount.isEmpty()) {
-                    LOG.info("mount parameter found returning: " + mount);
                     return mount;
                 }
             }
         }
 
         String mount = DEFAULT_MOUNT + File.separator + bindingId;
-        LOG.info("using default mount: " + mount);
         return mount;
     }
 
@@ -219,14 +217,14 @@ public class EcsServiceInstanceBindingService
             if (BUCKET.equals(serviceType))
                 ecs.removeUserFromBucket(instanceId, bindingId);
             ecs.deleteUser(bindingId);
-            LOG.error("looking up binding: " + bindingId);
+            LOG.info("looking up binding: " + bindingId);
             ServiceInstanceBinding binding = repository.find(bindingId);
             if (binding == null) {
                 // TODO -- is this gonna blow up?
                 repository.delete(bindingId);
                 return;
             }
-            LOG.error("binding found: " + bindingId);
+            LOG.info("binding found: " + bindingId);
 
             List<VolumeMount> volumes = binding.getVolumeMounts();
             if (volumes == null || volumes.size() == 0) {
@@ -237,7 +235,7 @@ public class EcsServiceInstanceBindingService
             Map<String, Object> mountConfig = ((SharedVolumeDevice) volumes.get(0).getDevice()).getMountConfig();
             String unixId = (String) mountConfig.get("uid");
             try {
-                LOG.error("Deleting user map of instance Id and Binding Id " + instanceId + " " + bindingId);
+                LOG.info("Deleting user map of instance Id and Binding Id " + instanceId + " " + bindingId);
                 ecs.deleteUserMap(bindingId, unixId);
             } catch (EcsManagementClientException e) {
                 LOG.error("Error deleting user map: " + e.getMessage());
