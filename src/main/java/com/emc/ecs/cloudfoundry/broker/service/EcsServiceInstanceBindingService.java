@@ -110,7 +110,9 @@ public class EcsServiceInstanceBindingService
                 if (parameters != null) {
                     permissions = (List<String>) parameters.get("permissions");
                     export = (String) parameters.get("export");
+                    if (export == null) { export = ""; }
                 }
+
                 if (permissions != null) {
                     ecs.addUserToBucket(instanceId, bindingId, permissions);
                     LOG.info("Added user to bucket");
