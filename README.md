@@ -216,7 +216,7 @@ the VCAP_SERVICES environment variable.  If you prefer to have the volume mounte
 container, you can use the `mount` key from within your bind configuration:
 
 ```bash
-cf create-service ecs-file-bucket 5gb mybucket -c '{"mount":"/var/something"}'
+cf bind-service myapp mybucket -c '{"mount":"/var/something"}'
 ```
 > NOTE: As of this writing **aufs** used by Garden is not capable of creating new root level folders.  As a result, you must choose a path with a root level folder that already exists in the container.  (`/home`, `/usr` or `/var` are good choices.)  If you require a path that does not already exist in the container it is currently only possible if you upgrade your Diego deployment to use [GrootFS](https://github.com/cloudfoundry/grootfs-release) with Garden. Soon, GrootFS will become the standard file system for CF containers, and this limitation will go away.
 
