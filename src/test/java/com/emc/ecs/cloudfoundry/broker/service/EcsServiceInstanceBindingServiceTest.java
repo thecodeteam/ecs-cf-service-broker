@@ -1,6 +1,7 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
 import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
@@ -33,11 +34,8 @@ import static org.mockito.Mockito.*;
 public class EcsServiceInstanceBindingServiceTest {
 
     private static final String COLON = ":";
-
     private static final String HTTP = "http://";
-
     private static final String SECRET_KEY = "secretKey";
-
     private static final String TEST_KEY = "TEST_KEY";
     private static final String NFS_SCHEME = "nfs://";
     private static final String DRIVER = "nfsv3driver";
@@ -312,9 +310,9 @@ public class EcsServiceInstanceBindingServiceTest {
      * @throws EcsManagementClientException
      */
     @Test(expected = ServiceInstanceBindingExistsException.class)
-    public void testCreateExistingNamespaceUserFailes()
+    public void testCreateExistingNamespaceUserFails()
             throws EcsManagementClientException {
-        when(catalog.findServiceDefinition(eq(NAMESPACE_SERVICE_ID)))
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
         when(ecs.userExists(BINDING_ID)).thenReturn(true);
 
@@ -330,8 +328,9 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test(expected = ServiceInstanceBindingExistsException.class)
     public void testCreateExistingBucketUserFails()
             throws EcsManagementClientException {
-        when(catalog.findServiceDefinition(eq(BUCKET_SERVICE_ID)))
-                .thenReturn(namespaceServiceFixture());
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+                .thenReturn(bucketServiceFixture());
+        when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
         when(ecs.userExists(BINDING_ID)).thenReturn(true);
 
         bindSvc.createServiceInstanceBinding(
@@ -345,7 +344,7 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test
     public void testRemoveNamespaceUser() throws EcsManagementClientException {
-        when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
         bindSvc.deleteServiceInstanceBinding(namespaceBindingRemoveFixture());
         verify(ecs, times(1)).deleteUser(BINDING_ID);
@@ -358,9 +357,13 @@ public class EcsServiceInstanceBindingServiceTest {
      * @throws EcsManagementClientException
      */
     @Test
-    public void testRemoveBucketUser() throws EcsManagementClientException {
-        when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
+    public void testRemoveBucketUser() throws EcsManagementClientException, IOException, EcsManagementResourceNotFoundException {
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
                 .thenReturn(bucketServiceFixture());
+        when(ecs.getObjectEndpoint())
+                .thenReturn(OBJ_ENDPOINT);
+        when(repository.find(eq(BINDING_ID)))
+                .thenReturn(bindingInstanceFixture());
         bindSvc.deleteServiceInstanceBinding(bucketBindingRemoveFixture());
         verify(ecs, times(1)).removeUserFromBucket(BUCKET_NAME, BINDING_ID);
         verify(ecs, times(1)).deleteUser(BINDING_ID);

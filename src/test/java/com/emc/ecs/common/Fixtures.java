@@ -73,6 +73,7 @@ public class Fixtures {
     public static final String COMPLIANCE_ENABLED = "compliance-enabled";
     public static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String EXPORT_NAME = "test_export";
+    private static final String SERVICE_TYPE = "service-type";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
