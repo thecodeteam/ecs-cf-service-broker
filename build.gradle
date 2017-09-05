@@ -7,7 +7,7 @@ buildscript {
         maven { url 'http://repo.spring.io/plugins-release' }
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") 
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath('io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE')
     }
 }
@@ -51,8 +51,8 @@ dependencies {
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion)
     testCompile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion, classifier: "tests")
     testCompile(group: 'com.github.tomakehurst', name: 'wiremock-standalone', version: '2.5.1')
-    testCompile(group: 'org.powermock', name: 'powermock-api-mockito', version: '1.6.6')
-    testCompile(group: 'org.powermock', name: 'powermock-module-junit4', version: '1.6.6')
+    testCompile(group: 'org.powermock', name: 'powermock-api-mockito', version: '1.7.1')
+    testCompile(group: 'org.powermock', name: 'powermock-module-junit4', version: '1.7.1')
     
     
 }
