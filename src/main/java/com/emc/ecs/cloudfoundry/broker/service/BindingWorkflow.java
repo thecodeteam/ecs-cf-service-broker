@@ -7,14 +7,16 @@ import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBin
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
 
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Map;
 
 public interface BindingWorkflow {
     BindingWorkflow withCreateRequest(CreateServiceInstanceBindingRequest request);
     BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request);
-    void checkIfUserExists() throws EcsManagementClientException;
-    UserSecretKey createBindingUser() throws EcsManagementClientException;
+    void checkIfUserExists() throws EcsManagementClientException, IOException;
+    String createBindingUser() throws EcsManagementClientException, IOException, JAXBException;
     void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException;
     Map<String, Object> getCredentials(String secretKey) throws MalformedURLException, EcsManagementClientException;
     ServiceInstanceBinding getBinding(Map<String, Object> credentials);

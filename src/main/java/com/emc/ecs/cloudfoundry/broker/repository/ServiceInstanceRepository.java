@@ -47,8 +47,6 @@ public class ServiceInstanceRepository {
 
     public void save(ServiceInstance instance)
             throws IOException, JAXBException {
-//        PipedInputStream input = new PipedInputStream();
-//        PipedOutputStream output = new PipedOutputStream(input);
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         objectMapper.writeValue(output, instance);

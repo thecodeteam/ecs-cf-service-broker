@@ -16,24 +16,22 @@ import java.util.List;
 import java.util.Map;
 
 public class Fixtures {
-    public static final String QUOTA = "quota";
-    public static final String WARN = "warn";
-    public static final String LIMIT = "limit";
-    public static final String UNLIMITED = "Unlimited";
-    public static final String UNCHECKED = "unchecked";
-    public static final String ONE_YEAR = "one-year";
-    public static final int ONE_YEAR_IN_SECS = 31536000;
-    public static final String FREE_TRIAL = "Free Trial";
-    public static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
-    public static final String _5GB = "5gb";
+    private static final String QUOTA = "quota";
+    private static final String WARN = "warn";
+    private static final String LIMIT = "limit";
+    private static final String UNLIMITED = "Unlimited";
+    private static final String ONE_YEAR = "one-year";
+    private static final int ONE_YEAR_IN_SECS = 31536000;
+    private static final String FREE_TRIAL = "Free Trial";
+    private static final String PAY_PER_GB_PER_MONTH = "Pay per GB Per Month";
+    private static final String _5GB = "5gb";
     public static final String GET = "get";
-    public static final String RETENTION = "retention";
+    private static final String RETENTION = "retention";
     public static final String NAMESPACE = "ns1";
     public static final String BASE_URL_ID =
             "urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2";
     public static final String BASE_URL_NAME = "MyBaseURL";
     public static final String DEFAULT_BASE_URL_NAME = "DefaultBaseURL";
-    public static final String BASE_URL = "s3.mydomain.example.com";
     public static final String PREFIX = "ecs-cf-broker-";
     public static final String REPO_BUCKET = "ecs-cf-broker-repository";
     public static final String REPO_USER = "ecs-cf-broker-user";
@@ -49,31 +47,29 @@ public class Fixtures {
             "09cac5b8-1b0a-11e6-b6ba-3e1d05defe78";
     public static final String NAMESPACE_PLAN_ID2 =
             "09cac9f3-1b0a-11e6-b6ba-3e1d05defe78";
-    public static final String NAMESPACE_PLAN_ID3 =
+    private static final String NAMESPACE_PLAN_ID3 =
             "92ac58fa-6236-4c4f-aab7-9b5f332b487e";
     public static final String BUCKET_PLAN_ID1 =
             "5161888f-d985-40f6-a9bb-48d91c5805c0";
     public static final String BUCKET_PLAN_ID2 =
             "2bc4898b-99aa-491b-9c15-7e10a161bd9f";
-    public static final String BUCKET_PLAN_ID3 =
-            "16aab009-1810-4e71-aa9f-78c1c33ee90e";
     public static final String TEST = "test";
-    public static final String ORG_ID = "55083e67-f841-4c7e-9a19-2bf4d0cac6b9";
-    public static final String SPACE_ID =
+    private static final String ORG_ID = "55083e67-f841-4c7e-9a19-2bf4d0cac6b9";
+    private static final String SPACE_ID =
             "305c3c4d-ca6c-435d-b77f-046f8bc70e79";
     public static final String EXTERNAL_ADMIN = "group1@foo.com";
-    public static final String APP_GUID =
+    private static final String APP_GUID =
             "eb92048d-6d84-42e0-a293-0b604e53bc6f";
     public static final String BINDING_ID =
             "cf2f8326-3465-4810-9da1-54d328935b81";
     public static final String BUCKET_NAME = "testbucket1";
-    public static final String ACCESS_DURING_OUTAGE = "access-during-outage";
-    public static final String ENCRYPTED = "encrypted";
+    private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
+    private static final String ENCRYPTED = "encrypted";
     public static final String FILE_ACCESSIBLE = "file-accessible";
-    public static final String COMPLIANCE_ENABLED = "compliance-enabled";
-    public static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
+    private static final String COMPLIANCE_ENABLED = "compliance-enabled";
+    private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String EXPORT_NAME = "test_export";
-    private static final String SERVICE_TYPE = "service-type";
+    public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -216,6 +212,28 @@ public class Fixtures {
                 .withServiceInstanceId(NAMESPACE);
     }
 
+    public static CreateServiceInstanceBindingRequest bucketRemoteConnectFixture() {
+        Map<String, Object> bindResource = new HashMap<>();
+        bindResource.put("app_guid", APP_GUID);
+        Map<String, Object> params = new HashMap<>();
+        params.put("connect_remote", true);
+        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
+                BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
+                .withBindingId(BINDING_ID)
+                .withServiceInstanceId(BUCKET_NAME);
+    }
+
+    public static CreateServiceInstanceBindingRequest namespaceRemoteConnectFixture() {
+        Map<String, Object> bindResource = new HashMap<>();
+        bindResource.put("app_guid", APP_GUID);
+        Map<String, Object> params = new HashMap<>();
+        params.put("connect_remote", true);
+        return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
+                NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
+                .withBindingId(BINDING_ID)
+                .withServiceInstanceId(NAMESPACE);
+    }
+
     public static CreateServiceInstanceBindingRequest bucketBindingPermissionRequestFixture() {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
@@ -255,7 +273,7 @@ public class Fixtures {
     public static ServiceInstanceBinding bindingInstanceFixture()
             throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
-        Map<String, Object> creds = new HashMap<String, Object>();
+        Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("bucket", "bucket");
         creds.put("secretKey", "password");

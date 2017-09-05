@@ -8,6 +8,10 @@ import org.springframework.cloud.servicebroker.model.CreateServiceInstanceReques
 import org.springframework.cloud.servicebroker.model.OperationState;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
 
@@ -39,6 +43,10 @@ public class ServiceInstance {
     @JsonProperty("last_operation")
     private LastOperationSerializer lastOperation;
 
+    @JsonSerialize
+    @JsonProperty("remote_connect_keys")
+    private Map<String, String> remoteConnectionKeys;
+
     @JsonIgnore
     private boolean async;
 
@@ -48,6 +56,7 @@ public class ServiceInstance {
 
     public ServiceInstance(CreateServiceInstanceRequest request) {
         super();
+        this.remoteConnectionKeys = new HashMap<>();
         this.serviceDefinitionId = request.getServiceDefinitionId();
         this.planId = request.getPlanId();
         this.organizationGuid = request.getOrganizationGuid();
@@ -83,6 +92,27 @@ public class ServiceInstance {
 
     public boolean isAsync() {
         return async;
+    }
+
+    public String addRemoteConnectionKey(String bindingId) {
+        String key = UUID.randomUUID().toString();
+        this.remoteConnectionKeys.put(bindingId, key);
+        return key;
+    }
+
+    public Boolean remoteConnectionKeyExists(String bindingId) {
+        return remoteConnectionKeys.containsKey(bindingId);
+    }
+
+    public void removeRemoteConnectionKey(String bindingId) {
+        this.remoteConnectionKeys.remove(bindingId);
+    }
+
+    public Boolean remoteConnectionKeyValid(String bindingId, String remoteConnectionKey) {
+        if (! remoteConnectionKeys.containsKey(bindingId))
+            return false;
+        String key = remoteConnectionKeys.get(bindingId);
+        return (key.equals(remoteConnectionKey));
     }
 
     public LastOperationSerializer getServiceInstanceLastOperation() {

@@ -5,7 +5,7 @@ import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepository;
-import com.emc.ecs.management.sdk.model.UserSecretKey;
+import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
@@ -38,6 +38,9 @@ public class EcsServiceInstanceBindingService
     @Autowired
     private ServiceInstanceBindingRepository repository;
 
+    @Autowired
+    private ServiceInstanceRepository instanceRepo;
+
     public EcsServiceInstanceBindingService()
             throws EcsManagementClientException,
             EcsManagementResourceNotFoundException, URISyntaxException {
@@ -56,10 +59,10 @@ public class EcsServiceInstanceBindingService
 
             LOG.info("creating binding");
             workflow.checkIfUserExists();
-            UserSecretKey secretKey = workflow.createBindingUser();
+            String secretKey = workflow.createBindingUser();
 
             LOG.info("building binding response");
-            Map<String, Object> credentials = workflow.getCredentials(secretKey.getSecretKey());
+            Map<String, Object> credentials = workflow.getCredentials(secretKey);
             ServiceInstanceBinding binding = workflow.getBinding(credentials);
 
             LOG.info("saving binding...");
@@ -104,9 +107,9 @@ public class EcsServiceInstanceBindingService
         String serviceType = (String) service.getServiceSettings().get(SERVICE_TYPE);
         switch (serviceType) {
             case NAMESPACE:
-                return new NamespaceBindingWorkflow(ecs);
+                return new NamespaceBindingWorkflow(instanceRepo, ecs);
             case BUCKET:
-                return new BucketBindingWorkflow(ecs);
+                return new BucketBindingWorkflow(instanceRepo, ecs);
             default:
                 throw new EcsManagementClientException(NO_SERVICE_MATCHING_TYPE +
                         serviceType);

@@ -2,9 +2,11 @@ package com.emc.ecs.cloudfoundry.broker.service;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
-import com.emc.ecs.management.sdk.model.UserSecretKey;
+import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBindingResponse;
 
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -13,13 +15,15 @@ import java.util.Optional;
 
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
-    NamespaceBindingWorkflow(EcsService ecs) {
-        super(ecs);
+    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+        super(instanceRepo, ecs);
     }
 
     @Override
-    public UserSecretKey createBindingUser() throws EcsManagementClientException {
-        return ecs.createUser(bindingId, instanceId);
+    public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
+        if (isRemoteConnectBinding())
+            return createRemoteConnectionUser(bindingId, instanceId);
+        return ecs.createUser(bindingId, instanceId).getSecretKey();
     }
 
     @Override
@@ -31,12 +35,17 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     public Map<String, Object> getCredentials(String secretKey)
             throws MalformedURLException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
-        String endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
-            Optional.ofNullable(createRequest.getParameters()));
-        credentials.put("accessKey", ecs.prefix(bindingId));
-        credentials.put("s3Url", getS3Url(endpoint, secretKey));
-        credentials.put("endpoint", endpoint);
-        credentials.put("secretKey", secretKey);
+        if (isRemoteConnectBinding()) {
+            credentials.put("remoteConnectionAccessKey", bindingId);
+            credentials.put("remoteConnectionSecretKey", secretKey);
+        } else {
+            String endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
+                    Optional.ofNullable(createRequest.getParameters()));
+            credentials.put("accessKey", ecs.prefix(bindingId));
+            credentials.put("s3Url", getS3Url(endpoint, secretKey));
+            credentials.put("endpoint", endpoint);
+            credentials.put("secretKey", secretKey);
+        }
         return credentials;
     }
 
