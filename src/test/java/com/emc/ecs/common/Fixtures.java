@@ -285,6 +285,23 @@ public class Fixtures {
         return binding;
     }
 
+    public static ServiceInstanceBinding bindingRemoteAccessFixture()
+            throws EcsManagementClientException,
+            EcsManagementResourceNotFoundException {
+        Map<String, Object> creds = new HashMap<>();
+        creds.put("accessKey", "user");
+        creds.put("instanceId", "bucket");
+        creds.put("secretKey", "password");
+        ServiceInstanceBinding binding = new ServiceInstanceBinding(
+                ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
+        binding.setBindingId("service-inst-bind-one-id");
+        binding.setCredentials(creds);
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("connect_remote", true);
+        binding.setParameters(parameters);
+        return binding;
+    }
+
     public static DeleteServiceInstanceBindingRequest namespaceBindingRemoveFixture() {
         return new DeleteServiceInstanceBindingRequest(NAMESPACE, BINDING_ID,
                 NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, null);

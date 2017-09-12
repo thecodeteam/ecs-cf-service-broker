@@ -296,10 +296,12 @@ public class EcsServiceInstanceBindingServiceTest {
         bindSvc.createServiceInstanceBinding(bucketRemoteConnectFixture());
 
         Map<String, Object> creds = bindingCaptor.getValue().getCredentials();
-        String accessKey = (String) creds.get("remoteConnectionAccessKey");
-        String secretKey = (String) creds.get("remoteConnectionSecretKey");
+        String instanceId = (String) creds.get("instanceId");
+        String accessKey = (String) creds.get("accessKey");
+        String secretKey = (String) creds.get("secretKey");
 
         assertEquals(BINDING_ID, accessKey);
+        assertEquals(BUCKET_NAME, instanceId);
         assertTrue(instanceCaptor.getValue().remoteConnectionKeyValid(accessKey, secretKey));
         verify(ecs, times(0)).createUser(BINDING_ID);
         verify(ecs, times(0)).userExists(BINDING_ID);
@@ -333,10 +335,12 @@ public class EcsServiceInstanceBindingServiceTest {
         bindSvc.createServiceInstanceBinding(namespaceRemoteConnectFixture());
 
         Map<String, Object> creds = bindingCaptor.getValue().getCredentials();
-        String accessKey = (String) creds.get("remoteConnectionAccessKey");
-        String secretKey = (String) creds.get("remoteConnectionSecretKey");
+        String instanceId = (String) creds.get("instanceId");
+        String accessKey = (String) creds.get("accessKey");
+        String secretKey = (String) creds.get("secretKey");
 
         assertEquals(BINDING_ID, accessKey);
+        assertEquals(NAMESPACE, instanceId);
         assertTrue(instanceCaptor.getValue().remoteConnectionKeyValid(accessKey, secretKey));
         verify(ecs, times(0)).createUser(BINDING_ID);
         verify(ecs, times(0)).userExists(BINDING_ID);
@@ -383,9 +387,11 @@ public class EcsServiceInstanceBindingServiceTest {
      * @throws EcsManagementClientException if ecs management API returns an error
      */
     @Test
-    public void testRemoveNamespaceUser() throws EcsManagementClientException {
+    public void testRemoveNamespaceUser() throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException {
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
+        when(repository.find(eq(BINDING_ID)))
+                .thenReturn(bindingInstanceFixture());
         bindSvc.deleteServiceInstanceBinding(namespaceBindingRemoveFixture());
         verify(ecs, times(1)).deleteUser(BINDING_ID);
         verify(ecs, times(0)).removeUserFromBucket(NAMESPACE, BINDING_ID);
@@ -408,4 +414,34 @@ public class EcsServiceInstanceBindingServiceTest {
         verify(ecs, times(1)).removeUserFromBucket(BUCKET_NAME, BINDING_ID);
         verify(ecs, times(1)).deleteUser(BINDING_ID);
     }
+
+    /**
+     * The binding-service can remove a remote access user in a bucket.
+     *
+     * @throws EcsManagementClientException if ecs management API returns an error
+     */
+    @Test
+    public void testRemoveBucketRemoteAccess() throws EcsManagementClientException, IOException, EcsManagementResourceNotFoundException, JAXBException {
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+                .thenReturn(bucketServiceFixture());
+        when(repository.find(eq(BINDING_ID)))
+                .thenReturn(bindingRemoteAccessFixture());
+
+        ServiceInstance inst = serviceInstanceFixture();
+        inst.addRemoteConnectionKey(BINDING_ID);
+        when(instanceRepository.find(eq(BUCKET_NAME)))
+                .thenReturn(inst);
+
+        ArgumentCaptor<ServiceInstance> instanceCaptor =
+                ArgumentCaptor .forClass(ServiceInstance.class);
+        doNothing().when(instanceRepository).save(instanceCaptor.capture());
+        doNothing().when(repository).delete(eq(BINDING_ID));
+
+        bindSvc.deleteServiceInstanceBinding(bucketBindingRemoveFixture());
+
+        assertFalse(instanceCaptor.getValue().remoteConnectionKeyExists(BINDING_ID));
+        verify(ecs, times(0)).removeUserFromBucket(BUCKET_NAME, BINDING_ID);
+        verify(ecs, times(0)).deleteUser(BINDING_ID);
+    }
+
 }

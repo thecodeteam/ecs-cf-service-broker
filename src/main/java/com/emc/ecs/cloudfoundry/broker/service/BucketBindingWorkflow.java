@@ -4,12 +4,12 @@ import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.VolumeMount;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -28,11 +28,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         super(instanceRepo, ecs);
     }
 
+    public void checkIfUserExists() throws EcsManagementClientException, IOException {
+        if (ecs.userExists(bindingId))
+            throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
+    }
+
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
-        if (isRemoteConnectBinding())
-            return createRemoteConnectionUser(bindingId, instanceId);
-
         UserSecretKey userSecretKey = ecs.createUser(bindingId);
         Map<String, Object> parameters = createRequest.getParameters();
 
@@ -80,18 +82,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     public Map<String, Object> getCredentials(String secretKey)
             throws MalformedURLException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
-        if (isRemoteConnectBinding()) {
-            credentials.put("remoteConnectionAccessKey", bindingId);
-            credentials.put("remoteConnectionSecretKey", secretKey);
-        } else {
-            String endpoint = ecs.getObjectEndpoint();
-            URL baseUrl = new URL(endpoint);
-            credentials.put("bucket", ecs.prefix(instanceId));
-            credentials.put("s3Url", getS3Url(baseUrl, secretKey));
-            credentials.put("accessKey", ecs.prefix(bindingId));
-            credentials.put("endpoint", endpoint);
-            credentials.put("secretKey", secretKey);
-        }
+        String endpoint = ecs.getObjectEndpoint();
+        URL baseUrl = new URL(endpoint);
+        credentials.put("bucket", ecs.prefix(instanceId));
+        credentials.put("s3Url", getS3Url(baseUrl, secretKey));
+        credentials.put("accessKey", ecs.prefix(bindingId));
+        credentials.put("endpoint", endpoint);
+        credentials.put("secretKey", secretKey);
         return credentials;
     }
 
