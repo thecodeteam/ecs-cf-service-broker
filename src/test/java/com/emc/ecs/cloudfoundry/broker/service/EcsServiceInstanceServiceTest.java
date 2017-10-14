@@ -56,7 +56,29 @@ public class EcsServiceInstanceServiceTest {
         verify(repository).save(any(ServiceInstance.class));
         verify(ecs, times(1)).createBucket(eq(BUCKET_NAME),
                 eq(service), any(PlanProxy.class),
-                eq(Optional.of(params)));
+                eq(params));
+    }
+
+    /**
+     * The instance-service can create a bucket with remote connection params
+     *
+     * @throws EcsManagementClientException
+     * @throws JAXBException
+     * @throws IOException
+     * @throws EcsManagementResourceNotFoundException
+     */
+    @Test
+    public void testCreateRemoteBucketService() throws Exception {
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+                .thenReturn(service);
+        Map<String, Object> params = new HashMap<>();
+        instSvc.createServiceInstance(bucketCreateRequestFixture(params));
+
+        verify(repository).save(any(ServiceInstance.class));
+        verify(ecs, times(1)).createBucket(eq(BUCKET_NAME),
+                eq(service), any(PlanProxy.class),
+                eq(params));
     }
 
     /**
@@ -98,7 +120,7 @@ public class EcsServiceInstanceServiceTest {
         verify(repository, times(1)).save(any(ServiceInstance.class));
         verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
                 any(ServiceDefinitionProxy.class), any(PlanProxy.class),
-                eq(Optional.ofNullable(params)));
+                eq(params));
     }
 
     /**

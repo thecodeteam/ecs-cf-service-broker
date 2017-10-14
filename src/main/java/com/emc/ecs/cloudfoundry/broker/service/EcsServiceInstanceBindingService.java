@@ -55,8 +55,7 @@ public class EcsServiceInstanceBindingService
             throws ServiceInstanceBindingExistsException,
             ServiceBrokerException {
         try {
-            BindingWorkflow workflow = getWorkflow(request)
-                    .withCreateRequest(request);
+            BindingWorkflow workflow = getWorkflow(request);
 
             LOG.info("creating binding");
             workflow.checkIfUserExists();
@@ -110,22 +109,23 @@ public class EcsServiceInstanceBindingService
 
         ServiceDefinitionProxy service =
                 ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
-        return getWorkflow(service);
+        return getWorkflow(service).withDeleteRequest(deleteRequest);
     }
 
     private BindingWorkflow getWorkflow(CreateServiceInstanceBindingRequest createRequest)
-            throws EcsManagementClientException, MalformedURLException {
+            throws EcsManagementClientException, IOException {
 
         if (isRemoteConnectBinding(createRequest))
-            return new RemoteConnectBindingWorkflow(instanceRepo, ecs);
+            return new RemoteConnectBindingWorkflow(instanceRepo, ecs)
+                    .withCreateRequest(createRequest);
 
         ServiceDefinitionProxy service =
                 ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
-        return getWorkflow(service);
+        return getWorkflow(service).withCreateRequest(createRequest);
     }
 
     private BindingWorkflow getWorkflow(ServiceDefinitionProxy service)
-            throws MalformedURLException, EcsManagementClientException {
+            throws IOException, EcsManagementClientException {
         String serviceType = (String) service.getServiceSettings().get(SERVICE_TYPE);
         switch (serviceType) {
             case NAMESPACE:
@@ -133,7 +133,7 @@ public class EcsServiceInstanceBindingService
             case BUCKET:
                 return new BucketBindingWorkflow(instanceRepo, ecs);
             default:
-                throw new EcsManagementClientException(NO_SERVICE_MATCHING_TYPE + serviceType);
+                throw new ServiceBrokerException(NO_SERVICE_MATCHING_TYPE + serviceType);
         }
     }
 
@@ -152,13 +152,11 @@ public class EcsServiceInstanceBindingService
     }
 
     private boolean isRemoteConnectBinding(Map<String, Object> parameters) {
-        if (parameters == null) {
+        if (parameters == null)
             return false;
-        } else if (parameters.containsKey("connect_remote")) {
+        if (parameters.containsKey("connect_remote"))
             return (Boolean) parameters.get("connect_remote");
-        } else {
-            return false;
-        }
+        return false;
     }
 
 }

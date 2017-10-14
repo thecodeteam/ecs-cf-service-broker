@@ -1,19 +1,20 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
@@ -24,7 +25,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final Logger LOG =
             LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
-    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws MalformedURLException {
+    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
         super(instanceRepo, ecs);
     }
 
@@ -37,24 +38,28 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
         UserSecretKey userSecretKey = ecs.createUser(bindingId);
         Map<String, Object> parameters = createRequest.getParameters();
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+        String bucketName = instance.getName();
 
         if (parameters != null) {
 
             @SuppressWarnings(value = "unchecked")
             List<String> permissions = (List<String>) parameters.get("permissions");
             if (permissions == null) {
-                ecs.addUserToBucket(instanceId, bindingId);
+                ecs.addUserToBucket(bucketName, bindingId);
             } else {
-                ecs.addUserToBucket(instanceId, bindingId, permissions);
+                ecs.addUserToBucket(bucketName, bindingId, permissions);
             }
 
             String export = (String) parameters.get("export");
-            if (ecs.getBucketFileEnabled(instanceId) && export != null) {
+            if (ecs.getBucketFileEnabled(bucketName) && export != null) {
                 volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()));
             }
 
         } else {
-            ecs.addUserToBucket(instanceId, bindingId);
+            ecs.addUserToBucket(bucketName, bindingId);
         }
 
         return userSecretKey.getSecretKey();
@@ -62,7 +67,11 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public void removeBinding(ServiceInstanceBinding binding)
-            throws EcsManagementClientException {
+            throws EcsManagementClientException, IOException {
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+        String bucketName = instance.getName();
         List<VolumeMount> volumes = binding.getVolumeMounts();
         if (volumes != null && volumes.size() > 0) {
             Map<String, Object> mountConfig = (
@@ -70,25 +79,35 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
                     ).getMountConfig();
             String unixId = (String) mountConfig.get("uid");
             LOG.error("Deleting user map of instance Id and Binding Id " +
-                    instanceId + " " + bindingId);
+                    bucketName + " " + bindingId);
             ecs.deleteUserMap(bindingId, unixId);
         }
 
-        ecs.removeUserFromBucket(instanceId, bindingId);
+        ecs.removeUserFromBucket(bucketName, bindingId);
         ecs.deleteUser(bindingId);
     }
 
     @Override
     public Map<String, Object> getCredentials(String secretKey)
-            throws MalformedURLException, EcsManagementClientException {
-        Map<String, Object> credentials = new HashMap<>();
+            throws IOException, EcsManagementClientException {
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+        String bucketName = instance.getName();
+
+        Map<String, Object> credentials = super.getCredentials(secretKey);
+
+        // Add default broker endpoint
         String endpoint = ecs.getObjectEndpoint();
-        URL baseUrl = new URL(endpoint);
-        credentials.put("bucket", ecs.prefix(instanceId));
-        credentials.put("s3Url", getS3Url(baseUrl, secretKey));
-        credentials.put("accessKey", ecs.prefix(bindingId));
         credentials.put("endpoint", endpoint);
-        credentials.put("secretKey", secretKey);
+
+        // Add s3 URL
+        URL baseUrl = new URL(endpoint);
+        credentials.put("s3Url", getS3Url(baseUrl, secretKey));
+
+        // Add bucket name from repository
+        credentials.put("bucket", ecs.prefix(bucketName));
+
         return credentials;
     }
 

@@ -9,7 +9,8 @@ import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBin
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
 
-import java.net.MalformedURLException;
+import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,12 +58,20 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     }
 
     public Map<String, Object> getCredentials(String secretKey)
-            throws MalformedURLException, EcsManagementClientException {
+            throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
-        credentials.put("instanceId", ecs.prefix(instanceId));
-        credentials.put("accessKey", bindingId);
+
+        credentials.put("accessKey", ecs.prefix(bindingId));
         credentials.put("secretKey", secretKey);
+
         return credentials;
+    }
+
+    private String getS3Url(URL baseUrl, String secretKey) {
+        String userInfo = getUserInfo(secretKey);
+        return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" +
+                baseUrl.getHost() + ":" + baseUrl.getPort() + "/" +
+                ecs.prefix(instanceId);
     }
 
 }

@@ -18,7 +18,7 @@ public interface BindingWorkflow {
     void checkIfUserExists() throws EcsManagementClientException, IOException;
     String createBindingUser() throws EcsManagementClientException, IOException, JAXBException;
     void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException, IOException, JAXBException;
-    Map<String, Object> getCredentials(String secretKey) throws MalformedURLException, EcsManagementClientException;
+    Map<String, Object> getCredentials(String secretKey) throws IOException, EcsManagementClientException;
     ServiceInstanceBinding getBinding(Map<String, Object> credentials);
     CreateServiceInstanceAppBindingResponse getResponse(Map<String, Object> credentials);
 }

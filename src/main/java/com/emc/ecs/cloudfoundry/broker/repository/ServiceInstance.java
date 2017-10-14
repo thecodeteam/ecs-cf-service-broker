@@ -8,9 +8,7 @@ import org.springframework.cloud.servicebroker.model.CreateServiceInstanceReques
 import org.springframework.cloud.servicebroker.model.OperationState;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
@@ -45,28 +43,50 @@ public class ServiceInstance {
 
     @JsonSerialize
     @JsonProperty("remote_connect_keys")
-    private Map<String, String> remoteConnectionKeys;
+    private Map<String, String> remoteConnectionKeys = new HashMap<>();
+
+    @JsonSerialize
+    @JsonProperty("name")
+    private final String name;
+
+    @JsonSerialize
+    private Set<String> references = new HashSet<>();
 
     @JsonIgnore
     private boolean async;
 
     @SuppressWarnings("unused")
     private ServiceInstance() {
+        name = null;
     }
 
     public ServiceInstance(CreateServiceInstanceRequest request) {
         super();
-        this.remoteConnectionKeys = new HashMap<>();
-        this.serviceDefinitionId = request.getServiceDefinitionId();
-        this.planId = request.getPlanId();
-        this.organizationGuid = request.getOrganizationGuid();
-        this.spaceGuid = request.getSpaceGuid();
-        this.serviceInstanceId = request.getServiceInstanceId();
-        this.lastOperation = new LastOperationSerializer(
+        serviceDefinitionId = request.getServiceDefinitionId();
+        planId = request.getPlanId();
+        organizationGuid = request.getOrganizationGuid();
+        spaceGuid = request.getSpaceGuid();
+        serviceInstanceId = request.getServiceInstanceId();
+        lastOperation = new LastOperationSerializer(
                 OperationState.IN_PROGRESS, "Provisioning", false);
+        
+        // name is set on 1st create only, not by connecting remotely
+        name = serviceInstanceId;
+
+        // add a reference to itself, used to find remotely created instances
+        // of the same actual service instance
+        references.add(serviceInstanceId);
     }
 
-    public String getServiceInstanceId() {
+    public void updateFromRequest(CreateServiceInstanceRequest request) {
+        planId = request.getPlanId();
+        organizationGuid = request.getOrganizationGuid();
+        spaceGuid = request.getSpaceGuid();
+        serviceInstanceId = request.getServiceInstanceId();
+    }
+
+
+    String getServiceInstanceId() {
         return serviceInstanceId;
     }
 
@@ -90,14 +110,26 @@ public class ServiceInstance {
         return dashboardUrl;
     }
 
+    public Set<String> getReferences() {
+        return references;
+    }
+
     public boolean isAsync() {
         return async;
     }
 
+    public LastOperationSerializer getServiceInstanceLastOperation() {
+        return lastOperation;
+    }
+
     public String addRemoteConnectionKey(String bindingId) {
-        String key = UUID.randomUUID().toString();
-        this.remoteConnectionKeys.put(bindingId, key);
-        return key;
+        String secretKey = UUID.randomUUID().toString();
+        addRemoteConnectionKey(bindingId, secretKey);
+        return secretKey;
+    }
+
+    public void addRemoteConnectionKey(String bindingId, String secretKey) {
+        this.remoteConnectionKeys.put(bindingId, secretKey);
     }
 
     public Boolean remoteConnectionKeyExists(String bindingId) {
@@ -115,14 +147,26 @@ public class ServiceInstance {
         return (key.equals(remoteConnectionKey));
     }
 
-    public LastOperationSerializer getServiceInstanceLastOperation() {
-        return lastOperation;
-    }
-
     public void update(UpdateServiceInstanceRequest request) {
         this.serviceDefinitionId = request.getServiceDefinitionId();
         this.planId = request.getPlanId();
         this.serviceInstanceId = request.getServiceInstanceId();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void addReference(String reference) {
+        this.references.add(reference);
+    }
+
+    public void removeReference(String reference) {
+        this.references.remove(reference);
+    }
+
+    public int getReferenceCount() {
+        return this.references.size();
     }
 
 }

@@ -1,22 +1,23 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceAppBindingResponse;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
-    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
         super(instanceRepo, ecs);
     }
 
@@ -27,7 +28,11 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
-        return ecs.createUser(bindingId, instanceId).getSecretKey();
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+        String namespaceName = instance.getName();
+        return ecs.createUser(bindingId, namespaceName).getSecretKey();
     }
 
     @Override
@@ -37,23 +42,23 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public Map<String, Object> getCredentials(String secretKey)
-            throws MalformedURLException, EcsManagementClientException {
-        Map<String, Object> credentials = new HashMap<>();
-        String endpoint = ecs.getNamespaceURL(ecs.prefix(instanceId), service, plan,
-                Optional.ofNullable(createRequest.getParameters()));
-        credentials.put("accessKey", ecs.prefix(bindingId));
-        credentials.put("s3Url", getS3Url(endpoint, secretKey));
-        credentials.put("endpoint", endpoint);
-        credentials.put("secretKey", secretKey);
-        return credentials;
-    }
+            throws IOException, EcsManagementClientException {
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+        String namespaceName = instance.getName();
 
-    @Override
-    public ServiceInstanceBinding getBinding(Map<String, Object> credentials) {
-        ServiceInstanceBinding binding = new ServiceInstanceBinding(createRequest);
-        binding.setBindingId(bindingId);
-        binding.setCredentials(credentials);
-        return binding;
+        Map<String, Object> credentials = super.getCredentials(secretKey);
+
+        // Get custom endpoint for namespace
+        String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), service, plan,
+                Optional.ofNullable(createRequest.getParameters()));
+        credentials.put("endpoint", endpoint);
+
+        // Add s3 URL
+        credentials.put("s3Url", getS3Url(endpoint, secretKey));
+
+        return credentials;
     }
 
     @Override

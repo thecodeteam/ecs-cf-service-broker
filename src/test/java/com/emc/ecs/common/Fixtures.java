@@ -70,6 +70,7 @@ public class Fixtures {
     private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String EXPORT_NAME = "test_export";
     public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
+    public static final String SERVICE_INSTANCE_ID = "service-instance-id";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -209,7 +210,7 @@ public class Fixtures {
         return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
                 NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
-                .withServiceInstanceId(NAMESPACE);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static CreateServiceInstanceBindingRequest bucketRemoteConnectFixture() {
@@ -220,7 +221,7 @@ public class Fixtures {
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
-                .withServiceInstanceId(BUCKET_NAME);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static CreateServiceInstanceBindingRequest namespaceRemoteConnectFixture() {
@@ -231,7 +232,7 @@ public class Fixtures {
         return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
                 NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
-                .withServiceInstanceId(NAMESPACE);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingPermissionRequestFixture() {
@@ -242,7 +243,7 @@ public class Fixtures {
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
-                .withServiceInstanceId(BUCKET_NAME);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingExportRequestFixture() {
@@ -253,7 +254,7 @@ public class Fixtures {
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
-                .withServiceInstanceId(BUCKET_NAME);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture() {
@@ -262,7 +263,7 @@ public class Fixtures {
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, null)
                 .withBindingId(BINDING_ID)
-                .withServiceInstanceId(BUCKET_NAME);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static ServiceInstance serviceInstanceFixture() {
@@ -308,7 +309,7 @@ public class Fixtures {
     }
 
     public static DeleteServiceInstanceBindingRequest bucketBindingRemoveFixture() {
-        return new DeleteServiceInstanceBindingRequest(BUCKET_NAME, BINDING_ID,
+        return new DeleteServiceInstanceBindingRequest(SERVICE_INSTANCE_ID, BINDING_ID,
                 BUCKET_SERVICE_ID, BUCKET_PLAN_ID1, null);
     }
 }

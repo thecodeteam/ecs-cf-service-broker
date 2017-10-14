@@ -6,6 +6,8 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
@@ -25,6 +27,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
     private static final String SERVICE_TYPE = "service-type";
+    private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceService.class);
 
     @Autowired
     private EcsService ecs;
@@ -42,7 +45,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             CreateServiceInstanceRequest request)
             throws ServiceInstanceExistsException, ServiceBrokerException {
 
-        ServiceInstance instance = new ServiceInstance(request);
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
@@ -50,19 +52,16 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
             PlanProxy plan = service.findPlan(planId);
-            String serviceType = (String) service.getServiceSettings()
-                    .get(SERVICE_TYPE);
-            if (BUCKET.equals(serviceType)) {
-                ecs.createBucket(serviceInstanceId, service, plan,
-                        Optional.ofNullable(request.getParameters()));
-            } else if (NAMESPACE.equals(serviceType)) {
-                ecs.createNamespace(serviceInstanceId, service, plan,
-                        Optional.ofNullable(request.getParameters()));
-            } else {
-                throw new EcsManagementClientException(
-                        NO_SERVICE_MATCHING_TYPE + serviceType);
-            }
+            InstanceWorkflow workflow = getWorkflow(service)
+                    .withCreateRequest(request);
+
+            LOG.info("creating service instance");
+            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan,
+                    Optional.ofNullable(request.getParameters()));
+
+            LOG.info("saving instance...");
             repository.save(instance);
+
             return new CreateServiceInstanceResponse();
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
@@ -80,17 +79,14 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
 
-            String serviceType = (String) service.getServiceSettings()
-                    .get(SERVICE_TYPE);
-            if (BUCKET.equals(serviceType)) {
-                ecs.deleteBucket(serviceInstanceId);
-            } else if (NAMESPACE.equals(serviceType)) {
-                ecs.deleteNamespace(serviceInstanceId);
-            } else {
-                throw new EcsManagementClientException(
-                        NO_SERVICE_MATCHING_TYPE + serviceType);
-            }
+            InstanceWorkflow workflow = getWorkflow(service);
+
+            LOG.info("deleting service instance");
+            workflow.delete(serviceInstanceId);
+
+            LOG.info("removing instance from repo");
             repository.delete(serviceInstanceId);
+
             return new DeleteServiceInstanceResponse();
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
@@ -116,26 +112,55 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                 throw new ServiceInstanceDoesNotExistException(
                         serviceInstanceId);
 
-            String serviceType = (String) service.getServiceSettings()
-                    .get(SERVICE_TYPE);
-            PlanProxy plan = service.findPlan(planId);
-            if (BUCKET.equals(serviceType)) {
-                ecs.changeBucketPlan(serviceInstanceId, service, plan,
-                        Optional.ofNullable(params));
-            } else if (NAMESPACE.equals(serviceType)) {
-                ecs.changeNamespacePlan(serviceInstanceId, service, plan,
-                        params);
-            } else {
-                throw new EcsManagementClientException(
-                        NO_SERVICE_MATCHING_TYPE + serviceType);
-            }
+            InstanceWorkflow workflow = getWorkflow(service);
+            LOG.info("changing instance plan");
+            workflow.changePlan(serviceInstanceId, service, service.findPlan(planId),
+                Optional.ofNullable(request.getParameters()));
 
+            LOG.info("updating service in repo");
             repository.delete(serviceInstanceId);
             instance.update(request);
             repository.save(instance);
             return new UpdateServiceInstanceResponse();
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
+        }
+    }
+
+    private InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest)
+            throws EcsManagementClientException {
+        if (isRemoteConnection(createRequest))
+            return new RemoteConnectionInstanceWorkflow(repository, ecs);
+        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
+        return getWorkflow(service).withCreateRequest(createRequest);
+    }
+
+    private InstanceWorkflow getWorkflow(DeleteServiceInstanceRequest deleteRequest)
+            throws EcsManagementClientException {
+        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
+        return getWorkflow(service).withDeleteRequest(deleteRequest);
+    }
+
+    private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
+        Map<String, Object> parameters = createRequest.getParameters();
+        if (parameters == null)
+            return false;
+        if (parameters.containsKey("remote_connection"))
+            return true;
+        return false;
+    }
+
+    private InstanceWorkflow getWorkflow(ServiceDefinitionProxy service)
+            throws EcsManagementClientException {
+        String serviceType = (String) service.getServiceSettings().get(SERVICE_TYPE);
+        switch (serviceType) {
+            case NAMESPACE:
+                return new NamespaceInstanceWorkflow(repository, ecs);
+            case BUCKET:
+                return new BucketInstanceWorkflow(repository, ecs);
+            default:
+                throw new ServiceBrokerException(NO_SERVICE_MATCHING_TYPE +
+                        serviceType);
         }
     }
 
