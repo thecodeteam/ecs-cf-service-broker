@@ -50,11 +50,14 @@ public class EcsService {
     }
 
     @PostConstruct
-    void initialize() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
-        lookupObjectEndpoints();
-        lookupReplicationGroupID();
-        prepareRepository();
+    void initialize() {
+        try {
+            lookupObjectEndpoints();
+            lookupReplicationGroupID();
+            prepareRepository();
+        } catch (EcsManagementClientException | EcsManagementResourceNotFoundException e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     void deleteBucket(String id) {
@@ -71,23 +74,10 @@ public class EcsService {
     }
 
     void createBucket(String id, ServiceDefinitionProxy service,
-                      PlanProxy plan, Map<String, Object> parameters)
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
-        createBucket(id, service, plan, parameters, true);
-    }
-
-    private void createBucket(String id, ServiceDefinitionProxy service,
-                              PlanProxy plan, Map<String, Object> parameters,
-                              Boolean errorOnExists)
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
-
+                      PlanProxy plan, Map<String, Object> parameters) {
+        try {
         if (bucketExists(id)) {
-            if (errorOnExists) {
-                throw new ServiceInstanceExistsException(id, service.getId());
-            }
-            return;
+            throw new ServiceInstanceExistsException(id, service.getId());
         }
 
         parameters.putAll(plan.getServiceSettings());
@@ -108,11 +98,13 @@ public class EcsService {
             BucketRetentionAction.update(connection, broker.getNamespace(),
                     prefix(id), (int) parameters.get(DEFAULT_RETENTION));
         }
+        } catch (EcsManagementClientException e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     void changeBucketPlan(String id, ServiceDefinitionProxy service,
-                          PlanProxy plan, Map<String, Object> parameters)
-            throws EcsManagementClientException {
+                          PlanProxy plan, Map<String, Object> parameters) {
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         @SuppressWarnings(UNCHECKED)
@@ -121,12 +113,16 @@ public class EcsService {
         int limit = (int) quota.getOrDefault(LIMIT, -1);
         int warn = (int) quota.getOrDefault(WARN, -1);
 
-        if (limit == -1 && warn == -1) {
-            BucketQuotaAction.delete(connection, prefix(id),
-                    broker.getNamespace());
-        } else {
-            BucketQuotaAction.create(connection, prefix(id),
-                    broker.getNamespace(), limit, warn);
+        try {
+            if (limit == -1 && warn == -1) {
+                BucketQuotaAction.delete(connection, prefix(id),
+                        broker.getNamespace());
+            } else {
+                BucketQuotaAction.create(connection, prefix(id),
+                        broker.getNamespace(), limit, warn);
+            }
+        } catch (EcsManagementClientException e) {
+            throw new ServiceBrokerException(e);
         }
     }
 
@@ -222,7 +218,9 @@ public class EcsService {
             } else if (broker.getBaseUrl() != null) {
                 urlId = baseUrlList.stream()
                         .filter(b -> broker.getBaseUrl().equals(b.getName()))
-                        .findFirst().get().getId();
+                        .findFirst()
+                        .orElseThrow(() -> new ServiceBrokerException("configured ECS Base URL not found"))
+                        .getId();
             } else {
                 urlId = detectDefaultBaseUrlId(baseUrlList);
             }
@@ -234,16 +232,16 @@ public class EcsService {
             broker.setRepositoryEndpoint(objectEndpoint);
     }
 
-    String getNamespaceURL(String namespace,
-                           ServiceDefinitionProxy service, PlanProxy plan,
-                           Optional<Map<String, Object>> maybeParameters)
-            throws EcsManagementClientException {
-        Map<String, Object> parameters = maybeParameters
-                .orElse(new HashMap<>());
+    String getNamespaceURL(String namespace, ServiceDefinitionProxy service,
+                           PlanProxy plan, Map<String, Object> parameters) {
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
 
-        return getNamespaceURL(namespace, parameters);
+        try {
+            return getNamespaceURL(namespace, parameters);
+        } catch (EcsManagementClientException e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     private String getNamespaceURL(String namespace,
@@ -259,7 +257,9 @@ public class EcsService {
             throws EcsManagementClientException {
         List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
         String urlId = baseUrlList.stream()
-                .filter(b -> baseURL.equals(b.getName())).findFirst().get()
+                .filter(b -> baseURL.equals(b.getName()))
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("Configured ECS namespace not found."))
                 .getId();
         return BaseUrlAction.get(connection, urlId).getNamespaceUrl(namespace, useSSL);
     }
@@ -268,7 +268,9 @@ public class EcsService {
             throws EcsManagementClientException {
         replicationGroupID = ReplicationGroupAction.list(connection).stream()
                 .filter(r -> broker.getReplicationGroup().equals(r.getName()))
-                .findFirst().get().getId();
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("Configured ECS replication group not found."))
+                .getId();
     }
 
     private void prepareRepository() throws EcsManagementClientException,
@@ -313,14 +315,10 @@ public class EcsService {
     }
 
     void createNamespace(String id, ServiceDefinitionProxy service,
-                         PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
+                         PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         if (namespaceExists(id))
             throw new ServiceInstanceExistsException(id, service.getId());
-
-        Map<String, Object> parameters = maybeParameters
-                .orElse(new HashMap<>());
-
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         NamespaceAction.create(connection, new NamespaceCreate(prefix(id),

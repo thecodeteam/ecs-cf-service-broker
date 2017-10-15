@@ -38,10 +38,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     }
 
     @Override
-    public CreateServiceInstanceResponse createServiceInstance(
-            CreateServiceInstanceRequest request)
-            throws ServiceInstanceExistsException, ServiceBrokerException {
-
+    public CreateServiceInstanceResponse createServiceInstance(CreateServiceInstanceRequest request) {
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
@@ -66,9 +63,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     }
 
     @Override
-    public DeleteServiceInstanceResponse deleteServiceInstance(
-            DeleteServiceInstanceRequest request)
-            throws ServiceBrokerException {
+    public DeleteServiceInstanceResponse deleteServiceInstance(DeleteServiceInstanceRequest request) {
 
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
@@ -91,11 +86,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     }
 
     @Override
-    public UpdateServiceInstanceResponse updateServiceInstance(
-            UpdateServiceInstanceRequest request)
-            throws ServiceInstanceUpdateNotSupportedException,
-            ServiceBrokerException, ServiceInstanceDoesNotExistException {
-
+    public UpdateServiceInstanceResponse updateServiceInstance(UpdateServiceInstanceRequest request) {
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
@@ -109,7 +100,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                 throw new ServiceInstanceDoesNotExistException(
                         serviceInstanceId);
             if (instance.getReferences().size() > 1)
-                throw new ServiceBrokerInvalidParametersException("Cannot change plan of service instance with remote references");
+                throw new ServiceInstanceUpdateNotSupportedException(
+                        "Cannot change plan of service instance with remote references");
 
             InstanceWorkflow workflow = getWorkflow(service);
             LOG.info("changing instance plan");

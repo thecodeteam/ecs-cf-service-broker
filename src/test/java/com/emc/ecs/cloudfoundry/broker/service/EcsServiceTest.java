@@ -65,9 +65,6 @@ public class EcsServiceTest {
     private static final String UPDATE = "update";
     private static final String CREATE = "create";
     private static final String DELETE = "delete";
-    private static final String REMOTE_CONNECTION = "remote-connection";
-    private static final String ACCESS_KEY = "accessKey";
-    private static final String SECRET_KEY = "secretKey";
 
     @Mock
     private Connection connection;
@@ -100,9 +97,7 @@ public class EcsServiceTest {
      * @throws EcsManagementResourceNotFoundException
      */
     @Test
-    public void initializeStaticConfigTest()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public void initializeStaticConfigTest() throws EcsManagementClientException, EcsManagementResourceNotFoundException {
         setupInitTest();
         when(broker.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
 
