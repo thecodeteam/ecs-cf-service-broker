@@ -167,6 +167,12 @@ public class Fixtures {
                 .withServiceInstanceId(NAMESPACE);
     }
 
+    public static CreateServiceInstanceRequest remoteNamespaceCreateRequestFixture(Map<String, Object> params) {
+        return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
+                NAMESPACE_PLAN_ID1, ORG_ID, SPACE_ID, params)
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+    }
+
     public static CreateServiceInstanceRequest namespaceCreateRequestFixture(
             Map<String, Object> params) {
         return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,

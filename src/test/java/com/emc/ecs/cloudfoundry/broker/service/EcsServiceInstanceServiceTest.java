@@ -108,7 +108,6 @@ public class EcsServiceInstanceServiceTest {
         assertEquals(SERVICE_INSTANCE_ID, instances.get(1).getServiceInstanceId());
         assertTrue(instances.get(1).getReferences().contains(BUCKET_NAME));
         assertTrue(instances.get(1).getReferences().contains(SERVICE_INSTANCE_ID));
-
     }
 
     /**
@@ -250,6 +249,52 @@ public class EcsServiceInstanceServiceTest {
         verify(ecs, times(1)).createNamespace(eq(NAMESPACE),
                 any(ServiceDefinitionProxy.class),
                 any(PlanProxy.class), eq(null));
+    }
+
+    /**
+     * The instance-service can create a bucket with remote connection params
+     *
+     * @throws EcsManagementClientException
+     * @throws JAXBException
+     * @throws IOException
+     * @throws EcsManagementResourceNotFoundException
+     */
+    @Test
+    public void testCreateRemoteNamespaceService() throws Exception {
+        ServiceDefinitionProxy service = namespaceServiceFixture();
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
+                .thenReturn(service);
+
+        Map<String, Object> params = new HashMap<>();
+        ServiceInstance repoInst = new ServiceInstance(namespaceCreateRequestFixture());
+        repoInst.addRemoteConnectionKey(BINDING_ID, REMOTE_CONNECT_KEY);
+        when(repository.find(NAMESPACE))
+                .thenReturn(repoInst);
+
+        Map<String, Object> remoteConnection = new HashMap<>();
+        remoteConnection.put("accessKey", BINDING_ID);
+        remoteConnection.put("secretKey", REMOTE_CONNECT_KEY);
+        remoteConnection.put("instanceId", NAMESPACE);
+        params.put("remote_connection", remoteConnection);
+
+        instSvc.createServiceInstance(remoteNamespaceCreateRequestFixture(params));
+
+        ArgumentCaptor<ServiceInstance> serviceInstanceCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
+
+        verify(ecs, times(0)).createNamespace(any(), any(), any(), any());
+        verify(repository, times(2)).save(serviceInstanceCaptor.capture());
+
+        List<ServiceInstance> instances = serviceInstanceCaptor.getAllValues();
+
+        assertEquals(NAMESPACE, instances.get(0).getName());
+        assertEquals(NAMESPACE, instances.get(0).getServiceInstanceId());
+        assertTrue(instances.get(0).getReferences().contains(NAMESPACE));
+        assertTrue(instances.get(0).getReferences().contains(SERVICE_INSTANCE_ID));
+
+        assertEquals(NAMESPACE, instances.get(1).getName());
+        assertEquals(SERVICE_INSTANCE_ID, instances.get(1).getServiceInstanceId());
+        assertTrue(instances.get(1).getReferences().contains(NAMESPACE));
+        assertTrue(instances.get(1).getReferences().contains(SERVICE_INSTANCE_ID));
     }
 
     /**
