@@ -17,6 +17,7 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
+import java.util.Map;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
@@ -46,7 +47,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
             PlanProxy plan = service.findPlan(planId);
-            InstanceWorkflow workflow = getWorkflow(service)
+            InstanceWorkflow workflow = getWorkflow(request)
                     .withCreateRequest(request);
 
             LOG.info("creating service instance");
@@ -112,6 +113,23 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }
+    }
+
+    private InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest)
+            throws EcsManagementClientException {
+        if (isRemoteConnection(createRequest))
+            return new RemoteConnectionInstanceWorkflow(repository, ecs);
+        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
+        return getWorkflow(service);
+    }
+
+    private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
+        Map<String, Object> parameters = createRequest.getParameters();
+        if (parameters == null)
+            return false;
+        if (parameters.containsKey("remote_connection"))
+            return true;
+        return false;
     }
 
     private InstanceWorkflow getWorkflow(ServiceDefinitionProxy service)

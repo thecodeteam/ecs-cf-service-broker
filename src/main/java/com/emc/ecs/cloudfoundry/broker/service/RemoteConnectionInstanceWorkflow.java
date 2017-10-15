@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
-    private RemoteConnectionInstanceWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    RemoteConnectionInstanceWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         super(instanceRepo, ecs);
     }
 
@@ -39,13 +39,19 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
         validateRemoteConnection(remoteConnection);
 
         // Fetch the service instance & update with reference
-        ServiceInstance instance = instanceRepository.find(instanceId);
+        String remoteInstanceId = remoteConnection.get("instanceId");
+        ServiceInstance instance = instanceRepository.find(remoteInstanceId);
+        if (instance == null)
+            throw new ServiceBrokerException("Remotely connected service instance not found");
+
         instance.addReference(instanceId);
         instanceRepository.save(instance);
 
         // return this new instance to be saved
-        instance.updateFromRequest(createRequest);
-        return instance;
+        ServiceInstance newInstance = new ServiceInstance(createRequest);
+        newInstance.setName(instance.getName());
+        newInstance.setReferences(instance.getReferences());
+        return newInstance;
     }
 
     private void validateRemoteConnection(Map<String, String> remoteConnection)

@@ -70,6 +70,7 @@ public class Fixtures {
     private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String EXPORT_NAME = "test_export";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";
+    public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -178,6 +179,13 @@ public class Fixtures {
         return new CreateServiceInstanceRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, ORG_ID, SPACE_ID, params)
                 .withServiceInstanceId(BUCKET_NAME);
+    }
+
+    public static CreateServiceInstanceRequest remoteBucketCreateRequestFixture(
+            Map<String, Object> params) {
+        return new CreateServiceInstanceRequest(BUCKET_SERVICE_ID,
+                BUCKET_PLAN_ID1, ORG_ID, SPACE_ID, params)
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static UpdateServiceInstanceRequest namespaceUpdateRequestFixture(

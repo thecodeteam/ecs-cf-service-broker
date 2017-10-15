@@ -6,6 +6,7 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
+import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -18,6 +19,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.emc.ecs.common.Fixtures.*;
@@ -75,13 +77,38 @@ public class EcsServiceInstanceServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
                 .thenReturn(service);
-        Map<String, Object> params = new HashMap<>();
-        instSvc.createServiceInstance(bucketCreateRequestFixture(params));
 
-        verify(repository).save(any(ServiceInstance.class));
-        verify(ecs, times(1)).createBucket(eq(BUCKET_NAME),
-                eq(service), any(PlanProxy.class),
-                eq(params));
+        Map<String, Object> params = new HashMap<>();
+        ServiceInstance repoInst = new ServiceInstance(bucketCreateRequestFixture(params));
+        repoInst.addRemoteConnectionKey(BINDING_ID, REMOTE_CONNECT_KEY);
+        when(repository.find(BUCKET_NAME))
+                .thenReturn(repoInst);
+
+        Map<String, Object> remoteConnection = new HashMap<>();
+        remoteConnection.put("accessKey", BINDING_ID);
+        remoteConnection.put("secretKey", REMOTE_CONNECT_KEY);
+        remoteConnection.put("instanceId", BUCKET_NAME);
+        params.put("remote_connection", remoteConnection);
+
+        instSvc.createServiceInstance(remoteBucketCreateRequestFixture(params));
+
+        ArgumentCaptor<ServiceInstance> serviceInstanceCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
+
+        verify(ecs, times(0)).createBucket(any(), any(), any(), any());
+        verify(repository, times(2)).save(serviceInstanceCaptor.capture());
+
+        List<ServiceInstance> instances = serviceInstanceCaptor.getAllValues();
+
+        assertEquals(BUCKET_NAME, instances.get(0).getName());
+        assertEquals(BUCKET_NAME, instances.get(0).getServiceInstanceId());
+        assertTrue(instances.get(0).getReferences().contains(BUCKET_NAME));
+        assertTrue(instances.get(0).getReferences().contains(SERVICE_INSTANCE_ID));
+
+        assertEquals(BUCKET_NAME, instances.get(1).getName());
+        assertEquals(SERVICE_INSTANCE_ID, instances.get(1).getServiceInstanceId());
+        assertTrue(instances.get(1).getReferences().contains(BUCKET_NAME));
+        assertTrue(instances.get(1).getReferences().contains(SERVICE_INSTANCE_ID));
+
     }
 
     /**

@@ -48,7 +48,7 @@ public class ServiceInstance {
 
     @JsonSerialize
     @JsonProperty("name")
-    private final String name;
+    private String name;
 
     @JsonSerialize
     private Set<String> references = new HashSet<>();
@@ -79,15 +79,7 @@ public class ServiceInstance {
         references.add(serviceInstanceId);
     }
 
-    public void updateFromRequest(CreateServiceInstanceRequest request) {
-        planId = request.getPlanId();
-        organizationGuid = request.getOrganizationGuid();
-        spaceGuid = request.getSpaceGuid();
-        serviceInstanceId = request.getServiceInstanceId();
-    }
-
-
-    String getServiceInstanceId() {
+    public String getServiceInstanceId() {
         return serviceInstanceId;
     }
 
@@ -170,4 +162,7 @@ public class ServiceInstance {
         return this.references.size();
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 }
