@@ -125,11 +125,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
     private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
         Map<String, Object> parameters = createRequest.getParameters();
-        if (parameters == null)
-            return false;
-        if (parameters.containsKey("remote_connection"))
-            return true;
-        return false;
+        return parameters != null && parameters.containsKey("remote_connection");
     }
 
     private InstanceWorkflow getWorkflow(ServiceDefinitionProxy service)

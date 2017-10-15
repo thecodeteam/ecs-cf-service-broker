@@ -151,11 +151,8 @@ public class EcsServiceInstanceBindingService
     }
 
     private boolean isRemoteConnectBinding(Map<String, Object> parameters) {
-        if (parameters == null)
-            return false;
-        if (parameters.containsKey("connect_remote"))
-            return (Boolean) parameters.get("connect_remote");
-        return false;
+        return (parameters != null) && parameters.containsKey("connect_remote") &&
+                (Boolean) parameters.get("connect_remote");
     }
 
 }
