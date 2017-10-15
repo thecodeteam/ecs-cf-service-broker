@@ -57,8 +57,12 @@ public class EcsService {
         prepareRepository();
     }
 
-    void deleteBucket(String id) throws EcsManagementClientException {
-        BucketAction.delete(connection, prefix(id), broker.getNamespace());
+    void deleteBucket(String id) {
+        try {
+            BucketAction.delete(connection, prefix(id), broker.getNamespace());
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     Boolean getBucketFileEnabled(String id) throws EcsManagementClientException {
@@ -131,11 +135,14 @@ public class EcsService {
                 broker.getNamespace());
     }
 
-    UserSecretKey createUser(String id)
-            throws EcsManagementClientException {
-        ObjectUserAction.create(connection, prefix(id), broker.getNamespace());
-        ObjectUserSecretAction.create(connection, prefix(id));
-        return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
+    UserSecretKey createUser(String id) {
+        try {
+            ObjectUserAction.create(connection, prefix(id), broker.getNamespace());
+            ObjectUserSecretAction.create(connection, prefix(id));
+            return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     UserSecretKey createUser(String id, String namespace)
@@ -155,18 +162,25 @@ public class EcsService {
         ObjectUserMapAction.delete(connection, prefix(id), uid, broker.getNamespace());
     }
 
-    Boolean userExists(String id) throws EcsManagementClientException {
-        return ObjectUserAction.exists(connection, prefix(id),
-                broker.getNamespace());
+    Boolean userExists(String id) throws ServiceBrokerException {
+        try {
+            return ObjectUserAction.exists(connection, prefix(id),
+                    broker.getNamespace());
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     void deleteUser(String id) throws EcsManagementClientException {
         ObjectUserAction.delete(connection, prefix(id));
     }
 
-    void addUserToBucket(String id, String username)
-            throws EcsManagementClientException {
-        addUserToBucket(id, username, Collections.singletonList("full_control"));
+    void addUserToBucket(String id, String username) {
+        try {
+            addUserToBucket(id, username, Collections.singletonList("full_control"));
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     void addUserToBucket(String id, String username,
@@ -370,7 +384,7 @@ public class EcsService {
     }
 
     ServiceDefinitionProxy lookupServiceDefinition(
-            String serviceDefinitionId) throws EcsManagementClientException {
+            String serviceDefinitionId) throws ServiceBrokerException {
         ServiceDefinitionProxy service = catalog
                 .findServiceDefinition(serviceDefinitionId);
         if (service == null)

@@ -233,14 +233,43 @@ public class EcsServiceInstanceServiceTest {
      */
     @Test
     public void testDeleteNamespaceService()
-            throws EcsManagementClientException {
+            throws EcsManagementClientException, IOException {
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
+        when(repository.find(NAMESPACE))
+                .thenReturn(new ServiceInstance(namespaceCreateRequestFixture()));
 
         instSvc.deleteServiceInstance(namespaceDeleteRequestFixture());
 
         verify(repository, times(1)).delete(NAMESPACE);
         verify(ecs, times(1)).deleteNamespace(NAMESPACE);
+    }
+
+    /**
+     * The instance-service can delete a bucket with empty params.
+     */
+    @Test
+    public void testDeleteNamespaceServiceWithRemoteConnection() throws IOException, JAXBException {
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
+                .thenReturn(namespaceServiceFixture());
+        Map<String, Object> params = new HashMap<>();
+        ServiceInstance inst = new ServiceInstance(namespaceCreateRequestFixture());
+        ArgumentCaptor<ServiceInstance> instanceArgumentCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
+        inst.addReference(SERVICE_INSTANCE_ID);
+        when(repository.find(NAMESPACE)).thenReturn(inst);
+        when(repository.find(SERVICE_INSTANCE_ID)).thenReturn(inst);
+        doNothing().when(repository).save(instanceArgumentCaptor.capture());
+
+        instSvc.deleteServiceInstance(namespaceDeleteRequestFixture());
+
+        verify(repository, times(0)).delete(SERVICE_INSTANCE_ID);
+        verify(repository, times(1)).save(any(ServiceInstance.class));
+        verify(repository, times(1)).delete(NAMESPACE);
+        verify(ecs, times(0)).deleteBucket(NAMESPACE);
+
+        ServiceInstance reference = instanceArgumentCaptor.getValue();
+        assertEquals(1, reference.getReferences().size());
+        assertTrue(reference.getReferences().contains(SERVICE_INSTANCE_ID));
     }
 
     /**

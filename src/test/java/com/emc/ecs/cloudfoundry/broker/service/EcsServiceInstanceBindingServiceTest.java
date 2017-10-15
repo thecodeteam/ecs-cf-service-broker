@@ -325,13 +325,11 @@ public class EcsServiceInstanceBindingServiceTest {
      * remote connection credentials are created and returned, to allow a remote Cloud
      * Foundry instance to connect to an existing bucket.
      *
-     * @throws EcsManagementClientException when an error occurs with the ECS api
      * @throws IOException upon encountering a serialization error writing to the instance repository
      * @throws JAXBException upon encountering a deserialization error when reading from the instance repository
      */
     @Test
-    public void testNamespaceCreateConnectRemoteService()
-            throws EcsManagementClientException, IOException, JAXBException {
+    public void testNamespaceCreateConnectRemoteService() throws IOException, JAXBException {
         when(ecs.lookupServiceDefinition(eq(NAMESPACE_SERVICE_ID)))
                 .thenReturn(namespaceServiceFixture());
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
@@ -363,11 +361,9 @@ public class EcsServiceInstanceBindingServiceTest {
      * If the binding-service attempts to create a namespace user that already
      * exists, the service will throw an error.
      *
-     * @throws EcsManagementClientException if ecs management API returns an error
      */
     @Test(expected = ServiceInstanceBindingExistsException.class)
-    public void testCreateExistingNamespaceUserFails()
-            throws EcsManagementClientException {
+    public void testCreateExistingNamespaceUserFails() {
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
         when(ecs.userExists(BINDING_ID)).thenReturn(true);

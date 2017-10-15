@@ -27,16 +27,16 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public void delete(String id) throws EcsManagementClientException, IOException, ServiceBrokerException {
-        ServiceInstance instance = instanceRepository.find(id);
-        if (instance.getReferences().size() > 1) {
-            try {
+    public void delete(String id) {
+        try {
+            ServiceInstance instance = instanceRepository.find(id);
+            if (instance.getReferences().size() > 1) {
                 removeInstanceFromReferences(instance, id);
-            } catch (Exception e) {
-                throw new ServiceBrokerException(e);
+            } else {
+                ecs.deleteBucket(id);
             }
-        } else {
-            ecs.deleteBucket(id);
+        } catch (IOException | JAXBException e) {
+            throw new ServiceBrokerException(e);
         }
     }
 
