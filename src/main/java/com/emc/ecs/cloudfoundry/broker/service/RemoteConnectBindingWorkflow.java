@@ -34,17 +34,6 @@ public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
 
         String secretKey = instance.addRemoteConnectionKey(bindingId);
         instanceRepository.save(instance);
-        instance.getReferences().forEach((String i) -> {
-            if (! i.equals(instanceId)) {
-                try {
-                    ServiceInstance ref = instanceRepository.find(i);
-                    ref.addRemoteConnectionKey(bindingId, secretKey);
-                    instanceRepository.save(ref);
-                } catch (Exception e) {
-                    throw new ServiceBrokerException(e);
-                }
-            }
-        });
         return secretKey;
     }
 
