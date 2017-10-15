@@ -75,8 +75,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         try {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
-
-            InstanceWorkflow workflow = getWorkflow(service);
+            InstanceWorkflow workflow = getWorkflow(service)
+                    .withDeleteRequest(request);
 
             LOG.info("deleting service instance");
             workflow.delete(serviceInstanceId);

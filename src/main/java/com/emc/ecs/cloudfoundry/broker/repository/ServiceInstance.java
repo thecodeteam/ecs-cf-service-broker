@@ -161,8 +161,8 @@ public class ServiceInstance {
         this.references.add(reference);
     }
 
-    public void removeReference(String reference) {
-        this.references.remove(reference);
+    public void setReferences(Set<String> references) {
+        this.references = references;
     }
 
     public int getReferenceCount() {

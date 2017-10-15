@@ -8,6 +8,7 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -21,6 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.emc.ecs.common.Fixtures.*;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -88,14 +91,46 @@ public class EcsServiceInstanceServiceTest {
      * @throws EcsManagementClientException
      */
     @Test
-    public void testDeleteBucketService() throws EcsManagementClientException {
+    public void testDeleteBucketService() throws EcsManagementClientException, IOException {
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
                 .thenReturn(bucketServiceFixture());
+        Map<String, Object> params = new HashMap<>();
+        when(repository.find(BUCKET_NAME))
+                .thenReturn(new ServiceInstance(bucketCreateRequestFixture(params)));
 
         instSvc.deleteServiceInstance(bucketDeleteRequestFixture());
 
         verify(repository, times(1)).delete(BUCKET_NAME);
         verify(ecs, times(1)).deleteBucket(BUCKET_NAME);
+    }
+
+    /**
+     * The instance-service can delete a bucket with empty params.
+     *
+     * @throws EcsManagementClientException
+     */
+    @Test
+    public void testDeleteBucketServiceWithRemoteConnection() throws EcsManagementClientException, IOException, JAXBException {
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+                .thenReturn(bucketServiceFixture());
+        Map<String, Object> params = new HashMap<>();
+        ServiceInstance inst = new ServiceInstance(bucketCreateRequestFixture(params));
+        ArgumentCaptor<ServiceInstance> instanceArgumentCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
+        inst.addReference(SERVICE_INSTANCE_ID);
+        when(repository.find(BUCKET_NAME)).thenReturn(inst);
+        when(repository.find(SERVICE_INSTANCE_ID)).thenReturn(inst);
+        doNothing().when(repository).save(instanceArgumentCaptor.capture());
+
+        instSvc.deleteServiceInstance(bucketDeleteRequestFixture());
+
+        verify(repository, times(0)).delete(SERVICE_INSTANCE_ID);
+        verify(repository, times(1)).save(any(ServiceInstance.class));
+        verify(repository, times(1)).delete(BUCKET_NAME);
+        verify(ecs, times(0)).deleteBucket(BUCKET_NAME);
+
+        ServiceInstance reference = instanceArgumentCaptor.getValue();
+        assertEquals(1, reference.getReferences().size());
+        assertTrue(reference.getReferences().contains(SERVICE_INSTANCE_ID));
     }
 
     /**
@@ -116,7 +151,7 @@ public class EcsServiceInstanceServiceTest {
 
         instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
 
-        verify(repository, times(2)).find(BUCKET_NAME);
+        verify(repository, times(1)).find(BUCKET_NAME);
         verify(repository, times(1)).delete(BUCKET_NAME);
         verify(repository, times(1)).save(any(ServiceInstance.class));
         verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
@@ -227,7 +262,7 @@ public class EcsServiceInstanceServiceTest {
 
         instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
 
-        verify(repository, times(2)).find(NAMESPACE);
+        verify(repository, times(1)).find(NAMESPACE);
         verify(repository, times(1)).delete(NAMESPACE);
         verify(repository, times(1)).save(any(ServiceInstance.class));
         verify(ecs, times(1)).changeNamespacePlan(eq(NAMESPACE),
