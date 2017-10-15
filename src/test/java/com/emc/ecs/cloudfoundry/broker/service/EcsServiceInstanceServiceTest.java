@@ -116,7 +116,7 @@ public class EcsServiceInstanceServiceTest {
 
         instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
 
-        verify(repository, times(1)).find(BUCKET_NAME);
+        verify(repository, times(2)).find(BUCKET_NAME);
         verify(repository, times(1)).delete(BUCKET_NAME);
         verify(repository, times(1)).save(any(ServiceInstance.class));
         verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
@@ -227,10 +227,35 @@ public class EcsServiceInstanceServiceTest {
 
         instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
 
-        verify(repository, times(1)).find(NAMESPACE);
+        verify(repository, times(2)).find(NAMESPACE);
         verify(repository, times(1)).delete(NAMESPACE);
         verify(repository, times(1)).save(any(ServiceInstance.class));
         verify(ecs, times(1)).changeNamespacePlan(eq(NAMESPACE),
                 any(ServiceDefinitionProxy.class), any(PlanProxy.class), eq(params));
     }
+
+    /**
+     * The instance-service cannot change a namespaces's plan if it has remote connections
+     *
+     */
+    @Test(expected = ServiceBrokerException.class)
+    public void testChangeNamespaceServiceWithRemoteConnection() throws EcsManagementClientException, IOException, JAXBException {
+        Map<String, Object> params = new HashMap<>();
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
+                .thenReturn(namespaceServiceFixture());
+        // Create a service instance with a remote reference
+        ServiceInstance inst = new ServiceInstance(namespaceCreateRequestFixture(params));
+        inst.addReference(SERVICE_INSTANCE_ID);
+        when(repository.find(NAMESPACE)).thenReturn(inst);
+
+        instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
+
+        verify(repository, times(1)).find(NAMESPACE);
+        verify(repository, times(0)).delete(any(String.class));
+        verify(repository, times(0)).save(any(ServiceInstance.class));
+        verify(ecs, times(0)).changeNamespacePlan(any(String.class),
+                any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+                eq(params));
+    }
+
 }

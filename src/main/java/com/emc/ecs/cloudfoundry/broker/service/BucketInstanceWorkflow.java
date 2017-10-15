@@ -8,7 +8,6 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 
-import javax.xml.ws.Service;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
