@@ -69,7 +69,6 @@ public class Fixtures {
     private static final String COMPLIANCE_ENABLED = "compliance-enabled";
     private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String EXPORT_NAME = "test_export";
-    public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {

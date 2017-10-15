@@ -19,10 +19,8 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
+    public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException, IOException {
-        Map<String, Object> parameters = maybeParameters
-                .orElse(new HashMap<>());
         ecs.changeBucketPlan(id, service, plan, parameters);
     }
 
@@ -56,10 +54,8 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public ServiceInstance create(String bucketName, ServiceDefinitionProxy service, PlanProxy plan,
-                                  Optional<Map<String, Object>> maybeParameters)
+                                  Map<String, Object> parameters)
             throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException {
-        Map<String, Object> parameters = maybeParameters
-                .orElse(new HashMap<>());
         ecs.createBucket(bucketName, service, plan, parameters);
 
         return getServiceInstance();

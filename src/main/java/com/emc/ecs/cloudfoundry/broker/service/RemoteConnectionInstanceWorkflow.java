@@ -10,17 +10,16 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
-    public RemoteConnectionInstanceWorkflow(ServiceInstanceRepository repository, EcsService ecs) {
-        super(repository, ecs);
+
+    private RemoteConnectionInstanceWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+        super(instanceRepo, ecs);
     }
 
     @Override
-    public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Optional<Map<String, Object>> maybeParameters) throws EcsManagementClientException, ServiceBrokerException {
+    public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException {
         throw new ServiceBrokerException("remote_connection parameter invalid for plan upgrade");
     }
 
@@ -31,9 +30,8 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan,
-                                  Optional<Map<String, Object>> maybeParameters)
+                                  Map<String, Object> parameters)
             throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException {
-        Map<String, Object> parameters = maybeParameters.orElse(new HashMap<>());
         @SuppressWarnings("unchecked")
         Map<String, String> remoteConnection = (Map<String, String>) parameters.get("remote_connection");
 

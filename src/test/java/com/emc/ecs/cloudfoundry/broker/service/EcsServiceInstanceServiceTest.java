@@ -19,7 +19,6 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static junit.framework.TestCase.assertTrue;
@@ -202,7 +201,7 @@ public class EcsServiceInstanceServiceTest {
         verify(repository).save(any(ServiceInstance.class));
         verify(ecs, times(1)).createNamespace(eq(NAMESPACE),
                 any(ServiceDefinitionProxy.class), any(PlanProxy.class),
-                eq(Optional.of(params)));
+                eq(params));
     }
 
     /**
@@ -223,7 +222,7 @@ public class EcsServiceInstanceServiceTest {
         verify(repository).save(any(ServiceInstance.class));
         verify(ecs, times(1)).createNamespace(eq(NAMESPACE),
                 any(ServiceDefinitionProxy.class),
-                any(PlanProxy.class), eq(Optional.empty()));
+                any(PlanProxy.class), eq(null));
     }
 
     /**
@@ -252,7 +251,6 @@ public class EcsServiceInstanceServiceTest {
     public void testDeleteNamespaceServiceWithRemoteConnection() throws IOException, JAXBException {
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
-        Map<String, Object> params = new HashMap<>();
         ServiceInstance inst = new ServiceInstance(namespaceCreateRequestFixture());
         ArgumentCaptor<ServiceInstance> instanceArgumentCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
         inst.addReference(SERVICE_INSTANCE_ID);

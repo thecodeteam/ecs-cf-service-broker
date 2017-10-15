@@ -9,13 +9,14 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.exception.*;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceUpdateNotSupportedException;
 import org.springframework.cloud.servicebroker.model.*;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -50,8 +51,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .withCreateRequest(request);
 
             LOG.info("creating service instance");
-            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan,
-                    Optional.ofNullable(request.getParameters()));
+            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan, request.getParameters());
 
             LOG.info("saving instance...");
             repository.save(instance);
@@ -90,8 +90,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
-        Map<String, Object> params = request.getParameters();
-
         try {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
@@ -105,8 +103,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             InstanceWorkflow workflow = getWorkflow(service);
             LOG.info("changing instance plan");
-            workflow.changePlan(serviceInstanceId, service, service.findPlan(planId),
-                Optional.ofNullable(request.getParameters()));
+            workflow.changePlan(serviceInstanceId, service, service.findPlan(planId), request.getParameters());
 
             LOG.info("updating service in repo");
             repository.delete(serviceInstanceId);
@@ -116,29 +113,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }
-    }
-
-    private InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest)
-            throws EcsManagementClientException {
-        if (isRemoteConnection(createRequest))
-            return new RemoteConnectionInstanceWorkflow(repository, ecs);
-        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
-        return getWorkflow(service).withCreateRequest(createRequest);
-    }
-
-    private InstanceWorkflow getWorkflow(DeleteServiceInstanceRequest deleteRequest)
-            throws EcsManagementClientException {
-        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
-        return getWorkflow(service).withDeleteRequest(deleteRequest);
-    }
-
-    private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
-        Map<String, Object> parameters = createRequest.getParameters();
-        if (parameters == null)
-            return false;
-        if (parameters.containsKey("remote_connection"))
-            return true;
-        return false;
     }
 
     private InstanceWorkflow getWorkflow(ServiceDefinitionProxy service)

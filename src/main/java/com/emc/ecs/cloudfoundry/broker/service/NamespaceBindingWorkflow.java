@@ -52,7 +52,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
         // Get custom endpoint for namespace
         String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), service, plan,
-                Optional.ofNullable(createRequest.getParameters()));
+                createRequest.getParameters());
         credentials.put("endpoint", endpoint);
 
         // Add s3 URL

@@ -497,8 +497,7 @@ public class EcsServiceTest {
         PlanProxy plan = service.getPlans().get(0);
 
         Map<String, Object> params = new HashMap<>();
-        ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan,
-                Optional.of(params));
+        ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, params);
 
         PowerMockito.verifyStatic();
 
@@ -574,8 +573,7 @@ public class EcsServiceTest {
         when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(service);
 
-        ecs.createNamespace(NAMESPACE, service, plan,
-                Optional.ofNullable(null));
+        ecs.createNamespace(NAMESPACE, service, plan, new HashMap<>());
 
         PowerMockito.verifyStatic();
         NamespaceAction.create(same(connection), createCaptor.capture());
@@ -626,7 +624,7 @@ public class EcsServiceTest {
         when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(service);
 
-        ecs.createNamespace(NAMESPACE, service, plan, Optional.of(params));
+        ecs.createNamespace(NAMESPACE, service, plan, params);
 
         PowerMockito.verifyStatic();
         NamespaceAction.create(same(connection), createCaptor.capture());
@@ -707,7 +705,7 @@ public class EcsServiceTest {
         when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
 
-        ecs.createNamespace(NAMESPACE, service, plan, Optional.of(params));
+        ecs.createNamespace(NAMESPACE, service, plan, params);
 
         PowerMockito.verifyStatic();
         ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
@@ -946,8 +944,7 @@ public class EcsServiceTest {
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
 
         String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
-                Optional.ofNullable(null)));
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, new HashMap<>()));
     }
 
     /**
@@ -970,7 +967,7 @@ public class EcsServiceTest {
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
         String expectedUrl = new StringBuilder().append(HTTPS).append(NAMESPACE)
                 .append(DOT).append(BASE_URL).append(_9021).toString();
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, Optional.ofNullable(null)));
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, new HashMap<>()));
     }
 
     /**
@@ -990,8 +987,7 @@ public class EcsServiceTest {
         setupBaseUrlTest(BASE_URL_NAME, true);
 
         String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan,
-                Optional.ofNullable(params)));
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, params));
     }
 
     /**
@@ -1014,8 +1010,7 @@ public class EcsServiceTest {
         setupBaseUrlTest(BASE_URL_NAME, true);
 
         String expectedURl = HTTPS + NAMESPACE + DOT + BASE_URL + _9021;
-        assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan,
-                Optional.ofNullable(params)));
+        assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan, params));
     }
 
     /**

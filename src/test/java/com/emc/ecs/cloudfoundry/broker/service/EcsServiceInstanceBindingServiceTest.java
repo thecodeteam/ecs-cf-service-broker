@@ -79,7 +79,7 @@ public class EcsServiceInstanceBindingServiceTest {
                 .thenReturn(service);
         when(ecs.getNamespaceURL(eq(SERVICE_INSTANCE_ID),
                 any(ServiceDefinitionProxy.class), any(PlanProxy.class),
-                eq(Optional.of(new HashMap<>()))))
+                eq(new HashMap<>())))
                 .thenReturn("http://ns1.example.com:9020");
 
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
