@@ -10,9 +10,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

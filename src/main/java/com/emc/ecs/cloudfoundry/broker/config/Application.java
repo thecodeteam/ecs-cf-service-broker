@@ -18,6 +18,7 @@ import org.springframework.context.annotation.ComponentScan;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+@SuppressWarnings("unused")
 @EnableAutoConfiguration
 @ComponentScan
 public class Application {

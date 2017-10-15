@@ -10,7 +10,6 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotE
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Map;
 
 public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {

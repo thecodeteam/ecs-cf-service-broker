@@ -7,8 +7,8 @@ import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -16,11 +16,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+@SuppressWarnings("unused")
 public class ServiceInstanceRepository {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

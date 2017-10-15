@@ -12,7 +12,6 @@ import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceReques
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 public interface InstanceWorkflow {
    InstanceWorkflow withCreateRequest(CreateServiceInstanceRequest request);

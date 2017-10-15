@@ -2,6 +2,7 @@ package com.emc.ecs.cloudfoundry.broker.config;
 
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.Catalog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @ConfigurationProperties(prefix = "catalog")
 @Configuration
 public class CatalogConfig {
@@ -26,7 +28,7 @@ public class CatalogConfig {
 
     @Bean
     public Catalog catalog() {
-        return new Catalog(services.stream().map(s -> s.unproxy())
+        return new Catalog(services.stream().map(ServiceDefinitionProxy::unproxy)
                 .collect(Collectors.toList()));
     }
 
@@ -40,6 +42,7 @@ public class CatalogConfig {
 
     public ServiceDefinitionProxy findServiceDefinition(String serviceId) {
         return services.stream().filter(s -> s.getId().equals(serviceId))
-                .findFirst().get();
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("Unable to find configured service id: " + serviceId));
     }
 }

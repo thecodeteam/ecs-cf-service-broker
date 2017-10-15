@@ -10,7 +10,6 @@ import org.springframework.cloud.servicebroker.model.CreateServiceInstanceBindin
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceBindingRequest;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,12 +65,4 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
 
         return credentials;
     }
-
-    private String getS3Url(URL baseUrl, String secretKey) {
-        String userInfo = getUserInfo(secretKey);
-        return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" +
-                baseUrl.getHost() + ":" + baseUrl.getPort() + "/" +
-                ecs.prefix(instanceId);
-    }
-
 }

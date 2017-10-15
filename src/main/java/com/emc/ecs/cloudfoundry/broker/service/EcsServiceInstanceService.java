@@ -17,7 +17,6 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
-import java.util.Optional;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {

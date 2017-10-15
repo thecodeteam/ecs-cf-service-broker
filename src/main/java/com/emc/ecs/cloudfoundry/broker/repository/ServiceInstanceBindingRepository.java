@@ -8,7 +8,6 @@ import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,9 +16,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.model.VolumeMount;
-import org.springframework.cloud.servicebroker.model.VolumeDevice;
 import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
+import org.springframework.cloud.servicebroker.model.VolumeDevice;
+import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -30,6 +29,7 @@ import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+@SuppressWarnings("unused")
 public class ServiceInstanceBindingRepository {
 
     static final Logger LOG = LoggerFactory.getLogger(ObjectUserMapAction.class);
@@ -86,17 +86,16 @@ public class ServiceInstanceBindingRepository {
 
     public static class ModeDeserializer extends StdDeserializer<VolumeMount.Mode> {
 
-        public ModeDeserializer() {
+        ModeDeserializer() {
             this(null);
         }
 
-        public ModeDeserializer(Class<?> vc) {
+        ModeDeserializer(Class<?> vc) {
             super(vc);
         }
 
         @Override
-        public VolumeMount.Mode deserialize(JsonParser jp, DeserializationContext ctxt)
-                throws IOException, JsonProcessingException {
+        public VolumeMount.Mode deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             JsonNode node = jp.getCodec().readTree(jp);
             String s = node.asText();
             if (s.equals("rw")) {
@@ -109,34 +108,32 @@ public class ServiceInstanceBindingRepository {
 
     public static class DeviceTypeDeserializer extends StdDeserializer<VolumeMount.DeviceType> {
 
-        public DeviceTypeDeserializer() {
+        DeviceTypeDeserializer() {
             this(null);
         }
 
-        public DeviceTypeDeserializer(Class<?> vc) {
+        DeviceTypeDeserializer(Class<?> vc) {
             super(vc);
         }
 
         @Override
-        public VolumeMount.DeviceType deserialize(JsonParser jp, DeserializationContext ctxt)
-                throws IOException, JsonProcessingException {
+        public VolumeMount.DeviceType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             return VolumeMount.DeviceType.SHARED;
         }
     }
 
     public static class VolumeDeviceDeserializer extends StdDeserializer<VolumeDevice> {
 
-        public VolumeDeviceDeserializer() {
+        VolumeDeviceDeserializer() {
             this(null);
         }
 
-        public VolumeDeviceDeserializer(Class<?> vc) {
+        VolumeDeviceDeserializer(Class<?> vc) {
             super(vc);
         }
 
         @Override
-        public VolumeDevice deserialize(JsonParser jp, DeserializationContext ctxt)
-                throws IOException, JsonProcessingException {
+        public VolumeDevice deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             LOG.error("trying to unmarshall volume mount");
             SharedVolumeDevice s = jp.getCodec().readValue(jp, SharedVolumeDevice.class);
             LOG.error("unmarshalled volume mount: " + s.getVolumeId());

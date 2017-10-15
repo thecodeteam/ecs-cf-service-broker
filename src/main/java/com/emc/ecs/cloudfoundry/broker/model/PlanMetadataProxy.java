@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Component
 public class PlanMetadataProxy {
 
@@ -42,11 +43,11 @@ public class PlanMetadataProxy {
         this.costs = costs;
     }
 
-    public Map<String, Object> unproxy() {
+    Map<String, Object> unproxy() {
         Map<String, Object> map = new HashMap<>();
         map.put("bullets", bullets);
         if (costs != null)
-            map.put("costs", costs.stream().map(c -> c.unproxy())
+            map.put("costs", costs.stream().map(CostProxy::unproxy)
                     .collect(Collectors.toList()));
         return map;
     }

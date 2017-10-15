@@ -10,6 +10,7 @@ import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceReques
 
 import java.util.*;
 
+@SuppressWarnings("unused")
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
 
