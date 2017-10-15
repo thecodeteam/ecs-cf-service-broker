@@ -21,9 +21,6 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     @Override
     public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
             throws EcsManagementClientException, IOException {
-        ServiceInstance inst = instanceRepository.find(id);
-        if (inst.getReferences().size() > 1)
-            throw new ServiceBrokerInvalidParametersException("Cannot change plan of bucket with remote references");
         Map<String, Object> parameters = maybeParameters
                 .orElse(new HashMap<>());
         ecs.changeBucketPlan(id, service, plan, parameters);

@@ -19,9 +19,6 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Optional<Map<String, Object>> maybeParameters) throws EcsManagementClientException, IOException {
-        ServiceInstance inst = instanceRepository.find(id);
-        if (inst.getReferences().size() > 1)
-            throw new ServiceBrokerInvalidParametersException("Cannot change plan of namespace with remote references");
         ecs.changeNamespacePlan(id, service, plan, maybeParameters.get());
     }
 

@@ -9,10 +9,7 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceUpdateNotSupportedException;
+import org.springframework.cloud.servicebroker.exception.*;
 import org.springframework.cloud.servicebroker.model.*;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
@@ -111,6 +108,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             if (instance == null)
                 throw new ServiceInstanceDoesNotExistException(
                         serviceInstanceId);
+            if (instance.getReferences().size() > 1)
+                throw new ServiceBrokerInvalidParametersException("Cannot change plan of service instance with remote references");
 
             InstanceWorkflow workflow = getWorkflow(service);
             LOG.info("changing instance plan");
