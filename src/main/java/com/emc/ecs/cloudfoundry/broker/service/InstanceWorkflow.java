@@ -18,7 +18,7 @@ public interface InstanceWorkflow {
    InstanceWorkflow withCreateRequest(CreateServiceInstanceRequest request);
    InstanceWorkflow withDeleteRequest(DeleteServiceInstanceRequest request);
    void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
-       Optional<Map<String, Object>> maybeParameters) throws EcsManagementClientException, ServiceBrokerException;
+       Optional<Map<String, Object>> maybeParameters) throws EcsManagementClientException, ServiceBrokerException, IOException;
    void delete(String id) throws EcsManagementClientException;
    ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Optional<Map<String, Object>> parameters)
            throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException;

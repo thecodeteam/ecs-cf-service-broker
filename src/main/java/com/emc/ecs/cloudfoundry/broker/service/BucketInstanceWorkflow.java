@@ -6,7 +6,9 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 
+import javax.xml.ws.Service;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,8 +21,10 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Optional<Map<String, Object>> maybeParameters)
-            throws EcsManagementClientException {
-        // FIXME: Check for multiple remote references -- we won't allow changing plans for those...
+            throws EcsManagementClientException, IOException {
+        ServiceInstance inst = instanceRepository.find(id);
+        if (inst.getReferences().size() > 1)
+            throw new ServiceBrokerInvalidParametersException("Cannot change plan of bucket with remote references");
         Map<String, Object> parameters = maybeParameters
                 .orElse(new HashMap<>());
         ecs.changeBucketPlan(id, service, plan, parameters);

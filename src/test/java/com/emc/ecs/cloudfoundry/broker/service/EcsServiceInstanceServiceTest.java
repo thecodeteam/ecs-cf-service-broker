@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -98,7 +99,7 @@ public class EcsServiceInstanceServiceTest {
     }
 
     /**
-     * The instance-service can change a namespace's plan with empty params.
+     * The instance-service can change a bucket's plan with empty params.
      *
      * @throws IOException
      * @throws JAXBException
@@ -119,6 +120,30 @@ public class EcsServiceInstanceServiceTest {
         verify(repository, times(1)).delete(BUCKET_NAME);
         verify(repository, times(1)).save(any(ServiceInstance.class));
         verify(ecs, times(1)).changeBucketPlan(eq(BUCKET_NAME),
+                any(ServiceDefinitionProxy.class), any(PlanProxy.class),
+                eq(params));
+    }
+
+    /**
+     * The instance-service cannot change a bucket's plan if it has remote connections
+     *
+     */
+    @Test(expected = ServiceBrokerException.class)
+    public void testChangeBucketServiceWithRemoteConnection() throws EcsManagementClientException, IOException, JAXBException {
+        Map<String, Object> params = new HashMap<>();
+        when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
+                .thenReturn(bucketServiceFixture());
+        // Create a service instance with a remote reference
+        ServiceInstance inst = new ServiceInstance(bucketCreateRequestFixture(params));
+        inst.addReference(SERVICE_INSTANCE_ID);
+        when(repository.find(BUCKET_NAME)).thenReturn(inst);
+
+        instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
+
+        verify(repository, times(1)).find(BUCKET_NAME);
+        verify(repository, times(0)).delete(any(String.class));
+        verify(repository, times(0)).save(any(ServiceInstance.class));
+        verify(ecs, times(0)).changeBucketPlan(any(String.class),
                 any(ServiceDefinitionProxy.class), any(PlanProxy.class),
                 eq(params));
     }
