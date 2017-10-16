@@ -98,7 +98,7 @@ public class ServiceInstanceBindingRepository {
         public VolumeMount.Mode deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             JsonNode node = jp.getCodec().readTree(jp);
             String s = node.asText();
-            if (s.equals("rw")) {
+            if ("rw".equals(s)) {
                 return VolumeMount.Mode.READ_WRITE;
             } else {
                 return VolumeMount.Mode.READ_ONLY;
