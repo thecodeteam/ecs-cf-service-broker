@@ -1,5 +1,5 @@
 # ECS Cloud Foundry Service Broker
-[![Build Status](https://travis-ci.org/codedellemc/ecs-cf-service-broker.svg?branch=master)](https://travis-ci.org/codedellemc/ecs-cf-service-broker) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
+[![Build Status](https://persi.ci.cf-app.com/api/v1/pipelines/persi/jobs/ecs-broker-unit/badge)](https://persi.ci.cf-app.com/teams/main/pipelines/persi/jobs/ecs-broker-unit) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
 ## Description
 
 This service broker enables Cloud Foundry applications to create, delete and
@@ -131,9 +131,10 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | :---------------- | :-------------------| :-----: | :------- | :--------------------------------------------- |
 | bucket            | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
 | bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
-| bucket            | file-access         | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
+| bucket            | file-accessible     | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
 | bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
-| bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
+| bucket            | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
+| bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
 | bucket binding    | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
@@ -143,7 +144,8 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
 | namespace         | default-bucket-quota| -1      | Integer  | Default quota applied to bucket (-1 for none)  |            
 | namespace         | quota*              | -       | JSON Map | Quota applied to namespace                     |            
-| namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |            
+| namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |
+| namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 
@@ -168,6 +170,55 @@ security:
     password: <password>
 ...
 ```
+### Volume Services
+
+Volume services allow bucket contents to be mounted into Cloud Foundry application containers as a file system.  This
+enables applications to interact with bucket contents as though they are ordinary files.
+
+#### Prerequisites
+There are a few prerequisites you must set up in your Cloud Foundry deployment in order to take advantage of volume
+ services.
+
+1) In your Cloud Foundry deployment, the property `cc.volume_services_enabled` must be set to `true`.
+
+2) The `nfsv3driver` job from [nfs-volume-release]() must be running and colocated on your diego cells.  See the README for details.
+
+3) The `ecs-bucket` service in your catalog must be configured to require volume mounts.  The example application.yml
+provided in this repo is already set up with this property:
+
+```yaml
+...
+catalog:
+  services:
+    - name: ecs-file-bucket
+      type: bucket
+      requires:
+      - volume_mount
+...
+```
+
+#### File system enabled service instances
+In order to use volume services once the prerequisites above are satisfied, your service instances must be created with
+`file-accessible` set to true.  This can be set either in the service or service plan exposed from your service catalog,
+or manually by the user during service instance creation:
+
+```bash
+cf create-service ecs-bucket 5gb mybucket -c '{"file-accessible":true}'
+```
+
+Buckets created in this manner will have file system access enabled, and file shares exposed.  When application bindings
+are created, new bucket users will be created to correspond to those bindings, and uid mappings will ensure that traffic
+coming from the application operates as the correct user.
+
+The application mount point defaults to `/var/vcap/data/{binding-id-guid}` so that is where the file system will appear
+within the application container.  You can find this path from within your application programmatically by parsing it from
+the VCAP_SERVICES environment variable.  If you prefer to have the volume mounted to a specific path in your application 
+container, you can use the `mount` key from within your bind configuration:
+
+```bash
+cf bind-service myapp mybucket -c '{"mount":"/var/something"}'
+```
+> NOTE: As of this writing **aufs** used by Garden is not capable of creating new root level folders.  As a result, you must choose a path with a root level folder that already exists in the container.  (`/home`, `/usr` or `/var` are good choices.)  If you require a path that does not already exist in the container it is currently only possible if you upgrade your Diego deployment to use [GrootFS](https://github.com/cloudfoundry/grootfs-release) with Garden. Soon, GrootFS will become the standard file system for CF containers, and this limitation will go away.
 
 ## Testing
 
@@ -183,4 +234,4 @@ You can then run the test-suite with gradle:
 
 ## TODOs
 
-Up to date tasks are on our [Github issues](https://github.com/spiegela/ecs-cf-service-broker/issues) page.
+Up to date tasks are on our [Github issues](https://github.com/codedellemc/ecs-cf-service-broker/issues) page.

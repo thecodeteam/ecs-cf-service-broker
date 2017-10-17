@@ -22,12 +22,19 @@ import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.xml.bind.JAXBException;
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -154,7 +161,7 @@ public class EcsServiceInstanceBindingServiceTest {
 
     /**
      * The binding-service can create a user for a bucket (with parameters to
-     * feed export details), so long as the user doesn't exist.
+     * feed export & volume mount details), so long as the user doesn't exist.
      *
      * @throws JAXBException if there is a JSON serializaton error with repository
      * @throws IOException is unable to serialize JSON to string
@@ -193,8 +200,7 @@ public class EcsServiceInstanceBindingServiceTest {
         when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(EXPORT_NAME)))
                 .thenReturn(absolutePath);
 
-        bindSvc.createServiceInstanceBinding(
-                bucketBindingExportRequestFixture());
+        bindSvc.createServiceInstanceBinding(bucketBindingExportRequestFixture());
 
         ServiceInstanceBinding binding = bindingCaptor.getValue();
         Map<String, Object> creds = binding.getCredentials();
@@ -213,8 +219,8 @@ public class EcsServiceInstanceBindingServiceTest {
 
         assertEquals(1, mounts.size());
         assertEquals(DRIVER, mount.getDriver());
+        assertEquals(VOLUME_MOUNT, mount.getContainerDir());
         assertEquals(VolumeMount.DeviceType.SHARED, mount.getDeviceType());
-        assertEquals("/var/vcap/data", mount.getContainerDir());
         assertEquals(VolumeMount.Mode.READ_WRITE, mount.getMode());
         assertEquals(String.class, device.getVolumeId().getClass());
         assertEquals(nfsUrl, volumeOpts.get("source"));

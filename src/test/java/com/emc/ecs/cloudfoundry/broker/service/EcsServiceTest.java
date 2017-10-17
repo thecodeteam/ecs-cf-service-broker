@@ -1020,14 +1020,7 @@ public class EcsServiceTest {
      */
     @Test
     public void testAddNonexistentExportToBucket() throws Exception {
-        String absolutePath = new StringBuilder("/")
-                .append(NAMESPACE)
-                .append("/")
-                .append(PREFIX)
-                .append(BUCKET_NAME)
-                .append("/")
-                .append(EXPORT_NAME)
-                .toString();
+        String absolutePath = "/" + NAMESPACE + "/" + PREFIX + BUCKET_NAME + "/" + EXPORT_NAME;
         PowerMockito.mockStatic(NFSExportAction.class);
 
         when(NFSExportAction.list(same(connection), eq(absolutePath)))

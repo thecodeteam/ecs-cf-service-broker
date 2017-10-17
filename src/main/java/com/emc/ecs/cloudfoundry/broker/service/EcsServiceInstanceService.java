@@ -19,8 +19,13 @@ import org.springframework.stereotype.Service;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EcsServiceInstanceService.class);
+
     private static final String NO_SERVICE_MATCHING_TYPE = "No service matching type: ";
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
@@ -43,6 +48,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
+
+        logger.info(format("Creating service instance %s", serviceInstanceId));
+
         try {
             ServiceDefinitionProxy service = ecs
                     .lookupServiceDefinition(serviceDefinitionId);
@@ -58,6 +66,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             return new CreateServiceInstanceResponse();
         } catch (Exception e) {
+            logger.error(format("Unexpected error creating service %s", serviceInstanceId), e);
             throw new ServiceBrokerException(e);
         }
     }

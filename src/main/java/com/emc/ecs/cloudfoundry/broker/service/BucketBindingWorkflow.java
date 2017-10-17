@@ -14,13 +14,15 @@ import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.xml.bind.JAXBException;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
 public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final String VOLUME_DRIVER = "nfsv3driver";
-    private static final String DEFAULT_CONTAINER_DIR = "/var/vcap/data";
+    private static final String DEFAULT_MOUNT = "/var/vcap/data";
+    private static final String MOUNT = "mount";
     private List<VolumeMount> volumeMounts;
     private static final Logger LOG =
             LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
@@ -53,9 +55,11 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
                 ecs.addUserToBucket(bucketName, bindingId, permissions);
             }
 
-            String export = (String) parameters.get("export");
-            if (ecs.getBucketFileEnabled(bucketName) && export != null) {
-                volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()));
+            if (ecs.getBucketFileEnabled(bucketName)) {
+                String export = (String) parameters.get("export");
+                if (export == null)
+                    export = "";
+                volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), parameters);
             }
 
         } else {
@@ -80,7 +84,11 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             String unixId = (String) mountConfig.get("uid");
             LOG.error("Deleting user map of instance Id and Binding Id " +
                     bucketName + " " + bindingId);
-            ecs.deleteUserMap(bindingId, unixId);
+            try {
+                ecs.deleteUserMap(bindingId, unixId);
+            } catch (EcsManagementClientException e) {
+                LOG.error("Error deleting user map: " + e.getMessage());
+            }
         }
 
         ecs.removeUserFromBucket(bucketName, bindingId);
@@ -157,23 +165,43 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return unixUid;
     }
 
-    private List<VolumeMount> createVolumeExport(String export, URL baseUrl)
+    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, Map<String, Object>parameters)
             throws EcsManagementClientException {
         int unixUid = createUserMap();
         String host = ecs.getNfsMountHost();
         if (host == null || host.isEmpty()) {
             host = baseUrl.getHost();
         }
+
+        LOG.info("Adding export:  " + export + " to bucket: " + instanceId);
         String volumeGUID = UUID.randomUUID().toString();
         String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
+        LOG.info("export added.");
+
         Map<String, Object> opts = new HashMap<>();
         String nfsUrl = "nfs://" + host + absoluteExportPath;
+
         opts.put("source", nfsUrl);
         opts.put("uid", String.valueOf(unixUid));
+
         List<VolumeMount> mounts = new ArrayList<>();
-        mounts.add(new VolumeMount(VOLUME_DRIVER, DEFAULT_CONTAINER_DIR,
+        mounts.add(new VolumeMount(VOLUME_DRIVER, getContainerDir(parameters, bindingId),
                 VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
                 new SharedVolumeDevice(volumeGUID, opts)));
+
         return mounts;
+    }
+
+    private String getContainerDir(Map<String, Object> parameters, String bindingId) {
+        if (parameters != null) {
+            Object o = parameters.get(MOUNT);
+            if (o != null && o instanceof String) {
+                String mount = (String) o;
+                if (!mount.isEmpty()) {
+                    return mount;
+                }
+            }
+        }
+        return DEFAULT_MOUNT + File.separator + bindingId;
     }
 }

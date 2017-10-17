@@ -65,7 +65,7 @@ eclipse {
 }
 
 springBoot {
-  executable = true
+//  executable = true
 }
 
 task wrapper(type: Wrapper) {

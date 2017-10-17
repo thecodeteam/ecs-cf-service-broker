@@ -68,9 +68,10 @@ public class Fixtures {
     public static final String FILE_ACCESSIBLE = "file-accessible";
     private static final String COMPLIANCE_ENABLED = "compliance-enabled";
     private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
-    public static final String EXPORT_NAME = "test_export";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";
     public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
+    public static final String EXPORT_NAME = "/export/dir";
+    public static final String VOLUME_MOUNT = "/mount/dir";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -263,6 +264,7 @@ public class Fixtures {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
+        params.put("mount", VOLUME_MOUNT);
         params.put("export", EXPORT_NAME);
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)

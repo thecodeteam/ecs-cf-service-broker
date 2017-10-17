@@ -24,8 +24,6 @@ import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -66,11 +64,8 @@ public class ServiceInstanceBindingRepository {
 
     public void save(ServiceInstanceBinding binding)
             throws IOException, JAXBException {
-        PipedInputStream input = new PipedInputStream();
-        PipedOutputStream output = new PipedOutputStream(input);
-        objectMapper.writeValue(output, binding);
-        output.close();
-        s3.putObject(bucket, getFilename(binding.getBindingId()), input, null);
+        String serialized = objectMapper.writeValueAsString(binding);
+        s3.putObject(bucket, getFilename(binding.getBindingId()), serialized, null);
     }
 
     public ServiceInstanceBinding find(String id) throws IOException {
@@ -98,7 +93,7 @@ public class ServiceInstanceBindingRepository {
         public VolumeMount.Mode deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             JsonNode node = jp.getCodec().readTree(jp);
             String s = node.asText();
-            if ("rw".equals(s)) {
+            if (s.equals("rw")) {
                 return VolumeMount.Mode.READ_WRITE;
             } else {
                 return VolumeMount.Mode.READ_ONLY;
@@ -134,9 +129,9 @@ public class ServiceInstanceBindingRepository {
 
         @Override
         public VolumeDevice deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-            LOG.error("trying to unmarshall volume mount");
+            LOG.debug("trying to unmarshall volume mount");
             SharedVolumeDevice s = jp.getCodec().readValue(jp, SharedVolumeDevice.class);
-            LOG.error("unmarshalled volume mount: " + s.getVolumeId());
+            LOG.debug("unmarshalled volume mount: " + s.getVolumeId());
 
             return s;
         }

@@ -103,36 +103,34 @@ catalog:
               - Shared object storage
               - Unlimited Storage
               - S3 protocol access
-    - id: 9052313c-20b2-47de-900f-6e8b04fafcca
+    - id: ff9b7835-b3bc-41b2-ad41-789baf64f41a
       name: ecs-file-bucket
       type: bucket
-      description: Elastic Cloud S3 Object Storage File Accessible Bucket
+      description: Elastic Cloud S3 Object Storage Bucket with File Access
       bindable: true
       plan-updatable: true
+      requires:
+      - volume_mount
       tags:
         - s3
         - bucket
-        - nfs
-        - hdfs
-      requires:
-        - volume_mount
       service-settings:
         service-type: bucket
         head-type: s3
         access-during-outage: true
-        file-accessible: true
       metadata:
         displayName: ecs-bucket
         imageUrl: http://www.emc.com/images/products/header-image-icon-ecs.png
-        longDescription: Dell EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3 or NFS.
-        providerDisplayName: Dell EMC
+        longDescription: EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3, Swift or Atmos protocols.
+        providerDisplayName: EMC Corporation
         documentationUrl: https://community.emc.com/docs/DOC-45012
         supportUrl: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
       plans:
-        - id: 8e777d49-0a78-4cf4-810a-b5f5173b019d
+        - id: d9685d6c-0fd2-4748-b031-0946481e5096
           name: 5gb
           description: Free Trial
           service-settings:
+            file-accessible: true
             quota:
               limit: 5
               warn: 4
@@ -143,13 +141,14 @@ catalog:
                   usd: 0.0
                 unit: MONTHLY
             bullets:
-              - Shared object storage
+              - Multiple Bucket Namespace
               - 5 GB Storage
-              - S3 protocol access
-              - NFS protocol access
-        - id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
+              - S3 protocol, HDFS, and NFSv3 access
+        - id: 009802fb-d1ba-4a30-a9ea-a5be12ef2952
           name: unlimited
           description: Pay per GB for Month
+          service-settings:
+            file-accessible: true
           metadata:
             costs:
               - amount:
@@ -158,5 +157,4 @@ catalog:
             bullets:
               - Shared object storage
               - Unlimited Storage
-              - S3 protocol access
-              - NFS protocol access
+              - S3 protocol, HDFS and NFSv3 access

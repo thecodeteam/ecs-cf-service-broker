@@ -8,6 +8,8 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class EcsService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
 
     private static final String UNCHECKED = "unchecked";
     private static final String WARN = "warn";
@@ -74,31 +78,35 @@ public class EcsService {
     }
 
     void createBucket(String id, ServiceDefinitionProxy service,
-                      PlanProxy plan, Map<String, Object> parameters) {
+           PlanProxy plan, Map<String, Object> parameters) {
+
+        logger.info(String.format("Creating bucket %s", id));
         try {
-        if (bucketExists(id)) {
-            throw new ServiceInstanceExistsException(id, service.getId());
-        }
+            if (bucketExists(id)) {
+                throw new ServiceInstanceExistsException(id, service.getId());
+            }
+            parameters.putAll(plan.getServiceSettings());
+            parameters.putAll(service.getServiceSettings());
 
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
+            BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
+                    broker.getNamespace(), replicationGroupID, parameters));
 
-        BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
-                broker.getNamespace(), replicationGroupID, parameters));
+            if (parameters.containsKey(QUOTA)) {
+                logger.info("Applying quota");
+                @SuppressWarnings(UNCHECKED)
+                Map<String, Integer> quota = (Map<String, Integer>) parameters
+                        .get(QUOTA);
+                BucketQuotaAction.create(connection, prefix(id),
+                        broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
+            }
 
-        if (parameters.containsKey(QUOTA)) {
-            @SuppressWarnings(UNCHECKED)
-            Map<String, Integer> quota = (Map<String, Integer>) parameters
-                    .get(QUOTA);
-            BucketQuotaAction.create(connection, prefix(id),
-                    broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
-        }
-
-        if (parameters.containsKey(DEFAULT_RETENTION)) {
-            BucketRetentionAction.update(connection, broker.getNamespace(),
-                    prefix(id), (int) parameters.get(DEFAULT_RETENTION));
-        }
-        } catch (EcsManagementClientException e) {
+            if (parameters.containsKey(DEFAULT_RETENTION)) {
+                logger.info("Applying retention policy");
+                BucketRetentionAction.update(connection, broker.getNamespace(),
+                        prefix(id), (int) parameters.get(DEFAULT_RETENTION));
+            }
+        } catch (Exception e) {
+            logger.error(String.format("Failed to create bucket %s", id), e);
             throw new ServiceBrokerException(e);
         }
     }
