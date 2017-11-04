@@ -3,6 +3,7 @@ package com.emc.ecs.cloudfoundry.broker.model;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class CostProxy {
 
     private Map<String, Object> amount;
@@ -34,7 +35,7 @@ public class CostProxy {
         this.unit = unit;
     }
 
-    public Map<String, Object> unproxy() {
+    Map<String, Object> unproxy() {
         Map<String, Object> map = new HashMap<>();
         map.put("amount", amount);
         map.put("unit", unit);

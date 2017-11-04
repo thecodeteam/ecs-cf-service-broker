@@ -23,17 +23,15 @@ public abstract class EcsActionTest {
 	
     @Autowired
     private BrokerConfig broker;
-    
-    protected URL certificate;
-    
+
     protected Connection connection;
     protected String namespace;
     protected String replicationGroupID = RG_ID;
-    protected String repositoryEndpoint;
-    
+
+    @SuppressWarnings("unused")
     @PostConstruct
     protected void init() {
-        certificate = getClass().getClassLoader()
+        URL certificate = getClass().getClassLoader()
                 .getResource(broker.getCertificate());
     	    	
         connection = new Connection(broker.getManagementEndpoint(),

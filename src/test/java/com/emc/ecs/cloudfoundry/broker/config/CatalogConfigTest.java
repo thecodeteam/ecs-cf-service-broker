@@ -55,13 +55,13 @@ public class CatalogConfigTest {
         Plan plan0 = ecsBucketPlans.get(0);
 
         testPlan(plan0, "8e777d49-0a78-4cf4-810a-b5f5173b019d", "5gb",
-                "Free Trial", new Double(0.0), "MONTHLY",
+                "Free Trial", 0.0, "MONTHLY",
                 Arrays.asList("Shared object storage", "5 GB Storage",
                         "S3 protocol access"));
 
         Plan plan1 = ecsBucketPlans.get(1);
         testPlan(plan1, "89d20694-9ab0-4a98-bc6a-868d6d4ecf31", "unlimited",
-                "Pay per GB for Month", new Double(0.03), "PER GB PER MONTH",
+                "Pay per GB for Month", 0.03, "PER GB PER MONTH",
                 Arrays.asList("Shared object storage", "Unlimited Storage",
                         "S3 protocol access"));
     }
@@ -75,7 +75,6 @@ public class CatalogConfigTest {
         assertEquals(bindable, service.isBindable());
         assertEquals(updatable, service.isPlanUpdateable());
         assertEquals(requires, service.getRequires());
-        assertEquals(dashboardUrl, service.getDashboardClient());
     }
 
     private void testServiceDefinitionMetadata(Map<String, Object> metadata,
