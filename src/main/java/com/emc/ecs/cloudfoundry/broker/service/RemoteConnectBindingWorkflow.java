@@ -10,6 +10,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotE
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
@@ -39,7 +40,9 @@ public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public Map<String, Object> getCredentials(String secretKey) throws IOException, EcsManagementClientException {
-        Map<String, Object> credentials = super.getCredentials(secretKey);
+        Map<String, Object> credentials = new HashMap<>();
+        credentials.put("accessKey", bindingId);
+        credentials.put("secretKey", secretKey);
         credentials.put("instanceId", instanceId);
         return credentials;
     }

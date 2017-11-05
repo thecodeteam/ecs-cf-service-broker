@@ -79,6 +79,7 @@ public class EcsService {
 
     void createBucket(String id, ServiceDefinitionProxy service,
            PlanProxy plan, Map<String, Object> parameters) {
+        if (parameters == null) parameters = new HashMap<>();
 
         logger.info(String.format("Creating bucket %s", id));
         try {
