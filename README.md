@@ -138,6 +138,7 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
 | bucket binding    | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
+| bucket binding    | path-style-access   | true    | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
 | namespace         | domain-group-admins | -       | JSON List| List of domain admins to be added to namespace |
 | namespace         | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
 | namespace         | compliance-enabled  | false   | Boolean  | Enable compliance adhearance of retention      |
@@ -148,6 +149,7 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
+| namespace binding | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
 
 \* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
 

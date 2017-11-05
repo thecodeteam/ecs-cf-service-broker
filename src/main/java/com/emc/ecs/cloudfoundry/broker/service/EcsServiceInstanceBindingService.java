@@ -61,7 +61,8 @@ public class EcsServiceInstanceBindingService
             String secretKey = workflow.createBindingUser();
 
             LOG.info("building binding response");
-            Map<String, Object> credentials = workflow.getCredentials(secretKey);
+            Map<String, Object> credentials = workflow.getCredentials(secretKey,
+                    request.getParameters());
             ServiceInstanceBinding binding = workflow.getBinding(credentials);
 
             LOG.info("saving binding...");

@@ -39,7 +39,8 @@ public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey) throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
+            throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
         credentials.put("accessKey", bindingId);
         credentials.put("secretKey", secretKey);

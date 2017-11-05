@@ -96,7 +96,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey)
+    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
             throws IOException, EcsManagementClientException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
@@ -111,7 +111,15 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         // Add s3 URL
         URL baseUrl = new URL(endpoint);
-        credentials.put("s3Url", getS3Url(baseUrl, secretKey));
+        credentials.put("s3Url", getS3Url(baseUrl, secretKey, parameters));
+
+        if (parameters != null && parameters.containsKey("path-style-access") &&
+                ! (Boolean) parameters.get("path-style-access"))
+        {
+            credentials.put("path-style-access", false);
+        } else {
+            credentials.put("path-style-access", true);
+        }
 
         // Add bucket name from repository
         credentials.put("bucket", ecs.prefix(bucketName));
@@ -141,11 +149,22 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return resp;
     }
 
-    private String getS3Url(URL baseUrl, String secretKey) {
+    private String getS3Url(URL baseUrl, String secretKey, Map<String, Object> parameters) {
         String userInfo = getUserInfo(secretKey);
-        return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" +
-                baseUrl.getHost() + ":" + baseUrl.getPort() + "/" +
-                ecs.prefix(instanceId);
+        String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@";
+
+        String portString = "";
+        if (baseUrl.getPort() != -1)
+            portString = ":" + baseUrl.getPort();
+
+        if (parameters != null && parameters.containsKey("path-style-access") &&
+                ! (Boolean) parameters.get("path-style-access"))
+        {
+            s3Url = s3Url + ecs.prefix(instanceId) + "." + baseUrl.getHost() + portString;
+        } else {
+            s3Url = s3Url + baseUrl.getHost() + portString + "/" + ecs.prefix(instanceId);
+        }
+        return s3Url;
     }
 
     private int createUserMap() throws EcsManagementClientException {

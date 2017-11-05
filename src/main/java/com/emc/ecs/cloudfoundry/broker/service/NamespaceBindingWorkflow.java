@@ -40,7 +40,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey)
+    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
             throws IOException, EcsManagementClientException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
