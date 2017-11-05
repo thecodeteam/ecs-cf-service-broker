@@ -3,6 +3,7 @@ package com.emc.ecs.cloudfoundry.broker.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+@SuppressWarnings("unused")
 @Configuration
 @ConfigurationProperties(prefix = "broker")
 public class BrokerConfig {
@@ -21,7 +22,7 @@ public class BrokerConfig {
     private String password = "ChangeMe";
     private String repositoryBucket = "repository";
     private String prefix = "ecs-cf-broker-";
-    private String brokerApiVersion = "2.10";
+    private String brokerApiVersion = "*";
     private String certificate;
 
     public String getManagementEndpoint() {
@@ -114,7 +115,7 @@ public class BrokerConfig {
         this.prefix = prefix;
     }
 
-    public String getBrokerApiVersion() {
+    String getBrokerApiVersion() {
         return brokerApiVersion;
     }
 

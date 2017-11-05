@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.cloud.servicebroker.model.OperationState;
 
+@SuppressWarnings("unused")
 public class LastOperationSerializer {
 
     @JsonSerialize
@@ -21,7 +22,7 @@ public class LastOperationSerializer {
         super();
     }
 
-    public LastOperationSerializer(final OperationState operationState,
+    LastOperationSerializer(final OperationState operationState,
             final String description, final boolean deleteOperation) {
         super();
         this.setOperationState(operationState);
@@ -33,7 +34,7 @@ public class LastOperationSerializer {
         return operationState;
     }
 
-    public void setOperationState(OperationState operationState) {
+    private void setOperationState(OperationState operationState) {
         this.operationState = operationState;
     }
 
@@ -49,7 +50,7 @@ public class LastOperationSerializer {
         return deleteOperation;
     }
 
-    public void setDeleteOperation(boolean deleteOperation) {
+    private void setDeleteOperation(boolean deleteOperation) {
         this.deleteOperation = deleteOperation;
     }
 }

@@ -8,6 +8,8 @@ import com.emc.ecs.cloudfoundry.broker.service.EcsService;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceService;
 import com.emc.ecs.management.sdk.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -18,9 +20,12 @@ import org.springframework.context.annotation.ComponentScan;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+@SuppressWarnings("unused")
 @EnableAutoConfiguration
 @ComponentScan
 public class Application {
+
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
 //    static {
 //        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
@@ -43,11 +48,13 @@ public class Application {
     @Bean
     public Connection ecsConnection() {
 	if (broker.getCertificate() != null) {
+	    logger.info("Instantiating esc connection with certificate");
         URL certificate = Thread.currentThread().getContextClassLoader()
                 .getResource(broker.getCertificate());
         return new Connection(broker.getManagementEndpoint(),
                 broker.getUsername(), broker.getPassword(), certificate);
 	} else {
+        logger.info("Instantiating unencrypted esc connection");
 		return new Connection(broker.getManagementEndpoint(),
                 broker.getUsername(), broker.getPassword());
 	}

@@ -12,7 +12,6 @@ import static org.junit.Assert.assertEquals;
 
 public class BucketRetentionActionTest extends EcsActionTest {
 
-    private final int THIRTY_DAYS_IN_SEC = 2592000;
     private final String BUCKET = "testbucket5";
 
     @Before
@@ -33,6 +32,7 @@ public class BucketRetentionActionTest extends EcsActionTest {
         DefaultBucketRetention retention =
                 BucketRetentionAction.get(connection, namespace, BUCKET);
         assertEquals(-1, retention.getPeriod());
+        int THIRTY_DAYS_IN_SEC = 2592000;
         BucketRetentionAction.update(connection, namespace, BUCKET,
                 THIRTY_DAYS_IN_SEC);
         DefaultBucketRetention retention2 =

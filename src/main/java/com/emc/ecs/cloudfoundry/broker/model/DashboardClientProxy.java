@@ -3,6 +3,7 @@ package com.emc.ecs.cloudfoundry.broker.model;
 import org.springframework.cloud.servicebroker.model.DashboardClient;
 import org.springframework.stereotype.Component;
 
+@SuppressWarnings("unused")
 @Component
 public class DashboardClientProxy {
     private String id;
@@ -20,7 +21,7 @@ public class DashboardClientProxy {
         this.redirectUrl = redirectUrl;
     }
 
-    public DashboardClient unproxy() {
+    DashboardClient unproxy() {
         return new DashboardClient(id, secret, redirectUrl);
     }
 

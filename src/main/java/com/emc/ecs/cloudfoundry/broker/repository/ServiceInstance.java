@@ -8,6 +8,9 @@ import org.springframework.cloud.servicebroker.model.CreateServiceInstanceReques
 import org.springframework.cloud.servicebroker.model.OperationState;
 import org.springframework.cloud.servicebroker.model.UpdateServiceInstanceRequest;
 
+import java.util.*;
+
+@SuppressWarnings("unused")
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
 
@@ -39,22 +42,41 @@ public class ServiceInstance {
     @JsonProperty("last_operation")
     private LastOperationSerializer lastOperation;
 
+    @JsonSerialize
+    @JsonProperty("remote_connect_keys")
+    private Map<String, String> remoteConnectionKeys = new HashMap<>();
+
+    @JsonSerialize
+    @JsonProperty("name")
+    private String name;
+
+    @JsonSerialize
+    private Set<String> references = new HashSet<>();
+
     @JsonIgnore
     private boolean async;
 
     @SuppressWarnings("unused")
     private ServiceInstance() {
+        name = null;
     }
 
     public ServiceInstance(CreateServiceInstanceRequest request) {
         super();
-        this.serviceDefinitionId = request.getServiceDefinitionId();
-        this.planId = request.getPlanId();
-        this.organizationGuid = request.getOrganizationGuid();
-        this.spaceGuid = request.getSpaceGuid();
-        this.serviceInstanceId = request.getServiceInstanceId();
-        this.lastOperation = new LastOperationSerializer(
+        serviceDefinitionId = request.getServiceDefinitionId();
+        planId = request.getPlanId();
+        organizationGuid = request.getOrganizationGuid();
+        spaceGuid = request.getSpaceGuid();
+        serviceInstanceId = request.getServiceInstanceId();
+        lastOperation = new LastOperationSerializer(
                 OperationState.IN_PROGRESS, "Provisioning", false);
+        
+        // name is set on 1st create only, not by connecting remotely
+        name = serviceInstanceId;
+
+        // add a reference to itself, used to find remotely created instances
+        // of the same actual service instance
+        references.add(serviceInstanceId);
     }
 
     public String getServiceInstanceId() {
@@ -81,6 +103,10 @@ public class ServiceInstance {
         return dashboardUrl;
     }
 
+    public Set<String> getReferences() {
+        return references;
+    }
+
     public boolean isAsync() {
         return async;
     }
@@ -89,10 +115,54 @@ public class ServiceInstance {
         return lastOperation;
     }
 
+    public String addRemoteConnectionKey(String bindingId) {
+        String secretKey = UUID.randomUUID().toString();
+        addRemoteConnectionKey(bindingId, secretKey);
+        return secretKey;
+    }
+
+    public void addRemoteConnectionKey(String bindingId, String secretKey) {
+        this.remoteConnectionKeys.put(bindingId, secretKey);
+    }
+
+    public Boolean remoteConnectionKeyExists(String bindingId) {
+        return remoteConnectionKeys.containsKey(bindingId);
+    }
+
+    public void removeRemoteConnectionKey(String bindingId) {
+        this.remoteConnectionKeys.remove(bindingId);
+    }
+
+    public Boolean remoteConnectionKeyValid(String bindingId, String remoteConnectionKey) {
+        if (! remoteConnectionKeys.containsKey(bindingId))
+            return false;
+        String key = remoteConnectionKeys.get(bindingId);
+        return (key.equals(remoteConnectionKey));
+    }
+
     public void update(UpdateServiceInstanceRequest request) {
         this.serviceDefinitionId = request.getServiceDefinitionId();
         this.planId = request.getPlanId();
         this.serviceInstanceId = request.getServiceInstanceId();
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void addReference(String reference) {
+        this.references.add(reference);
+    }
+
+    public void setReferences(Set<String> references) {
+        this.references = references;
+    }
+
+    public int getReferenceCount() {
+        return this.references.size();
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

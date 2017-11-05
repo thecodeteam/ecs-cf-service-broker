@@ -9,6 +9,7 @@ import org.springframework.cloud.servicebroker.model.VolumeMount;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBinding {
 

@@ -1,5 +1,6 @@
 package com.emc.ecs.cloudfoundry.broker.model;
 
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.DashboardClient;
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.cloud.servicebroker.model.ServiceDefinition;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 @Component
 public class ServiceDefinitionProxy {
     private String id;
@@ -51,7 +53,7 @@ public class ServiceDefinitionProxy {
     public ServiceDefinition unproxy() {
         List<Plan> realPlans = null;
         if (plans != null)
-            realPlans = plans.stream().map(p -> p.unproxy())
+            realPlans = plans.stream().map(PlanProxy::unproxy)
                     .collect(Collectors.toList());
 
         DashboardClient realDashboardClient = null;
@@ -145,7 +147,7 @@ public class ServiceDefinitionProxy {
 
     public PlanProxy findPlan(String planId) {
         return plans.stream().filter(p -> p.getId().equals(planId)).findFirst()
-                .get();
+                .orElseThrow(() -> new ServiceBrokerException("Unable to find configured plan ID: " + planId));
     }
 
     public Map<String, Object> getServiceSettings() {

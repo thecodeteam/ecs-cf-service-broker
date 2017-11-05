@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 @Component
 public class PlanProxy {
     private String id;
@@ -31,7 +32,7 @@ public class PlanProxy {
         this.free = free;
     }
 
-    public Plan unproxy() {
+    Plan unproxy() {
         return new Plan(id, name, description, metadata.unproxy(), free);
     }
 
