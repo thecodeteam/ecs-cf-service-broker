@@ -10,10 +10,7 @@ import org.springframework.cloud.servicebroker.model.*;
 import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceBindingFixture;
 import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Fixtures {
     private static final String QUOTA = "quota";
@@ -72,6 +69,7 @@ public class Fixtures {
     public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
     public static final String EXPORT_NAME = "/export/dir";
     public static final String VOLUME_MOUNT = "/mount/dir";
+    public static final String SECRET_KEY = "6b056992-a14a-4fd1-a642-f44a821a7755";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -260,6 +258,15 @@ public class Fixtures {
                 .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
+    public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture(Map<String, Object> parameters) {
+        Map<String, Object> bindResource = new HashMap<>();
+        bindResource.put("app_guid", APP_GUID);
+        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
+                BUCKET_PLAN_ID1, APP_GUID, bindResource, parameters)
+                .withBindingId(BINDING_ID)
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+    }
+
     public static CreateServiceInstanceBindingRequest bucketBindingExportRequestFixture() {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
@@ -298,6 +305,30 @@ public class Fixtures {
                 ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
         binding.setBindingId("service-inst-bind-one-id");
         binding.setCredentials(creds);
+        return binding;
+    }
+
+    public static ServiceInstanceBinding bindingInstanceVolumeMountFixture()
+            throws EcsManagementClientException,
+            EcsManagementResourceNotFoundException {
+        Map<String, Object> creds = new HashMap<>();
+        creds.put("accessKey", "user");
+        creds.put("bucket", "bucket");
+        creds.put("secretKey", "password");
+        creds.put("endpoint", OBJ_ENDPOINT);
+        ServiceInstanceBinding binding = new ServiceInstanceBinding(
+                ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
+        binding.setBindingId("service-inst-bind-one-id");
+        binding.setCredentials(creds);
+        Map<String, Object> opts = new HashMap<>();
+        opts.put("source", "nfs://127.0.0.1/ns1/service-inst-id/");
+        opts.put("uid", "456");
+        List<VolumeMount> mounts = Arrays.asList(
+            new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
+                    VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
+                    new SharedVolumeDevice("123", opts))
+        );
+        binding.setVolumeMounts(mounts);
         return binding;
     }
 

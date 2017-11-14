@@ -4,6 +4,7 @@ import com.emc.ecs.cloudfoundry.broker.config.CatalogConfigTest;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepositoryTest;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepositoryTest;
+import com.emc.ecs.cloudfoundry.broker.service.BucketBindingWorkflowTest;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceBindingServiceTest;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceServiceTest;
 import com.emc.ecs.cloudfoundry.broker.service.EcsServiceTest;
@@ -38,7 +39,8 @@ import org.junit.runners.Suite.SuiteClasses;
         ServiceInstanceBindingRepositoryTest.class,
         ServiceInstanceRepositoryTest.class,
         EcsServiceInstanceBindingServiceTest.class,
-        EcsServiceInstanceServiceTest.class
+        EcsServiceInstanceServiceTest.class,
+        BucketBindingWorkflowTest.class
     })
 public class TestSuite {
 
