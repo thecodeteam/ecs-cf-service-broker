@@ -149,7 +149,6 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
-| namespace binding | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
 
 \* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
 
