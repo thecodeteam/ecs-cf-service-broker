@@ -43,27 +43,24 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
+
         String bucketName = instance.getName();
-
+        String export = "";
+        List<String> permissions = null;
         if (parameters != null) {
-
-            @SuppressWarnings(value = "unchecked")
-            List<String> permissions = (List<String>) parameters.get("permissions");
-            if (permissions == null) {
-                ecs.addUserToBucket(bucketName, bindingId);
-            } else {
-                ecs.addUserToBucket(bucketName, bindingId, permissions);
-            }
-
-            if (ecs.getBucketFileEnabled(bucketName)) {
-                String export = (String) parameters.get("export");
-                if (export == null)
-                    export = "";
-                volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), parameters);
-            }
-
-        } else {
+            permissions = (List<String>) parameters.get("permissions");
+            export = (String) parameters.getOrDefault("export", "");
+        }
+        
+        if (permissions == null) {
             ecs.addUserToBucket(bucketName, bindingId);
+        } else {
+            ecs.addUserToBucket(bucketName, bindingId, permissions);
+        }
+
+        if (ecs.getBucketFileEnabled(bucketName)) {
+            volumeMounts = createVolumeExport(export,
+                    new URL(ecs.getObjectEndpoint()), parameters);
         }
 
         return userSecretKey.getSecretKey();
