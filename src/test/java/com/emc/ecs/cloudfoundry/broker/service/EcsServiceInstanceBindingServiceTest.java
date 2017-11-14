@@ -22,7 +22,6 @@ import org.springframework.cloud.servicebroker.model.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.VolumeMount;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -343,7 +342,7 @@ public class EcsServiceInstanceBindingServiceTest {
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor =
                 ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         ArgumentCaptor<ServiceInstance> instanceCaptor =
-                ArgumentCaptor .forClass(ServiceInstance.class);
+                ArgumentCaptor.forClass(ServiceInstance.class);
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         doNothing().when(instanceRepository).save(instanceCaptor.capture());
         doNothing().when(repository).save(bindingCaptor.capture());

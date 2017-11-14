@@ -162,6 +162,7 @@ public class BrokerConfig {
     public void setObjectEndpoint(String objectEndpoint) {
         this.objectEndpoint = objectEndpoint;
     }
+
     public String getNfsMountHost() {
         return nfsMountHost;
     }
