@@ -323,10 +323,10 @@ public class Fixtures {
         Map<String, Object> opts = new HashMap<>();
         opts.put("source", "nfs://127.0.0.1/ns1/service-inst-id/");
         opts.put("uid", "456");
-        List<VolumeMount> mounts = Arrays.asList(
-            new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
-                    VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
-                    new SharedVolumeDevice("123", opts))
+        List<VolumeMount> mounts = Collections.singletonList(
+                new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
+                        VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
+                        new SharedVolumeDevice("123", opts))
         );
         binding.setVolumeMounts(mounts);
         return binding;
