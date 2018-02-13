@@ -34,6 +34,7 @@ public class EcsServiceInstanceServiceTest {
     private PlanProxy plan;
     private Map<String, Object> params = new HashMap<>();
     private CreateServiceInstanceRequest createReq;
+    private Map<String, Object> settings;
 
     {
         Describe("EcsServiceInstanceService", () -> {
@@ -43,16 +44,18 @@ public class EcsServiceInstanceServiceTest {
                 BeforeEach(() -> {
                     serviceDef = bucketServiceFixture();
                     plan = serviceDef.getPlans().get(0);
+                    settings = resolveSettings(serviceDef, plan, params);
                     when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID))
                             .thenReturn(serviceDef);
                 });
 
                 Context("#createServiceInstance", () -> {
+                    BeforeEach(() -> {
+                    });
                     Context("basic service", () -> {
 
                         BeforeEach(() -> {
                             createReq = bucketCreateRequestFixture(params);
-                            Map<String, Object> settings = resolveSettings(serviceDef, plan, params);
                             when(ecs.createBucket(BUCKET_NAME, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.createServiceInstance(createReq);
@@ -87,6 +90,7 @@ public class EcsServiceInstanceServiceTest {
                             ServiceInstance repoInst =
                                     new ServiceInstance(bucketCreateRequestFixture(params));
                             repoInst.addRemoteConnectionKey(BINDING_ID, REMOTE_CONNECT_KEY);
+                            repoInst.setServiceSettings(settings);
                             when(repo.find(BUCKET_NAME))
                                     .thenReturn(repoInst);
                         });
@@ -218,7 +222,6 @@ public class EcsServiceInstanceServiceTest {
                         BeforeEach(() -> {
                             when(repo.find(BUCKET_NAME))
                                     .thenReturn(new ServiceInstance(bucketCreateRequestFixture(params)));
-                            Map<String, Object> settings = resolveSettings(serviceDef, plan, params);
                             when(ecs.changeBucketPlan(BUCKET_NAME, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
@@ -304,6 +307,7 @@ public class EcsServiceInstanceServiceTest {
                 BeforeEach(() -> {
                     serviceDef = namespaceServiceFixture();
                     plan = serviceDef.getPlans().get(0);
+                    settings = resolveSettings(serviceDef, plan, params);
                     when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
                             .thenReturn(serviceDef);
                 });
@@ -311,7 +315,6 @@ public class EcsServiceInstanceServiceTest {
                 Context("#createServiceInstance", () -> {
                     Context("basic service", () -> {
                         BeforeEach(() -> {
-                            Map<String, Object> settings = resolveSettings(serviceDef, plan, params);
                             when(ecs.createNamespace(SERVICE_INSTANCE_ID, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.createServiceInstance(namespaceCreateRequestFixture(params));
@@ -343,16 +346,14 @@ public class EcsServiceInstanceServiceTest {
 
                     Context("with null params", () -> {
                         BeforeEach(() -> {
-                            params = null;
-                            Map<String, Object> settings = resolveSettings(serviceDef, plan, new HashMap<>());
-                            when(ecs.createNamespace(NAMESPACE, serviceDef, plan, params))
+                            when(ecs.createNamespace(NAMESPACE, serviceDef, plan, null))
                                     .thenReturn(settings);
                             instSvc.createServiceInstance(namespaceCreateRequestFixture());
                         });
 
                         It("should create the namespace", () ->
-                            verify(ecs, times(1))
-                                    .createNamespace(NAMESPACE, serviceDef, plan, null));
+                                verify(ecs, times(1))
+                                        .createNamespace(NAMESPACE, serviceDef, plan, null));
 
 
                         It("should save the instance to the repository", () -> {
@@ -380,6 +381,7 @@ public class EcsServiceInstanceServiceTest {
                             ServiceInstance repoInst =
                                     new ServiceInstance(remoteNamespaceCreateRequestFixture(params));
                             repoInst.addRemoteConnectionKey(BINDING_ID, REMOTE_CONNECT_KEY);
+                            repoInst.setServiceSettings(settings);
                             when(repo.find(NAMESPACE))
                                     .thenReturn(repoInst);
                         });
@@ -510,7 +512,6 @@ public class EcsServiceInstanceServiceTest {
                         BeforeEach(() -> {
                             when(repo.find(NAMESPACE))
                                     .thenReturn(new ServiceInstance(namespaceCreateRequestFixture(params)));
-                            Map<String, Object> settings = resolveSettings(serviceDef, plan, params);
                             when(ecs.changeNamespacePlan(NAMESPACE, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));

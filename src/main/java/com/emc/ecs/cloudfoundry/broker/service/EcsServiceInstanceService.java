@@ -65,7 +65,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .withCreateRequest(request);
 
             LOG.info("creating service instance");
-            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan, request.getParameters());
+            ServiceInstance instance =
+                    workflow.create(serviceInstanceId, service, plan, request.getParameters());
 
             LOG.info("saving instance...");
             repository.save(instance);
