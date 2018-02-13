@@ -285,7 +285,7 @@ public class EcsServiceInstanceBindingServiceTest {
     }
 
     /**
-     * If a binding is created with the "connect_remote" parameter, set to true, special
+     * If a binding is created with the "remote_connection" parameter, set to true, special
      * remote connection credentials are created and returned, to allow a remote Cloud
      * Foundry instance to connect to an existing bucket.
      *
@@ -326,7 +326,7 @@ public class EcsServiceInstanceBindingServiceTest {
     }
 
     /**
-     * If a binding is created with the "connect_remote" parameter, set to true, special
+     * If a binding is created with the "remote_connection" parameter, set to true, special
      * remote connection credentials are created and returned, to allow a remote Cloud
      * Foundry instance to connect to an existing bucket.
      *

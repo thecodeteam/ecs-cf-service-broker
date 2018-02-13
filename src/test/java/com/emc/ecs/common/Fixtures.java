@@ -229,7 +229,7 @@ public class Fixtures {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
-        params.put("connect_remote", true);
+        params.put("remote_connection", true);
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
@@ -240,7 +240,7 @@ public class Fixtures {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
-        params.put("connect_remote", true);
+        params.put("remote_connection", true);
         return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
                 NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
@@ -344,7 +344,7 @@ public class Fixtures {
         binding.setBindingId("service-inst-bind-one-id");
         binding.setCredentials(creds);
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("connect_remote", true);
+        parameters.put("remote_connection", true);
         binding.setParameters(parameters);
         return binding;
     }
