@@ -19,7 +19,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException {
+    public Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException {
         throw new ServiceBrokerException("remote_connection parameter invalid for plan upgrade");
     }
 
@@ -59,8 +59,16 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
         String instanceId = remoteConnection.get("instanceId");
         ServiceInstance instance = instanceRepository.find(instanceId);
 
+        // TODO evaluate & collect all validation errors before raising exception,
+        // rather than bailing on just the 1st one
+
+        if (instance == null)
+            throw new ServiceBrokerException("remote instance doesn't exist in repository");
+
         // Ensure that local & remote service definitions are equal
-        if (! instance.getServiceDefinitionId().equals(this.createRequest.getServiceDefinitionId()))
+        ServiceDefinitionProxy remoteServiceDef = ecs.lookupServiceDefinition(instance.getServiceDefinitionId());
+        ServiceDefinitionProxy thisServiceDef = ecs.lookupServiceDefinition(this.createRequest.getServiceDefinitionId());;
+        if (! thisServiceDef.equals(remoteServiceDef))
             throw new ServiceBrokerException("service definition must match between local and remote instances");
 
         // Ensure that local & remote plans are equal

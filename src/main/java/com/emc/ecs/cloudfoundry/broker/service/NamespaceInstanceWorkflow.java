@@ -20,8 +20,8 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, IOException {
-        ecs.changeNamespacePlan(id, service, plan, parameters);
+    public Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, IOException {
+        return ecs.changeNamespacePlan(id, service, plan, parameters);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
     @Override
     public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-        ecs.createNamespace(id, service, plan, parameters);
-        return getServiceInstance();
+        Map<String, Object> serviceSettings = ecs.createNamespace(id, service, plan, parameters);
+        return getServiceInstance(serviceSettings);
     }
 }

@@ -43,6 +43,12 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         super();
     }
 
+    EcsServiceInstanceService(EcsService ecs, ServiceInstanceRepository repo) {
+        super();
+        this.ecs = ecs;
+        this.repository = repo;
+    }
+
     @Override
     public CreateServiceInstanceResponse createServiceInstance(CreateServiceInstanceRequest request) {
         String serviceInstanceId = request.getServiceInstanceId();
@@ -112,13 +118,17 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             InstanceWorkflow workflow = getWorkflow(service);
             LOG.info("changing instance plan");
-            workflow.changePlan(serviceInstanceId, service, service.findPlan(planId), request.getParameters());
+            Map<String, Object> serviceSettings =
+                    workflow.changePlan(serviceInstanceId, service, service.findPlan(planId), request.getParameters());
 
             LOG.info("updating service in repo");
-            repository.delete(serviceInstanceId);
-            instance.update(request);
+            // This shouldn't be needed. The object will be re-versioned
+            // repository.delete(serviceInstanceId);
+            instance.update(request, serviceSettings);
             repository.save(instance);
             return new UpdateServiceInstanceResponse();
+        } catch (ServiceInstanceDoesNotExistException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }

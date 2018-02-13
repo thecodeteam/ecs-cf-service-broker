@@ -37,8 +37,8 @@ public class BucketInstanceWorkflowTest {
 
             Context("#changePlan", () -> {
                 BeforeEach(() -> {
-                    doNothing().when(ecs)
-                            .changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                            .thenReturn(new HashMap<>());
                 });
 
                 It("should change the plan", () -> {
@@ -104,8 +104,8 @@ public class BucketInstanceWorkflowTest {
 
             Context("#create", () -> {
                 BeforeEach(() -> {
-                    doNothing().when(ecs)
-                            .createBucket(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                    when(ecs.createBucket(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                            .thenReturn(new HashMap<>());
                     workflow.withCreateRequest(bucketCreateRequestFixture(parameters));
                 });
 
@@ -113,6 +113,12 @@ public class BucketInstanceWorkflowTest {
                     workflow.create(BUCKET_NAME, serviceProxy, planProxy, parameters);
                     verify(ecs, times(1))
                             .createBucket(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                });
+
+                It("should return the service instance", () -> {
+                    ServiceInstance instance = workflow.create(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                    assertEquals(BUCKET_NAME, instance.getName());
+                    assertEquals(BUCKET_NAME, instance.getServiceInstanceId());
                 });
             });
         });

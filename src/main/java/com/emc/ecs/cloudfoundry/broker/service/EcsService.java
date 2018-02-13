@@ -331,6 +331,7 @@ public class EcsService {
             throws EcsManagementClientException {
         if (namespaceExists(id))
             throw new ServiceInstanceExistsException(id, service.getId());
+        if (parameters == null) parameters = new HashMap<>();
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         NamespaceAction.create(connection, new NamespaceCreate(prefix(id),

@@ -165,4 +165,5 @@ public class ServiceDefinitionProxy {
     public void setType(String type) {
         this.type = type;
     }
+
 }

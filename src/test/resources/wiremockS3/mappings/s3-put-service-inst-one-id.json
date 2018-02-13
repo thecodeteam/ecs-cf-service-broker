@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-              "equalToJson": "{\"references\":[\"service-instance-id\"],\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"IN_PROGRESS\",\"delete_operation\":false},\"remote_connect_keys\":{},\"name\":\"service-instance-id\"}"
+              "equalToJson": "{\"references\":[\"service-instance-id\"],\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"IN_PROGRESS\",\"delete_operation\":false},\"remote_connect_keys\":{},\"name\":\"service-instance-id\",\"service_settings\":null}"
         	}
         ]
     },
@@ -24,7 +24,7 @@
         "headers": {
 			"x-amz-request-id": "0a05881f:150a5d74db8:1b1f:f",
 			"x-amz-id-2": "fcff654eb2d4b131db75376eb1fde702bf1e738f48c59bfa1093302d2625ee82",
-			"ETag": "\"462af5043114be8709b2116da9f082cc\"",
+			"ETag": "\"10dd133e74216c3463472343069d8c95\"",
 			"x-emc-mtime": "1450675315169"
 		}
     }
