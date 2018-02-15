@@ -24,7 +24,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(Ginkgo4jRunner.class)
-@Ginkgo4jConfiguration(threads = 1)
 public class EcsServiceInstanceServiceTest {
 
     private EcsService ecs = mock(EcsService.class);
@@ -35,6 +34,10 @@ public class EcsServiceInstanceServiceTest {
     private Map<String, Object> params = new HashMap<>();
     private CreateServiceInstanceRequest createReq;
     private Map<String, Object> settings;
+
+    public static final String BASIC_SERVICE = "basic service";
+
+    public static final String WITH_REMOTE_CONNECTION = "with remote connection";
 
     {
         Describe("EcsServiceInstanceService", () -> {
@@ -52,7 +55,7 @@ public class EcsServiceInstanceServiceTest {
                 Context("#createServiceInstance", () -> {
                     BeforeEach(() -> {
                     });
-                    Context("basic service", () -> {
+                    Context(BASIC_SERVICE, () -> {
 
                         BeforeEach(() -> {
                             createReq = bucketCreateRequestFixture(params);
@@ -98,11 +101,11 @@ public class EcsServiceInstanceServiceTest {
                         Context("without valid remote connect creds", () -> {
 
                             BeforeEach(() -> {
-                                params.put("remote_connection", remoteConnect(BUCKET_NAME, "junk"));
+                                params.put(REMOTE_CONNECTION, remoteConnect(BUCKET_NAME, "junk"));
                                 createReq = remoteBucketCreateRequestFixture(params);
                             });
 
-                            It("should raise an exception", () -> {
+                            It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                                 try {
                                     instSvc.createServiceInstance(createReq);
                                 } catch (ServiceBrokerException e) {
@@ -115,7 +118,7 @@ public class EcsServiceInstanceServiceTest {
                         Context("with valid remote connect creds", () -> {
 
                             BeforeEach(() -> {
-                                params.put("remote_connection", remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
+                                params.put(REMOTE_CONNECTION, remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
                                 createReq = remoteBucketCreateRequestFixture(params);
                                 instSvc.createServiceInstance(createReq);
                             });
@@ -158,7 +161,7 @@ public class EcsServiceInstanceServiceTest {
                 });
 
                 Context("#deleteServiceInstnace", () -> {
-                    Context("basic service", () -> {
+                    Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
                                     new ServiceInstance(bucketCreateRequestFixture(params));
@@ -218,7 +221,7 @@ public class EcsServiceInstanceServiceTest {
                 });
 
                 Context("#updateServiceInstance", () -> {
-                    Context("basic service", () -> {
+                    Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             when(repo.find(BUCKET_NAME))
                                     .thenReturn(new ServiceInstance(bucketCreateRequestFixture(params)));
@@ -258,7 +261,7 @@ public class EcsServiceInstanceServiceTest {
                                     .thenReturn(inst);
                         });
 
-                        It("should raise an exception", () -> {
+                        It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                             try {
                                 instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
                             } catch (ServiceBrokerException e) {
@@ -274,7 +277,7 @@ public class EcsServiceInstanceServiceTest {
                                 when(repo.find(BUCKET_NAME))
                                         .thenReturn(null));
 
-                        It("should raise an exception", () -> {
+                        It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                             try {
                                 instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
                             } catch (ServiceInstanceDoesNotExistException e) {
@@ -290,9 +293,9 @@ public class EcsServiceInstanceServiceTest {
                                     .thenReturn(inst);
                         });
 
-                        It("should raise an exception", () -> {
+                        It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                             try {
-                                params.put("remote_connection", remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
+                                params.put(REMOTE_CONNECTION, remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
                                 instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
                             } catch (ServiceBrokerException e) {
                                 assert (e.getMessage().endsWith("remote_connection parameter invalid for plan upgrade"));
@@ -313,7 +316,7 @@ public class EcsServiceInstanceServiceTest {
                 });
 
                 Context("#createServiceInstance", () -> {
-                    Context("basic service", () -> {
+                    Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             when(ecs.createNamespace(SERVICE_INSTANCE_ID, serviceDef, plan, params))
                                     .thenReturn(settings);
@@ -389,11 +392,11 @@ public class EcsServiceInstanceServiceTest {
                         Context("without valid remote connect creds", () -> {
 
                             BeforeEach(() -> {
-                                params.put("remote_connection", remoteConnect(NAMESPACE, "junk"));
+                                params.put(REMOTE_CONNECTION, remoteConnect(NAMESPACE, "junk"));
                                 createReq = remoteNamespaceCreateRequestFixture(params);
                             });
 
-                            It("should raise an exception", () -> {
+                            It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                                 try {
                                     instSvc.createServiceInstance(createReq);
                                 } catch (ServiceBrokerException e) {
@@ -406,7 +409,7 @@ public class EcsServiceInstanceServiceTest {
                         Context("with valid remote connect creds", () -> {
 
                             BeforeEach(() -> {
-                                params.put("remote_connection", remoteConnect(NAMESPACE, REMOTE_CONNECT_KEY));
+                                params.put(REMOTE_CONNECTION, remoteConnect(NAMESPACE, REMOTE_CONNECT_KEY));
                                 createReq = namespaceCreateRequestFixture(params);
                                 instSvc.createServiceInstance(createReq);
                             });
@@ -450,7 +453,7 @@ public class EcsServiceInstanceServiceTest {
                 });
 
                 Context("#deleteServiceInstance", () -> {
-                    Context("basic service", () -> {
+                    Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
                                     new ServiceInstance(namespaceCreateRequestFixture(params));
@@ -464,7 +467,7 @@ public class EcsServiceInstanceServiceTest {
                                         .deleteNamespace(NAMESPACE));
                     });
 
-                    Context("with remote connection", () -> {
+                    Context(WITH_REMOTE_CONNECTION, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
                                     new ServiceInstance(namespaceCreateRequestFixture(params));
@@ -508,7 +511,7 @@ public class EcsServiceInstanceServiceTest {
                 });
 
                 Context("#updateServiceInstance", () -> {
-                    Context("basic service", () -> {
+                    Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             when(repo.find(NAMESPACE))
                                     .thenReturn(new ServiceInstance(namespaceCreateRequestFixture(params)));
@@ -550,7 +553,7 @@ public class EcsServiceInstanceServiceTest {
                                     .thenReturn(inst);
                         });
 
-                        It("should raise an exception", () -> {
+                        It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                             try {
                                 instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
                             } catch (ServiceBrokerException e) {
@@ -567,9 +570,9 @@ public class EcsServiceInstanceServiceTest {
                                     .thenReturn(inst);
                         });
 
-                        It("should raise an exception", () -> {
+                        It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                             try {
-                                params.put("remote_connection", remoteConnect(NAMESPACE, REMOTE_CONNECT_KEY));
+                                params.put(REMOTE_CONNECTION, remoteConnect(NAMESPACE, REMOTE_CONNECT_KEY));
                                 instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
                             } catch (ServiceBrokerException e) {
                                 assert (e.getMessage().endsWith("remote_connection parameter invalid for plan upgrade"));
@@ -583,7 +586,7 @@ public class EcsServiceInstanceServiceTest {
                                 when(repo.find(NAMESPACE))
                                         .thenReturn(null));
 
-                        It("should raise an exception", () -> {
+                        It(SHOULD_RAISE_AN_EXCEPTION, () -> {
                             try {
                                 instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
                             } catch (ServiceInstanceDoesNotExistException e) {
@@ -616,7 +619,4 @@ public class EcsServiceInstanceServiceTest {
         return remoteConnection;
     }
 
-    @Test
-    public void noop() {
-    }
 }

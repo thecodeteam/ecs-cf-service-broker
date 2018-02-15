@@ -70,6 +70,8 @@ public class Fixtures {
     public static final String EXPORT_NAME = "/export/dir";
     public static final String VOLUME_MOUNT = "/mount/dir";
     public static final String SECRET_KEY = "6b056992-a14a-4fd1-a642-f44a821a7755";
+    public static final String REMOTE_CONNECTION = "remote_connection";
+    public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*

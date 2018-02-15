@@ -129,6 +129,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             repository.save(instance);
             return new UpdateServiceInstanceResponse();
         } catch (ServiceInstanceDoesNotExistException e) {
+            // Rethrow "does not exist" so that it's not caught by the generic case
             throw e;
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
