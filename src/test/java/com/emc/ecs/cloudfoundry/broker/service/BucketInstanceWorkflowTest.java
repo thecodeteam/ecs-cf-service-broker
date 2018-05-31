@@ -68,19 +68,37 @@ public class BucketInstanceWorkflowTest {
                                 .thenReturn(bucketInstance);
                     });
 
-                    It("should not delete the bucket" ,() -> {
-                        workflow.delete(BUCKET_NAME);
-                        verify(ecs, times(0))
-                                .deleteBucket(BUCKET_NAME);
+                    Context("the bucket is included in references", () -> {
+                        It("should not delete the bucket" ,() -> {
+                            workflow.delete(BUCKET_NAME);
+                            verify(ecs, times(0))
+                                    .deleteBucket(BUCKET_NAME);
+                        });
+
+                        It("should update each references", () -> {
+                            workflow.delete(BUCKET_NAME);
+                            verify(instanceRepo, times(1))
+                                    .save(instCaptor.capture());
+                            ServiceInstance savedInst = instCaptor.getValue();
+                            assertEquals(1, savedInst.getReferenceCount());
+                            assert(savedInst.getReferences().contains(BUCKET_NAME + "2"));
+                        });
                     });
 
-                    It("should update each references", () -> {
-                        workflow.delete(BUCKET_NAME);
-                        verify(instanceRepo, times(1))
-                                .save(instCaptor.capture());
-                        ServiceInstance savedInst = instCaptor.getValue();
-                        assertEquals(1, savedInst.getReferenceCount());
-                        assert(savedInst.getReferences().contains(BUCKET_NAME + "2"));
+                    Context("the bucket is not in the repo", () -> {
+                        BeforeEach(() -> {
+                            when(instanceRepo.find(BUCKET_NAME))
+                                    .thenReturn(null);
+                        });
+
+                        It("should update each references", () -> {
+                            workflow.delete(BUCKET_NAME);
+                            verify(instanceRepo, times(1))
+                                    .save(instCaptor.capture());
+                            ServiceInstance savedInst = instCaptor.getValue();
+                            assertEquals(1, savedInst.getReferenceCount());
+                            assert(savedInst.getReferences().contains(BUCKET_NAME + "2"));
+                        });
                     });
 
                 });

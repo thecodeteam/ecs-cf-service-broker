@@ -179,7 +179,7 @@ public class EcsServiceInstanceServiceTest {
                                         .delete(BUCKET_NAME));
                     });
 
-                    Context("with remote connection", () -> {
+                    Context(WITH_REMOTE_CONNECTION, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
                                     new ServiceInstance(bucketCreateRequestFixture(params));
@@ -253,7 +253,7 @@ public class EcsServiceInstanceServiceTest {
                                         .changeBucketPlan(BUCKET_NAME, serviceDef, plan, params));
                     });
 
-                    Context("with remote connection", () -> {
+                    Context(WITH_REMOTE_CONNECTION, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst = new ServiceInstance(bucketCreateRequestFixture(params));
                             inst.addReference(SERVICE_INSTANCE_ID);
@@ -544,7 +544,7 @@ public class EcsServiceInstanceServiceTest {
 
                     });
 
-                    Context("with remote connection", () -> {
+                    Context(WITH_REMOTE_CONNECTION, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
                                     new ServiceInstance(namespaceCreateRequestFixture(params));
