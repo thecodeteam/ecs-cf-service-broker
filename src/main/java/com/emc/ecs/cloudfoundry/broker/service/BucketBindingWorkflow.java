@@ -44,7 +44,10 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
 
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
         String bucketName = instance.getName();
+
         String export = "";
         List<String> permissions = null;
         if (parameters != null) {
@@ -72,7 +75,11 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
         String bucketName = instance.getName();
+
         List<VolumeMount> volumes = binding.getVolumeMounts();
         if (volumes != null && volumes.size() > 0) {
             Map<String, Object> mountConfig = (
@@ -98,6 +105,9 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
         String bucketName = instance.getName();
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
