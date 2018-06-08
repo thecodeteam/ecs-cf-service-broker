@@ -21,6 +21,7 @@ including:
  * Support a self-signed SSL certificate for the ECS management API
  * Configure offered services & plans through a YAML based configuration
  * Support file system mounts of file access enabled buckets via NFS
+ * Support for multiple PCF instances to share data through ECS buckets and namespaces
 
 ## Build
 
@@ -56,7 +57,7 @@ bundled ECS simulator.  For more info, check the
 | password           | ChangeMe       | false    | Password to authenticate to ECS management API     |
 | repositoryBucket   | repository     | false    | Internal bucket for metadata storage               |
 | prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users         |
-| brokerApiVersion   | 2.10           | false    | Version of the CF broker API to advertise          |
+| brokerApiVersion   | *              | false    | Version of the CF broker API to advertise          |
 | certificate        | -              | false    | ECS SSL public key cert file                       |
 
 If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
@@ -135,6 +136,7 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
 | bucket            | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
+| bucket            | remote_connection***| -       | JSON Map | Remote connection details for previously created bucket |
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
 | bucket binding    | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
@@ -147,12 +149,15 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | quota*              | -       | JSON Map | Quota applied to namespace                     |            
 | namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |
 | namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
+| namespace         | remote_connection***| -       | JSON Map | Remote connection details for previously created namespace |
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 
 \* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
 
 \*\* Retention policies are defined with the following format: `{retention: {<policy name>: <seconds retained>}}` 
+
+\*\*\* Remote connection details are describe below in _remote connections_
 
 For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
@@ -220,6 +225,80 @@ container, you can use the `mount` key from within your bind configuration:
 cf bind-service myapp mybucket -c '{"mount":"/var/something"}'
 ```
 > NOTE: As of this writing **aufs** used by Garden is not capable of creating new root level folders.  As a result, you must choose a path with a root level folder that already exists in the container.  (`/home`, `/usr` or `/var` are good choices.)  If you require a path that does not already exist in the container it is currently only possible if you upgrade your Diego deployment to use [GrootFS](https://github.com/cloudfoundry/grootfs-release) with Garden. Soon, GrootFS will become the standard file system for CF containers, and this limitation will go away.
+
+### Remote Connections to Service Instances
+
+A common use case for object storage, in general, and ECS specifically, is to share
+data across data-centers, platforms, Cloud Foundry instances, or clouds using a shared
+object-storage bucket. The ECS Service Broker supports with with a specialized feature,
+called _"remote connections"_. This features allows you to share services across Cloud
+Foundry, or other service-broker-enabled platforms securely, and without user-provided-services,
+which can be error-prone.
+
+To share a bucket or namespaces between Cloud Foundry instances, use the following steps:
+
+1. Create the ECS service at the original site or CF instance:
+
+```bash
+pcf-1$ cf create-service ecs-bucket 5gb mybucket
+```
+
+After creating the services, you may bind it to local applications as described above.
+
+2. Create a "remote connection" service-key
+
+```bash
+pcf-1$ cf create-service-key mybucket pcf2Key -c '{"remote_connection": true}'
+```
+
+3. List the remote connection service key details:
+
+```bash
+pcf-1$ cf service-key mybucket pcf2Key
+Getting key pcf2Key for service instance mybucket as user...
+{
+  "accessKey": "...",
+  "instanceId": "...",
+  "secretKey": "..."
+}
+```
+
+These service keys can be used by administrators to connect the service instance to any
+number of Cloud Foundry instances or other service broker enabled platforms, such as
+Pivotal Container Service.
+
+4. Connect to a separate Cloud Foundry instance, and create the remote instance of the
+service:
+
+```bash
+pcf-2$ cf create-service mybucket 5gb mybucket -c '{"remote_connection": {"accessKey": "...", "instanceId": "...", "secretKey": "..."}}'
+```
+
+When using multiple service-brokers, ensure that the service and plan definitions
+(defined in the broker catalog) are the same between the deployed brokers. If the catalog
+definitions differ between the two, the broker will return an error to the user, and
+decline to remotely connect the service instance.
+
+At this point, the service is created at the remote instance, and can be bound to
+apps.
+
+#### Service Deletions with Remote Connections
+
+When deleting a service instance through a Cloud Foundry command such as:
+
+```bash
+$ cf delete-service mybucket
+```
+
+The broker will only delete the actual service instance (bucket or namespace) once all
+remote connections have been removed. Prior to that, the service instance will be removed
+from the Cloud Foundry database, and the remote connection will be removed from the ECS
+broker metadata for that instance.
+
+#### Chaning Plans with Remote Connections
+
+Changing/upgrading plans with remote connections is currently disabled, as it would leave
+one of the Cloud Foundry instances out of date.
 
 ## Testing
 

@@ -16,8 +16,8 @@ import java.util.Map;
 public interface InstanceWorkflow {
    InstanceWorkflow withCreateRequest(CreateServiceInstanceRequest request);
    InstanceWorkflow withDeleteRequest(DeleteServiceInstanceRequest request);
-   void changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
-       Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException, IOException;
+   Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
+                                  Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException, IOException;
    void delete(String id) throws EcsManagementClientException, IOException, ServiceBrokerException;
    ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
            throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException;

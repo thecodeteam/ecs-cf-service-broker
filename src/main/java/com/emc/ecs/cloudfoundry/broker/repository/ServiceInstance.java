@@ -56,6 +56,10 @@ public class ServiceInstance {
     @JsonIgnore
     private boolean async;
 
+    @JsonSerialize
+    @JsonProperty("service_settings")
+    private Map<String, Object> serviceSettings;
+
     @SuppressWarnings("unused")
     private ServiceInstance() {
         name = null;
@@ -140,14 +144,19 @@ public class ServiceInstance {
         return (key.equals(remoteConnectionKey));
     }
 
-    public void update(UpdateServiceInstanceRequest request) {
+    public void update(UpdateServiceInstanceRequest request, Map<String, Object> serviceSettings) {
         this.serviceDefinitionId = request.getServiceDefinitionId();
         this.planId = request.getPlanId();
         this.serviceInstanceId = request.getServiceInstanceId();
+        this.serviceSettings = serviceSettings;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void addReference(String reference) {
@@ -162,7 +171,12 @@ public class ServiceInstance {
         return this.references.size();
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Map<String, Object> getServiceSettings() {
+        return serviceSettings;
     }
+
+    public void setServiceSettings(Map<String, Object> serviceSettings) {
+        this.serviceSettings = serviceSettings;
+    }
+
 }

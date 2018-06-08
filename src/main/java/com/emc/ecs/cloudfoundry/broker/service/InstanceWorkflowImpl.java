@@ -5,6 +5,8 @@ import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.model.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.DeleteServiceInstanceRequest;
 
+import java.util.Map;
+
 abstract public class InstanceWorkflowImpl implements InstanceWorkflow {
     protected final EcsService ecs;
     final ServiceInstanceRepository instanceRepository;
@@ -27,8 +29,10 @@ abstract public class InstanceWorkflowImpl implements InstanceWorkflow {
         return(this);
     }
 
-    ServiceInstance getServiceInstance() {
-        return new ServiceInstance(createRequest);
+    ServiceInstance getServiceInstance(Map<String, Object> serviceSettings) {
+        ServiceInstance instance = new ServiceInstance(createRequest);
+        instance.setServiceSettings(serviceSettings);
+        return instance;
     }
 
 }

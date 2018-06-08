@@ -63,8 +63,6 @@ public class ServiceInstanceRepository {
 
     public void save(ServiceInstance instance)
             throws IOException, JAXBException {
-//        PipedInputStream input = new PipedInputStream();
-//        PipedOutputStream output = new PipedOutputStream(input);
         logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s", this.s3.getS3Config().getHost(), this.s3.getS3Config().getNamespace(), this.s3.getS3Config().getProtocol(), this.s3.getS3Config().getIdentity(), this.s3.getS3Config().getPort()));
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();

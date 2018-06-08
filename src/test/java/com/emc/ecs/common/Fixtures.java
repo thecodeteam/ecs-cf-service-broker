@@ -70,6 +70,8 @@ public class Fixtures {
     public static final String EXPORT_NAME = "/export/dir";
     public static final String VOLUME_MOUNT = "/mount/dir";
     public static final String SECRET_KEY = "6b056992-a14a-4fd1-a642-f44a821a7755";
+    public static final String REMOTE_CONNECTION = "remote_connection";
+    public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
     /*
@@ -169,14 +171,14 @@ public class Fixtures {
     public static CreateServiceInstanceRequest remoteNamespaceCreateRequestFixture(Map<String, Object> params) {
         return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
                 NAMESPACE_PLAN_ID1, ORG_ID, SPACE_ID, params)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+                .withServiceInstanceId(NAMESPACE);
     }
 
     public static CreateServiceInstanceRequest namespaceCreateRequestFixture(
             Map<String, Object> params) {
         return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
                 NAMESPACE_PLAN_ID1, ORG_ID, SPACE_ID, params)
-                .withServiceInstanceId(NAMESPACE);
+                .withServiceInstanceId(SERVICE_INSTANCE_ID);
     }
 
     public static CreateServiceInstanceRequest bucketCreateRequestFixture(
@@ -229,7 +231,7 @@ public class Fixtures {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
-        params.put("connect_remote", true);
+        params.put("remote_connection", true);
         return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
                 BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
@@ -240,7 +242,7 @@ public class Fixtures {
         Map<String, Object> bindResource = new HashMap<>();
         bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
-        params.put("connect_remote", true);
+        params.put("remote_connection", true);
         return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
                 NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
                 .withBindingId(BINDING_ID)
@@ -323,10 +325,10 @@ public class Fixtures {
         Map<String, Object> opts = new HashMap<>();
         opts.put("source", "nfs://127.0.0.1/ns1/service-inst-id/");
         opts.put("uid", "456");
-        List<VolumeMount> mounts = Arrays.asList(
-            new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
-                    VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
-                    new SharedVolumeDevice("123", opts))
+        List<VolumeMount> mounts = Collections.singletonList(
+                new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
+                        VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
+                        new SharedVolumeDevice("123", opts))
         );
         binding.setVolumeMounts(mounts);
         return binding;
@@ -344,7 +346,7 @@ public class Fixtures {
         binding.setBindingId("service-inst-bind-one-id");
         binding.setCredentials(creds);
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("connect_remote", true);
+        parameters.put("remote_connection", true);
         binding.setParameters(parameters);
         return binding;
     }

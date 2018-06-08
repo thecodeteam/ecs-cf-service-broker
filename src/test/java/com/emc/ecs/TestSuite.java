@@ -4,10 +4,7 @@ import com.emc.ecs.cloudfoundry.broker.config.CatalogConfigTest;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepositoryTest;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepositoryTest;
-import com.emc.ecs.cloudfoundry.broker.service.BucketBindingWorkflowTest;
-import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceBindingServiceTest;
-import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceServiceTest;
-import com.emc.ecs.cloudfoundry.broker.service.EcsServiceTest;
+import com.emc.ecs.cloudfoundry.broker.service.*;
 import com.emc.ecs.management.sdk.*;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -40,7 +37,9 @@ import org.junit.runners.Suite.SuiteClasses;
         ServiceInstanceRepositoryTest.class,
         EcsServiceInstanceBindingServiceTest.class,
         EcsServiceInstanceServiceTest.class,
-        BucketBindingWorkflowTest.class
+        BucketBindingWorkflowTest.class,
+        BucketInstanceWorkflowTest.class,
+        RemoteConnectionInstanceWorkflowTest.class
     })
 public class TestSuite {
 

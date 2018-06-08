@@ -77,8 +77,8 @@ public class EcsService {
         return b.getFsAccessEnabled();
     }
 
-    void createBucket(String id, ServiceDefinitionProxy service,
-           PlanProxy plan, Map<String, Object> parameters) {
+    Map<String, Object> createBucket(String id, ServiceDefinitionProxy service,
+                                     PlanProxy plan, Map<String, Object> parameters) {
         if (parameters == null) parameters = new HashMap<>();
 
         logger.info(String.format("Creating bucket %s", id));
@@ -110,10 +110,11 @@ public class EcsService {
             logger.error(String.format("Failed to create bucket %s", id), e);
             throw new ServiceBrokerException(e);
         }
+        return parameters;
     }
 
-    void changeBucketPlan(String id, ServiceDefinitionProxy service,
-                          PlanProxy plan, Map<String, Object> parameters) {
+    Map<String, Object> changeBucketPlan(String id, ServiceDefinitionProxy service,
+                                         PlanProxy plan, Map<String, Object> parameters) {
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         @SuppressWarnings(UNCHECKED)
@@ -124,6 +125,7 @@ public class EcsService {
 
         try {
             if (limit == -1 && warn == -1) {
+                parameters.remove(QUOTA);
                 BucketQuotaAction.delete(connection, prefix(id),
                         broker.getNamespace());
             } else {
@@ -133,6 +135,7 @@ public class EcsService {
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
         }
+        return parameters;
     }
 
     private boolean bucketExists(String id) throws EcsManagementClientException {
@@ -323,11 +326,12 @@ public class EcsService {
         return NamespaceAction.exists(connection, prefix(id));
     }
 
-    void createNamespace(String id, ServiceDefinitionProxy service,
-                         PlanProxy plan, Map<String, Object> parameters)
+    Map<String, Object> createNamespace(String id, ServiceDefinitionProxy service,
+                                        PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         if (namespaceExists(id))
             throw new ServiceInstanceExistsException(id, service.getId());
+        if (parameters == null) parameters = new HashMap<>();
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
@@ -352,14 +356,15 @@ public class EcsService {
                                 entry.getValue()));
             }
         }
+        return parameters;
     }
 
     void deleteNamespace(String id) throws EcsManagementClientException {
         NamespaceAction.delete(connection, prefix(id));
     }
 
-    void changeNamespacePlan(String id, ServiceDefinitionProxy service,
-                             PlanProxy plan, Map<String, Object> parameters)
+    Map<String, Object> changeNamespacePlan(String id, ServiceDefinitionProxy service,
+                                            PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
@@ -376,6 +381,7 @@ public class EcsService {
                     if (-1 == entry.getValue()) {
                         NamespaceRetentionAction.delete(connection, prefix(id),
                                 entry.getKey());
+                        parameters.remove(RETENTION);
                     } else {
                         NamespaceRetentionAction.update(connection, prefix(id),
                                 entry.getKey(),
@@ -388,6 +394,7 @@ public class EcsService {
                 }
             }
         }
+        return parameters;
     }
 
     ServiceDefinitionProxy lookupServiceDefinition(
