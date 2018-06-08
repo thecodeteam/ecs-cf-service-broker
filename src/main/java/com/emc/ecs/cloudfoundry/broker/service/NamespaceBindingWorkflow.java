@@ -30,7 +30,11 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
         String namespaceName = instance.getName();
+
         return ecs.createUser(bindingId, namespaceName).getSecretKey();
     }
 
@@ -45,6 +49,9 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
         String namespaceName = instance.getName();
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
