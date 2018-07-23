@@ -18,6 +18,7 @@ public class ServiceDefinitionProxy {
     private String name;
     private String description;
     private String type;
+    private Boolean active;
     private Boolean bindable;
     private Boolean planUpdatable;
     private List<String> tags;
@@ -64,6 +65,15 @@ public class ServiceDefinitionProxy {
                 planUpdatable, realPlans, tags, metadata, requires,
                 realDashboardClient);
     }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
 
     public String getId() {
         return id;
