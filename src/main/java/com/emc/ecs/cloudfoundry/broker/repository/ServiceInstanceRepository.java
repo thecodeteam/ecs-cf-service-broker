@@ -42,8 +42,7 @@ public class ServiceInstanceRepository {
     }
 
     @PostConstruct
-    public void initialize() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException, URISyntaxException {
+    public void initialize() throws URISyntaxException {
         logger.info(format("Creating S3 config with repository endpoint %s", broker.getRepositoryEndpoint()));
 
         S3Config s3Config = new S3Config(
@@ -61,9 +60,13 @@ public class ServiceInstanceRepository {
         this.bucket = broker.getPrefixedBucketName();
     }
 
-    public void save(ServiceInstance instance)
-            throws IOException, JAXBException {
-        logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s", this.s3.getS3Config().getHost(), this.s3.getS3Config().getNamespace(), this.s3.getS3Config().getProtocol(), this.s3.getS3Config().getIdentity(), this.s3.getS3Config().getPort()));
+    public void save(ServiceInstance instance) throws IOException {
+        logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s",
+                this.s3.getS3Config().getHost(),
+                this.s3.getS3Config().getNamespace(),
+                this.s3.getS3Config().getProtocol(),
+                this.s3.getS3Config().getIdentity(),
+                this.s3.getS3Config().getPort()));
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         objectMapper.writeValue(output, instance);
