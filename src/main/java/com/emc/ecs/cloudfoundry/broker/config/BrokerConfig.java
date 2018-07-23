@@ -14,6 +14,7 @@ public class BrokerConfig {
     private String objectEndpoint;
     private String nfsMountHost;
     private String repositoryEndpoint;
+
     private String repositorySecret;
     private String repositoryServiceId;
     private String repositoryPlanId;
@@ -54,7 +55,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryUser(String repositoryUser) {
-        this.repositoryUser = repositoryUser;
+        if (!repositoryUser.equals(""))
+            this.repositoryUser = repositoryUser;
     }
 
     public String getUsername() {
@@ -62,7 +64,8 @@ public class BrokerConfig {
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        if (!username.equals(""))
+            this.username = username;
     }
 
     public String getPassword() {
@@ -70,6 +73,7 @@ public class BrokerConfig {
     }
 
     public void setPassword(String password) {
+        if (!password.equals(""))
         this.password = password;
     }
 
@@ -78,7 +82,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryBucket(String repositoryBucket) {
-        this.repositoryBucket = repositoryBucket;
+        if (!repositoryBucket.equals(""))
+            this.repositoryBucket = repositoryBucket;
     }
 
     public String getRepositoryEndpoint() {
@@ -88,7 +93,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryEndpoint(String repositoryEndpoint) {
-        this.repositoryEndpoint = repositoryEndpoint;
+        if (!repositoryEndpoint.equals(""))
+            this.repositoryEndpoint = repositoryEndpoint;
     }
 
     public String getRepositoryServiceId() {
@@ -96,7 +102,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryServiceId(String repositoryServiceId) {
-        this.repositoryServiceId = repositoryServiceId;
+        if (!repositoryServiceId.equals(""))
+            this.repositoryServiceId = repositoryServiceId;
     }
 
     public String getRepositoryPlanId() {
@@ -104,7 +111,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryPlanId(String repositoryPlanId) {
-        this.repositoryPlanId = repositoryPlanId;
+        if (!repositoryPlanId.equals(""))
+            this.repositoryPlanId = repositoryPlanId;
     }
 
     public String getPrefix() {
@@ -112,7 +120,8 @@ public class BrokerConfig {
     }
 
     public void setPrefix(String prefix) {
-        this.prefix = prefix;
+        if (!prefix.equals(""))
+            this.prefix = prefix;
     }
 
     String getBrokerApiVersion() {
@@ -120,15 +129,16 @@ public class BrokerConfig {
     }
 
     public void setBrokerApiVersion(String brokerApiVersion) {
-        this.brokerApiVersion = brokerApiVersion;
-    }
-
-    public String getRepositorySecret() {
-        return repositorySecret;
+        if (!brokerApiVersion.equals(""))
+            this.brokerApiVersion = brokerApiVersion;
     }
 
     public void setRepositorySecret(String repositorySecret) {
         this.repositorySecret = repositorySecret;
+    }
+
+    public String getRepositorySecret() {
+        return repositorySecret;
     }
 
     public String getPrefixedBucketName() {
@@ -144,7 +154,8 @@ public class BrokerConfig {
     }
 
     public void setCertificate(String certificate) {
-        this.certificate = certificate;
+        if (!certificate.equals(""))
+            this.certificate = certificate;
     }
 
     public String getBaseUrl() {
@@ -152,7 +163,8 @@ public class BrokerConfig {
     }
 
     public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+        if (!baseUrl.equals(""))
+            this.baseUrl = baseUrl;
     }
 
     public String getObjectEndpoint() {
@@ -160,7 +172,8 @@ public class BrokerConfig {
     }
 
     public void setObjectEndpoint(String objectEndpoint) {
-        this.objectEndpoint = objectEndpoint;
+        if (!objectEndpoint.equals(""))
+            this.objectEndpoint = objectEndpoint;
     }
 
     public String getNfsMountHost() {
@@ -168,7 +181,8 @@ public class BrokerConfig {
     }
 
     public void setNfsMountHost(String nfsMountHost) {
-        this.nfsMountHost = nfsMountHost;
+        if (!nfsMountHost.equals(""))
+            this.nfsMountHost = nfsMountHost;
     }
 
 }
