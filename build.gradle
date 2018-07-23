@@ -70,7 +70,7 @@ springBoot {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
+    gradleVersion = '4.8.1'
 }
 
 task simulate(type:JavaExec) {
