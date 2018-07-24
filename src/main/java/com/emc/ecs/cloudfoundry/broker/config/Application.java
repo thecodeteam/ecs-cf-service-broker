@@ -66,8 +66,7 @@ public class Application {
     }
 
     @Bean
-    public EcsService ecsService() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public EcsService ecsService() {
         return new EcsService();
     }
 
@@ -79,9 +78,7 @@ public class Application {
     }
 
     @Bean
-    public ServiceInstanceRepository serviceInstanceRepository()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException, URISyntaxException {
+    public ServiceInstanceRepository serviceInstanceRepository() {
         return new ServiceInstanceRepository();
     }
 
@@ -93,9 +90,7 @@ public class Application {
     }
 
     @Bean
-    public ServiceInstanceBindingRepository serviceInstanceBindingRepository()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException, URISyntaxException {
+    public ServiceInstanceBindingRepository serviceInstanceBindingRepository() {
         return new ServiceInstanceBindingRepository();
     }
 

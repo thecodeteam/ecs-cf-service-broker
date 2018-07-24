@@ -13,18 +13,15 @@ public class PlanMetadataProxy {
 
     private List<String> bullets;
     private List<CostProxy> costs;
-    private int storageLimit;
 
     public PlanMetadataProxy() {
         super();
     }
 
-    public PlanMetadataProxy(List<String> bullets, List<CostProxy> costs,
-                             int storageLimit) {
+    public PlanMetadataProxy(List<String> bullets, List<CostProxy> costs) {
         super();
         this.bullets = bullets;
         this.costs = costs;
-        this.storageLimit = storageLimit;
     }
 
     public List<String> getBullets() {
@@ -50,13 +47,5 @@ public class PlanMetadataProxy {
             map.put("costs", costs.stream().map(CostProxy::unproxy)
                     .collect(Collectors.toList()));
         return map;
-    }
-
-    public int getStorageLimit() {
-        return storageLimit;
-    }
-
-    public void setStorageLimit(int storageLimit) {
-        this.storageLimit = storageLimit;
     }
 }
