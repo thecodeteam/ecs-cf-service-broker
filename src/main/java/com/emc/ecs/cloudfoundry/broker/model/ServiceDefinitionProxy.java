@@ -1,15 +1,17 @@
 package com.emc.ecs.cloudfoundry.broker.model;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.DashboardClient;
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 @Component
@@ -20,13 +22,15 @@ public class ServiceDefinitionProxy {
     private String type;
     private Boolean active;
     private Boolean bindable;
-    private Boolean planUpdatable;
+    private Boolean planUpdatable = true;
     private List<String> tags;
     private Map<String, Object> metadata = new HashMap<>();
     private Map<String, Object> serviceSettings = new HashMap<>();
-    private List<PlanProxy> plans;
-    private List<String> requires;
+    private List<PlanProxy> plans = new ArrayList<>();
+    private List<String> requires = new ArrayList<>();
     private DashboardClientProxy dashboardClient;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ServiceDefinitionProxy() {
         super();
@@ -61,6 +65,9 @@ public class ServiceDefinitionProxy {
         if (dashboardClient != null)
             realDashboardClient = dashboardClient.unproxy();
 
+        if ((boolean) this.getServiceSettings().getOrDefault("file-accessible", false))
+            requires.add("volume_mount");
+
         return new ServiceDefinition(id, name, description, bindable,
                 planUpdatable, realPlans, tags, metadata, requires,
                 realDashboardClient);
@@ -72,6 +79,42 @@ public class ServiceDefinitionProxy {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public void setPlanCollection(String planCollectionJson) throws IOException {
+        List<PlanCollectionInstance> plans =
+                objectMapper.readValue(planCollectionJson, new TypeReference<List<PlanCollectionInstance>>(){});
+        this.plans = plans.stream().map(p -> {
+            List<String> bullets =
+                    Stream.of(p.getBullet1(), p.getBullet2(), p.getBullet3(), p.getBullet4(), p.getBullet5())
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+            Map<String, Object> costMap = new HashMap<>();
+            costMap.put("usd", p.getCostUSD());
+            List<CostProxy> costs = Collections.singletonList(new CostProxy(costMap, p.getCostUnit()));
+
+            PlanMetadataProxy planMetadata = new PlanMetadataProxy(bullets, costs);
+
+            Map<String, Object> serviceSettings = new HashMap<>();
+            if (p.getAccessDuringOutage() != null)
+                serviceSettings.put("access-during-outage", p.getAccessDuringOutage());
+
+            if (p.getDefaultRetention() != null)
+                serviceSettings.put("default-retention", p.getAccessDuringOutage());
+
+            if (p.getQuotaLimit() != null || p.getQuotaWarn() != null) {
+                Map quota = new HashMap<String, Object>();
+                if (p.getQuotaLimit() != null)
+                    quota.put("limit", p.getQuotaLimit());
+
+                if (p.getQuotaWarn() != null)
+                    quota.put("warn",  p.getQuotaWarn());
+                serviceSettings.put("quota", quota);
+            }
+
+            return new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), serviceSettings);
+        }).collect(Collectors.toList());
     }
 
 

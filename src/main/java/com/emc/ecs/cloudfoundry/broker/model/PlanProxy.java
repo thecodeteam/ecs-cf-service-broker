@@ -32,6 +32,17 @@ public class PlanProxy {
         this.free = free;
     }
 
+    public PlanProxy(String id, String name, String description,
+                     PlanMetadataProxy metadata, Boolean free, Map<String, Object> serviceSettings) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.metadata = metadata;
+        this.free = free;
+        this.serviceSettings = serviceSettings;
+    }
+
     Plan unproxy() {
         return new Plan(id, name, description, metadata.unproxy(), free);
     }
