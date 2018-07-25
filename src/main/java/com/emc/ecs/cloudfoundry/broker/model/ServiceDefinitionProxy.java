@@ -117,6 +117,25 @@ public class ServiceDefinitionProxy {
         }).collect(Collectors.toList());
     }
 
+    public void setServiceTypeSelector(String serviceTypeJson) throws IOException {
+        TileSelector tileSelector = objectMapper.readValue(serviceTypeJson, TileSelector.class);
+
+
+        Map<String, Object> option = tileSelector.getOption();
+        option.put("service-type", tileSelector.getValue());
+
+        this.serviceSettings = option;
+    }
+
+    public void setServiceDetailsSelector(String serviceTypeJson) throws IOException {
+        TileSelector tileSelector = objectMapper.readValue(serviceTypeJson, TileSelector.class);
+
+        Map<String, Object> option = tileSelector.getOption();
+        option.put("metadata", tileSelector.getValue());
+
+        this.metadata = option;
+    }
+
 
     public String getId() {
         return id;
