@@ -17,6 +17,7 @@ public class PlanProxy {
     private int quotaLimit = -1;
     private int quotaWarning = -1;
     private Map<String, Object> serviceSettings = new HashMap<>();
+    private boolean repositoryPlan = false;
 
     public PlanProxy() {
         super();
@@ -109,5 +110,13 @@ public class PlanProxy {
 
     public void setServiceSettings(Map<String, Object> serviceSettings) {
         this.serviceSettings = serviceSettings;
+    }
+
+    public void setRepositoryPlan(boolean repositoryPlan) {
+        this.repositoryPlan = repositoryPlan;
+    }
+
+    public boolean getRepositoryPlan() {
+        return repositoryPlan;
     }
 }

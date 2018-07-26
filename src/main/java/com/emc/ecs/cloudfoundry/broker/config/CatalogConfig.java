@@ -33,7 +33,7 @@ public class CatalogConfig {
                 .collect(Collectors.toList()));
     }
 
-   public List<ServiceDefinitionProxy> getServices() {
+    public List<ServiceDefinitionProxy> getServices() {
         return services;
     }
 
@@ -41,9 +41,16 @@ public class CatalogConfig {
         this.services = services;
     }
 
+
     public ServiceDefinitionProxy findServiceDefinition(String serviceId) {
         return services.stream().filter(s -> s.getId().equals(serviceId))
                 .findFirst()
                 .orElseThrow(() -> new ServiceBrokerException("Unable to find configured service id: " + serviceId));
+    }
+
+    public ServiceDefinitionProxy getRepositoryService() {
+        return services.stream().filter(ServiceDefinitionProxy::getRepositoryService)
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("At least one service must be configured as a 'repository-service"));
     }
 }

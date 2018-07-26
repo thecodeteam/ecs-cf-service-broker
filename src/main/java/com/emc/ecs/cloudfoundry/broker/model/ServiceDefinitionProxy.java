@@ -89,7 +89,9 @@ public class ServiceDefinitionProxy {
                 objectMapper.readValue(planCollectionJson, new TypeReference<List<PlanCollectionInstance>>(){});
         this.plans = plans.stream().map(p -> {
             PlanMetadataProxy planMetadata = new PlanMetadataProxy(p.getBullets(), p.getCosts());
-            return new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
+            PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
+            plan.setRepositoryPlan(p.getRepositoryPlan());
+            return plan;
         }).collect(Collectors.toList());
     }
 
@@ -235,4 +237,9 @@ public class ServiceDefinitionProxy {
         this.repositoryService = repositoryService;
     }
 
+    public PlanProxy getRepositoryPlan() {
+        return plans.stream().filter(PlanProxy::getRepositoryPlan)
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("At least one plan must be configured as a 'repository-plan"));
+    }
 }

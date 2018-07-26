@@ -287,11 +287,9 @@ public class EcsService {
         String bucketName = broker.getRepositoryBucket();
         String userName = broker.getRepositoryUser();
         if (!bucketExists(bucketName)) {
-            ServiceDefinitionProxy service = lookupServiceDefinition(
-                    broker.getRepositoryServiceId());
+            ServiceDefinitionProxy service = catalog.getRepositoryService();
             Map<String, Object> parameters = new HashMap<>();
-            createBucket(bucketName, service,
-                    service.findPlan(broker.getRepositoryPlanId()), parameters);
+            createBucket(bucketName, service, service.getRepositoryPlan(), parameters);
         }
 
         if (!userExists(userName)) {

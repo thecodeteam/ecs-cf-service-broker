@@ -16,8 +16,6 @@ public class BrokerConfig {
     private String repositoryEndpoint;
 
     private String repositorySecret;
-    private String repositoryServiceId;
-    private String repositoryPlanId;
     private String repositoryUser = "user";
     private String username = "root";
     private String password = "ChangeMe";
@@ -95,24 +93,6 @@ public class BrokerConfig {
     public void setRepositoryEndpoint(String repositoryEndpoint) {
         if (!repositoryEndpoint.equals(""))
             this.repositoryEndpoint = repositoryEndpoint;
-    }
-
-    public String getRepositoryServiceId() {
-        return repositoryServiceId;
-    }
-
-    public void setRepositoryServiceId(String repositoryServiceId) {
-        if (!repositoryServiceId.equals(""))
-            this.repositoryServiceId = repositoryServiceId;
-    }
-
-    public String getRepositoryPlanId() {
-        return repositoryPlanId;
-    }
-
-    public void setRepositoryPlanId(String repositoryPlanId) {
-        if (!repositoryPlanId.equals(""))
-            this.repositoryPlanId = repositoryPlanId;
     }
 
     public String getPrefix() {
