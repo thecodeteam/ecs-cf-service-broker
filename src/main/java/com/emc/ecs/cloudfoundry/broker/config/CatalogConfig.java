@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("unused")
 @ConfigurationProperties(prefix = "catalog")
 @Configuration
 public class CatalogConfig {
