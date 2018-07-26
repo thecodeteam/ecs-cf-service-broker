@@ -9,7 +9,8 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class NFSExportActionTest extends EcsActionTest {
     private static final String EXPORT_PATH = "/ns1/ecs-cf-broker-bucket1/export-path";

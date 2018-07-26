@@ -1,17 +1,11 @@
 package com.emc.ecs.cloudfoundry.broker.config;
 
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
-import org.codehaus.jackson.annotate.JsonValue;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.Catalog;
-import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import org.json.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
