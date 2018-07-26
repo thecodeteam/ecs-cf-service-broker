@@ -38,8 +38,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     @Autowired
     private ServiceInstanceRepository repository;
 
-    public EcsServiceInstanceService() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException, URISyntaxException {
+    public EcsServiceInstanceService() {
         super();
     }
 

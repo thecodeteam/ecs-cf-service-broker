@@ -2,6 +2,10 @@ package com.emc.ecs.cloudfoundry.broker.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class PlanCollectionInstance {
     @JsonProperty("access_during_outage")
     private Boolean accessDuringOutage;
@@ -51,64 +55,38 @@ public class PlanCollectionInstance {
     @JsonProperty("repository_plan")
     private String repositoryPlan;
 
-    public String getBullet1() {
-        return bullet1;
-    }
-
     public void setBullet1(String bullet1) {
         this.bullet1 = bullet1;
-    }
-
-    public String getBullet2() {
-        return bullet2;
     }
 
     public void setBullet2(String bullet2) {
         this.bullet2 = bullet2;
     }
 
-    public String getBullet3() {
-        return bullet3;
-    }
-
     public void setBullet3(String bullet3) {
         this.bullet3 = bullet3;
-    }
-
-    public String getBullet4() {
-        return bullet4;
     }
 
     public void setBullet4(String bullet4) {
         this.bullet4 = bullet4;
     }
 
-    public String getBullet5() {
-        return bullet5;
-    }
-
     public void setBullet5(String bullet5) {
         this.bullet5 = bullet5;
     }
 
-    public String getCostUnit() {
-        return costUnit;
+    public List<String> getBullets() {
+        return Stream.of(bullet1, bullet2, bullet3, bullet4, bullet5)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public void setCostUnit(String costUnit) {
         this.costUnit = costUnit;
     }
 
-    public String getCostUSD() {
-        return costUSD;
-    }
-
     public void setCostUSD(String costUSD) {
         this.costUSD = costUSD;
-    }
-
-    public String getDefaultRetention() {
-        return defaultRetention;
     }
 
     public void setDefaultRetention(String defaultRetention) {
@@ -147,16 +125,8 @@ public class PlanCollectionInstance {
         this.name = name;
     }
 
-    public String getQuotaLimit() {
-        return quotaLimit;
-    }
-
     public void setQuotaLimit(String quotaLimit) {
         this.quotaLimit = quotaLimit;
-    }
-
-    public String getQuotaWarn() {
-        return quotaWarn;
     }
 
     public void setQuotaWarn(String quotaWarn) {
@@ -171,11 +141,33 @@ public class PlanCollectionInstance {
         this.repositoryPlan = repositoryPlan;
     }
 
-    public Boolean getAccessDuringOutage() {
-        return accessDuringOutage;
-    }
-
     public void setAccessDuringOutage(Boolean accessDuringOutage) {
         this.accessDuringOutage = accessDuringOutage;
+    }
+
+    public List<CostProxy> getCosts() {
+        Map<String, Object> costMap = new HashMap<>();
+        costMap.put("usd", costUSD);
+        return Collections.singletonList(new CostProxy(costMap, costUnit));
+    }
+
+    public Map<String, Object> getServiceSettings() {
+        Map<String, Object> serviceSettings = new HashMap<>();
+        if (accessDuringOutage != null)
+            serviceSettings.put("access-during-outage", accessDuringOutage);
+
+        if (defaultRetention != null)
+            serviceSettings.put("default-retention", defaultRetention);
+
+        if (quotaLimit != null || quotaWarn != null) {
+            Map quota = new HashMap<String, Object>();
+            if (quotaLimit != null)
+                quota.put("limit", quotaLimit);
+
+            if (quotaWarn != null)
+                quota.put("warn",  quotaWarn);
+            serviceSettings.put("quota", quota);
+        }
+        return serviceSettings;
     }
 }

@@ -5,6 +5,7 @@ import org.codehaus.jackson.annotate.JsonValue;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.Catalog;
+import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.google.gson.Gson;
@@ -19,12 +20,6 @@ import java.util.stream.Collectors;
 @ConfigurationProperties(prefix = "catalog")
 @Configuration
 public class CatalogConfig {
-    private boolean enableCatalogServices;
-    private String description;
-    private String displayName;
-
-
-
     private List<ServiceDefinitionProxy> services;
 
     public CatalogConfig() {
@@ -38,11 +33,13 @@ public class CatalogConfig {
 
     @Bean
     public Catalog catalog() {
-        return new Catalog(services.stream().map(ServiceDefinitionProxy::unproxy)
+        return new Catalog(services.stream()
+                .filter(ServiceDefinitionProxy::getActive)
+                .map(ServiceDefinitionProxy::unproxy)
                 .collect(Collectors.toList()));
     }
 
-    public List<ServiceDefinitionProxy> getServices() {
+   public List<ServiceDefinitionProxy> getServices() {
         return services;
     }
 
@@ -54,16 +51,5 @@ public class CatalogConfig {
         return services.stream().filter(s -> s.getId().equals(serviceId))
                 .findFirst()
                 .orElseThrow(() -> new ServiceBrokerException("Unable to find configured service id: " + serviceId));
-    }
-
-    public void setCatalogConfigs(String catalog){
-        try {
-            JSONObject catalogValues = new JSONObject().getJSONObject(catalog);
-            this.description = catalogValues.getString("");
-            this.displayName = catalogValues.getString("");
-            this.enableCatalogServices = catalogValues.getBoolean("");
-        } catch (Exception e) {
-            System.out.println(e);
-        }
     }
 }

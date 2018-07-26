@@ -1,7 +1,6 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
 import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
@@ -59,7 +58,7 @@ public class EcsService {
             lookupObjectEndpoints();
             lookupReplicationGroupID();
             prepareRepository();
-        } catch (EcsManagementClientException | EcsManagementResourceNotFoundException e) {
+        } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
         }
     }
@@ -216,8 +215,7 @@ public class EcsService {
         return broker.getPrefix() + string;
     }
 
-    private void lookupObjectEndpoints() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    private void lookupObjectEndpoints() throws EcsManagementClientException {
         if (broker.getObjectEndpoint() != null) {
             objectEndpoint = broker.getObjectEndpoint();
         } else {
@@ -285,8 +283,7 @@ public class EcsService {
                 .getId();
     }
 
-    private void prepareRepository() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    private void prepareRepository() throws EcsManagementClientException {
         String bucketName = broker.getRepositoryBucket();
         String userName = broker.getRepositoryUser();
         if (!bucketExists(bucketName)) {

@@ -9,9 +9,11 @@ import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 @Component
@@ -22,6 +24,7 @@ public class ServiceDefinitionProxy {
     private String type;
     private Boolean active;
     private Boolean bindable;
+    private Boolean repositoryService;
     private Boolean planUpdatable = true;
     private List<String> tags;
     private Map<String, Object> metadata = new HashMap<>();
@@ -85,57 +88,43 @@ public class ServiceDefinitionProxy {
         List<PlanCollectionInstance> plans =
                 objectMapper.readValue(planCollectionJson, new TypeReference<List<PlanCollectionInstance>>(){});
         this.plans = plans.stream().map(p -> {
-            List<String> bullets =
-                    Stream.of(p.getBullet1(), p.getBullet2(), p.getBullet3(), p.getBullet4(), p.getBullet5())
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
-
-            Map<String, Object> costMap = new HashMap<>();
-            costMap.put("usd", p.getCostUSD());
-            List<CostProxy> costs = Collections.singletonList(new CostProxy(costMap, p.getCostUnit()));
-
-            PlanMetadataProxy planMetadata = new PlanMetadataProxy(bullets, costs);
-
-            Map<String, Object> serviceSettings = new HashMap<>();
-            if (p.getAccessDuringOutage() != null)
-                serviceSettings.put("access-during-outage", p.getAccessDuringOutage());
-
-            if (p.getDefaultRetention() != null)
-                serviceSettings.put("default-retention", p.getAccessDuringOutage());
-
-            if (p.getQuotaLimit() != null || p.getQuotaWarn() != null) {
-                Map quota = new HashMap<String, Object>();
-                if (p.getQuotaLimit() != null)
-                    quota.put("limit", p.getQuotaLimit());
-
-                if (p.getQuotaWarn() != null)
-                    quota.put("warn",  p.getQuotaWarn());
-                serviceSettings.put("quota", quota);
-            }
-
-            return new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), serviceSettings);
+            PlanMetadataProxy planMetadata = new PlanMetadataProxy(p.getBullets(), p.getCosts());
+            return new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
         }).collect(Collectors.toList());
     }
 
-    public void setServiceTypeSelector(String serviceTypeJson) throws IOException {
-        TileSelector tileSelector = objectMapper.readValue(serviceTypeJson, TileSelector.class);
+    public void setSettingsSelector(String settingsJson) throws IOException {
+        TileSelector selector = objectMapper.readValue(settingsJson, TileSelector.class);
+        Map<String, Object> settings = selector.getOption();
 
+        settings.put("service-type", settings.get("service_type"));
+        settings.remove("service_type");
 
-        Map<String, Object> option = tileSelector.getOption();
-        option.put("service-type", tileSelector.getValue());
+        settings.put("head-type", settings.get("head_type"));
+        settings.remove("head_type");
 
-        this.serviceSettings = option;
+        settings.put("access-during-outage", settings.get("access_during_outage"));
+        settings.remove("file_accessible");
+
+        settings.put("file-accessible", settings.get("file_accessible"));
+        settings.remove("file_accessible");
+
+        settings.put("default-retention", settings.get("default_retention"));
+        settings.remove("default_retention");
+
+        settings.put("compliance-enabled", settings.get("compliance_enabled"));
+        settings.remove("compliance_enabled");
+
+        settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
+        settings.remove("default_bucket_quota");
+
+        this.serviceSettings = settings;
     }
 
-    public void setServiceDetailsSelector(String serviceTypeJson) throws IOException {
-        TileSelector tileSelector = objectMapper.readValue(serviceTypeJson, TileSelector.class);
-
-        Map<String, Object> option = tileSelector.getOption();
-        option.put("metadata", tileSelector.getValue());
-
-        this.metadata = option;
+    public void setPresentationSelector(String presentationJson) throws IOException {
+        TileSelector selector = objectMapper.readValue(presentationJson, TileSelector.class);
+        this.metadata = selector.getOption();
     }
-
 
     public String getId() {
         return id;
@@ -236,6 +225,14 @@ public class ServiceDefinitionProxy {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Boolean getRepositoryService() {
+        return repositoryService;
+    }
+
+    public void setRepositoryService(Boolean repositoryService) {
+        this.repositoryService = repositoryService;
     }
 
 }
