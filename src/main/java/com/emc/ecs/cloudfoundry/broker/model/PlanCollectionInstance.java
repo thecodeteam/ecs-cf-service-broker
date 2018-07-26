@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class PlanCollectionInstance {
     @JsonProperty("access_during_outage")
     private Boolean accessDuringOutage;
@@ -53,7 +54,7 @@ public class PlanCollectionInstance {
     private String quotaWarn;
 
     @JsonProperty("repository_plan")
-    private String repositoryPlan;
+    private Boolean repositoryPlan;
 
     public void setBullet1(String bullet1) {
         this.bullet1 = bullet1;
@@ -133,11 +134,11 @@ public class PlanCollectionInstance {
         this.quotaWarn = quotaWarn;
     }
 
-    public String getRepositoryPlan() {
+    public Boolean getRepositoryPlan() {
         return repositoryPlan;
     }
 
-    public void setRepositoryPlan(String repositoryPlan) {
+    public void setRepositoryPlan(Boolean repositoryPlan) {
         this.repositoryPlan = repositoryPlan;
     }
 
@@ -160,7 +161,7 @@ public class PlanCollectionInstance {
             serviceSettings.put("default-retention", defaultRetention);
 
         if (quotaLimit != null || quotaWarn != null) {
-            Map quota = new HashMap<String, Object>();
+            Map<String, Object> quota = new HashMap<>();
             if (quotaLimit != null)
                 quota.put("limit", quotaLimit);
 
