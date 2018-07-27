@@ -1,15 +1,14 @@
 package com.emc.ecs.cloudfoundry.broker.model;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
 public class TileSelector {
-    @JsonProperty("value")
     private String value;
 
     @JsonProperty("selected_option")
-    private Map<String, Object> option;
+    private Map<String, Object> selectedOption;
 
     public String getValue() {
         return value;
@@ -19,12 +18,12 @@ public class TileSelector {
         this.value = value;
     }
 
-    public Map<String, Object> getOption() {
-        return option;
+    public Map<String, Object> getSelectedOption() {
+        return selectedOption;
     }
 
-    public void setOption(Map<String, Object> option) {
-        this.option = option;
+    public void setSelectedOption(Map<String, Object> option) {
+        this.selectedOption = option;
     }
 }
 

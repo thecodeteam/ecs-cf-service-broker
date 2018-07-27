@@ -21,16 +21,16 @@ public class ServiceDefinitionProxy {
     private String id;
     private String name;
     private String description;
-    private String type;
     private Boolean active;
     private Boolean bindable;
     private Boolean repositoryService;
-    private Boolean planUpdatable = true;
     private List<String> tags;
+
     private Map<String, Object> metadata = new HashMap<>();
     private Map<String, Object> serviceSettings = new HashMap<>();
     private List<PlanProxy> plans = new ArrayList<>();
     private List<String> requires = new ArrayList<>();
+    private Boolean planUpdatable = true;
     private DashboardClientProxy dashboardClient;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -97,35 +97,49 @@ public class ServiceDefinitionProxy {
 
     public void setSettingsSelector(String settingsJson) throws IOException {
         TileSelector selector = objectMapper.readValue(settingsJson, TileSelector.class);
-        Map<String, Object> settings = selector.getOption();
+        Map<String, Object> settings = selector.getSelectedOption();
 
-        settings.put("service-type", settings.get("service_type"));
-        settings.remove("service_type");
+        if (settings.containsKey("service_type")) {
+            settings.put("service-type", settings.get("service_type"));
+            settings.remove("service_type");
+        }
 
-        settings.put("head-type", settings.get("head_type"));
-        settings.remove("head_type");
+        if (settings.containsKey("head_type")) {
+            settings.put("head-type", settings.get("head_type"));
+            settings.remove("head_type");
+        }
 
-        settings.put("access-during-outage", settings.get("access_during_outage"));
-        settings.remove("file_accessible");
+        if (settings.containsKey("access_during_outage")) {
+            settings.put("access-during-outage", settings.get("access_during_outage"));
+            settings.remove("file_accessible");
+        }
 
-        settings.put("file-accessible", settings.get("file_accessible"));
-        settings.remove("file_accessible");
+        if (settings.containsKey("file_accessible")) {
+            settings.put("file-accessible", settings.get("file_accessible"));
+            settings.remove("file_accessible");
+        }
 
-        settings.put("default-retention", settings.get("default_retention"));
-        settings.remove("default_retention");
+        if (settings.containsKey("default_retention")) {
+            settings.put("default-retention", settings.get("default_retention"));
+            settings.remove("default_retention");
+        }
 
-        settings.put("compliance-enabled", settings.get("compliance_enabled"));
-        settings.remove("compliance_enabled");
+        if (settings.containsKey("compliance_enabled")) {
+            settings.put("compliance-enabled", settings.get("compliance_enabled"));
+            settings.remove("compliance_enabled");
+        }
 
-        settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
-        settings.remove("default_bucket_quota");
+        if (settings.containsKey("default_bucket_quota")) {
+            settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
+            settings.remove("default_bucket_quota");
+        }
 
         this.serviceSettings = settings;
     }
 
     public void setPresentationSelector(String presentationJson) throws IOException {
         TileSelector selector = objectMapper.readValue(presentationJson, TileSelector.class);
-        this.metadata = selector.getOption();
+        this.metadata = selector.getSelectedOption();
     }
 
     public String getId() {
@@ -219,14 +233,6 @@ public class ServiceDefinitionProxy {
 
     public void setServiceSettings(Map<String, Object> serviceSettings) {
         this.serviceSettings = serviceSettings;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public Boolean getRepositoryService() {

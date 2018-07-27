@@ -48,7 +48,7 @@ public class Application {
     @Bean
     public Connection ecsConnection() {
 	if (broker.getCertificate() != null) {
-	    logger.info("Instantiating esc connection with certificate");
+	    logger.info("Instantiating ecs connection with certificate");
         URL certificate = Thread.currentThread().getContextClassLoader()
                 .getResource(broker.getCertificate());
         return new Connection(broker.getManagementEndpoint(),
