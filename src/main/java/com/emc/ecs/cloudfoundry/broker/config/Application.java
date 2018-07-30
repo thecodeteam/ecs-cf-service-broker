@@ -54,7 +54,7 @@ public class Application {
         return new Connection(broker.getManagementEndpoint(),
                 broker.getUsername(), broker.getPassword(), certificate);
 	} else {
-        logger.info("Instantiating unencrypted esc connection");
+        logger.info("Instantiating unencrypted ecs connection");
 		return new Connection(broker.getManagementEndpoint(),
                 broker.getUsername(), broker.getPassword());
 	}

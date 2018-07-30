@@ -33,8 +33,6 @@ public class ServiceDefinitionProxy {
     private Boolean planUpdatable = true;
     private DashboardClientProxy dashboardClient;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     public ServiceDefinitionProxy() {
         super();
     }
@@ -84,20 +82,9 @@ public class ServiceDefinitionProxy {
         this.active = active;
     }
 
-    public void setPlanCollection(String planCollectionJson) throws IOException {
-        List<PlanCollectionInstance> plans =
-                objectMapper.readValue(planCollectionJson, new TypeReference<List<PlanCollectionInstance>>(){});
-        this.plans = plans.stream().map(p -> {
-            PlanMetadataProxy planMetadata = new PlanMetadataProxy(p.getBullets(), p.getCosts());
-            PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
-            plan.setRepositoryPlan(p.getRepositoryPlan());
-            return plan;
-        }).collect(Collectors.toList());
-    }
-
-    public void setSettingsSelector(String settingsJson) throws IOException {
-        TileSelector selector = objectMapper.readValue(settingsJson, TileSelector.class);
-        Map<String, Object> settings = selector.getSelectedOption();
+    public void setSettingsSelector(Map<String, Object> settings) throws IOException {
+//        Map<String, Object> settings = objectMapper.readValue(settingsJson, new TypeReference<Map<String, Object>>() {});
+//        Map<String, Object> settings = selector.getSelectedOption();
 
         if (settings.containsKey("service_type")) {
             settings.put("service-type", settings.get("service_type"));
@@ -135,11 +122,6 @@ public class ServiceDefinitionProxy {
         }
 
         this.serviceSettings = settings;
-    }
-
-    public void setPresentationSelector(String presentationJson) throws IOException {
-        TileSelector selector = objectMapper.readValue(presentationJson, TileSelector.class);
-        this.metadata = selector.getSelectedOption();
     }
 
     public String getId() {
