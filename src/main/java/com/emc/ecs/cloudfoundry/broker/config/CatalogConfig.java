@@ -1,9 +1,6 @@
 package com.emc.ecs.cloudfoundry.broker.config;
 
-import com.emc.ecs.cloudfoundry.broker.model.PlanCollectionInstance;
-import com.emc.ecs.cloudfoundry.broker.model.PlanMetadataProxy;
-import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
-import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
+import com.emc.ecs.cloudfoundry.broker.model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -13,7 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -23,7 +22,8 @@ public class CatalogConfig {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private List<ServiceDefinitionProxy> services;
-    private List<List<PlanProxy>> plans;
+    private Map<Integer, List<PlanProxy>> plans = new HashMap<>();
+    private Map<Integer, Map<String, Object>> settings = new HashMap<>();
 
     public CatalogConfig() {
         super();
@@ -36,10 +36,13 @@ public class CatalogConfig {
 
     @Bean
     public Catalog catalog() {
-        return new Catalog(IntStream.range(0, 5)
+        return new Catalog(IntStream.range(0, services.size() - 1)
                 .mapToObj(index -> {
                     ServiceDefinitionProxy s = services.get(index);
-                    s.setPlans(plans.get(index));
+                    if (plans.containsKey(index))
+                        s.setPlans(plans.get(index));
+                    if (settings.containsKey(index))
+                        s.setServiceSettings(settings.get(index));
                     return s;
                 })
                 .filter(ServiceDefinitionProxy::getActive)
@@ -52,34 +55,97 @@ public class CatalogConfig {
     }
 
     public void setPlanCollection0(String planCollectionJson) throws IOException {
-        parsePlanCollection(planCollectionJson, 0);
+        this.plans.put(0, parsePlanCollection(planCollectionJson));
     }
 
     public void setPlanCollection1(String planCollectionJson) throws IOException {
-        parsePlanCollection(planCollectionJson, 1);
+        this.plans.put(1, parsePlanCollection(planCollectionJson));
     }
 
     public void setPlanCollection2(String planCollectionJson) throws IOException {
-        parsePlanCollection(planCollectionJson, 2);
+        this.plans.put(2, parsePlanCollection(planCollectionJson));
     }
 
     public void setPlanCollection3(String planCollectionJson) throws IOException {
-        parsePlanCollection(planCollectionJson, 3);
+        this.plans.put(3, parsePlanCollection(planCollectionJson));
     }
 
     public void setPlanCollection4(String planCollectionJson) throws IOException {
-        parsePlanCollection(planCollectionJson, 4);
+        this.plans.put(4, parsePlanCollection(planCollectionJson));
     }
 
-    private void parsePlanCollection(String planCollectionJson, int i) throws IOException {
+    private List<PlanProxy> parsePlanCollection(String planCollectionJson) throws IOException {
         List<PlanCollectionInstance> thesePlans =
-                objectMapper.readValue(planCollectionJson, new TypeReference<List<PlanCollectionInstance>>(){});
-        this.plans.set(i, thesePlans.stream().map(p -> {
+                objectMapper.readValue(planCollectionJson, new TypeReference<List<PlanCollectionInstance>>() {
+                });
+        return thesePlans.stream().map(p -> {
             PlanMetadataProxy planMetadata = new PlanMetadataProxy(p.getBullets(), p.getCosts());
             PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
             plan.setRepositoryPlan(p.getRepositoryPlan());
             return plan;
-        }).collect(Collectors.toList()));
+        }).collect(Collectors.toList());
+    }
+
+    public void setServiceSettings0(String serviceSettingsJson) throws IOException {
+        this.settings.put(0, parseServiceSettings(serviceSettingsJson));
+    }
+
+    public void setServiceSettings1(String serviceSettingsJson) throws IOException {
+        this.settings.put(1, parseServiceSettings(serviceSettingsJson));
+    }
+
+    public void setServiceSettings2(String serviceSettingsJson) throws IOException {
+        this.settings.put(2, parseServiceSettings(serviceSettingsJson));
+    }
+
+    public void setServiceSettings3(String serviceSettingsJson) throws IOException {
+        this.settings.put(3, parseServiceSettings(serviceSettingsJson));
+    }
+
+    public void setServiceSettings4(String serviceSettingsJson) throws IOException {
+        this.settings.put(4, parseServiceSettings(serviceSettingsJson));
+    }
+
+    private Map<String, Object> parseServiceSettings(String settingsJson) throws IOException {
+        TileSelector selector = objectMapper.readValue(settingsJson, TileSelector.class);
+        Map<String, Object> settings = selector.getSelectedOption();
+
+        if (settings.containsKey("service_type")) {
+            settings.put("service-type", settings.get("service_type"));
+            settings.remove("service_type");
+        }
+
+        if (settings.containsKey("head_type")) {
+            settings.put("head-type", settings.get("head_type"));
+            settings.remove("head_type");
+        }
+
+        if (settings.containsKey("access_during_outage")) {
+            settings.put("access-during-outage", settings.get("access_during_outage"));
+            settings.remove("file_accessible");
+        }
+
+        if (settings.containsKey("file_accessible")) {
+            settings.put("file-accessible", settings.get("file_accessible"));
+            settings.remove("file_accessible");
+        }
+
+        if (settings.containsKey("default_retention")) {
+            settings.put("default-retention", settings.get("default_retention"));
+            settings.remove("default_retention");
+        }
+
+        if (settings.containsKey("compliance_enabled")) {
+            settings.put("compliance-enabled", settings.get("compliance_enabled"));
+            settings.remove("compliance_enabled");
+        }
+
+        if (settings.containsKey("default_bucket_quota")) {
+            settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
+            settings.remove("default_bucket_quota");
+        }
+
+        return settings;
     }
 
     public void setServices(List<ServiceDefinitionProxy> services) {

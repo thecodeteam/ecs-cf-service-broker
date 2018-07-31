@@ -1,14 +1,11 @@
 package com.emc.ecs.cloudfoundry.broker.model;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.DashboardClient;
 import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -84,49 +81,7 @@ public class ServiceDefinitionProxy {
         this.active = active;
     }
 
-    public void setSettingsSelector(Map<String, Object> settings) throws IOException {
-//        Map<String, Object> settings = objectMapper.readValue(settingsJson, new TypeReference<Map<String, Object>>() {});
-//        Map<String, Object> settings = selector.getSelectedOption();
-
-        if (settings.containsKey("service_type")) {
-            settings.put("service-type", settings.get("service_type"));
-            settings.remove("service_type");
-        }
-
-        if (settings.containsKey("head_type")) {
-            settings.put("head-type", settings.get("head_type"));
-            settings.remove("head_type");
-        }
-
-        if (settings.containsKey("access_during_outage")) {
-            settings.put("access-during-outage", settings.get("access_during_outage"));
-            settings.remove("file_accessible");
-        }
-
-        if (settings.containsKey("file_accessible")) {
-            settings.put("file-accessible", settings.get("file_accessible"));
-            settings.remove("file_accessible");
-        }
-
-        if (settings.containsKey("default_retention")) {
-            settings.put("default-retention", settings.get("default_retention"));
-            settings.remove("default_retention");
-        }
-
-        if (settings.containsKey("compliance_enabled")) {
-            settings.put("compliance-enabled", settings.get("compliance_enabled"));
-            settings.remove("compliance_enabled");
-        }
-
-        if (settings.containsKey("default_bucket_quota")) {
-            settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
-            settings.remove("default_bucket_quota");
-        }
-
-        this.serviceSettings = settings;
-    }
-
-    public String getId() {
+   public String getId() {
         return id;
     }
 
