@@ -287,9 +287,20 @@ public class EcsService {
         String bucketName = broker.getRepositoryBucket();
         String userName = broker.getRepositoryUser();
         if (!bucketExists(bucketName)) {
-            ServiceDefinitionProxy service = catalog.getRepositoryService();
+            ServiceDefinitionProxy service;
+            if (broker.getRepositoryServiceId() == null) {
+                service = catalog.getRepositoryService();
+            } else {
+                service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
+            }
+            PlanProxy plan;
+            if (broker.getRepositoryPlanId() == null) {
+                plan = service.getRepositoryPlan();
+            } else {
+                plan = service.findPlan(broker.getRepositoryPlanId());
+            }
             Map<String, Object> parameters = new HashMap<>();
-            createBucket(bucketName, service, service.getRepositoryPlan(), parameters);
+            createBucket(bucketName, service, plan, parameters);
         }
 
         if (!userExists(userName)) {

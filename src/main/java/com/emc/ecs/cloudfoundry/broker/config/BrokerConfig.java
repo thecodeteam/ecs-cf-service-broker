@@ -23,6 +23,9 @@ public class BrokerConfig {
     private String prefix = "ecs-cf-broker-";
     private String brokerApiVersion = "*";
     private String certificate;
+    // TODO: Add deprecation warning for these settings
+    private String repositoryServiceId;
+    private String repositoryPlanId;
 
     public String getManagementEndpoint() {
         return managementEndpoint;
@@ -163,6 +166,22 @@ public class BrokerConfig {
     public void setNfsMountHost(String nfsMountHost) {
         if (!nfsMountHost.equals(""))
             this.nfsMountHost = nfsMountHost;
+    }
+
+    public String getRepositoryServiceId() {
+        return repositoryServiceId;
+    }
+
+    public void setRepositoryServiceId(String repositoryServiceId) {
+        this.repositoryServiceId = repositoryServiceId;
+    }
+
+    public String getRepositoryPlanId() {
+        return repositoryPlanId;
+    }
+
+    public void setRepositoryPlanId(String repositoryPlanId) {
+        this.repositoryPlanId = repositoryPlanId;
     }
 
 }

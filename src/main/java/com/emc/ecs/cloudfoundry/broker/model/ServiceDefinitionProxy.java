@@ -75,6 +75,8 @@ public class ServiceDefinitionProxy {
     }
 
     public Boolean getActive() {
+        if (active == null)
+            return true;
         return active;
     }
 
