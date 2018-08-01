@@ -16,11 +16,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@ConfigurationProperties(prefix = "catalog")
 @Configuration
+@ConfigurationProperties(prefix = "catalog")
 public class CatalogConfig {
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     private List<ServiceDefinitionProxy> services;
     private Map<Integer, List<PlanProxy>> plans = new HashMap<>();
     private Map<Integer, Map<String, Object>> settings = new HashMap<>();
@@ -36,22 +35,25 @@ public class CatalogConfig {
 
     @Bean
     public Catalog catalog() {
-        return new Catalog(IntStream.range(0, services.size() - 1)
-                .mapToObj(index -> {
-                    ServiceDefinitionProxy s = services.get(index);
-                    if (plans.containsKey(index))
-                        s.setPlans(plans.get(index));
-                    if (settings.containsKey(index))
-                        s.setServiceSettings(settings.get(index));
-                    return s;
-                })
+        return new Catalog(mergeServices().stream()
                 .filter(ServiceDefinitionProxy::getActive)
                 .map(ServiceDefinitionProxy::unproxy)
                 .collect(Collectors.toList()));
     }
 
+    public List<ServiceDefinitionProxy> mergeServices() {
+        return IntStream.range(0, services.size()).mapToObj(index -> {
+            ServiceDefinitionProxy s = services.get(index);
+            if (plans.containsKey(index))
+                s.setPlans(plans.get(index));
+            if (settings.containsKey(index))
+                s.setServiceSettings(settings.get(index));
+            return s;
+        }).collect(Collectors.toList());
+    }
+
     public List<ServiceDefinitionProxy> getServices() {
-        return services;
+        return this.services;
     }
 
     public void setPlanCollection0(String planCollectionJson) throws IOException {

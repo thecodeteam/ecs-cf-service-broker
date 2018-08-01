@@ -14,8 +14,6 @@ public class PlanProxy {
     private String description;
     private Boolean free = false;
     private PlanMetadataProxy metadata;
-    private int quotaLimit = -1;
-    private int quotaWarning = -1;
     private Map<String, Object> serviceSettings = new HashMap<>();
     private boolean repositoryPlan = false;
 
@@ -78,22 +76,6 @@ public class PlanProxy {
 
     public void setMetadata(PlanMetadataProxy metadata) {
         this.metadata = metadata;
-    }
-
-    public int getQuotaLimit() {
-        return quotaLimit;
-    }
-
-    public void setQuotaLimit(int quotaLimit) {
-        this.quotaLimit = quotaLimit;
-    }
-
-    public int getQuotaWarning() {
-        return quotaWarning;
-    }
-
-    public void setQuotaWarning(int quotaWarning) {
-        this.quotaWarning = quotaWarning;
     }
 
     public Boolean getFree() {

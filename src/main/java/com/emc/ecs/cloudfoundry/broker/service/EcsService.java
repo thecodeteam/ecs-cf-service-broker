@@ -91,16 +91,13 @@ public class EcsService {
             BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
                     broker.getNamespace(), replicationGroupID, parameters));
 
-            if (parameters.containsKey(QUOTA)) {
+            if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 logger.info("Applying quota");
-                @SuppressWarnings(UNCHECKED)
-                Map<String, Integer> quota = (Map<String, Integer>) parameters
-                        .get(QUOTA);
-                BucketQuotaAction.create(connection, prefix(id),
-                        broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
+                Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
+                BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(),  quota.get(LIMIT),  quota.get(WARN));
             }
 
-            if (parameters.containsKey(DEFAULT_RETENTION)) {
+            if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
                 logger.info("Applying retention policy");
                 BucketRetentionAction.update(connection, broker.getNamespace(),
                         prefix(id), (int) parameters.get(DEFAULT_RETENTION));

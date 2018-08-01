@@ -158,15 +158,15 @@ public class PlanCollectionInstance {
             serviceSettings.put("access-during-outage", accessDuringOutage);
 
         if (defaultRetention != null)
-            serviceSettings.put("default-retention", defaultRetention);
+            serviceSettings.put("default-retention", Integer.parseInt(defaultRetention));
 
         if (quotaLimit != null || quotaWarn != null) {
-            Map<String, Object> quota = new HashMap<>();
+            Map<String, Integer> quota = new HashMap<>();
             if (quotaLimit != null)
-                quota.put("limit", quotaLimit);
+                quota.put("limit", Integer.parseInt(quotaLimit));
 
             if (quotaWarn != null)
-                quota.put("warn",  quotaWarn);
+                quota.put("warn",  Integer.parseInt(quotaWarn));
             serviceSettings.put("quota", quota);
         }
         return serviceSettings;
