@@ -49,7 +49,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         List<String> permissions = null;
         if (parameters != null) {
             permissions = (List<String>) parameters.get("permissions");
-            export = (String) parameters.getOrDefault("export", "");
+            export = (String) parameters.getOrDefault("export", null);
         }
         
         if (permissions == null) {
