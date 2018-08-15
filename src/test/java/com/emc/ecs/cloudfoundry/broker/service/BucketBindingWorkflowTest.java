@@ -27,7 +27,6 @@ import static org.mockito.Mockito.*;
 
 @RunWith(Ginkgo4jRunner.class)
 public class BucketBindingWorkflowTest {
-
     private EcsService ecs;
     private ServiceInstanceRepository instanceRepo;
     private Map<String, Object> parameters = new HashMap<>();
@@ -318,8 +317,24 @@ public class BucketBindingWorkflowTest {
                                         .addExportToBucket(eq(SERVICE_INSTANCE_ID), pathCaptor.capture());
                                 assertEquals(pathCaptor.getValue(), "some-path");
                             });
-                        });
 
+
+                            Context("with a null export parameter", () -> {
+                                BeforeEach(() -> {
+                                    parameters.put("export", null);
+                                    workflow = workflow.withCreateRequest(bucketBindingRequestFixture(parameters));
+                                });
+
+                                It("should create an NFS export with no path", () -> {
+                                    workflow.createBindingUser();
+
+                                    verify(ecs, times(1))
+                                            .addExportToBucket(eq(SERVICE_INSTANCE_ID), pathCaptor.capture());
+                                    assertEquals(pathCaptor.getValue(), null);
+                                });
+
+                            });
+                        });
                     });
                 });
             });

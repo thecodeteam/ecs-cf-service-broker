@@ -1105,6 +1105,34 @@ public class EcsServiceTest {
         assertEquals(absolutePath, createPathCaptor.getValue());
     }
 
+    /**
+     * A service can add an export to a bucket
+     *
+     * @throws EcsManagementClientException
+     */
+    @Test
+    public void testAddNullExportPathToBucket() throws Exception {
+        String absolutePath = "/" + NAMESPACE + "/" + PREFIX + BUCKET_NAME + "/";
+        PowerMockito.mockStatic(NFSExportAction.class);
+
+        when(NFSExportAction.list(same(connection), eq(absolutePath)))
+                .thenReturn(null);
+
+        PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
+
+        ecs.addExportToBucket(BUCKET_NAME, null);
+
+        ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
+        PowerMockito.verifyStatic();
+        NFSExportAction.list(same(connection), listPathCaptor.capture());
+        assertEquals(absolutePath, listPathCaptor.getValue());
+
+        ArgumentCaptor<String> createPathCaptor = ArgumentCaptor.forClass(String.class);
+        PowerMockito.verifyStatic();
+        NFSExportAction.create(same(connection), createPathCaptor.capture());
+        assertEquals(absolutePath, createPathCaptor.getValue());
+    }
+
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);

@@ -410,6 +410,8 @@ public class EcsService {
     }
 
     String addExportToBucket(String instanceId, String relativeExportPath) throws EcsManagementClientException {
+        if (relativeExportPath == null)
+            relativeExportPath = "";
         String namespace = broker.getNamespace();
         String absoluteExportPath = "/" + namespace + "/" + prefix(instanceId) + "/" + relativeExportPath;
         List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);
