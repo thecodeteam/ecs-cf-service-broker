@@ -31,8 +31,7 @@ public abstract class EcsActionTest {
     @SuppressWarnings("unused")
     @PostConstruct
     protected void init() {
-        URL certificate = getClass().getClassLoader()
-                .getResource(broker.getCertificate());
+        String certificate = broker.getCertificate();
     	    	
         connection = new Connection(broker.getManagementEndpoint(),
                 broker.getUsername(), broker.getPassword(), certificate);
