@@ -49,10 +49,9 @@ public class Application {
     public Connection ecsConnection() {
 	if (broker.getCertificate() != null) {
 	    logger.info("Instantiating ecs connection with certificate");
-        URL certificate = Thread.currentThread().getContextClassLoader()
-                .getResource(broker.getCertificate());
+
         return new Connection(broker.getManagementEndpoint(),
-                broker.getUsername(), broker.getPassword(), certificate);
+                broker.getUsername(), broker.getPassword(), broker.getCertificate());
 	} else {
         logger.info("Instantiating unencrypted ecs connection");
 		return new Connection(broker.getManagementEndpoint(),

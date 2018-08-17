@@ -1,7 +1,14 @@
 package com.emc.ecs.cloudfoundry.broker.config;
 
+import com.emc.ecs.cloudfoundry.broker.model.TileSelector;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("unused")
 @Configuration
@@ -23,9 +30,24 @@ public class BrokerConfig {
     private String prefix = "ecs-cf-broker-";
     private String brokerApiVersion = "*";
     private String certificate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     // TODO: Add deprecation warning for these settings
     private String repositoryServiceId;
     private String repositoryPlanId;
+
+    public void setCertificateSelector(String certificateJson) throws IOException {
+        TileSelector selector = objectMapper.readValue(certificateJson, TileSelector.class);
+
+        if (selector.getValue().equals("No")) {
+            Map<String, Object> settings = selector.getSelectedOption();
+
+            if (settings.containsKey("certificate") && settings.get("certificate") != null ) {
+                setCertificate(settings.get("certificate").toString());
+            }
+        }
+    }
 
     public String getManagementEndpoint() {
         return managementEndpoint;
