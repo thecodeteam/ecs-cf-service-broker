@@ -112,9 +112,12 @@ public class CatalogConfig {
         TileSelector selector = objectMapper.readValue(settingsJson, TileSelector.class);
         Map<String, Object> settings = selector.getSelectedOption();
 
-        if (settings.containsKey("service_type")) {
-            settings.put("service-type", settings.get("service_type"));
-            settings.remove("service_type");
+        if (selector.getValue().equals("Bucket")) {
+            settings.put("service-type", "bucket");
+        } else if(selector.getValue().equals("Namespace")) {
+            settings.put("service-type", "namespace");
+        } else {
+            throw new ServiceBrokerException("Unable to determine service-type from: " + selector.getValue());
         }
 
         if (settings.containsKey("head_type")) {
