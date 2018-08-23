@@ -13,6 +13,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyStore;
@@ -29,7 +30,7 @@ public class Connection {
     private final String username;
     private final String password;
     private String authToken;
-    private URL certificate;
+    private String certificate;
     private int authRetries = 0;
 
     public Connection(String endpoint, String username, String password) {
@@ -40,7 +41,7 @@ public class Connection {
     }
 
     public Connection(String endpoint, String username, String password,
-                      URL certificate) {
+                      String certificate) {
         super();
         this.endpoint = endpoint;
         this.username = username;
@@ -82,7 +83,12 @@ public class Connection {
     private SSLContext getSSLContext() throws EcsManagementClientException {
         try {
             CertificateFactory certFactory;
-            InputStream certInputStream = certificate.openStream();
+
+            //InputStream targetStream = new ByteArrayInputStream(initialString.getBytes());
+            //InputStream certInputStream = certificate.openStream();
+
+            InputStream certInputStream = new ByteArrayInputStream(certificate.getBytes());
+
             SSLContext sslContext = SSLContext.getInstance("TLS");
             certFactory = CertificateFactory.getInstance("X.509");
             Certificate caCert = certFactory
@@ -203,11 +209,12 @@ public class Connection {
         }
     }
 
-    public URL getCertificate() {
+    public String  getCertificate() {
         return certificate;
+
     }
 
-    public void setCertificate(URL certificate) {
+    public void setCertificate(String certificate) {
         this.certificate = certificate;
     }
 

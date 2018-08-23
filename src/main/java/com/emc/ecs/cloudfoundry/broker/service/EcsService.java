@@ -1,7 +1,6 @@
 package com.emc.ecs.cloudfoundry.broker.service;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
 import com.emc.ecs.cloudfoundry.broker.config.CatalogConfig;
 import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
@@ -59,7 +58,7 @@ public class EcsService {
             lookupObjectEndpoints();
             lookupReplicationGroupID();
             prepareRepository();
-        } catch (EcsManagementClientException | EcsManagementResourceNotFoundException e) {
+        } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
         }
     }
@@ -92,16 +91,13 @@ public class EcsService {
             BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
                     broker.getNamespace(), replicationGroupID, parameters));
 
-            if (parameters.containsKey(QUOTA)) {
+            if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 logger.info("Applying quota");
-                @SuppressWarnings(UNCHECKED)
-                Map<String, Integer> quota = (Map<String, Integer>) parameters
-                        .get(QUOTA);
-                BucketQuotaAction.create(connection, prefix(id),
-                        broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
+                Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
+                BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(),  quota.get(LIMIT),  quota.get(WARN));
             }
 
-            if (parameters.containsKey(DEFAULT_RETENTION)) {
+            if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
                 logger.info("Applying retention policy");
                 BucketRetentionAction.update(connection, broker.getNamespace(),
                         prefix(id), (int) parameters.get(DEFAULT_RETENTION));
@@ -216,8 +212,7 @@ public class EcsService {
         return broker.getPrefix() + string;
     }
 
-    private void lookupObjectEndpoints() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    private void lookupObjectEndpoints() throws EcsManagementClientException {
         if (broker.getObjectEndpoint() != null) {
             objectEndpoint = broker.getObjectEndpoint();
         } else {
@@ -285,16 +280,24 @@ public class EcsService {
                 .getId();
     }
 
-    private void prepareRepository() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    private void prepareRepository() throws EcsManagementClientException {
         String bucketName = broker.getRepositoryBucket();
         String userName = broker.getRepositoryUser();
         if (!bucketExists(bucketName)) {
-            ServiceDefinitionProxy service = lookupServiceDefinition(
-                    broker.getRepositoryServiceId());
+            ServiceDefinitionProxy service;
+            if (broker.getRepositoryServiceId() == null) {
+                service = catalog.getRepositoryService();
+            } else {
+                service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
+            }
+            PlanProxy plan;
+            if (broker.getRepositoryPlanId() == null) {
+                plan = service.getRepositoryPlan();
+            } else {
+                plan = service.findPlan(broker.getRepositoryPlanId());
+            }
             Map<String, Object> parameters = new HashMap<>();
-            createBucket(bucketName, service,
-                    service.findPlan(broker.getRepositoryPlanId()), parameters);
+            createBucket(bucketName, service, plan, parameters);
         }
 
         if (!userExists(userName)) {
@@ -407,6 +410,8 @@ public class EcsService {
     }
 
     String addExportToBucket(String instanceId, String relativeExportPath) throws EcsManagementClientException {
+        if (relativeExportPath == null)
+            relativeExportPath = "";
         String namespace = broker.getNamespace();
         String absoluteExportPath = "/" + namespace + "/" + prefix(instanceId) + "/" + relativeExportPath;
         List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);

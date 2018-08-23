@@ -1,7 +1,14 @@
 package com.emc.ecs.cloudfoundry.broker.config;
 
+import com.emc.ecs.cloudfoundry.broker.model.TileSelector;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("unused")
 @Configuration
@@ -14,9 +21,8 @@ public class BrokerConfig {
     private String objectEndpoint;
     private String nfsMountHost;
     private String repositoryEndpoint;
+
     private String repositorySecret;
-    private String repositoryServiceId;
-    private String repositoryPlanId;
     private String repositoryUser = "user";
     private String username = "root";
     private String password = "ChangeMe";
@@ -24,6 +30,24 @@ public class BrokerConfig {
     private String prefix = "ecs-cf-broker-";
     private String brokerApiVersion = "*";
     private String certificate;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // TODO: Add deprecation warning for these settings
+    private String repositoryServiceId;
+    private String repositoryPlanId;
+
+    public void setCertificateSelector(String certificateJson) throws IOException {
+        TileSelector selector = objectMapper.readValue(certificateJson, TileSelector.class);
+
+        if (selector.getValue().equals("No")) {
+            Map<String, Object> settings = selector.getSelectedOption();
+
+            if (settings.containsKey("certificate") && settings.get("certificate") != null ) {
+                setCertificate(settings.get("certificate").toString());
+            }
+        }
+    }
 
     public String getManagementEndpoint() {
         return managementEndpoint;
@@ -54,7 +78,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryUser(String repositoryUser) {
-        this.repositoryUser = repositoryUser;
+        if (!repositoryUser.equals(""))
+            this.repositoryUser = repositoryUser;
     }
 
     public String getUsername() {
@@ -62,7 +87,8 @@ public class BrokerConfig {
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        if (!username.equals(""))
+            this.username = username;
     }
 
     public String getPassword() {
@@ -70,6 +96,7 @@ public class BrokerConfig {
     }
 
     public void setPassword(String password) {
+        if (!password.equals(""))
         this.password = password;
     }
 
@@ -78,7 +105,8 @@ public class BrokerConfig {
     }
 
     public void setRepositoryBucket(String repositoryBucket) {
-        this.repositoryBucket = repositoryBucket;
+        if (!repositoryBucket.equals(""))
+            this.repositoryBucket = repositoryBucket;
     }
 
     public String getRepositoryEndpoint() {
@@ -88,7 +116,78 @@ public class BrokerConfig {
     }
 
     public void setRepositoryEndpoint(String repositoryEndpoint) {
-        this.repositoryEndpoint = repositoryEndpoint;
+        if (!repositoryEndpoint.equals(""))
+            this.repositoryEndpoint = repositoryEndpoint;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        if (!prefix.equals(""))
+            this.prefix = prefix;
+    }
+
+    String getBrokerApiVersion() {
+        return brokerApiVersion;
+    }
+
+    public void setBrokerApiVersion(String brokerApiVersion) {
+        if (!brokerApiVersion.equals(""))
+            this.brokerApiVersion = brokerApiVersion;
+    }
+
+    public void setRepositorySecret(String repositorySecret) {
+        this.repositorySecret = repositorySecret;
+    }
+
+    public String getRepositorySecret() {
+        return repositorySecret;
+    }
+
+    public String getPrefixedBucketName() {
+        return prefix + repositoryBucket;
+    }
+
+    public String getPrefixedUserName() {
+        return prefix + repositoryUser;
+    }
+
+    public String getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(String certificate) {
+        if (!certificate.equals(""))
+            this.certificate = certificate;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        if (!baseUrl.equals(""))
+            this.baseUrl = baseUrl;
+    }
+
+    public String getObjectEndpoint() {
+        return objectEndpoint;
+    }
+
+    public void setObjectEndpoint(String objectEndpoint) {
+        if (!objectEndpoint.equals(""))
+            this.objectEndpoint = objectEndpoint;
+    }
+
+    public String getNfsMountHost() {
+        return nfsMountHost;
+    }
+
+    public void setNfsMountHost(String nfsMountHost) {
+        if (!nfsMountHost.equals(""))
+            this.nfsMountHost = nfsMountHost;
     }
 
     public String getRepositoryServiceId() {
@@ -105,70 +204,6 @@ public class BrokerConfig {
 
     public void setRepositoryPlanId(String repositoryPlanId) {
         this.repositoryPlanId = repositoryPlanId;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    String getBrokerApiVersion() {
-        return brokerApiVersion;
-    }
-
-    public void setBrokerApiVersion(String brokerApiVersion) {
-        this.brokerApiVersion = brokerApiVersion;
-    }
-
-    public String getRepositorySecret() {
-        return repositorySecret;
-    }
-
-    public void setRepositorySecret(String repositorySecret) {
-        this.repositorySecret = repositorySecret;
-    }
-
-    public String getPrefixedBucketName() {
-        return prefix + repositoryBucket;
-    }
-
-    public String getPrefixedUserName() {
-        return prefix + repositoryUser;
-    }
-
-    public String getCertificate() {
-        return certificate;
-    }
-
-    public void setCertificate(String certificate) {
-        this.certificate = certificate;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public String getObjectEndpoint() {
-        return objectEndpoint;
-    }
-
-    public void setObjectEndpoint(String objectEndpoint) {
-        this.objectEndpoint = objectEndpoint;
-    }
-
-    public String getNfsMountHost() {
-        return nfsMountHost;
-    }
-
-    public void setNfsMountHost(String nfsMountHost) {
-        this.nfsMountHost = nfsMountHost;
     }
 
 }

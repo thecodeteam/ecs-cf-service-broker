@@ -20,7 +20,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static org.junit.Assert.*;
@@ -1090,6 +1093,34 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
 
         ecs.addExportToBucket(BUCKET_NAME, EXPORT_NAME);
+
+        ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
+        PowerMockito.verifyStatic();
+        NFSExportAction.list(same(connection), listPathCaptor.capture());
+        assertEquals(absolutePath, listPathCaptor.getValue());
+
+        ArgumentCaptor<String> createPathCaptor = ArgumentCaptor.forClass(String.class);
+        PowerMockito.verifyStatic();
+        NFSExportAction.create(same(connection), createPathCaptor.capture());
+        assertEquals(absolutePath, createPathCaptor.getValue());
+    }
+
+    /**
+     * A service can add an export to a bucket
+     *
+     * @throws EcsManagementClientException
+     */
+    @Test
+    public void testAddNullExportPathToBucket() throws Exception {
+        String absolutePath = "/" + NAMESPACE + "/" + PREFIX + BUCKET_NAME + "/";
+        PowerMockito.mockStatic(NFSExportAction.class);
+
+        when(NFSExportAction.list(same(connection), eq(absolutePath)))
+                .thenReturn(null);
+
+        PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
+
+        ecs.addExportToBucket(BUCKET_NAME, null);
 
         ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic();

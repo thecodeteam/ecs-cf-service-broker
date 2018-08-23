@@ -1,26 +1,20 @@
 package com.emc.ecs.cloudfoundry.broker.repository;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -42,8 +36,7 @@ public class ServiceInstanceRepository {
     }
 
     @PostConstruct
-    public void initialize() throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException, URISyntaxException {
+    public void initialize() throws URISyntaxException {
         logger.info(format("Creating S3 config with repository endpoint %s", broker.getRepositoryEndpoint()));
 
         S3Config s3Config = new S3Config(
@@ -61,9 +54,13 @@ public class ServiceInstanceRepository {
         this.bucket = broker.getPrefixedBucketName();
     }
 
-    public void save(ServiceInstance instance)
-            throws IOException, JAXBException {
-        logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s", this.s3.getS3Config().getHost(), this.s3.getS3Config().getNamespace(), this.s3.getS3Config().getProtocol(), this.s3.getS3Config().getIdentity(), this.s3.getS3Config().getPort()));
+    public void save(ServiceInstance instance) throws IOException {
+        logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s",
+                this.s3.getS3Config().getHost(),
+                this.s3.getS3Config().getNamespace(),
+                this.s3.getS3Config().getProtocol(),
+                this.s3.getS3Config().getIdentity(),
+                this.s3.getS3Config().getPort()));
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         objectMapper.writeValue(output, instance);

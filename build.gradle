@@ -47,6 +47,7 @@ dependencies {
     compile(group: 'com.emc.ecs', name: 'object-client', version: '3.1.1'){
     	exclude module: "slf4j-log4j12"
     }
+    compile('com.google.code.gson:gson:2.8.2')
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion)
     testCompile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion, classifier: "tests")
@@ -70,7 +71,7 @@ springBoot {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
+    gradleVersion = '4.8.1'
 }
 
 task simulate(type:JavaExec) {

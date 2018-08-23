@@ -6,6 +6,7 @@ import org.springframework.cloud.servicebroker.model.Plan;
 import org.springframework.cloud.servicebroker.model.ServiceDefinition;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,14 +18,16 @@ public class ServiceDefinitionProxy {
     private String id;
     private String name;
     private String description;
-    private String type;
+    private Boolean active;
     private Boolean bindable;
-    private Boolean planUpdatable;
+    private Boolean repositoryService;
     private List<String> tags;
+
     private Map<String, Object> metadata = new HashMap<>();
     private Map<String, Object> serviceSettings = new HashMap<>();
-    private List<PlanProxy> plans;
-    private List<String> requires;
+    private List<PlanProxy> plans = new ArrayList<>();
+    private List<String> requires = new ArrayList<>();
+    private Boolean planUpdatable = true;
     private DashboardClientProxy dashboardClient;
 
     public ServiceDefinitionProxy() {
@@ -60,12 +63,25 @@ public class ServiceDefinitionProxy {
         if (dashboardClient != null)
             realDashboardClient = dashboardClient.unproxy();
 
+        if ((boolean) this.getServiceSettings().getOrDefault("file-accessible", false))
+            requires.add("volume_mount");
+
         return new ServiceDefinition(id, name, description, bindable,
                 planUpdatable, realPlans, tags, metadata, requires,
                 realDashboardClient);
     }
 
-    public String getId() {
+    public Boolean getActive() {
+        if (active == null)
+            return true;
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+   public String getId() {
         return id;
     }
 
@@ -158,12 +174,17 @@ public class ServiceDefinitionProxy {
         this.serviceSettings = serviceSettings;
     }
 
-    public String getType() {
-        return type;
+    public Boolean getRepositoryService() {
+        return repositoryService;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setRepositoryService(Boolean repositoryService) {
+        this.repositoryService = repositoryService;
     }
 
+    public PlanProxy getRepositoryPlan() {
+        return plans.stream().filter(PlanProxy::getRepositoryPlan)
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("At least one plan must be configured as a 'repository-plan"));
+    }
 }

@@ -12,6 +12,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,8 +33,7 @@ public class CatalogConfigTest {
                 .get(1);
         testServiceDefinition(ecsBucketService,
                 "f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa", "ecs-bucket",
-                "Elastic Cloud S3 Object Storage Bucket", true, true, null,
-                null);
+                "Elastic Cloud S3 Object Storage Bucket", true, true, Collections.emptyList(), null);
     }
 
     @Test
@@ -67,8 +67,8 @@ public class CatalogConfigTest {
     }
 
     private void testServiceDefinition(ServiceDefinition service, String id,
-            String name, String description, boolean bindable,
-            boolean updatable, List<String> requires, String dashboardUrl) {
+                                       String name, String description, boolean bindable,
+                                       boolean updatable, List<String> requires, String dashboardUrl) {
         assertEquals(id, service.getId());
         assertEquals(name, service.getName());
         assertEquals(description, service.getDescription());
@@ -78,8 +78,8 @@ public class CatalogConfigTest {
     }
 
     private void testServiceDefinitionMetadata(Map<String, Object> metadata,
-            String displayName, String imageUrl, String providerDisplayName,
-            String documentationUrl, String supportUrl) {
+                                               String displayName, String imageUrl, String providerDisplayName,
+                                               String documentationUrl, String supportUrl) {
         assertEquals(displayName, metadata.get("displayName"));
         assertEquals(imageUrl, metadata.get("imageUrl"));
         assertEquals(providerDisplayName, metadata.get("providerDisplayName"));

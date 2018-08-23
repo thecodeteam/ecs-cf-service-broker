@@ -85,22 +85,6 @@ public class BucketInstanceWorkflowTest {
                         });
                     });
 
-                    Context("the bucket is not in the repo", () -> {
-                        BeforeEach(() -> {
-                            when(instanceRepo.find(BUCKET_NAME))
-                                    .thenReturn(null);
-                        });
-
-                        It("should update each references", () -> {
-                            workflow.delete(BUCKET_NAME);
-                            verify(instanceRepo, times(1))
-                                    .save(instCaptor.capture());
-                            ServiceInstance savedInst = instCaptor.getValue();
-                            assertEquals(1, savedInst.getReferenceCount());
-                            assert(savedInst.getReferences().contains(BUCKET_NAME + "2"));
-                        });
-                    });
-
                 });
 
                 Context("with a single reference", () -> {
