@@ -111,8 +111,13 @@ public class EcsService {
 
     Map<String, Object> changeBucketPlan(String id, ServiceDefinitionProxy service,
                                          PlanProxy plan, Map<String, Object> parameters) {
+        if (parameters == null) {
+            parameters = new HashMap<>();
+        }
+
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
+
         @SuppressWarnings(UNCHECKED)
         Map<String, Object> quota = (Map<String, Object>) parameters
                 .getOrDefault(QUOTA, new HashMap<>());
