@@ -196,10 +196,25 @@ public class EcsService {
                          List<String> permissions) throws EcsManagementClientException {
         BucketAcl acl = BucketAclAction.get(connection, prefix(id),
                 broker.getNamespace());
+
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
         userAcl.add(new BucketUserAcl(prefix(username), permissions));
         acl.getAcl().setUserAccessList(userAcl);
         BucketAclAction.update(connection, prefix(id), acl);
+        BucketPolicy bucketPolicy = new BucketPolicy(
+                "2012-10-17",
+                "DefaultPCFBucketPolicy",
+                new BucketPolicyStatement("DefaultAllowTotalAccess",
+                        new BucketPolicyEffect("Allow"),
+                        new BucketPolicyPrincipal(prefix(username)),
+                        new BucketPolicyActions(Arrays.asList("s3:*")),
+                        new BucketPolicyResource(Arrays.asList(prefix(id)))
+                        )
+        );
+
+        if (!BucketPolicyAction.hasPolicy(connection, prefix(id), broker.getNamespace())) {
+            BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
+        }
     }
 
     void removeUserFromBucket(String id, String username)

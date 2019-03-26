@@ -24,6 +24,7 @@ import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 @RunWith(Ginkgo4jRunner.class)
 public class BucketBindingWorkflowTest {

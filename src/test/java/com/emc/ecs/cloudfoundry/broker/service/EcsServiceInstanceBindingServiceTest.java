@@ -303,7 +303,7 @@ public class EcsServiceInstanceBindingServiceTest {
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor =
             ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         ArgumentCaptor<ServiceInstance> instanceCaptor =
-            ArgumentCaptor .forClass(ServiceInstance.class);
+            ArgumentCaptor.forClass(ServiceInstance.class);
 
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         doNothing().when(instanceRepository).save(instanceCaptor.capture());
