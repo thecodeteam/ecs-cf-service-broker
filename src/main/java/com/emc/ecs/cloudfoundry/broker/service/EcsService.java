@@ -212,9 +212,7 @@ public class EcsService {
                         )
         );
 
-        if (!BucketPolicyAction.hasPolicy(connection, prefix(id), broker.getNamespace())) {
-            BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
-        }
+        BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
     }
 
     void removeUserFromBucket(String id, String username)
