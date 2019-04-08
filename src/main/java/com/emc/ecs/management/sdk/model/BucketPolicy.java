@@ -25,7 +25,7 @@ public class BucketPolicy {
         return version;
     }
 
-    void setVersion(String version) {
+    public void setVersion(String version) {
         this.version = version;
     }
 
@@ -34,7 +34,7 @@ public class BucketPolicy {
         return id;
     }
 
-    void setId(String id) {
+    public void setId(String id) {
         this.id = id;
     }
 

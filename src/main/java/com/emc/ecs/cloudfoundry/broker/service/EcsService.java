@@ -201,18 +201,35 @@ public class EcsService {
         userAcl.add(new BucketUserAcl(prefix(username), permissions));
         acl.getAcl().setUserAccessList(userAcl);
         BucketAclAction.update(connection, prefix(id), acl);
-        BucketPolicy bucketPolicy = new BucketPolicy(
-                "2012-10-17",
-                "DefaultPCFBucketPolicy",
-                new BucketPolicyStatement("DefaultAllowTotalAccess",
-                        new BucketPolicyEffect("Allow"),
-                        new BucketPolicyPrincipal(prefix(username)),
-                        new BucketPolicyActions(Arrays.asList("s3:*")),
-                        new BucketPolicyResource(Arrays.asList(prefix(id)))
-                        )
-        );
 
-        BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
+//        BucketPolicy bucketPolicy = new BucketPolicy();
+
+//            bucketPolicy.setVersion("2012-10-17");
+//            bucketPolicy.setId("DefaultPCFBucketPolicy");
+//            bucketPolicy.setBucketPolicyStatement(new BucketPolicyStatement(
+//                    "DefaultAllowTotalAccess",
+//                    new BucketPolicyEffect("Allow"),
+//                    new BucketPolicyPrincipal(prefix(username)),
+//                    new BucketPolicyActions(Arrays.asList("s3:*")),
+//                    new BucketPolicyResource(Arrays.asList(prefix(id)))
+//                    )
+//            );
+
+        BucketPolicy bucketPolicy = new BucketPolicy(
+            "2012-10-17",
+            "DefaultPCFBucketPolicy",
+            new BucketPolicyStatement("DefaultAllowTotalAccess",
+                new BucketPolicyEffect("Allow"),
+                new BucketPolicyPrincipal(prefix(username)),
+                new BucketPolicyActions(Arrays.asList("s3:*")),
+                new BucketPolicyResource(Arrays.asList(prefix(id)))
+            )
+        );
+        logger.error("checking if file enabled...");
+        if (!getBucketFileEnabled(id)) {
+            logger.error("not file enabled, setting policy");
+            BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
+        }
     }
 
     void removeUserFromBucket(String id, String username)
