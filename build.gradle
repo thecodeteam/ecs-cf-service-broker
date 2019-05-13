@@ -21,7 +21,7 @@ apply plugin: 'jacoco'
 
 jar {
     baseName = 'ecs-cf-service-broker'
-    version = '0.0.1-SNAPSHOT'
+    version = '1.1.2-RELEASE'
 }
 
 sourceCompatibility = 1.8
@@ -47,7 +47,6 @@ dependencies {
     compile(group: 'com.emc.ecs', name: 'object-client', version: '3.1.1'){
     	exclude module: "slf4j-log4j12"
     }
-    compile('com.google.code.gson:gson:2.8.2')
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion)
     testCompile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion, classifier: "tests")

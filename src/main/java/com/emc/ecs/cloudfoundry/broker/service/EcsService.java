@@ -200,6 +200,20 @@ public class EcsService {
         userAcl.add(new BucketUserAcl(prefix(username), permissions));
         acl.getAcl().setUserAccessList(userAcl);
         BucketAclAction.update(connection, prefix(id), acl);
+
+        if (!getBucketFileEnabled(id)) {
+            BucketPolicy bucketPolicy = new BucketPolicy(
+                    "2012-10-17",
+                    "DefaultPCFBucketPolicy",
+                    new BucketPolicyStatement("DefaultAllowTotalAccess",
+                            new BucketPolicyEffect("Allow"),
+                            new BucketPolicyPrincipal(prefix(username)),
+                            new BucketPolicyActions(Arrays.asList("s3:*")),
+                            new BucketPolicyResource(Arrays.asList(prefix(id)))
+                    )
+            );
+            BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
+        }
     }
 
     void removeUserFromBucket(String id, String username)

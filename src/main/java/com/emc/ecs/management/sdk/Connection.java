@@ -3,6 +3,8 @@ package com.emc.ecs.management.sdk;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 
@@ -133,9 +135,13 @@ public class Connection {
         this.authToken = null;
     }
 
+    protected Response handleRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
+        return handleRemoteCall(method, uri, arg, XML);
+    }
+
     protected Response handleRemoteCall(String method, UriBuilder uri,
-            Object arg) throws EcsManagementClientException {
-        Response response = makeRemoteCall(method, uri, arg);
+            Object arg, String contentType) throws EcsManagementClientException {
+        Response response = makeRemoteCall(method, uri, arg, contentType);
         try {
             handleResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
@@ -148,40 +154,57 @@ public class Connection {
         return UriBuilder.fromPath(endpoint);
     }
 
-    protected Response makeRemoteCall(String method, UriBuilder uri, Object arg)
+    protected Response makeRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
+        return makeRemoteCall(method, uri, arg, XML);
+    }
+
+    protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType)
             throws EcsManagementClientException {
         if (!isLoggedIn())
             login();
+
         Client jerseyClient = buildJerseyClient();
         Builder request = jerseyClient.target(uri)
                 .register(LoggingFeature.class).request()
                 .header("X-SDS-AUTH-TOKEN", authToken)
                 .header("Accept", "application/xml");
-        Response response;
+        Response response = null;
         if (GET.equals(method)) {
             response = request.get();
-        } else if (POST.equals(method)) {
-            response = request.post(Entity.xml(arg));
-        } else if (PUT.equals(method)) {
-            response = request.put(Entity.xml(arg));
+        } else if (POST.equals(method) || PUT.equals(method)) {
+            Entity<Object> objectEntity;
+            if (XML.equals(contentType)) {
+                objectEntity = Entity.xml(arg);
+            } else if (JSON.equals(contentType)) {
+                objectEntity = Entity.json(arg);
+            } else {
+                throw new EcsManagementClientException("Content type must be \"XML\" or \"JSON\"");
+            }
+
+            if (POST.equals(method)) {
+                response = request.post(objectEntity);
+            } else if (PUT.equals(method)) {
+                response = request.put(objectEntity);
+            }
         } else if (DELETE.equals(method)) {
             response = request.delete();
         } else {
             throw new EcsManagementClientException(
                     "Invalid request method: " + method);
         }
+
         if (response.getStatus() == 401 && authRetries < AUTH_RETRIES_MAX) {
             // attempt to re-authorize and retry up to _authMaxRetries_ times.
             authRetries += 1;
             this.authToken = null;
-            response = makeRemoteCall(method, uri, arg);
+            response = makeRemoteCall(method, uri, arg, XML);
         }
         return response;
     }
 
     protected boolean existenceQuery(UriBuilder uri, Object arg)
             throws EcsManagementClientException {
-        Response response = makeRemoteCall(GET, uri, arg);
+        Response response = makeRemoteCall(GET, uri, arg, XML);
         try {
             handleResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
