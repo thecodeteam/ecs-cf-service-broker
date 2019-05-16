@@ -1,0 +1,14 @@
+resources:
+- name: ecs-cf-service-broker
+  type: git
+  source:
+    uri: https://github.com/thecodeteam/ecs-cf-service-broker.git
+    branch: devel
+
+jobs:
+- name: build
+  plan:
+    - get: ecs-cf-service-broker
+      trigger: true
+    - task: build
+      file: build.yml
