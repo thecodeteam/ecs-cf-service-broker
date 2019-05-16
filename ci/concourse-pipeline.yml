@@ -11,4 +11,4 @@ jobs:
     - get: ecs-cf-service-broker
       trigger: true
     - task: build
-      file: build.yml
+      file: ecs-cf-service-broker/ci/build.yml
