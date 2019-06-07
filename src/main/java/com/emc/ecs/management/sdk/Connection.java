@@ -173,7 +173,8 @@ public class Connection {
         Builder request = jerseyClient.target(uri)
                 .register(LoggingFeature.class).request()
                 .header("X-SDS-AUTH-TOKEN", authToken)
-                .header("Accept", ("application/" + contentType));
+                .header("Content-Type", ("application/" + contentType))
+                .header("Accept", "application/xml");
         Response response = null;
 
         if (GET.equals(method)) {
