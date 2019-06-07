@@ -2,11 +2,13 @@ package com.emc.ecs.management.sdk;
 
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.cloudfoundry.broker.service.EcsService;
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
 import javax.ws.rs.client.Client;
@@ -34,6 +36,8 @@ public class Connection {
     private String authToken;
     private String certificate;
     private int authRetries = 0;
+
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EcsService.class);
 
     public Connection(String endpoint, String username, String password) {
         super();
@@ -163,12 +167,15 @@ public class Connection {
         if (!isLoggedIn())
             login();
 
+        logger.info(String.format("Making remote call..."));
+
         Client jerseyClient = buildJerseyClient();
         Builder request = jerseyClient.target(uri)
                 .register(LoggingFeature.class).request()
                 .header("X-SDS-AUTH-TOKEN", authToken)
-                .header("Accept", "application/xml");
+                .header("Accept", ("application/" + contentType));
         Response response = null;
+
         if (GET.equals(method)) {
             response = request.get();
         } else if (POST.equals(method) || PUT.equals(method)) {
@@ -194,10 +201,11 @@ public class Connection {
         }
 
         if (response.getStatus() == 401 && authRetries < AUTH_RETRIES_MAX) {
+            logger.info(String.format("Retrying..."));
             // attempt to re-authorize and retry up to _authMaxRetries_ times.
             authRetries += 1;
             this.authToken = null;
-            response = makeRemoteCall(method, uri, arg, XML);
+            response = makeRemoteCall(method, uri, arg, contentType);
         }
         return response;
     }

@@ -7,6 +7,7 @@ import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
 import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,18 +201,11 @@ public class EcsService {
         userAcl.add(new BucketUserAcl(prefix(username), permissions));
         acl.getAcl().setUserAccessList(userAcl);
         BucketAclAction.update(connection, prefix(id), acl);
+    }
 
+    void addPolicyToBucket(String id, BucketPolicy bucketPolicy) throws EcsManagementClientException {
+        logger.info(String.format("Attempting to add policy..."));
         if (!getBucketFileEnabled(id)) {
-            BucketPolicy bucketPolicy = new BucketPolicy(
-                    "2012-10-17",
-                    "DefaultPCFBucketPolicy",
-                    new BucketPolicyStatement("DefaultAllowTotalAccess",
-                            new BucketPolicyEffect("Allow"),
-                            new BucketPolicyPrincipal(prefix(username)),
-                            new BucketPolicyActions(Arrays.asList("s3:*")),
-                            new BucketPolicyResource(Arrays.asList(prefix(id)))
-                    )
-            );
             BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
         }
     }

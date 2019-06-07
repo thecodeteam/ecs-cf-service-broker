@@ -4,7 +4,10 @@ import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
 import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepository;
-import com.emc.ecs.management.sdk.model.UserSecretKey;
+import com.emc.ecs.management.sdk.model.*;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
@@ -50,9 +53,11 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         String export = "";
         List<String> permissions = null;
+        boolean hasPolicy = false;
         if (parameters != null) {
             permissions = (List<String>) parameters.get("permissions");
             export = (String) parameters.getOrDefault("export", null);
+            hasPolicy = (boolean) parameters.containsKey("policy");
         }
         
         if (permissions == null) {
@@ -64,6 +69,38 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         if (ecs.getBucketFileEnabled(bucketName)) {
             volumeMounts = createVolumeExport(export,
                     new URL(ecs.getObjectEndpoint()), parameters);
+        }
+
+
+
+        if (hasPolicy) {
+            BucketPolicy bucketPolicy;
+            if (parameters.get("policy").equals("default-total-access")) {
+                bucketPolicy = new BucketPolicy(
+                    "2012-10-17",
+                    "DefaultPCFBucketPolicy",
+                    new BucketPolicyStatement("DefaultAllowTotalAccess",
+                            new BucketPolicyEffect("Allow"),
+                            new BucketPolicyPrincipal(ecs.prefix(bindingId)),
+                            new BucketPolicyActions(Arrays.asList("s3:*")),
+                            new BucketPolicyResource(Arrays.asList(ecs.prefix(bucketName)))
+                    )
+                );
+            } else {
+                ObjectMapper objectMapper = new ObjectMapper();
+
+                JsonNode jsonNode = objectMapper.readTree(parameters.get("policy").toString());
+                String statement = jsonNode.get("Statement").asText();
+                statement = statement.substring(1, (statement.length() -1));
+                BucketPolicyStatement bucketPolicyStatement = objectMapper.readValue(statement, BucketPolicyStatement.class);
+
+                bucketPolicy = new BucketPolicy(
+                        jsonNode.get("Version").asText(),
+                        jsonNode.get("Id").asText(),
+                        bucketPolicyStatement
+                );
+            }
+            ecs.addPolicyToBucket(bucketName, bucketPolicy);
         }
 
         return userSecretKey.getSecretKey();
