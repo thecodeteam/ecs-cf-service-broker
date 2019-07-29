@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecs-service-broker
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecs-service-broker
+  template:
+    metadata:
+      labels:
+        app: ecs-service-broker
+    spec:
+      containers:
+        - name: ecs-broker
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          command: [ "java","-jar","-Djava.security.egd=file:/dev/./urandom","-Dspring.config.location=/etc/config/application.yml","app.jar"]
+          volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+          env:
+            - name: "SECURITY_USER_NAME"
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ .Values.api.name }}-auth
+            - name: "SECURITY_USER_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ .Values.api.name }}-auth
+            - name: "BROKER_USERNAME"
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: {{ .Values.ecsConnection.name }}-auth
+            - name: "BROKER_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ .Values.ecsConnection.name }}-auth
+      volumes:
+        - name: config-volume
+          configMap:
+            name: ecs-broker
