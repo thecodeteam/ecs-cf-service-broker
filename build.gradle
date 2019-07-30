@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '1.5.1.RELEASE'
+        springBootVersion = '1.5.21.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -21,7 +21,7 @@ apply plugin: 'jacoco'
 
 jar {
     baseName = 'ecs-cf-service-broker'
-    version = '1.1.2-RELEASE'
+    version = '1.2.0-RELEASE'
 }
 
 sourceCompatibility = 1.8
@@ -41,15 +41,16 @@ dependencies {
     compile(group: 'org.springframework.boot', name: 'spring-boot-starter-jersey', version: springBootVersion)
     compile(group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: springBootVersion)
     compile(group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: springBootVersion)
-
-    compile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion)
-	
+    compile(group: 'org.springframework.boot', name: 'spring-boot-devtools', version: springBootVersion)
+    compile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', 
+            version: springCloudServiceBrokerVersion)
     compile(group: 'com.emc.ecs', name: 'object-client', version: '3.1.1'){
     	exclude module: "slf4j-log4j12"
     }
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion)
-    testCompile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', version: springCloudServiceBrokerVersion, classifier: "tests")
+    testCompile(group: 'org.springframework.cloud', name: 'spring-cloud-cloudfoundry-service-broker', 
+            version: springCloudServiceBrokerVersion, classifier: "tests")
     testCompile(group: 'com.github.tomakehurst', name: 'wiremock-standalone', version: '2.5.1')
     testCompile(group: 'org.powermock', name: 'powermock-api-mockito', version: '1.7.1')
     testCompile(group: 'org.powermock', name: 'powermock-module-junit4', version: '1.7.1')

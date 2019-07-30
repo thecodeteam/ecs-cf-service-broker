@@ -11,9 +11,12 @@ import com.emc.ecs.management.sdk.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.servicebroker.model.BrokerApiVersion;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -21,28 +24,29 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 @SuppressWarnings("unused")
+@SpringBootApplication
 @EnableAutoConfiguration
 @ComponentScan
 public class Application {
 
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
+    private static ConfigurableApplicationContext context;
 
-//    static {
-//        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-//                new javax.net.ssl.HostnameVerifier(){
-//
-//                    public boolean verify(String hostname,
-//                                          javax.net.ssl.SSLSession sslSession) {
-//                        return true;
-//                    }
-//                });
-//    }
-//
+    private static String[] args;
+
     @Autowired
     private BrokerConfig broker;
 
+    /* start application */
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        setArgs(args);
+        Application.context = SpringApplication.run(Application.class, getArgs());
+    }
+
+    /* restart application */
+    public static void main() {
+        Application.context.close();
+        Application.context = SpringApplication.run(Application.class, getArgs());
     }
 
     @Bean
@@ -91,6 +95,14 @@ public class Application {
     @Bean
     public ServiceInstanceBindingRepository serviceInstanceBindingRepository() {
         return new ServiceInstanceBindingRepository();
+    }
+
+    private static String[] getArgs() {
+        return args;
+    }
+
+    private static void setArgs(String[] args) {
+        Application.args = args;
     }
 
     public BrokerConfig getBroker() {
