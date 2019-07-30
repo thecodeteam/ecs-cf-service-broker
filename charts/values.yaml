@@ -12,8 +12,8 @@ api:
 
 ecsConnection:
   name: ecs-broker-connection
-  username: 131118670375936839-admin
-  password: ZWNmNzZiNjI0YTExODczYzJkZGVmNWU5NjQ4MzlkMjk=
+  username: <MANAGEMENT_USER>
+  password: <PASSWORD>
 
 image:
   repository: emccorp/ecs-service-broker
