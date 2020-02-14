@@ -1,0 +1,25 @@
+{
+  "request": {
+    "method": "PUT",
+    "url": "/object/bucket/ecs-cf-broker-repository/policy?namespace=ns1",
+    "headers": {
+      "Accept": {
+        "equalTo": "application/xml"
+      },
+      "X-SDS-AUTH-TOKEN": {
+        "equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "equalToJson": "{\"Version\":\"2012-10-17\",\"Id\":\"DefaultPCFBucketPolicy\",\"Statement\":{\"Sid\":\"DefaultAllowTotalAccess\",\"Effect\":\"Allow\",\"Principal\":\"ecs-cf-broker-user\",\"Action\":[\"s3:*\"],\"Resource\":[\"ecs-cf-broker-repository\"]}}"
+      }
+    ]
+  },
+  "response": {
+    "status": "200",
+    "headers": {
+      "Content-Type": "application/xml"
+    }
+  }
+}

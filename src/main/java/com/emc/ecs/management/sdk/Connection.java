@@ -3,12 +3,13 @@ package com.emc.ecs.management.sdk;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
 import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -17,7 +18,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -52,12 +52,7 @@ public class Connection {
     }
 
     private static HostnameVerifier getHostnameVerifier() {
-        return new HostnameVerifier() {
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        };
+        return (hostname, session) -> true;
     }
 
     public String getAuthToken() {
@@ -67,10 +62,8 @@ public class Connection {
     private Client buildJerseyClient() throws EcsManagementClientException {
         ClientBuilder builder;
         if (certificate != null) {
-            /**
-            * Disable host name verification. Should be able to configure the
-            * ECS certificate with the correct host name to avoid this.
-            **/
+            // Disable host name verification. Should be able to configure the
+            // ECS certificate with the correct host name to avoid this.
             HostnameVerifier hostnameVerifier = getHostnameVerifier();
             HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
             builder = ClientBuilder.newBuilder()
@@ -78,7 +71,7 @@ public class Connection {
             builder.sslContext(getSSLContext());
         } else {
             builder = ClientBuilder.newBuilder();
-        }	
+        }
         return builder.build();
     }
 
@@ -140,7 +133,7 @@ public class Connection {
     }
 
     protected Response handleRemoteCall(String method, UriBuilder uri,
-            Object arg, String contentType) throws EcsManagementClientException {
+                                        Object arg, String contentType) throws EcsManagementClientException {
         Response response = makeRemoteCall(method, uri, arg, contentType);
         try {
             handleResponse(response);
@@ -232,9 +225,8 @@ public class Connection {
         }
     }
 
-    public String  getCertificate() {
+    public String getCertificate() {
         return certificate;
-
     }
 
     public void setCertificate(String certificate) {

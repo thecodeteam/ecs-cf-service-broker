@@ -8,7 +8,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 public class BaseUrlActionTest extends EcsActionTest {
 
@@ -30,17 +31,14 @@ public class BaseUrlActionTest extends EcsActionTest {
                 baseUrl1.getId());
         BaseUrlInfo baseUrlInfo2 = BaseUrlAction.get(connection,
                 baseUrl2.getId());
-        assertTrue(baseUrlInfo1.getBaseurl().equals("localhost"));
-        assertTrue(baseUrlInfo1.getName().equals("DefaultBaseUrl"));
-        assertTrue(baseUrlInfo1.getNamespaceUrl(namespace, false)
-                .equals("http://localhost:9020"));
-        assertTrue(baseUrlInfo1.getNamespaceUrl(namespace, true)
-                .equals("https://localhost:9021"));
-        assertTrue(baseUrlInfo2.getBaseurl().equals("s3.10.5.5.5.xip.io"));
-        assertTrue(baseUrlInfo2.getName().equals("xip.io"));
-        assertTrue(baseUrlInfo2.getNamespaceUrl(namespace, false)
-                .equals("http://ns1.s3.10.5.5.5.xip.io:9020"));
-        assertTrue(baseUrlInfo2.getNamespaceUrl(namespace, true)
-                .equals("https://ns1.s3.10.5.5.5.xip.io:9021"));
+        assertEquals("localhost", baseUrlInfo1.getBaseurl());
+        assertEquals("DefaultBaseUrl", baseUrlInfo1.getName());
+        assertEquals("http://localhost:9020", baseUrlInfo1.getNamespaceUrl(namespace, false));
+        assertEquals("https://localhost:9021", baseUrlInfo1.getNamespaceUrl(namespace, true));
+        assertEquals("s3.10.5.5.5.xip.io", baseUrlInfo2.getBaseurl());
+        assertEquals("xip.io", baseUrlInfo2.getName());
+        assertEquals("http://ns1.s3.10.5.5.5.xip.io:9020", baseUrlInfo2.getNamespaceUrl(namespace, false));
+        assertEquals("https://ns1.s3.10.5.5.5.xip.io:9021", baseUrlInfo2.getNamespaceUrl(namespace, true));
+        assertTrue(true);
     }
 }
