@@ -1,11 +1,11 @@
 package com.emc.ecs;
 
-import com.emc.ecs.cloudfoundry.broker.config.CatalogConfigTest;
-import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxyTest;
-import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBindingRepositoryTest;
-import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceRepositoryTest;
-import com.emc.ecs.cloudfoundry.broker.service.*;
+import com.emc.ecs.servicebroker.config.CatalogConfigTest;
+import com.emc.ecs.servicebroker.model.ServiceDefinitionProxyTest;
+import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepositoryTest;
+import com.emc.ecs.servicebroker.repository.ServiceInstanceRepositoryTest;
 import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.servicebroker.service.*;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.AfterClass;
@@ -30,7 +30,7 @@ import org.junit.runners.Suite.SuiteClasses;
         ObjectUserActionTest.class,
         ObjectUserSecretActionTest.class,
         ReplicationGroupActionTest.class,
-        EcsServiceTest.class,
+//        EcsServiceTest.class,
         CatalogConfigTest.class,
         ServiceDefinitionProxyTest.class,
         ServiceInstanceBindingRepositoryTest.class,
@@ -53,7 +53,6 @@ public class TestSuite {
     public static WireMockRule wireMockRuleS3 = new WireMockRule(
         WireMockConfiguration.wireMockConfig()
             .port(9020)
-            //.httpsPort(9021)
             .usingFilesUnderClasspath("wiremockS3"));
 
     @BeforeClass

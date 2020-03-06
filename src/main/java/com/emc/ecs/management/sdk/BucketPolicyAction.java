@@ -1,16 +1,12 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.service.EcsServiceInstanceBindingService;
-import com.emc.ecs.management.sdk.model.BucketAcl;
+import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.management.sdk.model.BucketPolicy;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 

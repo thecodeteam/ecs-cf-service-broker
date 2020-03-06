@@ -1,7 +1,7 @@
 package com.emc.ecs.common;
 
-import com.emc.ecs.cloudfoundry.broker.config.Application;
-import com.emc.ecs.cloudfoundry.broker.config.BrokerConfig;
+import com.emc.ecs.servicebroker.config.Application;
+import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.management.sdk.Connection;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.annotation.PostConstruct;
-import java.net.URL;
 
 import static com.emc.ecs.common.Fixtures.RG_ID;
 

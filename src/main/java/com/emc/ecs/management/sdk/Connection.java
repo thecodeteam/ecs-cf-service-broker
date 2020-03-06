@@ -1,7 +1,7 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;

@@ -1,6 +1,6 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.management.sdk.model.DefaultBucketRetention;
 import com.emc.ecs.management.sdk.model.DefaultBucketRetentionUpdate;
 
