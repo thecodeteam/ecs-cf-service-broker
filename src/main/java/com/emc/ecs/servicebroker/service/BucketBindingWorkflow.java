@@ -145,10 +145,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public CreateServiceInstanceAppBindingResponse getResponse(Map<String, Object> credentials) {
-        return CreateServiceInstanceAppBindingResponse.builder()
-                .credentials(credentials)
-                .volumeMounts(volumeMounts)
-                .build();
+        CreateServiceInstanceAppBindingResponse.CreateServiceInstanceAppBindingResponseBuilder builder = CreateServiceInstanceAppBindingResponse.builder()
+                .credentials(credentials);
+
+        if (volumeMounts != null) {
+                builder.volumeMounts(volumeMounts);
+        }
+
+        return builder.build();
     }
 
     private String getS3Url(URL baseUrl, String secretKey, Map<String, Object> parameters) {
