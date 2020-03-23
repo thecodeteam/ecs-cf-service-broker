@@ -1,0 +1,16 @@
+{{ if .Values.serviceCatalog }}
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ClusterServiceBroker
+metadata:
+  name: ecs-service-broker-client
+spec:
+  url: http://ecs-service-broker.{{ .Release.Namespace }}:9090
+  authInfo:
+    basic:
+      secretRef:
+        namespace: {{ .Release.Namespace }}
+        name: ecs-broker-catalog-credentials
+  catalogRestrictions:
+    serviceClass:
+      - "spec.externalName==ecs-bucket"
+{{ end }}
