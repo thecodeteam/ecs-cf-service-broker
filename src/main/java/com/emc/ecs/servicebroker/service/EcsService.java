@@ -80,7 +80,7 @@ public class EcsService {
                                      PlanProxy plan, Map<String, Object> parameters) {
         if (parameters == null) parameters = new HashMap<>();
 
-        logger.info(String.format("Creating bucket %s", id));
+        logger.debug(String.format("Creating bucket %s", id));
         try {
             if (bucketExists(id)) {
                 throw new ServiceInstanceExistsException(id, service.getId());
@@ -146,9 +146,9 @@ public class EcsService {
 
     UserSecretKey createUser(String id) {
         try {
-            logger.info(String.format("Creating user %s", prefix(id)));
+            logger.debug(String.format("Creating user %s", prefix(id)));
             ObjectUserAction.create(connection, prefix(id), broker.getNamespace());
-            logger.info(String.format("Creating secret for user %s", prefix(id)));
+            logger.debug(String.format("Creating secret for user %s", prefix(id)));
             ObjectUserSecretAction.create(connection, prefix(id));
             return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
         } catch (Exception e) {
@@ -187,7 +187,7 @@ public class EcsService {
     }
 
     void addUserToBucket(String id, String username) {
-        logger.info(String.format("Adding user %s to bucket %s", username, id));
+        logger.debug(String.format("Adding user %s to bucket %s", username, id));
         try {
             addUserToBucket(id, username, Collections.singletonList("full_control"));
         } catch (Exception e) {
@@ -197,7 +197,7 @@ public class EcsService {
 
     void addUserToBucket(String id, String username,
                          List<String> permissions) throws EcsManagementClientException {
-        logger.info("Adding user {} to bucket {}", prefix(username), prefix(id));
+        logger.debug("Adding user {} to bucket {}", prefix(username), prefix(id));
         BucketAcl acl = BucketAclAction.get(connection, prefix(id),
                 broker.getNamespace());
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
