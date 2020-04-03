@@ -6,31 +6,14 @@ data:
   application.yml: |-
     ---
     broker:
-      object-endpoint: "http://10.243.86.70:9020"
-      management-endpoint: "https://10.243.86.70:4443"
-      namespace: "nightshift"
-      replication-group: RG
-      prefix: maddid-
-      certificate: |-
-        -----BEGIN CERTIFICATE-----
-        MIIDCTCCAfGgAwIBAgIJAJ1g36y+tM0RMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
-        BAMTCWxvY2FsaG9zdDAeFw0yMDAyMTkxOTMzMjVaFw0zMDAyMTYxOTMzMjVaMBQx
-        EjAQBgNVBAMTCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-        ggEBAKdvGtq912EKCBNsHTYjtbRlDkJyietThHw7p3WQCUq+TBxSisPJCshWRbNr
-        vpHjygnwZOSUcmvGdjpgXZeSUTWP0jgjCaOvhgeTHCRTKpkOd+tjEFpxCDGjZ61a
-        wHWSzxHKKBCgd8v6ERgkUyaD7S6RaNVjZ6E49raiDqeGmTd1uQRVq8RzRy2HePiT
-        G+rSRfS8qP3QzAjw1pIeJU100Ihy6wmMhUhmNJlU93INziF5mg0VYbnSW/bRb7zL
-        tNVHI0jkgPDQvqPtf26TZAhIO1bBiWebEk9UUhzGtaNgFE6/k9NTpu7Z32zkvOFe
-        vu7lw0x2c24p5mkPedycrGOGkHsCAwEAAaNeMFwwHwYDVR0jBBgwFoAU2us7uV9T
-        ZvUaai/9XGPrjhRbKNswGgYDVR0RBBMwEYIJbG9jYWxob3N0hwR/AAABMB0GA1Ud
-        DgQWBBTa6zu5X1Nm9RpqL/1cY+uOFFso2zANBgkqhkiG9w0BAQsFAAOCAQEAWcrd
-        +6xY62Ctn+ijphaUOuH9GO1VCUjLRPwZc1/QfMLsss/UhJVITt7JhMMUjGcV5UyV
-        JbQwoA+vso2DUbfehTceCWOa7QXLnO7si+ujVn0/vlCLvOj7MSJeRwOD3+3b2MpV
-        AJImqfo4J7ovY4iYfKPLVO6l1B5N9Cw3F3ztcA3HfmtKS7pTA0H/TLxaJ8GVCQO+
-        d+StKXhM4dLC/uyvkPRQhXifMYJB5WM5G1X+kaiD30kZ5R0oEyWmaDrkuy2Xy0AP
-        4xCeTPYMHUQlqaUYYG4iNnMfdwJuBiTpEpxKN/zt1M+ycWXSyGSW/EkItxztO49v
-        kQjNgkCo/artraBjvQ==
-        -----END CERTIFICATE-----
+      object-endpoint: {{ .Values.api.endpoint }}
+      management-endpoint: {{ .Values.ecsConnection.endpoint }}
+      namespace: {{ .Values.namespace }}
+      replication-group: {{ .Values.replicationGroup }}
+      prefix: {{ .Values.prefix }}
+  {{- if .Values.certificate }}
+    certificate: {{ toYaml .Values.certificate | indent 6 }}
+  {{- end }}
     catalog:
       services:
       -
@@ -82,7 +65,7 @@ data:
               amount:
                 usd: 0.03
               unit: "PER GB PER MONTH"
-          name: default
+          name: unlimited
         service-settings:
           access-during-outage: true
           head-type: s3
