@@ -1,3 +1,4 @@
+{{ if not .Values.serviceCatalog }}
 ---
 broker:
   object-endpoint: "https://object.ecstestdrive.com"
@@ -136,3 +137,4 @@ security:
     password: somethingsecure
 spring:
   profiles: default
+{{ end }}

@@ -4,14 +4,25 @@
 
 replicaCount: 1
 
+namespace: "131118670375936839"
+prefix: "kubetesting-"
+replicationGroup: "ecstestdrivegeo"
+
+# Management SSL Custom CA Trust Certificate
+certificate: |-
+
+# ECS Object API
 api:
   name: ecs-broker
   namespace: default
+  endpoint: "https://object.ecstestdrive.com"
   username: admin
   password: ChangeMe
 
+# ECS Management Endpoint
 ecsConnection:
   name: ecs-broker-connection
+  endpoint: "https://portal.ecstestdrive.com"
   username: <MANAGEMENT_USER>
   password: <PASSWORD>
 
@@ -59,3 +70,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Indicates this should be registered as a ServiceCatalog Broker
+serviceCatalog: false
