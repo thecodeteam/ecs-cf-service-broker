@@ -57,14 +57,14 @@ public class EcsServiceInstanceServiceTest {
 
                         BeforeEach(() -> {
                             createReq = bucketCreateRequestFixture(params);
-                            when(ecs.createBucket(BUCKET_NAME, serviceDef, plan, params))
+                            when(ecs.createBucket(BUCKET_NAME, BUCKET_NAME, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.createServiceInstance(createReq);
                         });
 
                         It("should create the bucket", () ->
                                 verify(ecs, times(1))
-                                        .createBucket(BUCKET_NAME, serviceDef, plan, params));
+                                        .createBucket(BUCKET_NAME, BUCKET_NAME,  serviceDef, plan, params));
 
                         It("should save the service instance to the repo", () -> {
                             ArgumentCaptor<ServiceInstance> instCap =
@@ -122,7 +122,7 @@ public class EcsServiceInstanceServiceTest {
                             });
 
                             It("should not create a bucket", () -> verify(ecs, times(0))
-                                    .createBucket(any(), any(), any(), any()));
+                                    .createBucket(any(), any(), any(), any(), any()));
 
                             It("should save the original & remote service instances to the repo", () -> {
                                 ArgumentCaptor<ServiceInstance> instCap =

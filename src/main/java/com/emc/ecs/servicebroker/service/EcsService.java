@@ -76,40 +76,40 @@ public class EcsService {
         return b.getFsAccessEnabled();
     }
 
-    Map<String, Object> createBucket(String id, ServiceDefinitionProxy service,
+    Map<String, Object> createBucket(String id, String bucketName, ServiceDefinitionProxy service,
                                      PlanProxy plan, Map<String, Object> parameters) {
         if (parameters == null) parameters = new HashMap<>();
 
-        logger.debug(String.format("Creating bucket %s", id));
+        logger.info(String.format("Creating bucket %s", bucketName));
         try {
-            if (bucketExists(id)) {
+            if (bucketExists(bucketName)) {
                 throw new ServiceInstanceExistsException(id, service.getId());
             }
             parameters.putAll(plan.getServiceSettings());
             parameters.putAll(service.getServiceSettings());
 
-            BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
-                    broker.getNamespace(), replicationGroupID, parameters));
+            BucketAction.create(connection, new ObjectBucketCreate(prefix(bucketName),
+                broker.getNamespace(), replicationGroupID, parameters));
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 logger.info("Applying quota");
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(),  quota.get(LIMIT),  quota.get(WARN));
+                BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(),  quota.get(LIMIT),  quota.get(WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
                 logger.info("Applying retention policy");
                 BucketRetentionAction.update(connection, broker.getNamespace(),
-                        prefix(id), (int) parameters.get(DEFAULT_RETENTION));
+                    prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
             }
         } catch (Exception e) {
-            logger.error(String.format("Failed to create bucket %s", id), e);
+            logger.error(String.format("Failed to create bucket %s", bucketName), e);
             throw new ServiceBrokerException(e);
         }
         return parameters;
     }
 
-    Map<String, Object> changeBucketPlan(String id, ServiceDefinitionProxy service,
+    Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service,
                                          PlanProxy plan, Map<String, Object> parameters) {
         if (parameters == null) {
             parameters = new HashMap<>();
@@ -120,18 +120,18 @@ public class EcsService {
 
         @SuppressWarnings(UNCHECKED)
         Map<String, Object> quota = (Map<String, Object>) parameters
-                .getOrDefault(QUOTA, new HashMap<>());
+            .getOrDefault(QUOTA, new HashMap<>());
         int limit = (int) quota.getOrDefault(LIMIT, -1);
         int warn = (int) quota.getOrDefault(WARN, -1);
 
         try {
             if (limit == -1 && warn == -1) {
                 parameters.remove(QUOTA);
-                BucketQuotaAction.delete(connection, prefix(id),
-                        broker.getNamespace());
+                BucketQuotaAction.delete(connection, prefix(bucketName),
+                    broker.getNamespace());
             } else {
-                BucketQuotaAction.create(connection, prefix(id),
-                        broker.getNamespace(), limit, warn);
+                BucketQuotaAction.create(connection, prefix(bucketName),
+                    broker.getNamespace(), limit, warn);
             }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e);
@@ -139,9 +139,9 @@ public class EcsService {
         return parameters;
     }
 
-    private boolean bucketExists(String id) throws EcsManagementClientException {
-        return BucketAction.exists(connection, prefix(id),
-                broker.getNamespace());
+    private boolean bucketExists(String bucketName) throws EcsManagementClientException {
+        return BucketAction.exists(connection, prefix(bucketName),
+            broker.getNamespace());
     }
 
     UserSecretKey createUser(String id) {
@@ -320,7 +320,7 @@ public class EcsService {
                 plan = service.findPlan(broker.getRepositoryPlanId());
             }
             Map<String, Object> parameters = new HashMap<>();
-            createBucket(bucketName, service, plan, parameters);
+            createBucket("repository", bucketName, service, plan, parameters);
         }
 
         if (!userExists(userName)) {

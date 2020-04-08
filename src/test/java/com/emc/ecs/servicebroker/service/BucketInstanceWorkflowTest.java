@@ -106,7 +106,7 @@ public class BucketInstanceWorkflowTest {
 
             Context("#create", () -> {
                 BeforeEach(() -> {
-                    when(ecs.createBucket(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                    when(ecs.createBucket(BUCKET_NAME, BUCKET_NAME,  serviceProxy, planProxy, parameters))
                             .thenReturn(new HashMap<>());
                     workflow.withCreateRequest(bucketCreateRequestFixture(parameters));
                 });
@@ -114,7 +114,7 @@ public class BucketInstanceWorkflowTest {
                 It("should create the bucket", () -> {
                     workflow.create(BUCKET_NAME, serviceProxy, planProxy, parameters);
                     verify(ecs, times(1))
-                            .createBucket(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                            .createBucket(BUCKET_NAME, BUCKET_NAME, serviceProxy, planProxy, parameters);
                 });
 
                 It("should return the service instance", () -> {
