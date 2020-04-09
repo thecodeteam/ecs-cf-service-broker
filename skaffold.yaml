@@ -1,0 +1,16 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+build:
+  artifacts:
+    - image: ecs-service-broker
+deploy:
+  helm:
+    releases:
+      - name: ecs-service-broker-helm
+        chartPath: charts
+        values:
+          image: ecs-service-broker
+        wait: false
+        recreatePods: true
+        imageStrategy:
+          helm: {}
