@@ -63,16 +63,16 @@ public class EcsService {
         }
     }
 
-    void deleteBucket(String id) {
+    void deleteBucket(String bucketName) {
         try {
-            BucketAction.delete(connection, prefix(id), broker.getNamespace());
+            BucketAction.delete(connection, prefix(bucketName), broker.getNamespace());
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }
     }
 
-    Boolean getBucketFileEnabled(String id) throws EcsManagementClientException {
-        ObjectBucketInfo b = BucketAction.get(connection, prefix(id), broker.getNamespace());
+    Boolean getBucketFileEnabled(String bucketName) throws EcsManagementClientException {
+        ObjectBucketInfo b = BucketAction.get(connection, prefix(bucketName), broker.getNamespace());
         return b.getFsAccessEnabled();
     }
 
