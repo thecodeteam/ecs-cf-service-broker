@@ -22,6 +22,7 @@ import java.util.Map;
 import static com.emc.ecs.common.Fixtures.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -263,7 +264,7 @@ public class BucketBindingWorkflowTest {
                                         .createUser(eq(BINDING_ID));
                                 verify(ecs, times(1))
                                         .addExportToBucket(eq(SERVICE_INSTANCE_ID), pathCaptor.capture());
-                                assertEquals(pathCaptor.getValue(), "");
+                                assertNull(pathCaptor.getValue());
                             });
 
                             It("should delete the NFS export", () -> {

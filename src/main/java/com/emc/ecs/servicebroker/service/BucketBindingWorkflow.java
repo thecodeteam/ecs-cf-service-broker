@@ -23,7 +23,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final String VOLUME_DRIVER = "nfsv3driver";
     private static final String DEFAULT_MOUNT = "/var/vcap/data";
     private static final String MOUNT = "mount";
-    private List<VolumeMount> volumeMounts;
+    private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
     private static final Logger LOG =
             LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 

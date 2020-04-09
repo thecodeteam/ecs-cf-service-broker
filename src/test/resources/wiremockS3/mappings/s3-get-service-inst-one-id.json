@@ -20,6 +20,6 @@
 			"Content-Encoding": "identity",
 			"Content-Type": "application/octet-stream"
 		},
-		"body": "{\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"IN_PROGRESS\",\"delete_operation\":false}}" 
+		"body": "{\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"in progress\",\"delete_operation\":false}}"
     }
 }
