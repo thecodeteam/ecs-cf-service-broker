@@ -21,6 +21,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     String instanceId;
     String bindingId;
     CreateServiceInstanceBindingRequest createRequest;
+    String username;
 
     BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         this.instanceRepository = instanceRepo;
@@ -63,9 +64,21 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
             throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
 
-        credentials.put("accessKey", ecs.prefix(bindingId));
+        credentials.put("accessKey", ecs.prefix(getUserName()));
         credentials.put("secretKey", secretKey);
 
         return credentials;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    protected String getUserName() {
+        if (username == null) {
+            username = new ServiceInstanceBinding(createRequest).getName();
+        }
+
+        return username;
     }
 }

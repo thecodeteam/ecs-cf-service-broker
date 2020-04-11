@@ -20,4 +20,5 @@ public interface BindingWorkflow {
             throws IOException, EcsManagementClientException;
     ServiceInstanceBinding getBinding(Map<String, Object> credentials);
     CreateServiceInstanceAppBindingResponse getResponse(Map<String, Object> credentials);
+    void setUsername(String name);
 }

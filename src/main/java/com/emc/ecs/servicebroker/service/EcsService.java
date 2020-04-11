@@ -156,34 +156,34 @@ public class EcsService {
         }
     }
 
-    UserSecretKey createUser(String id, String namespace)
+    UserSecretKey createUser(String username, String namespace)
             throws EcsManagementClientException {
-        ObjectUserAction.create(connection, prefix(id), prefix(namespace));
-        ObjectUserSecretAction.create(connection, prefix(id));
-        return ObjectUserSecretAction.list(connection, prefix(id)).get(0);
+        ObjectUserAction.create(connection, prefix(username), prefix(namespace));
+        ObjectUserSecretAction.create(connection, prefix(username));
+        return ObjectUserSecretAction.list(connection, prefix(username)).get(0);
     }
 
-    void createUserMap(String id, int uid)
+    void createUserMap(String username, int uid)
             throws EcsManagementClientException {
-        ObjectUserMapAction.create(connection, prefix(id), uid, broker.getNamespace());
+        ObjectUserMapAction.create(connection, prefix(username), uid, broker.getNamespace());
     }
 
-    void deleteUserMap(String id, String uid)
+    void deleteUserMap(String username, String uid)
             throws EcsManagementClientException {
-        ObjectUserMapAction.delete(connection, prefix(id), uid, broker.getNamespace());
+        ObjectUserMapAction.delete(connection, prefix(username), uid, broker.getNamespace());
     }
 
-    Boolean userExists(String id) throws ServiceBrokerException {
+    Boolean userExists(String userId) throws ServiceBrokerException {
         try {
-            return ObjectUserAction.exists(connection, prefix(id),
+            return ObjectUserAction.exists(connection, prefix(userId),
                     broker.getNamespace());
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }
     }
 
-    void deleteUser(String id) throws EcsManagementClientException {
-        ObjectUserAction.delete(connection, prefix(id));
+    void deleteUser(String userId) throws EcsManagementClientException {
+        ObjectUserAction.delete(connection, prefix(userId));
     }
 
     void addUserToBucket(String id, String username) {

@@ -72,6 +72,7 @@ public class EcsServiceInstanceBindingService
 
             return Mono.just(workflow.getResponse(credentials));
         } catch (IOException | JAXBException | EcsManagementClientException e) {
+            LOG.error("Error ", e);
             throw new ServiceBrokerException(e);
         }
     }
@@ -87,6 +88,7 @@ public class EcsServiceInstanceBindingService
 
             LOG.info("looking up binding: " + bindingId);
             ServiceInstanceBinding binding = repository.find(bindingId);
+            workflow.setUsername(binding.getName());
             if (binding == null)
                 throw new ServiceInstanceBindingDoesNotExistException(bindingId);
             LOG.info("binding found: " + bindingId);

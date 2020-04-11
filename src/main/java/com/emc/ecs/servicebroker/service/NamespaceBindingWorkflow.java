@@ -21,7 +21,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(bindingId))
+        if (ecs.userExists(getUserName()))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
@@ -35,12 +35,12 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
             instance.setName(instance.getServiceInstanceId());
         String namespaceName = instance.getName();
 
-        return ecs.createUser(bindingId, namespaceName).getSecretKey();
+        return ecs.createUser(getUserName(), namespaceName).getSecretKey();
     }
 
     @Override
     public void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException {
-        ecs.deleteUser(bindingId);
+        ecs.deleteUser(getUserName());
     }
 
     @Override

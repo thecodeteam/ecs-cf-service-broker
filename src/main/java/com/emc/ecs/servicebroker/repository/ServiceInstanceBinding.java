@@ -13,6 +13,11 @@ import java.util.Map;
 @SuppressWarnings("unused")
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBinding {
+    private static String NAME_PARAM = "name";
+
+    @JsonSerialize
+    @JsonProperty("name")
+    private String name;
 
     @JsonSerialize
     @JsonProperty("binding_id")
@@ -50,8 +55,27 @@ public class ServiceInstanceBinding {
         super();
         this.serviceDefinitionId = request.getServiceDefinitionId();
         this.planId = request.getPlanId();
+        this.bindingId = request.getBindingId();
         this.bindResource = request.getBindResource();
         this.parameters = request.getParameters();
+        this.name = getName();
+    }
+
+    // Handle old serialized instances without a name
+    public String getName() {
+        if (name != null) {
+            return name;
+        }
+
+        if (parameters != null && parameters.containsKey(NAME_PARAM)) {
+            return parameters.get(NAME_PARAM).toString() + "-" + bindingId;
+        } else {
+            return getBindingId();
+        }
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public BindResource getBindResource() {
