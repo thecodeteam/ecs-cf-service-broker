@@ -215,7 +215,7 @@ public class Fixtures {
     public static UpdateServiceInstanceRequest bucketUpdateRequestFixture(
             Map<String, Object> params) {
         return UpdateServiceInstanceRequest.builder()
-                .serviceInstanceId(BUCKET_SERVICE_ID)
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
                 .parameters(params)
                 .serviceInstanceId(BUCKET_NAME)
@@ -245,6 +245,7 @@ public class Fixtures {
                 .build();
         return CreateServiceInstanceBindingRequest.builder()
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
                 .serviceInstanceId(SERVICE_INSTANCE_ID)
                 .bindingId(BINDING_ID)
                 .bindResource(bindResource)
@@ -430,7 +431,7 @@ public class Fixtures {
 
     public static DeleteServiceInstanceBindingRequest namespaceBindingRemoveFixture() {
         return DeleteServiceInstanceBindingRequest.builder()
-                .serviceInstanceId(NAMESPACE_SERVICE_ID)
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .bindingId(BINDING_ID)
                 .serviceInstanceId(NAMESPACE)
@@ -440,8 +441,8 @@ public class Fixtures {
     public static DeleteServiceInstanceBindingRequest bucketBindingRemoveFixture() {
         return DeleteServiceInstanceBindingRequest.builder()
                 .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .bindingId(BINDING_ID)
-                .serviceInstanceId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
                 .build();
     }

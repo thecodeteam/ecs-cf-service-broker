@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -8,7 +9,6 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingE
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,17 +16,17 @@ import java.util.Map;
 
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
-    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
+    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs, ServiceDefinitionProxy service) {
         super(instanceRepo, ecs);
     }
 
-    public void checkIfUserExists() throws EcsManagementClientException, IOException {
+    public void checkIfUserExists() {
         if (ecs.userExists(bindingId))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
     @Override
-    public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
+    public String createBindingUser() throws EcsManagementClientException, IOException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
@@ -57,8 +57,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
         // Get custom endpoint for namespace
-        String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), service, plan,
-                createRequest.getParameters());
+        String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
         credentials.put("endpoint", endpoint);
 
         // Add s3 URL

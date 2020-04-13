@@ -1,13 +1,13 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
-import com.emc.ecs.management.sdk.*;
-import com.emc.ecs.management.sdk.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1008,7 +1008,9 @@ public class EcsServiceTest {
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
 
         String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, new HashMap<>()));
+        Map<String, Object> serviceSettings = plan.getServiceSettings();
+        serviceSettings.putAll(service.getServiceSettings());
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, Collections.emptyMap(), serviceSettings));
     }
 
     /**
@@ -1021,17 +1023,17 @@ public class EcsServiceTest {
     public void testNamespaceURLSSLDefaultBaseURL()
             throws EcsManagementClientException {
         ServiceDefinitionProxy service = namespaceServiceFixture();
+        PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
         Map<String, Object> serviceSettings = service.getServiceSettings();
+        serviceSettings.putAll(plan.getServiceSettings());
         serviceSettings.put(USE_SSL, true);
         service.setServiceSettings(serviceSettings);
-
-        PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
 
         when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
         String expectedUrl = new StringBuilder().append(HTTPS).append(NAMESPACE)
                 .append(DOT).append(BASE_URL).append(_9021).toString();
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, new HashMap<>()));
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, Collections.emptyMap(), serviceSettings));
     }
 
     /**
@@ -1047,11 +1049,13 @@ public class EcsServiceTest {
         params.put(BASE_URL, BASE_URL_NAME);
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+        Map<String, Object> serviceSettings = plan.getServiceSettings();
+        serviceSettings.putAll(service.getServiceSettings());
 
         setupBaseUrlTest(BASE_URL_NAME, true);
 
         String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, service, plan, params));
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, params, serviceSettings));
     }
 
     /**
@@ -1070,11 +1074,13 @@ public class EcsServiceTest {
         serviceSettings.put(USE_SSL, true);
         service.setServiceSettings(serviceSettings);
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+        serviceSettings.putAll(serviceSettings);
+        serviceSettings.put(USE_SSL, true);
 
         setupBaseUrlTest(BASE_URL_NAME, true);
 
         String expectedURl = HTTPS + NAMESPACE + DOT + BASE_URL + _9021;
-        assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, service, plan, params));
+        assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, params, serviceSettings));
     }
 
     /**

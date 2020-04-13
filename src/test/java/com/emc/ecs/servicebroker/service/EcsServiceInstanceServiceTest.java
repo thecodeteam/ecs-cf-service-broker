@@ -11,6 +11,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -347,14 +348,14 @@ public class EcsServiceInstanceServiceTest {
 
                     Context("with null params", () -> {
                         BeforeEach(() -> {
-                            when(ecs.createNamespace(NAMESPACE, serviceDef, plan, null))
+                            when(ecs.createNamespace(NAMESPACE, serviceDef, plan, Collections.emptyMap()))
                                     .thenReturn(settings);
                             instSvc.createServiceInstance(namespaceCreateRequestFixture());
                         });
 
                         It("should create the namespace", () ->
                                 verify(ecs, times(1))
-                                        .createNamespace(NAMESPACE, serviceDef, plan, null));
+                                        .createNamespace(NAMESPACE, serviceDef, plan, Collections.emptyMap()));
 
 
                         It("should save the instance to the repository", () -> {
