@@ -1,9 +1,10 @@
-# ECS Cloud Foundry Service Broker
+# ECS Open Service Broker
 [![Build Status](https://persi.ci.cf-app.com/api/v1/pipelines/persi/jobs/ecs-broker-unit/badge)](https://persi.ci.cf-app.com/teams/main/pipelines/persi/jobs/ecs-broker-unit) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
 ## Description
 
-This service broker enables Cloud Foundry applications to create, delete and
-modify EMC [ECS](http://emc.com/ecs) (Elastic Cloud Storage) object storage buckets & namespaces; and bind multiple applications to the same resources.
+This service broker enables Kubernetes & Cloud Foundry applications to create,
+delete and modify EMC [ECS](http://emc.com/ecs) (Elastic Cloud Storage) object
+storage buckets & namespaces; and bind multiple applications to the same resources.
 
 ## Features
 
@@ -25,7 +26,7 @@ including:
 
 ## Build
 
-To build, make sure that you have a Java 8 runtime environment, and use Gradle.
+To build, make sure you have a Java 8 runtime environment, and use Gradle.
 
 ```
 # The ecs-simulator starts automatically when the test-suite is run
@@ -88,9 +89,14 @@ into the `src/main/resources` directory.
 Follow the [documentation](http://docs.cloudfoundry.org/services/managing-service-brokers.html) to register the broker
 to Cloud Foundry.
 
-### End-user Broker Usage
+#### Install using the PCF Tile
 
-CLoud Foundry end-users can create and bind services to their applications using the `cf` CLI application.
+Download the [ECS Service Broker tile from Tanzu Network](https://network.pivotal.io/products/ecs-service-broker/), and
+and follow the [installation instructions](https://docs.pivotal.io/partners/ecs-service-broker/installing.html) found there.
+
+#### End-user Broker Usage
+
+Cloud Foundry end-users can create and bind services to their applications using the `cf` CLI application.
 
 ```
 cf create-service ecs-bucket unlimited my_bucket
@@ -120,6 +126,9 @@ Valid permissions include:
  * privileged_write
  * delete
  * none
+
+More detailed instrucitons for using the broker in Cloud Foundry can be found in the
+[Tanzu Network ECS broker documentation](https://docs.pivotal.io/partners/ecs-service-broker/using.html).
 
 ### Broker Catalog and Plan Configuration
 

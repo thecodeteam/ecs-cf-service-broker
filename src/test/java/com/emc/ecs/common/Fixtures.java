@@ -357,22 +357,20 @@ public class Fixtures {
     }
 
     public static ServiceInstanceBinding bindingInstanceFixture() {
-        Map<String, Object> creds = Map.of(
-                "accessKey", "user",
-                "bucket", "bucket",
-                "secretKey", "password",
-                "endpoint", OBJ_ENDPOINT
-        );
-        Map<String, Object> params = Map.of(
-                "number", 1234,
-                "flag", true,
-                "text", "abcdefg",
-                "nested", Map.of(
-                        "text2", "zyxwvu",
-                        "flag2", true,
-                        "number2", 9876
-                )
-        );
+        Map<String, Object> creds = new HashMap<>();
+        creds.put("accessKey", "user");
+        creds.put("bucket", "bucket");
+        creds.put("secretKey", "password");
+        creds.put("endpoint", OBJ_ENDPOINT);
+        Map<String, Object> nested = new HashMap<>();
+        nested.put("text2", "zyxwvu");
+        nested.put("flag2", true);
+        nested.put("number2", 9876);
+        Map<String, Object> params = new HashMap<>();
+        params.put("number", 1234);
+        params.put("flag", true);
+        params.put("text", "abcdefg");
+        params.put("nested", nested);
         BindResource bindResource = BindResource.builder()
                 .appGuid("app-guid")
                 .build();
@@ -412,11 +410,10 @@ public class Fixtures {
     }
 
     public static ServiceInstanceBinding bindingRemoteAccessFixture() {
-        Map<String, Object> creds = Map.of(
-                "accessKey", "user",
-                "instanceId", "bucket",
-                "secretKey", "password"
-        );
+        Map<String, Object> creds = new HashMap<>();
+        creds.put("accessKey", "user");
+        creds.put("instanceId", "bucket");
+        creds.put("secretKey", "password");
         CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder()
                 .bindingId("service-inst-bind-one-id")
                 .planId("plan-one-id")
