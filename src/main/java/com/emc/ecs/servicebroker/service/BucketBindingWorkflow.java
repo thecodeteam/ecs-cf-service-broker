@@ -32,13 +32,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(getUserName()))
+        if (ecs.userExists(binding.getName()))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
-        UserSecretKey userSecretKey = ecs.createUser(getUserName());
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName());
 
         Map<String, Object> parameters = createRequest.getParameters();
         ServiceInstance instance = instanceRepository.find(instanceId);
@@ -57,9 +57,9 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (permissions == null) {
-            ecs.addUserToBucket(bucketName, getUserName());
+            ecs.addUserToBucket(bucketName, binding.getName());
         } else {
-            ecs.addUserToBucket(bucketName, getUserName(), permissions);
+            ecs.addUserToBucket(bucketName, binding.getName(), permissions);
         }
 
         if (ecs.getBucketFileEnabled(bucketName)) {
@@ -71,7 +71,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding)
+    public void removeBinding()
             throws EcsManagementClientException, IOException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
@@ -90,14 +90,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             LOG.error("Deleting user map of instance Id and Binding Id " +
                     bucketName + " " + bindingId);
             try {
-                ecs.deleteUserMap(getUserName(), unixId);
+                ecs.deleteUserMap(binding.getName(), unixId);
             } catch (EcsManagementClientException e) {
                 LOG.error("Error deleting user map: " + e.getMessage());
             }
         }
 
-        ecs.removeUserFromBucket(bucketName, getUserName());
-        ecs.deleteUser(getUserName());
+        ecs.removeUserFromBucket(bucketName, binding.getName());
+        ecs.deleteUser(binding.getName());
     }
 
     @Override
@@ -177,7 +177,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         int unixUid = (int) (2000 + System.currentTimeMillis() % 8000);
         while (true) {
             try {
-                ecs.createUserMap(getUserName(), unixUid);
+                ecs.createUserMap(binding.getName(), unixUid);
                 break;
             } catch (EcsManagementClientException e) {
                 if (e.getMessage().contains("Bad request body (1013)")) {

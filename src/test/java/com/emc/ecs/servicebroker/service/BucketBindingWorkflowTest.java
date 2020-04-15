@@ -82,7 +82,8 @@ public class BucketBindingWorkflowTest {
 
                     It("should throw a service-does-not-exist exception on removeBinding", () -> {
                         try {
-                            workflow.removeBinding(bindingInstanceFixture());
+                            workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceFixture());
+                            workflow.removeBinding();
                         } catch (ServiceInstanceDoesNotExistException e) {
                             assert e.getClass().equals(ServiceInstanceDoesNotExistException.class);
                         }
@@ -147,15 +148,19 @@ public class BucketBindingWorkflowTest {
                         });
 
                         It("should delete the user", () -> {
-                            workflow.removeBinding(bindingInstanceFixture());
+                            ServiceInstanceBinding existingBinding = bindingInstanceFixture();
+                            workflow.withDeleteRequest(bucketBindingRemoveFixture(), existingBinding);
+                            workflow.removeBinding();
                             verify(ecs, times(1))
-                                    .deleteUser(BINDING_ID);
+                                    .deleteUser(existingBinding.getName());
                         });
 
                         It("should remove the user from a bucket", () -> {
-                            workflow.removeBinding(bindingInstanceFixture());
+                            ServiceInstanceBinding existingBinding = bindingInstanceFixture();
+                            workflow.withDeleteRequest(bucketBindingRemoveFixture(), existingBinding);
+                            workflow.removeBinding();
                             verify(ecs, times(1))
-                                    .removeUserFromBucket(SERVICE_INSTANCE_ID, BINDING_ID);
+                                    .removeUserFromBucket(SERVICE_INSTANCE_ID, existingBinding.getName());
                         });
 
 
@@ -269,11 +274,14 @@ public class BucketBindingWorkflowTest {
                             });
 
                             It("should delete the NFS export", () -> {
-                                workflow.removeBinding(bindingInstanceVolumeMountFixture());
+                                ServiceInstanceBinding existingBinding = bindingInstanceVolumeMountFixture();
+                                workflow.withDeleteRequest(bucketBindingRemoveFixture(), existingBinding);
+                                workflow.removeBinding();
+
                                 verify(ecs, times(1))
-                                        .deleteUser(BINDING_ID);
+                                        .deleteUser(existingBinding.getName());
                                 verify(ecs, times(1))
-                                        .deleteUserMap(eq(BINDING_ID), eq("456"));
+                                        .deleteUserMap(eq(existingBinding.getName()), eq("456"));
                             });
 
                             It("should return a binding mount", () -> {

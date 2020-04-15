@@ -36,12 +36,12 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
             instance.setName(instance.getServiceInstanceId());
         String namespaceName = instance.getName();
 
-        return ecs.createUser(getUserName(), namespaceName).getSecretKey();
+        return ecs.createUser(binding.getName(), namespaceName).getSecretKey();
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException {
-        ecs.deleteUser(getUserName());
+    public void removeBinding() throws EcsManagementClientException {
+        ecs.deleteUser(binding.getName());
     }
 
     @Override

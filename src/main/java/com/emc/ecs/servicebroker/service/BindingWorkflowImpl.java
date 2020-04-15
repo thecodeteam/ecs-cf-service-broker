@@ -10,6 +10,7 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     String instanceId;
     String bindingId;
     CreateServiceInstanceBindingRequest createRequest;
-    String username;
+    ServiceInstanceBinding binding;
 
     BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         this.instanceRepository = instanceRepo;
@@ -33,12 +34,14 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
         this.instanceId = request.getServiceInstanceId();
         this.bindingId = request.getBindingId();
         this.createRequest = request;
+        this.binding = new ServiceInstanceBinding(createRequest);
         return(this);
     }
 
-    public BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request) {
+    public BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request, ServiceInstanceBinding existingBinding) {
         this.instanceId = request.getServiceInstanceId();
         this.bindingId = request.getBindingId();
+        this.binding = existingBinding;
         return(this);
     }
 
@@ -47,8 +50,6 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     }
 
     public ServiceInstanceBinding getBinding(Map<String, Object> credentials) {
-        ServiceInstanceBinding binding = new ServiceInstanceBinding(createRequest);
-        binding.setBindingId(bindingId);
         binding.setCredentials(credentials);
         return binding;
     }
@@ -65,21 +66,9 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
             throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
 
-        credentials.put("accessKey", ecs.prefix(getUserName()));
+        credentials.put("accessKey", ecs.prefix(binding.getName()));
         credentials.put("secretKey", secretKey);
 
         return credentials;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    protected String getUserName() {
-        if (username == null) {
-            username = new ServiceInstanceBinding(createRequest).getName();
-        }
-
-        return username;
     }
 }
