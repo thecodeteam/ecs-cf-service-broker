@@ -12,7 +12,7 @@ data:
       replication-group: {{ .Values.replicationGroup }}
       prefix: {{ .Values.prefix }}
   {{- if .Values.certificate }}
-    certificate: {{ toYaml .Values.certificate | indent 6 }}
+      certificate: {{ toYaml .Values.certificate | indent 6 }}
   {{- end }}
     catalog:
       services:
