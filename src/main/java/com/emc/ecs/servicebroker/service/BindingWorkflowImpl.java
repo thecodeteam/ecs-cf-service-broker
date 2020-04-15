@@ -25,7 +25,6 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         this.instanceRepository = instanceRepo;
         this.ecs = ecs;
-        this.service = service;
     }
 
     public BindingWorkflow withCreateRequest(CreateServiceInstanceBindingRequest request) {
