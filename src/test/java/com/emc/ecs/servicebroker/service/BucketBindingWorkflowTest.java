@@ -1,8 +1,8 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
-import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
 import org.assertj.core.util.Lists;
 import org.junit.runner.RunWith;
@@ -23,7 +23,6 @@ import static com.emc.ecs.common.Fixtures.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mock;
 

@@ -20,12 +20,12 @@ public class BucketInstanceWorkflowTest {
 
     private EcsService ecs;
     private ServiceInstanceRepository instanceRepo;
-    private Map<String, Object> parameters = new HashMap<>();
     private InstanceWorkflow workflow;
-    private ServiceDefinitionProxy serviceProxy = new ServiceDefinitionProxy();
-    private PlanProxy planProxy = new PlanProxy();
-    private ServiceInstance bucketInstance = serviceInstanceFixture();
-    private ArgumentCaptor<ServiceInstance> instCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
+    private final Map<String, Object> parameters = new HashMap<>();
+    private final ServiceDefinitionProxy serviceProxy = new ServiceDefinitionProxy();
+    private final PlanProxy planProxy = new PlanProxy();
+    private final ServiceInstance bucketInstance = serviceInstanceFixture();
+    private final ArgumentCaptor<ServiceInstance> instCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
 
     {
         Describe("BucketInstanceWorkflow", () -> {
@@ -36,10 +36,8 @@ public class BucketInstanceWorkflowTest {
             });
 
             Context("#changePlan", () -> {
-                BeforeEach(() -> {
-                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
-                            .thenReturn(new HashMap<>());
-                });
+                BeforeEach(() -> when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                        .thenReturn(new HashMap<>()));
 
                 It("should change the plan", () -> {
                     workflow.changePlan(BUCKET_NAME, serviceProxy, planProxy, parameters);
@@ -50,10 +48,8 @@ public class BucketInstanceWorkflowTest {
 
             Context("#delete", () -> {
 
-                BeforeEach(() -> {
-                    doNothing().when(instanceRepo)
-                            .save(any(ServiceInstance.class));
-                });
+                BeforeEach(() -> doNothing().when(instanceRepo)
+                        .save(any(ServiceInstance.class)));
 
                 Context("with multiple references", () -> {
                     BeforeEach(() -> {
@@ -69,7 +65,7 @@ public class BucketInstanceWorkflowTest {
                     });
 
                     Context("the bucket is included in references", () -> {
-                        It("should not delete the bucket" ,() -> {
+                        It("should not delete the bucket", () -> {
                             workflow.delete(BUCKET_NAME);
                             verify(ecs, times(0))
                                     .deleteBucket(BUCKET_NAME);
@@ -81,7 +77,7 @@ public class BucketInstanceWorkflowTest {
                                     .save(instCaptor.capture());
                             ServiceInstance savedInst = instCaptor.getValue();
                             assertEquals(1, savedInst.getReferenceCount());
-                            assert(savedInst.getReferences().contains(BUCKET_NAME + "2"));
+                            assert (savedInst.getReferences().contains(BUCKET_NAME + "2"));
                         });
                     });
 

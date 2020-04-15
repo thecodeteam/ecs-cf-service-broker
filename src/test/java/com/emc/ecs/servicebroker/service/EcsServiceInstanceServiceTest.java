@@ -18,24 +18,24 @@ import java.util.Map;
 import static com.emc.ecs.common.Fixtures.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(Ginkgo4jRunner.class)
 public class EcsServiceInstanceServiceTest {
 
-    private EcsService ecs = mock(EcsService.class);
-    private ServiceInstanceRepository repo = mock(ServiceInstanceRepository.class);
     private EcsServiceInstanceService instSvc;
     private ServiceDefinitionProxy serviceDef;
     private PlanProxy plan;
-    private Map<String, Object> params = new HashMap<>();
     private CreateServiceInstanceRequest createReq;
     private Map<String, Object> settings;
 
-    public static final String BASIC_SERVICE = "basic service";
+    private final EcsService ecs = mock(EcsService.class);
+    private final Map<String, Object> params = new HashMap<>();
+    private final ServiceInstanceRepository repo = mock(ServiceInstanceRepository.class);
 
+    public static final String BASIC_SERVICE = "basic service";
     public static final String WITH_REMOTE_CONNECTION = "with remote connection";
 
     {
