@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.repository;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.cloud.servicebroker.model.instance.*;
@@ -10,6 +11,7 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 
 @SuppressWarnings("unused")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
     private static String NAME_PARAMETER = "name";
@@ -26,20 +28,32 @@ public class ServiceInstance {
     @JsonProperty("plan_id")
     private String planId;
 
+    /**
+     * remains in the model for marshalling support but test harnesses should not use
+     */
     @JsonSerialize
     @JsonProperty("organization_guid")
+    @Deprecated
     private String organizationGuid;
 
+    /**
+     * remains in the model for marshalling support but test harnesses should not use
+     */
     @JsonSerialize
     @JsonProperty("space_guid")
+    @Deprecated
     private String spaceGuid;
 
     @JsonSerialize
     @JsonProperty("dashboard_url")
     private String dashboardUrl;
 
+    /**
+     * remains in the model for marshalling support but test harnesses should not use
+     */
     @JsonSerialize
     @JsonProperty("last_operation")
+    @Deprecated
     private LastOperationSerializer lastOperation;
 
     @JsonSerialize
@@ -69,8 +83,6 @@ public class ServiceInstance {
         super();
         serviceDefinitionId = request.getServiceDefinitionId();
         planId = request.getPlanId();
-        organizationGuid = request.getOrganizationGuid();
-        spaceGuid = request.getSpaceGuid();
         serviceInstanceId = request.getServiceInstanceId();
 
         // name is set on 1st create only, not by connecting remotely

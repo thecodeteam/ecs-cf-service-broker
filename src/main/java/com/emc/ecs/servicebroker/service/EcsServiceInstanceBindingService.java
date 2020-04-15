@@ -1,7 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.EcsManagementClientException;
-import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingDoesNotExistException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
@@ -22,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Map;
 
 @Service
@@ -44,16 +41,12 @@ public class EcsServiceInstanceBindingService
     @Autowired
     private ServiceInstanceRepository instanceRepo;
 
-    public EcsServiceInstanceBindingService()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException, URISyntaxException {
+    public EcsServiceInstanceBindingService() {
         super();
     }
 
     @Override
-    public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request)
-            throws ServiceInstanceBindingExistsException,
-            ServiceBrokerException {
+    public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request) throws ServiceBrokerException {
         try {
             BindingWorkflow workflow = getWorkflow(request);
 
@@ -129,12 +122,11 @@ public class EcsServiceInstanceBindingService
         return getWorkflow(service).withCreateRequest(createRequest);
     }
 
-    private BindingWorkflow getWorkflow(ServiceDefinitionProxy service)
-            throws IOException, EcsManagementClientException {
+    private BindingWorkflow getWorkflow(ServiceDefinitionProxy service) throws IOException {
         String serviceType = (String) service.getServiceSettings().get(SERVICE_TYPE);
         switch (serviceType) {
             case NAMESPACE:
-                return new NamespaceBindingWorkflow(instanceRepo, ecs);
+                return new NamespaceBindingWorkflow(instanceRepo, ecs, service);
             case BUCKET:
                 return new BucketBindingWorkflow(instanceRepo, ecs);
             default:
@@ -142,8 +134,7 @@ public class EcsServiceInstanceBindingService
         }
     }
 
-    private boolean isRemoteConnectBinding(DeleteServiceInstanceBindingRequest deleteRequest)
-            throws EcsManagementClientException, IOException {
+    private boolean isRemoteConnectBinding(DeleteServiceInstanceBindingRequest deleteRequest) throws IOException {
         String bindingId = deleteRequest.getBindingId();
         ServiceInstanceBinding binding = repository.find(bindingId);
         if (binding == null)

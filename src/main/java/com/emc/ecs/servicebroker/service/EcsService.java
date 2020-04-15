@@ -1,12 +1,12 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
-import com.emc.ecs.management.sdk.*;
-import com.emc.ecs.management.sdk.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +85,9 @@ public class EcsService {
             if (bucketExists(bucketName)) {
                 throw new ServiceInstanceExistsException(id, service.getId());
             }
+            // merge serviceSettings into parameters, overwriting parameter values
+            // with service/plan serviceSettings, since serviceSettings are forced
+            // by administrator through the catalog.
             parameters.putAll(plan.getServiceSettings());
             parameters.putAll(service.getServiceSettings());
 
@@ -94,7 +97,7 @@ public class EcsService {
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 logger.info("Applying quota");
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(),  quota.get(LIMIT),  quota.get(WARN));
+                BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(),  quota.get(LIMIT),  quota.get(WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
@@ -114,13 +117,15 @@ public class EcsService {
         if (parameters == null) {
             parameters = new HashMap<>();
         }
-
+        // merge serviceSettings into parameters, overwriting parameter values
+        // with service/plan serviceSettings, since serviceSettings are forced
+        // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
 
         @SuppressWarnings(UNCHECKED)
         Map<String, Object> quota = (Map<String, Object>) parameters
-            .getOrDefault(QUOTA, new HashMap<>());
+                .getOrDefault(QUOTA, new HashMap<>());
         int limit = (int) quota.getOrDefault(LIMIT, -1);
         int warn = (int) quota.getOrDefault(WARN, -1);
 
@@ -212,8 +217,8 @@ public class EcsService {
                     new BucketPolicyStatement("DefaultAllowTotalAccess",
                             new BucketPolicyEffect("Allow"),
                             new BucketPolicyPrincipal(prefix(username)),
-                            new BucketPolicyActions(Arrays.asList("s3:*")),
-                            new BucketPolicyResource(Arrays.asList(prefix(id)))
+                            new BucketPolicyActions(Collections.singletonList("s3:*")),
+                            new BucketPolicyResource(Collections.singletonList(prefix(id)))
                     )
             );
             BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
@@ -262,11 +267,17 @@ public class EcsService {
             broker.setRepositoryEndpoint(objectEndpoint);
     }
 
-    String getNamespaceURL(String namespace, ServiceDefinitionProxy service,
-                           PlanProxy plan, Map<String, Object> parameters) {
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
-
+    String getNamespaceURL(String namespace, Map<String, Object> parametersAbstract, Map<String, Object> serviceSettings) {
+        HashMap<String, Object> parameters =
+                (parametersAbstract instanceof HashMap)
+                        ? (HashMap) parametersAbstract
+                        : new HashMap<>(parametersAbstract);
+        if (serviceSettings != null) {
+            // merge serviceSettings into parameters, overwriting parameter values
+            // with serviceSettings, since serviceSettings are forced by administrator
+            // through the catalog.
+            parameters.putAll(serviceSettings);
+        }
         try {
             return getNamespaceURL(namespace, parameters);
         } catch (EcsManagementClientException e) {
@@ -274,11 +285,8 @@ public class EcsService {
         }
     }
 
-    private String getNamespaceURL(String namespace,
-                                   Map<String, Object> parameters)
-            throws EcsManagementClientException {
-        String baseUrl = (String) parameters.getOrDefault("base-url",
-                broker.getBaseUrl());
+    private String getNamespaceURL(String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
+        String baseUrl = (String) parameters.getOrDefault("base-url", broker.getBaseUrl());
         Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", false);
         return getNamespaceURL(namespace, useSSL, baseUrl);
     }
@@ -358,6 +366,9 @@ public class EcsService {
         if (namespaceExists(id))
             throw new ServiceInstanceExistsException(id, service.getId());
         if (parameters == null) parameters = new HashMap<>();
+        // merge serviceSettings into parameters, overwriting parameter values
+        // with service/plan serviceSettings, since serviceSettings are forced
+        // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
@@ -392,6 +403,9 @@ public class EcsService {
     Map<String, Object> changeNamespacePlan(String id, ServiceDefinitionProxy service,
                                             PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
+        // merge serviceSettings into parameters, overwriting parameter values
+        // with service/plan serviceSettings, since serviceSettings are forced
+        // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
         NamespaceAction.update(connection, prefix(id),
@@ -402,21 +416,17 @@ public class EcsService {
             Map<String, Integer> retention = (Map<String, Integer>) parameters
                     .get(RETENTION);
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
-                if (NamespaceRetentionAction.exists(connection, id,
-                        entry.getKey())) {
+                if (NamespaceRetentionAction.exists(connection, id, entry.getKey())) {
                     if (-1 == entry.getValue()) {
-                        NamespaceRetentionAction.delete(connection, prefix(id),
-                                entry.getKey());
+                        NamespaceRetentionAction.delete(connection, prefix(id), entry.getKey());
                         parameters.remove(RETENTION);
                     } else {
-                        NamespaceRetentionAction.update(connection, prefix(id),
-                                entry.getKey(),
+                        NamespaceRetentionAction.update(connection, prefix(id), entry.getKey(),
                                 new RetentionClassUpdate(entry.getValue()));
                     }
                 } else {
                     NamespaceRetentionAction.create(connection, prefix(id),
-                            new RetentionClassCreate(entry.getKey(),
-                                    entry.getValue()));
+                            new RetentionClassCreate(entry.getKey(), entry.getValue()));
                 }
             }
         }

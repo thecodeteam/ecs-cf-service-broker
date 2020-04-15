@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.repository;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.cloud.servicebroker.model.binding.BindResource;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unused")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBinding {
     private static String NAME_PARAM = "name";

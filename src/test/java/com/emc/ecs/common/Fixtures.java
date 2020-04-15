@@ -1,7 +1,5 @@
 package com.emc.ecs.common;
 
-import com.emc.ecs.servicebroker.EcsManagementClientException;
-import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
@@ -52,9 +50,6 @@ public class Fixtures {
     public static final String BUCKET_PLAN_ID2 =
             "2bc4898b-99aa-491b-9c15-7e10a161bd9f";
     public static final String TEST = "test";
-    private static final String ORG_ID = "55083e67-f841-4c7e-9a19-2bf4d0cac6b9";
-    private static final String SPACE_ID =
-            "305c3c4d-ca6c-435d-b77f-046f8bc70e79";
     public static final String EXTERNAL_ADMIN = "group1@foo.com";
     private static final String APP_GUID =
             "eb92048d-6d84-42e0-a293-0b604e53bc6f";
@@ -176,6 +171,7 @@ public class Fixtures {
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .parameters(params)
+                .serviceInstanceId(NAMESPACE)
                 .build();
     }
 
@@ -201,6 +197,7 @@ public class Fixtures {
         return CreateServiceInstanceRequest.builder()
                 .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
                 .parameters(params)
                 .build();
     }
@@ -218,7 +215,7 @@ public class Fixtures {
     public static UpdateServiceInstanceRequest bucketUpdateRequestFixture(
             Map<String, Object> params) {
         return UpdateServiceInstanceRequest.builder()
-                .serviceInstanceId(BUCKET_SERVICE_ID)
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
                 .parameters(params)
                 .serviceInstanceId(BUCKET_NAME)
@@ -248,6 +245,7 @@ public class Fixtures {
                 .build();
         return CreateServiceInstanceBindingRequest.builder()
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
                 .serviceInstanceId(SERVICE_INSTANCE_ID)
                 .bindingId(BINDING_ID)
                 .bindResource(bindResource)
@@ -338,11 +336,12 @@ public class Fixtures {
         BindResource bindResource = BindResource.builder()
                 .appGuid(APP_GUID)
                 .build();
+        Map<String, Object> params = new HashMap<>();
         return CreateServiceInstanceBindingRequest.builder()
                 .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
                 .bindResource(bindResource)
-                .parameters(null)
+                .parameters(params)
                 .bindingId(BINDING_ID)
                 .serviceInstanceId(SERVICE_INSTANCE_ID)
                 .build();
@@ -351,28 +350,43 @@ public class Fixtures {
     public static ServiceInstance serviceInstanceFixture() {
         CreateServiceInstanceRequest createReq = CreateServiceInstanceRequest.builder()
                 .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceDefinitionId("service-one-id")
+                .planId("plan-one-id")
                 .build();
         return new ServiceInstance(createReq);
     }
 
-    public static ServiceInstanceBinding bindingInstanceFixture()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public static ServiceInstanceBinding bindingInstanceFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("bucket", "bucket");
         creds.put("secretKey", "password");
         creds.put("endpoint", OBJ_ENDPOINT);
-        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder().build();
+        Map<String, Object> nested = new HashMap<>();
+        nested.put("text2", "zyxwvu");
+        nested.put("flag2", true);
+        nested.put("number2", 9876);
+        Map<String, Object> params = new HashMap<>();
+        params.put("number", 1234);
+        params.put("flag", true);
+        params.put("text", "abcdefg");
+        params.put("nested", nested);
+        BindResource bindResource = BindResource.builder()
+                .appGuid("app-guid")
+                .build();
+        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder()
+                .planId("plan-one-id")
+                .bindResource(bindResource)
+                .parameters(params)
+                .build();
         ServiceInstanceBinding binding = new ServiceInstanceBinding(createReq);
         binding.setBindingId("service-inst-bind-one-id");
+        binding.setServiceDefinitionId("service-one-id");
         binding.setCredentials(creds);
         return binding;
     }
 
-    public static ServiceInstanceBinding bindingInstanceVolumeMountFixture()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public static ServiceInstanceBinding bindingInstanceVolumeMountFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("bucket", "bucket");
@@ -395,16 +409,16 @@ public class Fixtures {
         return binding;
     }
 
-    public static ServiceInstanceBinding bindingRemoteAccessFixture()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public static ServiceInstanceBinding bindingRemoteAccessFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("instanceId", "bucket");
         creds.put("secretKey", "password");
-        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder().build();
+        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder()
+                .bindingId("service-inst-bind-one-id")
+                .planId("plan-one-id")
+                .build();
         ServiceInstanceBinding binding = new ServiceInstanceBinding(createReq);
-        binding.setBindingId("service-inst-bind-one-id");
         binding.setCredentials(creds);
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("remote_connection", true);
@@ -414,7 +428,7 @@ public class Fixtures {
 
     public static DeleteServiceInstanceBindingRequest namespaceBindingRemoveFixture() {
         return DeleteServiceInstanceBindingRequest.builder()
-                .serviceInstanceId(NAMESPACE_SERVICE_ID)
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .bindingId(BINDING_ID)
                 .serviceInstanceId(NAMESPACE)
@@ -424,8 +438,8 @@ public class Fixtures {
     public static DeleteServiceInstanceBindingRequest bucketBindingRemoveFixture() {
         return DeleteServiceInstanceBindingRequest.builder()
                 .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .bindingId(BINDING_ID)
-                .serviceInstanceId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
                 .build();
     }
