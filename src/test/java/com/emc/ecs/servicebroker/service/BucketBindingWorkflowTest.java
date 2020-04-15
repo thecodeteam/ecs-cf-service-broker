@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.common.Fixtures;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -43,7 +44,8 @@ public class BucketBindingWorkflowTest {
             BeforeEach(() -> {
                 ecs = mock(EcsService.class);
                 instanceRepo = mock(ServiceInstanceRepository.class);
-                workflow = new BucketBindingWorkflow(instanceRepo, ecs);
+                workflow = new BucketBindingWorkflow(instanceRepo, ecs)
+                    .withCreateRequest(Fixtures.bucketBindingRequestFixture());
             });
 
             Context("with binding ID conflict", () -> {

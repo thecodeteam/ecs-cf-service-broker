@@ -54,11 +54,11 @@ public class BucketInstanceWorkflowTest {
                 Context("with multiple references", () -> {
                     BeforeEach(() -> {
                         Set<String> refs = new HashSet<>(Arrays.asList(
-                                BUCKET_NAME,
+                                SERVICE_INSTANCE_ID,
                                 BUCKET_NAME + "2"
                         ));
                         bucketInstance.setReferences(refs);
-                        when(instanceRepo.find(BUCKET_NAME))
+                        when(instanceRepo.find(SERVICE_INSTANCE_ID))
                                 .thenReturn(bucketInstance);
                         when(instanceRepo.find(BUCKET_NAME + "2"))
                                 .thenReturn(bucketInstance);
@@ -66,13 +66,13 @@ public class BucketInstanceWorkflowTest {
 
                     Context("the bucket is included in references", () -> {
                         It("should not delete the bucket", () -> {
-                            workflow.delete(BUCKET_NAME);
+                            workflow.delete(SERVICE_INSTANCE_ID);
                             verify(ecs, times(0))
-                                    .deleteBucket(BUCKET_NAME);
+                                    .deleteBucket(SERVICE_INSTANCE_ID);
                         });
 
                         It("should update each references", () -> {
-                            workflow.delete(BUCKET_NAME);
+                            workflow.delete(SERVICE_INSTANCE_ID);
                             verify(instanceRepo, times(1))
                                     .save(instCaptor.capture());
                             ServiceInstance savedInst = instCaptor.getValue();
@@ -87,15 +87,15 @@ public class BucketInstanceWorkflowTest {
                     BeforeEach(() -> {
                         Set<String> refs = new HashSet<>(Collections.singletonList(BUCKET_NAME));
                         bucketInstance.setReferences(refs);
-                        when(instanceRepo.find(BUCKET_NAME))
+                        when(instanceRepo.find(SERVICE_INSTANCE_ID))
                                 .thenReturn(bucketInstance);
-                        doNothing().when(ecs).deleteBucket(BUCKET_NAME);
+                        doNothing().when(ecs).deleteBucket(SERVICE_INSTANCE_ID);
                     });
 
                     It("should delete the bucket", () -> {
-                        workflow.delete(BUCKET_NAME);
+                        workflow.delete(SERVICE_INSTANCE_ID);
                         verify(ecs, times(1))
-                                .deleteBucket(BUCKET_NAME);
+                                .deleteBucket(SERVICE_INSTANCE_ID);
                     });
                 });
             });

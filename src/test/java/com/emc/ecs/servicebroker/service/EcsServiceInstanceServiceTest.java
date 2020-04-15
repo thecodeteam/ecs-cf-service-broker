@@ -5,6 +5,7 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
+import com.google.errorprone.annotations.Var;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -455,15 +456,15 @@ public class EcsServiceInstanceServiceTest {
                     Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
-                                    new ServiceInstance(namespaceCreateRequestFixture(params));
-                            when(repo.find(NAMESPACE))
+                                    new ServiceInstance(namespaceCreateRequestFixture(SERVICE_INSTANCE_ID, params));
+                            when(repo.find(SERVICE_INSTANCE_ID))
                                     .thenReturn(inst);
-                            instSvc.deleteServiceInstance(namespaceDeleteRequestFixture());
+                            instSvc.deleteServiceInstance(namespaceDeleteRequestFixture(inst.getServiceInstanceId()));
                         });
 
                         It("should delete the namespace", () ->
                                 verify(ecs, times(1))
-                                        .deleteNamespace(NAMESPACE));
+                                        .deleteNamespace(SERVICE_INSTANCE_ID));
                     });
 
                     Context(WITH_REMOTE_CONNECTION, () -> {

@@ -176,15 +176,19 @@ public class Fixtures {
     }
 
     public static CreateServiceInstanceRequest namespaceCreateRequestFixture(Map<String, Object> params) {
+        return namespaceCreateRequestFixture(SERVICE_INSTANCE_ID, params);
+    }
+
+    public static CreateServiceInstanceRequest namespaceCreateRequestFixture(String instanceId, Map<String, Object> params) {
         return CreateServiceInstanceRequest.builder()
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .parameters(params)
-                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceInstanceId(instanceId)
                 .build();
     }
 
-    public static CreateServiceInstanceRequest bucketCreateRequestFixture(Map<String, Object> params) {
+     public static CreateServiceInstanceRequest bucketCreateRequestFixture(Map<String, Object> params) {
         return CreateServiceInstanceRequest.builder()
                 .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
@@ -223,11 +227,15 @@ public class Fixtures {
     }
 
     public static DeleteServiceInstanceRequest namespaceDeleteRequestFixture() {
+        return namespaceDeleteRequestFixture(NAMESPACE);
+    }
+
+    public static DeleteServiceInstanceRequest namespaceDeleteRequestFixture(String instanceId) {
         return DeleteServiceInstanceRequest.builder()
-                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
-                .planId(NAMESPACE_PLAN_ID1)
-                .serviceInstanceId(NAMESPACE)
-                .build();
+            .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+            .planId(NAMESPACE_PLAN_ID1)
+            .serviceInstanceId(instanceId)
+            .build();
     }
 
     public static DeleteServiceInstanceRequest bucketDeleteRequestFixture() {
