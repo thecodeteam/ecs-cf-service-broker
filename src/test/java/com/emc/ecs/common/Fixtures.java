@@ -9,6 +9,7 @@ import org.springframework.cloud.servicebroker.model.instance.CreateServiceInsta
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
+import java.io.File;
 import java.util.*;
 
 public class Fixtures {
@@ -440,7 +441,7 @@ public class Fixtures {
         opts.put("source", "nfs://127.0.0.1/ns1/service-inst-id/");
         opts.put("uid", "456");
         List<VolumeMount> mounts = Collections.singletonList(
-                new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
+                new VolumeMount("nfsv3driver", "/var/vcap/data" + File.separator + BINDING_ID,
                         VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
                         new SharedVolumeDevice("123", opts))
         );

@@ -15,6 +15,7 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -364,7 +365,7 @@ public class BucketBindingWorkflowTest {
                                 List<VolumeMount> mounts = binding.getVolumeMounts();
                                 assertEquals(1, mounts.size());
 
-                                String containerDir = "/var/vcap/data/" + BINDING_ID;
+                                String containerDir = "/var/vcap/data" + File.separator + BINDING_ID;
                                 assertEquals(containerDir, mounts.get(0).getContainerDir());
                             });
 
@@ -376,7 +377,7 @@ public class BucketBindingWorkflowTest {
                                 List<VolumeMount> mounts = resp.getVolumeMounts();
                                 assertEquals(1, mounts.size());
 
-                                String containerDir = "/var/vcap/data/" + BINDING_ID;
+                                String containerDir = "/var/vcap/data" + File.separator + BINDING_ID;
                                 assertEquals(containerDir, mounts.get(0).getContainerDir());
                             });
                         });
