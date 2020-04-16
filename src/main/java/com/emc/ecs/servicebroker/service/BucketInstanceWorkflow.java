@@ -5,6 +5,7 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -17,8 +18,17 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> changePlan(String instanceName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        return ecs.changeBucketPlan(instanceName, service, plan, parameters);
+    public Map<String, Object> changePlan(String instanceId, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
+        try {
+            ServiceInstance instance = instanceRepository.find(instanceId);
+            if (instance == null) {
+                throw new ServiceInstanceDoesNotExistException(instanceId);
+            }
+
+            return ecs.changeBucketPlan(instance.getName(), service, plan, parameters);
+        } catch (IOException e) {
+            throw new ServiceBrokerException(e);
+        }
     }
     @Override
     public void delete(String id) {

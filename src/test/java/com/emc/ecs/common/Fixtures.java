@@ -364,6 +364,20 @@ public class Fixtures {
         return new ServiceInstance(createReq);
     }
 
+    public static ServiceInstance serviceInstanceWithNameFixture(String name) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", name);
+
+        CreateServiceInstanceRequest createReq = CreateServiceInstanceRequest.builder()
+            .serviceInstanceId(SERVICE_INSTANCE_ID)
+            .serviceDefinitionId("service-one-id")
+            .planId("plan-one-id")
+            .parameters(params)
+            .build();
+        return new ServiceInstance(createReq);
+    }
+
+
     public static ServiceInstanceBinding bindingInstanceFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");

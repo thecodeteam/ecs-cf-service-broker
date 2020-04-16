@@ -7,12 +7,15 @@ import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
 import java.util.*;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
 @RunWith(Ginkgo4jRunner.class)
@@ -25,6 +28,7 @@ public class BucketInstanceWorkflowTest {
     private final ServiceDefinitionProxy serviceProxy = new ServiceDefinitionProxy();
     private final PlanProxy planProxy = new PlanProxy();
     private final ServiceInstance bucketInstance = serviceInstanceFixture();
+    private final ServiceInstance namedBucketInstance = serviceInstanceWithNameFixture(BUCKET_NAME);
     private final ArgumentCaptor<ServiceInstance> instCaptor = ArgumentCaptor.forClass(ServiceInstance.class);
 
     {
@@ -36,13 +40,53 @@ public class BucketInstanceWorkflowTest {
             });
 
             Context("#changePlan", () -> {
-                BeforeEach(() -> when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
-                        .thenReturn(new HashMap<>()));
+                BeforeEach(() -> {
+                    when(instanceRepo.find(SERVICE_INSTANCE_ID))
+                        .thenReturn(bucketInstance);
+
+                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                        .thenReturn(new HashMap<>());
+                });
 
                 It("should change the plan", () -> {
-                    workflow.changePlan(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                    workflow.changePlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
                     verify(ecs, times(1))
-                            .changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                            .changeBucketPlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
+                });
+            });
+
+            Context("#changePlan with custom name", () -> {
+                BeforeEach(() -> {
+                    when(instanceRepo.find(SERVICE_INSTANCE_ID))
+                        .thenReturn(namedBucketInstance);
+
+                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                        .thenReturn(new HashMap<>());
+                });
+
+                It("should change the plan", () -> {
+                    workflow.changePlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
+                    verify(ecs, times(1))
+                        .changeBucketPlan(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
+                });
+            });
+
+            Context("#changePlan with bad instance", () -> {
+                BeforeEach(() -> {
+                    when(instanceRepo.find(SERVICE_INSTANCE_ID))
+                        .thenReturn(null);
+
+                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                        .thenReturn(new HashMap<>());
+                });
+
+                It("should throw Exception", () -> {
+                    try {
+                        workflow.changePlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
+                        fail("Expected InstanceDoesNotExistException");
+                    } catch (ServiceInstanceDoesNotExistException e) {
+                        assert e.getClass().equals(ServiceInstanceDoesNotExistException.class);
+                    }
                 });
             });
 
@@ -98,6 +142,20 @@ public class BucketInstanceWorkflowTest {
                                 .deleteBucket(SERVICE_INSTANCE_ID);
                     });
                 });
+
+                Context("with a custom name parameter", () -> {
+                    BeforeEach(() -> {
+                        when(instanceRepo.find(SERVICE_INSTANCE_ID))
+                            .thenReturn(namedBucketInstance);
+                        doNothing().when(ecs).deleteBucket(SERVICE_INSTANCE_ID);
+                    });
+
+                    It("should delete the named bucket", () -> {
+                        workflow.delete(SERVICE_INSTANCE_ID);
+                        verify(ecs, times(1))
+                            .deleteBucket(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID);
+                    });
+                });
             });
 
             Context("#create", () -> {
@@ -116,6 +174,29 @@ public class BucketInstanceWorkflowTest {
                 It("should return the service instance", () -> {
                     ServiceInstance instance = workflow.create(BUCKET_NAME, serviceProxy, planProxy, parameters);
                     assertEquals(BUCKET_NAME, instance.getName());
+                    assertEquals(BUCKET_NAME, instance.getServiceInstanceId());
+                });
+            });
+
+            Context("#create with name", () -> {
+                BeforeEach(() -> {
+                    when(ecs.createBucket(BUCKET_NAME, BUCKET_NAME,  serviceProxy, planProxy, parameters))
+                        .thenReturn(new HashMap<>());
+
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("name", BUCKET_NAME);
+                    workflow.withCreateRequest(bucketCreateRequestFixture(params));
+                });
+
+                It("should create the bucket", () -> {
+                    workflow.create(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                    verify(ecs, times(1))
+                        .createBucket(BUCKET_NAME, BUCKET_NAME+"-"+BUCKET_NAME, serviceProxy, planProxy, parameters);
+                });
+
+                It("should return the service instance", () -> {
+                    ServiceInstance instance = workflow.create(BUCKET_NAME, serviceProxy, planProxy, parameters);
+                    assertEquals(BUCKET_NAME+"-"+BUCKET_NAME, instance.getName());
                     assertEquals(BUCKET_NAME, instance.getServiceInstanceId());
                 });
             });
