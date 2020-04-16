@@ -1,13 +1,19 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecs-broker
 data:
   application.yml: |-
     ---
     broker:
-      object-endpoint: "https://object.ecstestdrive.com"
-      management-endpoint: "https://portal.ecstestdrive.com"
-      namespace: "131118670375936839"
-      replication-group: ecstestdrivegeo
-      prefix: kubetesting-
+      object-endpoint: {{ .Values.api.endpoint }}
+      management-endpoint: {{ .Values.ecsConnection.endpoint }}
+      namespace: {{ .Values.namespace }}
+      replication-group: {{ .Values.replicationGroup }}
+      prefix: {{ .Values.prefix }}
+  {{- if .Values.certificate }}
+      certificate: {{ toYaml .Values.certificate | indent 6 }}
+  {{- end }}
     catalog:
       services:
       -
@@ -133,11 +139,3 @@ data:
         type: bucket
     spring:
       profiles: default
-kind: ConfigMap
-metadata:
-  creationTimestamp: "2019-07-26T02:22:13Z"
-  name: ecs-broker
-  namespace: default
-  resourceVersion: "74682"
-  selfLink: /api/v1/namespaces/default/configmaps/application-yaml
-  uid: 871a8dfa-3384-4508-b1e2-03820124db5f

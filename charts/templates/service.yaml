@@ -1,0 +1,15 @@
+{{ if .Values.serviceCatalog }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecs-service-broker
+spec:
+  type: ClusterIP
+  ports:
+    - name: api
+      port: 9090
+      targetPort: http
+      protocol: TCP
+  selector:
+    app: ecs-service-broker
+{{ end }}

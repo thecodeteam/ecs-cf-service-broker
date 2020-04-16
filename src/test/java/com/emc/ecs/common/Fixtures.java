@@ -1,15 +1,15 @@
 package com.emc.ecs.common;
 
-import com.emc.ecs.cloudfoundry.broker.EcsManagementClientException;
-import com.emc.ecs.cloudfoundry.broker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.cloudfoundry.broker.model.PlanProxy;
-import com.emc.ecs.cloudfoundry.broker.model.ServiceDefinitionProxy;
-import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstance;
-import com.emc.ecs.cloudfoundry.broker.repository.ServiceInstanceBinding;
-import org.springframework.cloud.servicebroker.model.*;
-import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceBindingFixture;
-import org.springframework.cloud.servicebroker.model.fixture.ServiceInstanceFixture;
+import com.emc.ecs.servicebroker.model.PlanProxy;
+import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.repository.ServiceInstance;
+import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
+import org.springframework.cloud.servicebroker.model.binding.*;
+import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
+import org.springframework.cloud.servicebroker.model.instance.UpdateServiceInstanceRequest;
 
+import java.io.File;
 import java.util.*;
 
 public class Fixtures {
@@ -51,9 +51,6 @@ public class Fixtures {
     public static final String BUCKET_PLAN_ID2 =
             "2bc4898b-99aa-491b-9c15-7e10a161bd9f";
     public static final String TEST = "test";
-    private static final String ORG_ID = "55083e67-f841-4c7e-9a19-2bf4d0cac6b9";
-    private static final String SPACE_ID =
-            "305c3c4d-ca6c-435d-b77f-046f8bc70e79";
     public static final String EXTERNAL_ADMIN = "group1@foo.com";
     private static final String APP_GUID =
             "eb92048d-6d84-42e0-a293-0b604e53bc6f";
@@ -74,9 +71,9 @@ public class Fixtures {
     public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
-    /*
-     * Plan 1: 5gb quota with 4gb notification
-	 */
+        /*
+         * Plan 1: 5gb quota with 4gb notification
+         */
         Map<String, Object> settings1 = new HashMap<>();
         Map<String, Object> quota = new HashMap<>();
         quota.put(LIMIT, 5);
@@ -86,9 +83,9 @@ public class Fixtures {
                 FREE_TRIAL, null, true);
         bucketPlan1.setServiceSettings(settings1);
 
-	/*
-     * Plan 2: No quota, encrypted, filesystem, access-during-outage.
-	 */
+        /*
+         * Plan 2: No quota, encrypted, filesystem, access-during-outage.
+         */
         Map<String, Object> settings2 = new HashMap<>();
         PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, UNLIMITED,
                 PAY_PER_GB_PER_MONTH, null, false);
@@ -108,10 +105,10 @@ public class Fixtures {
     }
 
     public static ServiceDefinitionProxy namespaceServiceFixture() {
-	/*
-	 * Plan 1: 5gb quota with 4gb notification & default bucket quota of 5
-	 * GB
-	 */
+        /*
+         * Plan 1: 5gb quota with 4gb notification & default bucket quota of 5
+         * GB
+         */
         Map<String, Object> settings1 = new HashMap<>();
         Map<String, Object> quota = new HashMap<>();
         quota.put(LIMIT, 5);
@@ -122,10 +119,10 @@ public class Fixtures {
         settings1.put(QUOTA, quota);
         namespacePlan1.setServiceSettings(settings1);
 
-	/*
-	 * Plan 2: No quota, compliant, encrypted, access-during-outage with a
-	 * domain group admin.
-	 */
+        /*
+         * Plan 2: No quota, compliant, encrypted, access-during-outage with a
+         * domain group admin.
+         */
         Map<String, Object> settings2 = new HashMap<>();
         PlanProxy namespacePlan2 = new PlanProxy(NAMESPACE_PLAN_ID2,
                 UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
@@ -135,10 +132,10 @@ public class Fixtures {
         settings2.put(ACCESS_DURING_OUTAGE, true);
         namespacePlan2.setServiceSettings(settings2);
 
-	/*
-	 * Plan 3: No quota, compliance, encrypted, access-during-outage with
-	 * one-year retention.
-	 */
+        /*
+         * Plan 3: No quota, compliance, encrypted, access-during-outage with
+         * one-year retention.
+         */
         Map<String, Object> retention = new HashMap<>();
         retention.put(ONE_YEAR, ONE_YEAR_IN_SECS);
         Map<String, Object> settings3 = new HashMap<>();
@@ -163,170 +160,249 @@ public class Fixtures {
     }
 
     public static CreateServiceInstanceRequest namespaceCreateRequestFixture() {
-        return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, ORG_ID, SPACE_ID)
-                .withServiceInstanceId(NAMESPACE);
+        return CreateServiceInstanceRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .serviceInstanceId(NAMESPACE)
+                .build();
     }
 
     public static CreateServiceInstanceRequest remoteNamespaceCreateRequestFixture(Map<String, Object> params) {
-        return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, ORG_ID, SPACE_ID, params)
-                .withServiceInstanceId(NAMESPACE);
+        return CreateServiceInstanceRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .parameters(params)
+                .serviceInstanceId(NAMESPACE)
+                .build();
     }
 
-    public static CreateServiceInstanceRequest namespaceCreateRequestFixture(
-            Map<String, Object> params) {
-        return new CreateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, ORG_ID, SPACE_ID, params)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+    public static CreateServiceInstanceRequest namespaceCreateRequestFixture(Map<String, Object> params) {
+        return CreateServiceInstanceRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .parameters(params)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
-    public static CreateServiceInstanceRequest bucketCreateRequestFixture(
-            Map<String, Object> params) {
-        return new CreateServiceInstanceRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, ORG_ID, SPACE_ID, params)
-                .withServiceInstanceId(BUCKET_NAME);
+    public static CreateServiceInstanceRequest bucketCreateRequestFixture(Map<String, Object> params) {
+        return CreateServiceInstanceRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .parameters(params)
+                .serviceInstanceId(BUCKET_NAME)
+                .build();
     }
 
-    public static CreateServiceInstanceRequest remoteBucketCreateRequestFixture(
-            Map<String, Object> params) {
-        return new CreateServiceInstanceRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, ORG_ID, SPACE_ID, params)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+    public static CreateServiceInstanceRequest remoteBucketCreateRequestFixture(Map<String, Object> params) {
+        return CreateServiceInstanceRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .parameters(params)
+                .build();
     }
 
     public static UpdateServiceInstanceRequest namespaceUpdateRequestFixture(
             Map<String, Object> params) {
-        return new UpdateServiceInstanceRequest(NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, params).withServiceInstanceId(NAMESPACE);
+        return UpdateServiceInstanceRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .parameters(params)
+                .serviceInstanceId(NAMESPACE)
+                .build();
     }
 
     public static UpdateServiceInstanceRequest bucketUpdateRequestFixture(
             Map<String, Object> params) {
-        return new UpdateServiceInstanceRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, params).withServiceInstanceId(BUCKET_NAME);
+        return UpdateServiceInstanceRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .parameters(params)
+                .serviceInstanceId(BUCKET_NAME)
+                .build();
     }
 
     public static DeleteServiceInstanceRequest namespaceDeleteRequestFixture() {
-        return new DeleteServiceInstanceRequest(NAMESPACE, NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, null);
+        return DeleteServiceInstanceRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .serviceInstanceId(NAMESPACE)
+                .build();
     }
 
     public static DeleteServiceInstanceRequest bucketDeleteRequestFixture() {
-        return new DeleteServiceInstanceRequest(BUCKET_NAME, BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, null);
+        return DeleteServiceInstanceRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .serviceInstanceId(BUCKET_NAME)
+                .planId(BUCKET_PLAN_ID1)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest namespaceBindingRequestFixture() {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
-        return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .bindingId(BINDING_ID)
+                .bindResource(bindResource)
+                .parameters(params)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest bucketRemoteConnectFixture() {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
         params.put("remote_connection", true);
-        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .bindResource(bindResource)
+                .parameters(params)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest namespaceRemoteConnectFixture() {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
         params.put("remote_connection", true);
-        return new CreateServiceInstanceBindingRequest(NAMESPACE_SERVICE_ID,
-                NAMESPACE_PLAN_ID1, APP_GUID, bindResource, params)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .bindResource(bindResource)
+                .parameters(params)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingPermissionRequestFixture() {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
         Map<String, Object> params = new HashMap<>();
         params.put("permissions", Arrays.asList("READ", "WRITE"));
-        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .bindResource(bindResource)
+                .parameters(params)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture(Map<String, Object> parameters) {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
-        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, APP_GUID, bindResource, parameters)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .bindResource(bindResource)
+                .parameters(parameters)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingExportRequestFixture() {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
         Map<String, Object> params = new HashMap<>();
         params.put("mount", VOLUME_MOUNT);
         params.put("export", EXPORT_NAME);
-        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, APP_GUID, bindResource, params)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .parameters(params)
+                .bindResource(bindResource)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture() {
-        Map<String, Object> bindResource = new HashMap<>();
-        bindResource.put("app_guid", APP_GUID);
-        return new CreateServiceInstanceBindingRequest(BUCKET_SERVICE_ID,
-                BUCKET_PLAN_ID1, APP_GUID, bindResource, null)
-                .withBindingId(BINDING_ID)
-                .withServiceInstanceId(SERVICE_INSTANCE_ID);
+        BindResource bindResource = BindResource.builder()
+                .appGuid(APP_GUID)
+                .build();
+        Map<String, Object> params = new HashMap<>();
+        return CreateServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .bindResource(bindResource)
+                .parameters(params)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .build();
     }
 
     public static ServiceInstance serviceInstanceFixture() {
-        return new ServiceInstance(ServiceInstanceFixture
-                .buildCreateServiceInstanceRequest(false));
+        CreateServiceInstanceRequest createReq = CreateServiceInstanceRequest.builder()
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceDefinitionId("service-one-id")
+                .planId("plan-one-id")
+                .build();
+        return new ServiceInstance(createReq);
     }
 
-    public static ServiceInstanceBinding bindingInstanceFixture()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public static ServiceInstanceBinding bindingInstanceFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("bucket", "bucket");
         creds.put("secretKey", "password");
         creds.put("endpoint", OBJ_ENDPOINT);
-        ServiceInstanceBinding binding = new ServiceInstanceBinding(
-                ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
+        Map<String, Object> nested = new HashMap<>();
+        nested.put("text2", "zyxwvu");
+        nested.put("flag2", true);
+        nested.put("number2", 9876);
+        Map<String, Object> params = new HashMap<>();
+        params.put("number", 1234);
+        params.put("flag", true);
+        params.put("text", "abcdefg");
+        params.put("nested", nested);
+        BindResource bindResource = BindResource.builder()
+                .appGuid("app-guid")
+                .build();
+        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder()
+                .planId("plan-one-id")
+                .bindResource(bindResource)
+                .parameters(params)
+                .build();
+        ServiceInstanceBinding binding = new ServiceInstanceBinding(createReq);
         binding.setBindingId("service-inst-bind-one-id");
+        binding.setServiceDefinitionId("service-one-id");
         binding.setCredentials(creds);
         return binding;
     }
 
-    public static ServiceInstanceBinding bindingInstanceVolumeMountFixture()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public static ServiceInstanceBinding bindingInstanceVolumeMountFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("bucket", "bucket");
         creds.put("secretKey", "password");
         creds.put("endpoint", OBJ_ENDPOINT);
-        ServiceInstanceBinding binding = new ServiceInstanceBinding(
-                ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
+
+        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder().build();
+        ServiceInstanceBinding binding = new ServiceInstanceBinding(createReq);
         binding.setBindingId("service-inst-bind-one-id");
         binding.setCredentials(creds);
         Map<String, Object> opts = new HashMap<>();
         opts.put("source", "nfs://127.0.0.1/ns1/service-inst-id/");
         opts.put("uid", "456");
         List<VolumeMount> mounts = Collections.singletonList(
-                new VolumeMount("nfsv3driver", "/var/vcap/data/" + BINDING_ID,
+                new VolumeMount("nfsv3driver", "/var/vcap/data" + File.separator + BINDING_ID,
                         VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
                         new SharedVolumeDevice("123", opts))
         );
@@ -334,16 +410,16 @@ public class Fixtures {
         return binding;
     }
 
-    public static ServiceInstanceBinding bindingRemoteAccessFixture()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    public static ServiceInstanceBinding bindingRemoteAccessFixture() {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("instanceId", "bucket");
         creds.put("secretKey", "password");
-        ServiceInstanceBinding binding = new ServiceInstanceBinding(
-                ServiceInstanceBindingFixture.buildCreateAppBindingRequest());
-        binding.setBindingId("service-inst-bind-one-id");
+        CreateServiceInstanceBindingRequest createReq = CreateServiceInstanceBindingRequest.builder()
+                .bindingId("service-inst-bind-one-id")
+                .planId("plan-one-id")
+                .build();
+        ServiceInstanceBinding binding = new ServiceInstanceBinding(createReq);
         binding.setCredentials(creds);
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("remote_connection", true);
@@ -352,12 +428,20 @@ public class Fixtures {
     }
 
     public static DeleteServiceInstanceBindingRequest namespaceBindingRemoveFixture() {
-        return new DeleteServiceInstanceBindingRequest(NAMESPACE, BINDING_ID,
-                NAMESPACE_SERVICE_ID, NAMESPACE_PLAN_ID1, null);
+        return DeleteServiceInstanceBindingRequest.builder()
+                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+                .planId(NAMESPACE_PLAN_ID1)
+                .bindingId(BINDING_ID)
+                .serviceInstanceId(NAMESPACE)
+                .build();
     }
 
     public static DeleteServiceInstanceBindingRequest bucketBindingRemoveFixture() {
-        return new DeleteServiceInstanceBindingRequest(SERVICE_INSTANCE_ID, BINDING_ID,
-                BUCKET_SERVICE_ID, BUCKET_PLAN_ID1, null);
+        return DeleteServiceInstanceBindingRequest.builder()
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceDefinitionId(BUCKET_SERVICE_ID)
+                .bindingId(BINDING_ID)
+                .planId(BUCKET_PLAN_ID1)
+                .build();
     }
 }
