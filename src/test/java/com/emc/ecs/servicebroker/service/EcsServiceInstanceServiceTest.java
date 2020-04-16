@@ -231,7 +231,7 @@ public class EcsServiceInstanceServiceTest {
                         });
 
                         It("should find the service instance in the repo", () ->
-                                verify(repo, times(1))
+                                verify(repo, times(2))
                                         .find(BUCKET_NAME));
 
                         It("should not delete the service instance from the repo", () ->
