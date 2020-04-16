@@ -7,6 +7,7 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -20,8 +21,17 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> changePlan(String instanceName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, IOException {
-        return ecs.changeNamespacePlan(instanceName, service, plan, parameters);
+    public Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, IOException {
+        try {
+            ServiceInstance instance = instanceRepository.find(id);
+            if (instance == null) {
+                throw new ServiceInstanceDoesNotExistException(id);
+            }
+
+            return ecs.changeNamespacePlan(instance.getName(), service, plan, parameters);
+        } catch (IOException e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     @Override

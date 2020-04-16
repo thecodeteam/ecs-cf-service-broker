@@ -340,9 +340,9 @@ public class EcsService {
         }
     }
 
-    private String getUserSecret(String id)
+    private String getUserSecret(String userName)
             throws EcsManagementClientException {
-        return ObjectUserSecretAction.list(connection, prefix(id)).get(0)
+        return ObjectUserSecretAction.list(connection, prefix(userName)).get(0)
                 .getSecretKey();
     }
 
@@ -360,27 +360,27 @@ public class EcsService {
         return NamespaceAction.exists(connection, prefix(id));
     }
 
-    Map<String, Object> createNamespace(String id, ServiceDefinitionProxy service,
+    Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service,
                                         PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
-        if (namespaceExists(id))
-            throw new ServiceInstanceExistsException(id, service.getId());
+        if (namespaceExists(namespace))
+            throw new ServiceInstanceExistsException(namespace, service.getId());
         if (parameters == null) parameters = new HashMap<>();
         // merge serviceSettings into parameters, overwriting parameter values
         // with service/plan serviceSettings, since serviceSettings are forced
         // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
-        NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
+        NamespaceAction.create(connection, new NamespaceCreate(prefix(namespace),
                 replicationGroupID, parameters));
 
         if (parameters.containsKey(QUOTA)) {
             @SuppressWarnings(UNCHECKED)
             Map<String, Integer> quota = (Map<String, Integer>) parameters
                     .get(QUOTA);
-            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(id,
+            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace,
                     quota.get(LIMIT), quota.get(WARN));
-            NamespaceQuotaAction.create(connection, prefix(id), quotaParam);
+            NamespaceQuotaAction.create(connection, prefix(namespace), quotaParam);
         }
 
         if (parameters.containsKey(RETENTION)) {
@@ -388,7 +388,7 @@ public class EcsService {
             Map<String, Integer> retention = (Map<String, Integer>) parameters
                     .get(RETENTION);
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
-                NamespaceRetentionAction.create(connection, prefix(id),
+                NamespaceRetentionAction.create(connection, prefix(namespace),
                         new RetentionClassCreate(entry.getKey(),
                                 entry.getValue()));
             }
@@ -396,11 +396,11 @@ public class EcsService {
         return parameters;
     }
 
-    void deleteNamespace(String id) throws EcsManagementClientException {
-        NamespaceAction.delete(connection, prefix(id));
+    void deleteNamespace(String namespace) throws EcsManagementClientException {
+        NamespaceAction.delete(connection, prefix(namespace));
     }
 
-    Map<String, Object> changeNamespacePlan(String id, ServiceDefinitionProxy service,
+    Map<String, Object> changeNamespacePlan(String namespace, ServiceDefinitionProxy service,
                                             PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         // merge serviceSettings into parameters, overwriting parameter values
@@ -408,7 +408,7 @@ public class EcsService {
         // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
-        NamespaceAction.update(connection, prefix(id),
+        NamespaceAction.update(connection, prefix(namespace),
                 new NamespaceUpdate(parameters));
 
         if (parameters.containsKey(RETENTION)) {
@@ -416,16 +416,16 @@ public class EcsService {
             Map<String, Integer> retention = (Map<String, Integer>) parameters
                     .get(RETENTION);
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
-                if (NamespaceRetentionAction.exists(connection, id, entry.getKey())) {
+                if (NamespaceRetentionAction.exists(connection, namespace, entry.getKey())) {
                     if (-1 == entry.getValue()) {
-                        NamespaceRetentionAction.delete(connection, prefix(id), entry.getKey());
+                        NamespaceRetentionAction.delete(connection, prefix(namespace), entry.getKey());
                         parameters.remove(RETENTION);
                     } else {
-                        NamespaceRetentionAction.update(connection, prefix(id), entry.getKey(),
+                        NamespaceRetentionAction.update(connection, prefix(namespace), entry.getKey(),
                                 new RetentionClassUpdate(entry.getValue()));
                     }
                 } else {
-                    NamespaceRetentionAction.create(connection, prefix(id),
+                    NamespaceRetentionAction.create(connection, prefix(namespace),
                             new RetentionClassCreate(entry.getKey(), entry.getValue()));
                 }
             }

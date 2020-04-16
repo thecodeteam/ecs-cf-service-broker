@@ -213,7 +213,7 @@ public class Fixtures {
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .parameters(params)
-                .serviceInstanceId(NAMESPACE)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
                 .build();
     }
 
