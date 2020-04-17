@@ -8,10 +8,9 @@ import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ReclaimPolicy;
+import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
-import com.emc.object.s3.S3Config;
-import com.emc.object.s3.jersey.S3JerseyClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,6 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsEx
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -51,6 +49,9 @@ public class EcsService {
 
     @Autowired
     private CatalogConfig catalog;
+
+    @Autowired
+    private BucketWipeFactory bucketWipeFactory;
 
     private BucketWipeOperations bucketWipe;
 
@@ -389,11 +390,7 @@ public class EcsService {
     }
 
     private void prepareBucketWipe() throws URISyntaxException {
-        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
-        s3Config.withIdentity(broker.getPrefixedUserName())
-            .withSecretKey(broker.getRepositorySecret());
-
-        bucketWipe = new BucketWipeOperations(new S3JerseyClient(s3Config));
+        bucketWipe = bucketWipeFactory.getBucketWipe(broker);
     }
 
     private String getUserSecret(String id)

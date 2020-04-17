@@ -4,6 +4,7 @@ import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.servicebroker.service.EcsService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceService;
@@ -89,6 +90,11 @@ public class Application {
     @Bean
     public ServiceInstanceBindingRepository serviceInstanceBindingRepository() {
         return new ServiceInstanceBindingRepository();
+    }
+
+    @Bean
+    public BucketWipeFactory bucketWipeFactory() {
+        return new BucketWipeFactory();
     }
 
     private static String[] getArgs() {

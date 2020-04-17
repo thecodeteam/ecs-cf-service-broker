@@ -89,7 +89,7 @@ public class BucketInstanceWorkflowTest {
                         bucketInstance.setReferences(refs);
                         when(instanceRepo.find(BUCKET_NAME))
                                 .thenReturn(bucketInstance);
-                        doNothing().when(ecs).deleteBucket(BUCKET_NAME);
+                        when(ecs.deleteBucket(BUCKET_NAME)).thenReturn(null);
                     });
 
                     It("should delete the bucket", () -> {

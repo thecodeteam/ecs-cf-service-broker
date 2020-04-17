@@ -17,7 +17,7 @@ public enum ReclaimPolicy {
     private static String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
 
     public static ReclaimPolicy getReclaimPolicy(Map<String, Object> params) {
-        if (params.containsKey(RECLAIM_POLICY)) {
+        if (params != null && params.containsKey(RECLAIM_POLICY)) {
             String reclaimPolicy = params.getOrDefault(RECLAIM_POLICY, ReclaimPolicy.Delete).toString();
 
             return ReclaimPolicy.valueOf(reclaimPolicy);
@@ -28,7 +28,7 @@ public enum ReclaimPolicy {
     }
 
     public static List<ReclaimPolicy> getAllowedReclaimPolicies(Map<String, Object> params) {
-        if (params.containsKey(ALLOWED_RECLAIM_POLICIES)) {
+        if (params != null && params.containsKey(ALLOWED_RECLAIM_POLICIES)) {
             List<ReclaimPolicy> allowedPolicies = new ArrayList<>();
 
             for (String reclaimPolicy : params.get(ALLOWED_RECLAIM_POLICIES).toString().split(",")) {

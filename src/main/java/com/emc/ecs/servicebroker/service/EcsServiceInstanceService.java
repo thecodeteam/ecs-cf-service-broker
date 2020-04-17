@@ -182,7 +182,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             if (lastOperation.getOperationState() != OperationState.IN_PROGRESS) {
                 if (lastOperation.isDeleteOperation()) {
-                    logger.info("Operation for {} completed {}, deleting from repository", instance.getServiceInstanceId(), lastOperation.getOperationState());
+                    logger.info("Operation for {} completed, deleting from repository", instance.getServiceInstanceId(), lastOperation.getOperationState());
                     repository.delete(instance.getServiceInstanceId());
                 }
             }
