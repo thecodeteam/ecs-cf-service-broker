@@ -60,6 +60,8 @@ public class Fixtures {
     private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
     private static final String ENCRYPTED = "encrypted";
     public static final String FILE_ACCESSIBLE = "file-accessible";
+    public static final String RECLAIM_POLICY = "reclaim-policy";
+    public static final String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
     private static final String COMPLIANCE_ENABLED = "compliance-enabled";
     private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";
