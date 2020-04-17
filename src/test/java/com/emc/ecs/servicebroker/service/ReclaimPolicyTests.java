@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.common.Fixtures;
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
@@ -9,12 +10,12 @@ import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
+import com.emc.ecs.servicebroker.repository.ServiceInstance;
+import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
@@ -47,6 +48,7 @@ public class ReclaimPolicyTests {
     private static final String HTTP = "http://";
     private static final String _9020 = ":9020";
     private static final String CREATE = "create";
+    private static final String DELETE = "delete";
 
     @Mock
     private Connection connection;
@@ -64,6 +66,9 @@ public class ReclaimPolicyTests {
     @InjectMocks
     private EcsService ecs;
 
+    ServiceInstanceRepository instanceRepo;
+    BucketInstanceWorkflow workflow;
+
     @Before
     public void setUp() {
         when(broker.getPrefix()).thenReturn(PREFIX);
@@ -71,6 +76,9 @@ public class ReclaimPolicyTests {
         when(broker.getNamespace()).thenReturn(NAMESPACE);
         when(broker.getRepositoryUser()).thenReturn(USER);
         when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
+
+        instanceRepo = mock(ServiceInstanceRepository.class);
+        workflow = new BucketInstanceWorkflow(instanceRepo, ecs);
     }
 
     /**
@@ -222,7 +230,10 @@ public class ReclaimPolicyTests {
         setupCreateBucketTest();
 
         ServiceDefinitionProxy service = bucketServiceFixture();
+        service.setServiceSettings(new HashMap<>());
+
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+        plan.setServiceSettings(new HashMap<>());
 
         Map<String, Object> params = new HashMap<>();
         ecs.createBucket(BUCKET_NAME, service, plan, params);
@@ -233,19 +244,22 @@ public class ReclaimPolicyTests {
         setupCreateBucketTest();
 
         ServiceDefinitionProxy service = bucketServiceFixture();
+        service.setServiceSettings(new HashMap<>());
+
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+        plan.setServiceSettings(new HashMap<>());
 
         Map<String, Object> params = new HashMap<>();
 
-        service.getServiceSettings().put(ALLOWED_RECLAIM_POLICIES, "Delete, Detach");
+        params.put(ALLOWED_RECLAIM_POLICIES, "Delete, Detach");
         params.put(RECLAIM_POLICY, ReclaimPolicy.Delete);
         ecs.createBucket(BUCKET_NAME, service, plan, params);
 
-        service.getServiceSettings().put(ALLOWED_RECLAIM_POLICIES, "Detach,Fail");
+        params.put(ALLOWED_RECLAIM_POLICIES, "Detach,Fail");
         params.put(RECLAIM_POLICY, ReclaimPolicy.Fail);
         ecs.createBucket(BUCKET_NAME, service, plan, params);
 
-        service.getServiceSettings().put(ALLOWED_RECLAIM_POLICIES, "Delete, Detach");
+        params.put(ALLOWED_RECLAIM_POLICIES, "Delete, Detach");
         params.put(RECLAIM_POLICY, ReclaimPolicy.Detach);
         ecs.createBucket(BUCKET_NAME, service, plan, params);
     }
@@ -282,6 +296,20 @@ public class ReclaimPolicyTests {
             fail("Expected Exception");
         }catch(Exception ignore) {
         }
+    }
+
+    @Test
+    public void deleteBucketWithNoReclaimPolicy() throws Exception {
+        ecs = mock(EcsService.class);
+        workflow = new BucketInstanceWorkflow(instanceRepo, ecs);
+
+        ServiceInstance instance = serviceInstanceFixture();
+        when(instanceRepo.find(instance.getServiceInstanceId())).thenReturn(instance);
+
+        workflow.delete(instance.getServiceInstanceId());
+
+        verify(ecs, times(1)).deleteBucket(instance.getServiceInstanceId());
+        verify(ecs, times(0)).wipeAndDeleteBucket(instance.getServiceInstanceId());
     }
 
 
