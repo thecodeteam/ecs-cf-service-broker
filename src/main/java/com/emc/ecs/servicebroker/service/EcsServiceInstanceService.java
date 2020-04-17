@@ -3,8 +3,10 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.repository.LastOperationSerializer;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.object.s3.S3Exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,9 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 
@@ -85,20 +89,41 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceDefinitionId = request.getServiceDefinitionId();
         try {
             ServiceDefinitionProxy service = ecs
-                    .lookupServiceDefinition(serviceDefinitionId);
+                .lookupServiceDefinition(serviceDefinitionId);
             InstanceWorkflow workflow = getWorkflow(service)
-                    .withDeleteRequest(request);
+                .withDeleteRequest(request);
 
-            LOG.info("deleting service instance");
-            workflow.delete(serviceInstanceId);
+            ServiceInstance instance = null;
+            try {
+                instance = repository.find(serviceInstanceId);
+                if (instance == null) {
+                    LOG.info("Instance {} not found, assuming already deleted", serviceInstanceId);
+                    return Mono.just(DeleteServiceInstanceResponse.builder()
+                        .build());
+                }
+            } catch(S3Exception e) {
+                LOG.info("Instance {} not found, assuming already deleted", serviceInstanceId);
+                return Mono.just(DeleteServiceInstanceResponse.builder()
+                    .build());
+            }
 
-            LOG.info("removing instance from repo");
-            repository.delete(serviceInstanceId);
+            LOG.info("deleting service instance {}", serviceInstanceId);
+            CompletableFuture future = workflow.delete(serviceInstanceId);
+            if (future != null) {
+                instance.setLastOperation(new LastOperationSerializer(OperationState.IN_PROGRESS, "Deleting", true));
+                repository.save(instance);
+
+                future.thenRun(() -> asyncDeleteComplete(serviceInstanceId));
+            } else {
+                LOG.info("removing instance {} from repo", serviceInstanceId);
+                repository.delete(serviceInstanceId);
+            }
 
             return Mono.just(DeleteServiceInstanceResponse.builder()
-                    .async(false)
-                    .build());
+                .async(future != null)
+                .build());
         } catch (Exception e) {
+            logger.error("Error Deleting",e);
             throw new ServiceBrokerException(e);
         }
     }
@@ -133,9 +158,42 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .async(false)
                     .build());
         } catch (ServiceInstanceDoesNotExistException e) {
-            // Rethrow "does not exist" so that it's not caught by the generic case
+            // Rethrow "does not exist" so that it's not caught by the generic casue
             throw e;
         } catch (Exception e) {
+            throw new ServiceBrokerException(e);
+        }
+    }
+
+    @Override
+    public Mono<GetLastServiceOperationResponse> getLastOperation(GetLastServiceOperationRequest request) {
+        try {
+            ServiceInstance instance = repository.find(request.getServiceInstanceId());
+
+            if (instance == null)
+                throw new ServiceInstanceDoesNotExistException(request.getServiceInstanceId());
+
+            LastOperationSerializer lastOperation = instance.getLastOperation();
+
+            // No stored operation, assume succeeded
+            if (lastOperation == null) {
+                lastOperation = new LastOperationSerializer(OperationState.SUCCEEDED, "", false);
+            }
+
+            if (lastOperation.getOperationState() != OperationState.IN_PROGRESS) {
+                if (lastOperation.isDeleteOperation()) {
+                    logger.info("Operation for {} completed {}, deleting from repository", instance.getServiceInstanceId(), lastOperation.getOperationState());
+                    repository.delete(instance.getServiceInstanceId());
+                }
+            }
+
+            return Mono.just(GetLastServiceOperationResponse.builder()
+                .deleteOperation(lastOperation.isDeleteOperation())
+                .description(lastOperation.getDescription())
+                .operationState(lastOperation.getOperationState())
+                .build());
+
+        } catch (IOException e) {
             throw new ServiceBrokerException(e);
         }
     }
@@ -167,11 +225,18 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         }
     }
 
-    @Override
-    public Mono<GetLastServiceOperationResponse> getLastOperation(
-            GetLastServiceOperationRequest request) {
-        return Mono.just(GetLastServiceOperationResponse.builder()
-                .operationState(OperationState.SUCCEEDED)
-                .build());
+    private void asyncDeleteComplete(String instanceId) {
+        try {
+            ServiceInstance instance = repository.find(instanceId);
+            if (instance == null) {
+                logger.error("Unable to find instance {} when delete completed async", instanceId);
+            }
+
+            logger.info("Async Delete of instance {} completed", instanceId);
+            instance.setLastOperation(new LastOperationSerializer(OperationState.SUCCEEDED, "Deleting", true));
+            repository.save(instance);
+        } catch (IOException e) {
+            logger.error("Unable to find instance {} when delete completed async");
+        }
     }
 }
