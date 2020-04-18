@@ -1,8 +1,11 @@
 package com.emc.ecs.servicebroker.service;
 
-import com.emc.ecs.common.Fixtures;
 import com.emc.ecs.management.sdk.*;
-import com.emc.ecs.management.sdk.model.*;
+import com.emc.ecs.management.sdk.model.BaseUrl;
+import com.emc.ecs.management.sdk.model.BaseUrlInfo;
+import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
+import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
@@ -22,7 +25,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,83 +81,6 @@ public class ReclaimPolicyTests {
 
         instanceRepo = mock(ServiceInstanceRepository.class);
         workflow = new BucketInstanceWorkflow(instanceRepo, ecs);
-    }
-
-    /**
-     * When initializing the ecs-service, and object-endpoint, repo-user &
-     * repo-bucket are set, the service will use these static settings. It the
-     * repo facilities exist, the ecs-service will continue.
-     *
-     * @throws EcsManagementClientException po
-     */
-    @Test
-    public void initializeStaticConfigTest() throws EcsManagementClientException {
-        setupInitTest();
-        when(broker.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
-
-        ecs.initialize();
-
-        assertEquals(OBJ_ENDPOINT, ecs.getObjectEndpoint());
-        assertEquals(PREFIX + "test", ecs.prefix(TEST));
-        verify(broker, times(1)).setRepositoryEndpoint(OBJ_ENDPOINT);
-        verify(broker, times(1)).setRepositorySecret(TEST);
-    }
-
-    /**
-     * When initializing the ecs-service, if the object-endpoint is not set
-     * statically, but base-url is, the service will look up the endpoint from
-     * the base-url.
-     *
-     * @throws EcsManagementClientException when ECS resources do not exist
-     */
-    @Test
-    public void initializeBaseUrlLookup() throws EcsManagementClientException {
-        setupInitTest();
-        setupBaseUrlTest(BASE_URL_NAME, false);
-
-        ecs.initialize();
-        String objEndpoint = HTTP + BASE_URL + _9020;
-        assertEquals(objEndpoint, ecs.getObjectEndpoint());
-        verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
-    }
-
-    /**
-     * When initializing the ecs-service, if neither the object-endpoint is not
-     * set statically nor the base-url, the service will lookup an endpoint
-     * named default in the base-url list. If one is found, it will set this as
-     * the repo endpoint.
-     *
-     * @throws EcsManagementClientException when ECS resources do not exist
-     */
-    @Test
-    public void initializeBaseUrlDefaultLookup() throws EcsManagementClientException {
-        PowerMockito.mockStatic(ReplicationGroupAction.class);
-
-        setupInitTest();
-        setupBaseUrlTest(DEFAULT_BASE_URL_NAME, false);
-
-        ecs.initialize();
-        String objEndpoint = HTTP + BASE_URL + _9020;
-        assertEquals(objEndpoint, ecs.getObjectEndpoint());
-        verify(broker, times(1)).setRepositoryEndpoint(objEndpoint);
-    }
-
-    /**
-     * When initializing the ecs-service, if neither the object-endpoint is not
-     * set statically nor the base-url, the service will lookup an endpoint
-     * named default in the base-url list. If none is found, it will throw an
-     * exception.
-     *
-     * @throws EcsManagementClientException when ECS resources do not exist
-     */
-    @Test(expected = ServiceBrokerException.class)
-    public void initializeBaseUrlDefaultLookupFails()
-        throws EcsManagementClientException {
-        PowerMockito.mockStatic(BaseUrlAction.class);
-        when(BaseUrlAction.list(same(connection)))
-            .thenReturn(Collections.emptyList());
-
-        ecs.initialize();
     }
 
     @Test
@@ -311,7 +236,6 @@ public class ReclaimPolicyTests {
         verify(ecs, times(1)).deleteBucket(instance.getServiceInstanceId());
         verify(ecs, times(0)).wipeAndDeleteBucket(instance.getServiceInstanceId());
     }
-
 
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
