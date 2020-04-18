@@ -95,18 +95,10 @@ public class EcsService {
             addUserToBucket(id, broker.getRepositoryUser());
 
             logger.info("Started Wiped of bucket {}", prefix(id));
-            BucketWipeResult result = new BucketWipeResult();
+            BucketWipeResult result = bucketWipeFactory.newBucketWipeResult();
             bucketWipe.deleteAllObjects(prefix(id), "", result);
 
-            return result.getCompletedFuture()
-                .thenRun(() -> {
-                    try {
-                        logger.info("Wiped {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
-                        BucketAction.delete(connection, prefix(id), broker.getNamespace());
-                    } catch (EcsManagementClientException e) {
-                        logger.error("Error deleting bucket "+prefix(id), e);
-                    }
-                });
+            return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id));
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }
@@ -471,6 +463,30 @@ public class EcsService {
 
     void deleteNamespace(String id) throws EcsManagementClientException {
         NamespaceAction.delete(connection, prefix(id));
+    }
+
+    /**
+     * Handle extra steps after a bucket wipe has completed.
+     *
+     * Throwing an exception here will throw an exception in the CompletableFuture pipeline to signify the operation failed
+     */
+    private void bucketWipeCompleted(BucketWipeResult result, String id) {
+        // Wipe Failed, mark as error
+        if (!result.getErrors().isEmpty()) {
+            logger.error("BucketWipe FAILED, deleted {} objects. Leaving bucket {}", result.getDeletedObjects(), prefix(id));
+            result.getErrors().forEach(error -> logger.error("BucketWipe {} error: {}", prefix(id), error));
+
+            throw new RuntimeException("BucketWipe Failed for instance " + id);
+        }
+
+        // Wipe Succeeded, Attempt Bucket Delete
+        try {
+            logger.info("BucketWipe SUCCEEDED, deleted {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
+            BucketAction.delete(connection, prefix(id), broker.getNamespace());
+        } catch (EcsManagementClientException e) {
+            logger.error("Error deleting bucket "+prefix(id), e);
+            throw new RuntimeException("Error Deleting Bucket "+prefix(id));
+        }
     }
 
     Map<String, Object> changeNamespacePlan(String id, ServiceDefinitionProxy service,

@@ -35,6 +35,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     private static final String SERVICE_TYPE = "service-type";
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceService.class);
 
+    private static final LastOperationSerializer SUCCEEDED_OPERATION = new LastOperationSerializer(OperationState.SUCCEEDED, "", false);
+
     @Autowired
     private EcsService ecs;
 
@@ -113,7 +115,11 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                 instance.setLastOperation(new LastOperationSerializer(OperationState.IN_PROGRESS, "Deleting", true));
                 repository.save(instance);
 
-                future.thenRun(() -> asyncDeleteComplete(serviceInstanceId));
+                // Setup callback to handle asynchronous delete completion
+                future.handle((result, exception) -> {
+                        asyncDeleteCompleted(serviceInstanceId, exception == null);
+                        return null;
+                    });
             } else {
                 LOG.info("removing instance {} from repo", serviceInstanceId);
                 repository.delete(serviceInstanceId);
@@ -173,18 +179,16 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             if (instance == null)
                 throw new ServiceInstanceDoesNotExistException(request.getServiceInstanceId());
 
-            LastOperationSerializer lastOperation = instance.getLastOperation();
-
             // No stored operation, assume succeeded
+            LastOperationSerializer lastOperation = instance.getLastOperation();
             if (lastOperation == null) {
-                lastOperation = new LastOperationSerializer(OperationState.SUCCEEDED, "", false);
+                lastOperation = SUCCEEDED_OPERATION;
             }
 
-            if (lastOperation.getOperationState() != OperationState.IN_PROGRESS) {
-                if (lastOperation.isDeleteOperation()) {
-                    logger.info("Operation for {} completed, deleting from repository", instance.getServiceInstanceId(), lastOperation.getOperationState());
-                    repository.delete(instance.getServiceInstanceId());
-                }
+            // Possibly delete the repository record
+            if (lastOperation.isDeleteOperation() && lastOperation.getOperationState() == OperationState.SUCCEEDED) {
+                logger.info("Operation for {} completed successfully, deleting from repository", instance.getServiceInstanceId(), lastOperation.getOperationState());
+                repository.delete(instance.getServiceInstanceId());
             }
 
             return Mono.just(GetLastServiceOperationResponse.builder()
@@ -192,7 +196,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                 .description(lastOperation.getDescription())
                 .operationState(lastOperation.getOperationState())
                 .build());
-
         } catch (IOException e) {
             throw new ServiceBrokerException(e);
         }
@@ -225,15 +228,17 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         }
     }
 
-    private void asyncDeleteComplete(String instanceId) {
+    private void asyncDeleteCompleted(String instanceId, boolean success) {
         try {
             ServiceInstance instance = repository.find(instanceId);
             if (instance == null) {
                 logger.error("Unable to find instance {} when delete completed async", instanceId);
             }
 
+            OperationState state = success ? OperationState.SUCCEEDED : OperationState.FAILED;
+
             logger.info("Async Delete of instance {} completed", instanceId);
-            instance.setLastOperation(new LastOperationSerializer(OperationState.SUCCEEDED, "Deleting", true));
+            instance.setLastOperation(new LastOperationSerializer(state, "Deleting", true));
             repository.save(instance);
         } catch (IOException e) {
             logger.error("Unable to find instance {} when delete completed async");
