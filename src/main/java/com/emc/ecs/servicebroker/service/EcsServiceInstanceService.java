@@ -164,7 +164,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .async(false)
                     .build());
         } catch (ServiceInstanceDoesNotExistException e) {
-            // Rethrow "does not exist" so that it's not caught by the generic casue
+            // Rethrow "does not exist" so that it's not caught by the generic case
             throw e;
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
