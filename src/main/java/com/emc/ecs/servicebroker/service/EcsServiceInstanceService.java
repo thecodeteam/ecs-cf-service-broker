@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static java.lang.String.format;
 
@@ -117,7 +118,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
                 // Setup callback to handle asynchronous delete completion
                 future.handle((result, exception) -> {
-                        asyncDeleteCompleted(serviceInstanceId, exception == null);
+                        asyncDeleteCompleted(serviceInstanceId, (Throwable)exception);
                         return null;
                     });
             } else {
@@ -228,17 +229,26 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         }
     }
 
-    private void asyncDeleteCompleted(String instanceId, boolean success) {
+    private void asyncDeleteCompleted(String instanceId, Throwable exception) {
         try {
             ServiceInstance instance = repository.find(instanceId);
             if (instance == null) {
                 logger.error("Unable to find instance {} when delete completed async", instanceId);
             }
 
-            OperationState state = success ? OperationState.SUCCEEDED : OperationState.FAILED;
+            if (exception == null) {
+                instance.setLastOperation(new LastOperationSerializer(OperationState.SUCCEEDED, "Delete Complete", true));
+            } else {
+                String errorMsg;
+                if (exception instanceof CompletionException && exception.getCause() != null) {
+                    errorMsg = exception.getCause().getMessage();
+                } else {
+                    errorMsg = exception.getMessage();
+                }
 
-            logger.info("Async Delete of instance {} completed", instanceId);
-            instance.setLastOperation(new LastOperationSerializer(state, "Deleting", true));
+                instance.setLastOperation(new LastOperationSerializer(OperationState.FAILED, errorMsg, true));
+            }
+
             repository.save(instance);
         } catch (IOException e) {
             logger.error("Unable to find instance {} when delete completed async");

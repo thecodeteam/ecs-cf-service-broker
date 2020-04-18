@@ -41,7 +41,8 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 switch(reclaimPolicy) {
                     case Fail:
                         logger.info("Reclaim Policy is {} for bucket {}, attempting to delete bucket", reclaimPolicy, ecs.prefix(instance.getName()));
-                        return ecs.deleteBucket(id);
+                        ecs.deleteBucket(id);
+                        return null;
                     case Detach:
                         logger.info("Reclaim Policy is {} for bucket {}, Not Deleting Bucket", reclaimPolicy, ecs.prefix(instance.getName()));
                         return null;

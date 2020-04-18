@@ -476,7 +476,7 @@ public class EcsService {
             logger.error("BucketWipe FAILED, deleted {} objects. Leaving bucket {}", result.getDeletedObjects(), prefix(id));
             result.getErrors().forEach(error -> logger.error("BucketWipe {} error: {}", prefix(id), error));
 
-            throw new RuntimeException("BucketWipe Failed for instance " + id);
+            throw new RuntimeException("BucketWipe Failed with "+result.getErrors().size()+" errors: "+result.getErrors().get(0));
         }
 
         // Wipe Succeeded, Attempt Bucket Delete
@@ -485,7 +485,7 @@ public class EcsService {
             BucketAction.delete(connection, prefix(id), broker.getNamespace());
         } catch (EcsManagementClientException e) {
             logger.error("Error deleting bucket "+prefix(id), e);
-            throw new RuntimeException("Error Deleting Bucket "+prefix(id));
+            throw new RuntimeException("Error Deleting Bucket "+prefix(id)+" "+e.getMessage());
         }
     }
 
