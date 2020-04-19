@@ -1,0 +1,23 @@
+product_slug: ecs-service-broker
+
+debug: false
+
+# iaas: [azure|vsphere|aws|openstack|vcloud|google]
+iaas: vsphere
+
+# iaas_type: [azure-hyperv|vsphere-esxi|aws-xen-hvm|openstack-kvm|vcloud-esxi|google-kvm]
+iaas_type: vsphere-esxi
+
+# stemcell_type: xenial|trusty
+stemcell_type: xenial
+stemcell_version: 456.98
+
+pipelines_url: https://github.com/spiegela/pcf-concourse-pipelines
+pipelines_branch: master
+
+opsman_env_file_name: opsman-env.yml
+config_file_name: product-config.yml
+apply_changes_file_name: apply-changes.yml
+
+test_app_repo: https://github.com/spiegela/ecs-broker-test-app.git
+test_app_branch: master

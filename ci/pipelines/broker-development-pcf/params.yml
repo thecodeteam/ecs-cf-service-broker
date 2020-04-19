@@ -1,0 +1,87 @@
+debug: true
+
+broker_repo: https://github.com/thecodeteam/ecs-cf-service-broker.git
+broker_branch: add-build-pipelines
+broker_app: ecs-broker
+broker_user: user
+broker_password: somethingsecure
+
+broker_version: 2.0.0-SNAPSHOT
+
+broker_manifest: |
+  ---
+  applications:
+    - name: ecs-broker
+      path: ecs-broker-jar/ecs-cf-service-broker-2.0.0-SNAPSHOT.jar
+      memory: 1024M
+      env:
+        SPRING_PROFILES: cloud
+        SECURITY_USER_NAME: user
+        SECURITY_USER_PASSWORD: somethingsecure
+        ALLOW_PAID_SERVICE_PLANS: true
+        APPLY_OPEN_SECURITY_GROUP: false
+        BROKER_CERTIFICATE_SELECTOR: |
+          {
+            "value": "No",
+            "selected_option": {
+              "certificate": "-----BEGIN CERTIFICATE-----\nMIIDXTCCAkWgAwIBAgIJAJzNJDJuTD3qMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV\nBAYTAkRFMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\naWRnaXRzIFB0eSBMdGQwHhcNMTkwOTAyMTU0OTA2WhcNMTkxMDAyMTU0OTA2WjBF\nMQswCQYDVQQGEwJERTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50\nZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\nCgKCAQEAl5W5yHh+Fgn2K8EH59p9ApvC9FOQCWspQlQdk9zFMUB9Qnq7+LBSPmxt\naN+G+tUbnT++ns3DwxjinyiQL1v8iaNhPwZA4c/+7qSpkIPVZW3P2W8DD5TORclj\nPY7qDEfoKLgu6GfNkiDLPOXQ1PFVItbesFUq2IXdKT+hQqyguDgXyqnZBX0jPtf3\nSy8/fBqR/jteBlkdyu+zONfYsU2UhVnVr9lYxwS0tFyRu9hZbpCrNqV+ZPQiDp/u\npQ33/T+ZUd7CADsGO37C3MFyv8yyydfbGHfJi49QgIwb24qbaNb9sPmbWqP6R25l\nK0rntXfItvVyliTr04CeYnmk8GAhtwIDAQABo1AwTjAdBgNVHQ4EFgQUuERq0x6N\ny0kk4xJhrSyWo6CFYUgwHwYDVR0jBBgwFoAUuERq0x6Ny0kk4xJhrSyWo6CFYUgw\nDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAD57MGyHcZlfin9sJUd0j\nIt1tPhurADyTEdmLbCsLlzo//xNatqfs9ZqhJx/8BG4eVnhVh4vdei/QOrW2etGM\nLqFXzG+qCK3OZk7ZzagAatoq8br1B49qO0DcCLHTP1ExKxFia6IGdNrVsh6nTmef\nD14Qqoeqhx2VlzXgCy+8MlRGdPI1DBttTyMVIst+0Y95hXO6fujqFAj2LBLBHhnm\nNHEIWdfShMrvphgpaeXjUUAOYPaB46QblLM/x+gJ0cthNR5iPrzlgEBPKTQweaim\nAW0xAuoaKlsWEiHKD344U0XdgKbDtLX1GwFDbbNI6PlrxSReQg8LRV5jHkGCkOFS\ntA==\n-----END CERTIFICATE-----\n"
+            }
+          }
+        BROKER_MANAGEMENT_ENDPOINT: https://10.1.83.51:4443
+        BROKER_OBJECT_ENDPOINT: http://10.1.83.51:9020
+        BROKER_NAMESPACE: kenspace-pcf-63
+        BROKER_USERNAME: kenspace-pcf-63-admin
+        BROKER_PASSWORD: ChangeMe
+        BROKER_PREFIX: kenspace-pcf-63-
+        BROKER_REPLICATION_GROUP: plylab-NR
+        CATALOG_SERVICES[0]_ID: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
+        CATALOG_SERVICES[0]_ACTIVE: true
+        CATALOG_SERVICES[0]_NAME: ecs-bucket
+        CATALOG_SERVICES[0]_DESCRIPTION: Elastic Cloud S3 Object Storage Bucket
+        CATALOG_SERVICES[0]_TAGS: "s3, bucket"
+        CATALOG_SERVICES[0]_BINDABLE: true
+        CATALOG_SERVICES[0]_REPOSITORY_SERVICE: true
+        CATALOG_SERVICES[0]_METADATA[displayName]: ecs-bucket
+        CATALOG_SERVICES[0]_METADATA[imageUrl]: http://www.emc.com/images/products/header-image-icon-ecs.png
+        CATALOG_SERVICES[0]_METADATA[longDescription]: Dell EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3.
+        CATALOG_SERVICES[0]_METADATA[providerDisplayName]: Dell EMC
+        CATALOG_SERVICES[0]_METADATA[documentationUrl]: https://community.emc.com/docs/DOC-45012
+        CATALOG_SERVICES[0]_METADATA[supportUrl]: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
+        CATALOG_SERVICE_SETTINGS0: |
+          {
+            "value": "Bucket",
+            "selected_option": {
+              "head_type": "s3",
+              "service-type": "bucket",
+              "access-during-outage": true
+            }
+          }
+        CATALOG_PLAN_COLLECTION0: |
+          [
+            {
+              "guid": "8e777d49-0a78-4cf4-810a-b5f5173b019d",
+              "name": "5gb",
+              "description": "Free Trial",
+              "free": true,
+              "bullet_1": "Shared object storage",
+              "bullet_2": "5 GB Storage",
+              "bullet_3": "S3 protocol access",
+              "cost_unit": "MONTHLY",
+              "cost_usd": "0",
+              "quota_limit": "5",
+              "quota_warn": "4",
+              "repository_plan": true
+            },
+            {
+                "guid": "89d20694-9ab0-4a98-bc6a-868d6d4ecf31",
+                "name": "unlimited",
+                "description": "Pay per GB per Month",
+                "free": false,
+                "bullet_1": "Shared object storage",
+                "bullet_2": "Unlimited Storage",
+                "bullet_3": "S3 protocol access",
+                "cost_unit": "MONTHLY",
+                "cost_usd": "0.03",
+                "repository_plan": false
+              }
+          ]

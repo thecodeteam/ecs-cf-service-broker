@@ -1,0 +1,419 @@
+---
+resource_types:
+  - name: artifactory
+    type: docker-image
+    source:
+      repository: pivotalservices/artifactory-resource
+  - name: cf-cli-resource
+    type: docker-image
+    source:
+      repository: nulldriver/cf-cli-resource
+      tag: latest
+
+resources:
+
+  - name: pipelines-repo
+    type: git
+    source:
+      uri: ((pipelines_url))
+      branch: ((pipelines_branch))
+      access_token: ((git_token))
+
+  - name: ecs-broker-repo
+    type: git
+    source:
+      uri: ((broker_repo))
+      branch: ((broker_branch))
+      access_token: ((git_token))
+
+  - name: ((cf_foundation_name))
+    type: cf-cli-resource
+    source:
+      api: https://((cf_api))
+      org: ((cf_org))
+      space: ((cf_space))
+      username: ((cf_user))
+      password: ((cf_password))
+      skip_cert_check: ((cf_skip_cert_check))
+
+  - name: test-app-repo
+    type: git
+    source:
+      uri: ((test_app_repo))
+      branch: ((test_app_branch))
+      access_token: ((git_token))
+
+  - name: ecs-broker-jar
+    type: artifactory
+    source:
+      endpoint: https://asdrepo.isus.emc.com/artifactory
+      repository: /ecs-open-service-broker/ecs-open-service-broker
+      regex: ecs-open-service-broker-(?<version>.*)-RELEASE.jar
+      username: ((artifactory_user))
+      password: ((artifactory_password))
+      skip_ssl_verification: true
+
+jobs:
+
+  - name: build-broker-jar
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+          - get: ecs-broker-repo
+      - task: unit-test
+        file: pipelines-repo/tasks/gradlew-test/task.yml
+        input_mapping:
+          pipelies-repo: pipelines-repo
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+
+      - task: assemble
+        file: pipelines-repo/tasks/gradlew-assemble/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+
+      - put: ecs-broker-jar
+        params:
+          file: ./project-libs/ecs-open-service-broker-*.jar
+        get_params: {skip_download: true}
+
+  - name: deploy-service-broker
+    plan:
+      - in_parallel:
+        - get: ecs-broker-jar
+          passed: [build-broker-jar]
+        - get: pipelines-repo
+
+      - task: create-manifest
+        file: pipelines-repo/tasks/create-yml-file/task.yml
+        output_mapping:
+          output-folder: manifest
+        params:
+          DEBUG: ((debug))
+          OUTPUT_FILE_NAME: manifest.yml
+          PARAM_NAME: ((broker_manifest))
+
+      - put: cf-push-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: push
+          app_name: ((broker_app))
+          memory: 1G
+          path: ecs-broker-jar/ecs-open-service-broker-((broker_version)).jar
+          manifest: manifest/manifest.yml
+
+      - put: create-service-broker-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: create-service-broker
+          service_broker: ((broker_app))
+          username: ((broker_user))
+          password: ((broker_password))
+          url: https://((broker_app)).((cf_apps_domain))
+          space_scoped: false
+
+      - put: cf-enable-service-access-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: enable-service-access
+          service: ecs-bucket
+          access_org: ecs-broker-service-org
+
+  - name: test-5gb-bucket-from-app
+    serial_groups: [pcf]
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+            passed: [deploy-service-broker]
+          - get: test-app-repo
+
+      - put: create-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: create-service
+          service: ecs-bucket
+          plan: 5gb
+          service_instance: ecs-broker-test-bucket
+
+      - put: cf-push-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: push
+          app_name: ecs-broker-test-app
+          memory: 1G
+          path: test-app-repo
+          manifest: test-app-repo/manifest.yml
+
+      - task: put-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: PUT
+          BODY: test123
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: get-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: GET
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: delete-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: DELETE
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - put: cf-delete-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete
+          app_name: ecs-broker-test-app
+          delete_mapped_routes: true
+
+      - put: delete-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete-service
+          service_instance: ecs-broker-test-bucket
+
+  - name: test-unlimited-bucket-from-app
+    serial_groups: [pcf]
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+            passed: [deploy-service-broker]
+          - get: test-app-repo
+
+      - put: create-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: create-service
+          service: ecs-bucket
+          plan: unlimited
+          service_instance: ecs-broker-test-bucket
+
+      - put: cf-push-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: push
+          app_name: ecs-broker-test-app
+          memory: 1G
+          path: test-app-repo
+          manifest: test-app-repo/manifest.yml
+
+      - task: put-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: PUT
+          BODY: test123
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: get-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: GET
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: delete-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: DELETE
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - put: cf-delete-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete
+          app_name: ecs-broker-test-app
+          delete_mapped_routes: true
+
+      - put: delete-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete-service
+          service_instance: ecs-broker-test-bucket
+
+  - name: test-5gb-namespace-from-app
+    serial_groups: [pcf]
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+            passed: [deploy-service-broker]
+          - get: test-app-repo
+
+      - put: create-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: create-service
+          service: ecs-namespace
+          plan: 5gb
+          service_instance: ecs-broker-test-namespace
+
+      - put: cf-push-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: push
+          app_name: ecs-broker-test-app
+          memory: 1G
+          path: test-app-repo
+          manifest: test-app-repo/manifest.yml
+
+      - task: put-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: PUT
+          BODY: test123
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: get-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: GET
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: delete-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: DELETE
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - put: cf-delete-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete
+          app_name: ecs-broker-test-app
+          delete_mapped_routes: true
+
+      - put: delete-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete-service
+          service_instance: ecs-broker-test-bucket
+
+  - name: test-unlimited-namespace-from-app
+    serial_groups: [pcf]
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+            passed: [deploy-service-broker]
+          - get: test-app-repo
+
+      - put: create-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: create-service
+          service: ecs-bucket
+          plan: unlimited
+          service_instance: ecs-broker-test-bucket
+
+      - put: cf-push-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: push
+          app_name: ecs-broker-test-app
+          memory: 1G
+          path: test-app-repo
+          manifest: test-app-repo/manifest.yml
+
+      - task: put-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: PUT
+          BODY: test123
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: get-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: GET
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - task: delete-object
+        file: pipelines-repo/tasks/curl/task.yml
+        input_mapping:
+          pipelines-repo: pipelines-repo
+        params:
+          URL: https://ecs-broker-test-app.((cf_apps_domain))/testobject1
+          METHOD: DELETE
+          DEBUG: ((debug))
+          INSECURE: true
+
+      - put: cf-delete-test-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete
+          app_name: ecs-broker-test-app
+          delete_mapped_routes: true
+
+      - put: delete-service-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete-service
+          service_instance: ecs-broker-test-bucket
+
+  - name: delete-broker-app
+    serial_groups: [pcf]
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+            passed: [test-5gb-bucket-from-app, test-unlimited-bucket-from-app, test-5gb-namespace-from-app, test-unlimited-namespace-from-app]
+
+      - put: delete-service-broker-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete-service-broker
+          service_broker: ecs-broker
+
+      - put: delete-broker-app-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: delete
+          app_name: ((broker_app))

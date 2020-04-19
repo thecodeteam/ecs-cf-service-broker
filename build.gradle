@@ -22,6 +22,8 @@ apply plugin: 'jacoco'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+version = '2.0.0-SNAPSHOT'
+
 repositories {
     mavenCentral()
     maven { url "http://repo.spring.io/libs-snapshot" }
