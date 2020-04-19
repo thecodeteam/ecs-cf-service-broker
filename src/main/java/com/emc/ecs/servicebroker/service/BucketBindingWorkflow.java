@@ -32,13 +32,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(bindingId))
+        if (ecs.userExists(binding.getName()))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
-        UserSecretKey userSecretKey = ecs.createUser(bindingId);
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName());
+
         Map<String, Object> parameters = createRequest.getParameters();
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
@@ -56,21 +57,21 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (permissions == null) {
-            ecs.addUserToBucket(bucketName, bindingId);
+            ecs.addUserToBucket(bucketName, binding.getName());
         } else {
-            ecs.addUserToBucket(bucketName, bindingId, permissions);
+            ecs.addUserToBucket(bucketName, binding.getName(), permissions);
         }
 
         if (ecs.getBucketFileEnabled(bucketName)) {
             volumeMounts = createVolumeExport(export,
-                    new URL(ecs.getObjectEndpoint()), parameters);
+                    new URL(ecs.getObjectEndpoint()), instance.getName(), parameters);
         }
 
         return userSecretKey.getSecretKey();
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding)
+    public void removeBinding()
             throws EcsManagementClientException, IOException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
@@ -89,14 +90,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             LOG.error("Deleting user map of instance Id and Binding Id " +
                     bucketName + " " + bindingId);
             try {
-                ecs.deleteUserMap(bindingId, unixId);
+                ecs.deleteUserMap(binding.getName(), unixId);
             } catch (EcsManagementClientException e) {
                 LOG.error("Error deleting user map: " + e.getMessage());
             }
         }
 
-        ecs.removeUserFromBucket(bucketName, bindingId);
-        ecs.deleteUser(bindingId);
+        ecs.removeUserFromBucket(bucketName, binding.getName());
+        ecs.deleteUser(binding.getName());
     }
 
     @Override
@@ -176,7 +177,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         int unixUid = (int) (2000 + System.currentTimeMillis() % 8000);
         while (true) {
             try {
-                ecs.createUserMap(bindingId, unixUid);
+                ecs.createUserMap(binding.getName(), unixUid);
                 break;
             } catch (EcsManagementClientException e) {
                 if (e.getMessage().contains("Bad request body (1013)")) {
@@ -189,7 +190,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return unixUid;
     }
 
-    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, Map<String, Object> parameters)
+    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, String bucketName, Map<String, Object> parameters)
             throws EcsManagementClientException {
         int unixUid = createUserMap();
         String host = ecs.getNfsMountHost();
@@ -197,9 +198,9 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             host = baseUrl.getHost();
         }
 
-        LOG.info("Adding export:  " + export + " to bucket: " + instanceId);
+        LOG.info("Adding export:  " + export + " to bucket: " + bucketName);
         String volumeGUID = UUID.randomUUID().toString();
-        String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
+        String absoluteExportPath = ecs.addExportToBucket(bucketName, export);
         LOG.info("export added.");
 
         Map<String, Object> opts = new HashMap<>();

@@ -344,10 +344,11 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test
     public void testRemoveNamespaceUser() throws EcsManagementClientException, IOException {
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
-        when(repository.find(eq(BINDING_ID))).thenReturn(bindingInstanceFixture());
+        ServiceInstanceBinding bindingFixture = bindingInstanceFixture();
+        when(repository.find(eq(BINDING_ID))).thenReturn(bindingFixture);
         bindSvc.deleteServiceInstanceBinding(namespaceBindingRemoveFixture());
-        verify(ecs, times(1)).deleteUser(BINDING_ID);
-        verify(ecs, times(0)).removeUserFromBucket(NAMESPACE, BINDING_ID);
+        verify(ecs, times(1)).deleteUser(bindingFixture.getName());
+        verify(ecs, times(0)).removeUserFromBucket(NAMESPACE, bindingFixture.getName());
     }
 
     /**
@@ -356,11 +357,12 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test
     public void testRemoveBucketUser() throws EcsManagementClientException, IOException {
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID)).thenReturn(bucketServiceFixture());
-        when(repository.find(eq(BINDING_ID))).thenReturn(bindingInstanceFixture());
+        ServiceInstanceBinding bindingFixture = bindingInstanceFixture();
+        when(repository.find(eq(BINDING_ID))).thenReturn(bindingFixture);
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         bindSvc.deleteServiceInstanceBinding(bucketBindingRemoveFixture());
-        verify(ecs, times(1)).removeUserFromBucket(SERVICE_INSTANCE_ID, BINDING_ID);
-        verify(ecs, times(1)).deleteUser(BINDING_ID);
+        verify(ecs, times(1)).removeUserFromBucket(SERVICE_INSTANCE_ID, bindingFixture.getName());
+        verify(ecs, times(1)).deleteUser(bindingFixture.getName());
     }
 
     /**

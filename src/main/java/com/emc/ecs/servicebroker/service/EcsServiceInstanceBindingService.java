@@ -65,6 +65,7 @@ public class EcsServiceInstanceBindingService
 
             return Mono.just(workflow.getResponse(credentials));
         } catch (IOException | JAXBException | EcsManagementClientException e) {
+            LOG.error("Error ", e);
             throw new ServiceBrokerException(e);
         }
     }
@@ -75,16 +76,14 @@ public class EcsServiceInstanceBindingService
 
         String bindingId = request.getBindingId();
         try {
-            BindingWorkflow workflow = getWorkflow(request)
-                    .withDeleteRequest(request);
-
             LOG.info("looking up binding: " + bindingId);
-            ServiceInstanceBinding binding = repository.find(bindingId);
-            if (binding == null)
+            ServiceInstanceBinding existingBinding = repository.find(bindingId);
+            if (existingBinding == null)
                 throw new ServiceInstanceBindingDoesNotExistException(bindingId);
-            LOG.info("binding found: " + bindingId);
 
-            workflow.removeBinding(binding);
+            LOG.info("binding found: " + bindingId);
+            BindingWorkflow workflow = getWorkflow(request, existingBinding);
+            workflow.removeBinding();
 
             LOG.info("deleting from repository" + bindingId);
             repository.delete(bindingId);
@@ -97,15 +96,15 @@ public class EcsServiceInstanceBindingService
         }
     }
 
-    private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest)
+    private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest, ServiceInstanceBinding existingBinding)
             throws EcsManagementClientException, IOException {
 
         if (isRemoteConnectBinding(deleteRequest))
-            return new RemoteConnectBindingWorkflow(instanceRepo, ecs);
+            return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withDeleteRequest(deleteRequest, existingBinding);
 
         ServiceDefinitionProxy service =
                 ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
-        return getWorkflow(service).withDeleteRequest(deleteRequest);
+        return getWorkflow(service).withDeleteRequest(deleteRequest, existingBinding);
     }
 
     private BindingWorkflow getWorkflow(CreateServiceInstanceBindingRequest createRequest)

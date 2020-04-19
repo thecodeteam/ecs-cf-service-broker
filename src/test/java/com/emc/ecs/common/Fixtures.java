@@ -179,15 +179,19 @@ public class Fixtures {
     }
 
     public static CreateServiceInstanceRequest namespaceCreateRequestFixture(Map<String, Object> params) {
+        return namespaceCreateRequestFixture(SERVICE_INSTANCE_ID, params);
+    }
+
+    public static CreateServiceInstanceRequest namespaceCreateRequestFixture(String instanceId, Map<String, Object> params) {
         return CreateServiceInstanceRequest.builder()
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .parameters(params)
-                .serviceInstanceId(SERVICE_INSTANCE_ID)
+                .serviceInstanceId(instanceId)
                 .build();
     }
 
-    public static CreateServiceInstanceRequest bucketCreateRequestFixture(Map<String, Object> params) {
+     public static CreateServiceInstanceRequest bucketCreateRequestFixture(Map<String, Object> params) {
         return CreateServiceInstanceRequest.builder()
                 .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
@@ -211,7 +215,7 @@ public class Fixtures {
                 .serviceDefinitionId(NAMESPACE_SERVICE_ID)
                 .planId(NAMESPACE_PLAN_ID1)
                 .parameters(params)
-                .serviceInstanceId(NAMESPACE)
+                .serviceInstanceId(SERVICE_INSTANCE_ID)
                 .build();
     }
 
@@ -226,11 +230,15 @@ public class Fixtures {
     }
 
     public static DeleteServiceInstanceRequest namespaceDeleteRequestFixture() {
+        return namespaceDeleteRequestFixture(NAMESPACE);
+    }
+
+    public static DeleteServiceInstanceRequest namespaceDeleteRequestFixture(String instanceId) {
         return DeleteServiceInstanceRequest.builder()
-                .serviceDefinitionId(NAMESPACE_SERVICE_ID)
-                .planId(NAMESPACE_PLAN_ID1)
-                .serviceInstanceId(NAMESPACE)
-                .build();
+            .serviceDefinitionId(NAMESPACE_SERVICE_ID)
+            .planId(NAMESPACE_PLAN_ID1)
+            .serviceInstanceId(instanceId)
+            .build();
     }
 
     public static DeleteServiceInstanceRequest bucketDeleteRequestFixture() {
@@ -336,10 +344,18 @@ public class Fixtures {
     }
 
     public static CreateServiceInstanceBindingRequest bucketBindingRequestFixture() {
+        return bucketBindingRequestWithNameFixture(null);
+    }
+
+    public static CreateServiceInstanceBindingRequest bucketBindingRequestWithNameFixture(String name) {
         BindResource bindResource = BindResource.builder()
                 .appGuid(APP_GUID)
                 .build();
         Map<String, Object> params = new HashMap<>();
+        if (name != null) {
+            params.put("name", name);
+        }
+
         return CreateServiceInstanceBindingRequest.builder()
                 .serviceDefinitionId(BUCKET_SERVICE_ID)
                 .planId(BUCKET_PLAN_ID1)
@@ -359,7 +375,24 @@ public class Fixtures {
         return new ServiceInstance(createReq);
     }
 
+    public static ServiceInstance serviceInstanceWithNameFixture(String name) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", name);
+
+        CreateServiceInstanceRequest createReq = CreateServiceInstanceRequest.builder()
+            .serviceInstanceId(SERVICE_INSTANCE_ID)
+            .serviceDefinitionId("service-one-id")
+            .planId("plan-one-id")
+            .parameters(params)
+            .build();
+        return new ServiceInstance(createReq);
+    }
+
     public static ServiceInstanceBinding bindingInstanceFixture() {
+        return bindingInstanceWithNameFixture(null);
+    }
+
+    public static ServiceInstanceBinding bindingInstanceWithNameFixture(String name) {
         Map<String, Object> creds = new HashMap<>();
         creds.put("accessKey", "user");
         creds.put("bucket", "bucket");
@@ -374,6 +407,11 @@ public class Fixtures {
         params.put("flag", true);
         params.put("text", "abcdefg");
         params.put("nested", nested);
+
+        if (name != null) {
+            params.put("name", name);
+        }
+
         BindResource bindResource = BindResource.builder()
                 .appGuid("app-guid")
                 .build();
@@ -381,9 +419,10 @@ public class Fixtures {
                 .planId("plan-one-id")
                 .bindResource(bindResource)
                 .parameters(params)
+                .bindingId(BINDING_ID)
                 .build();
         ServiceInstanceBinding binding = new ServiceInstanceBinding(createReq);
-        binding.setBindingId("service-inst-bind-one-id");
+        binding.setBindingId(BINDING_ID);
         binding.setServiceDefinitionId("service-one-id");
         binding.setCredentials(creds);
         return binding;
