@@ -71,6 +71,7 @@ public class EcsService {
         try {
             lookupObjectEndpoints();
             lookupReplicationGroupID();
+            prepareDefaultReclaimPolicy();
             prepareRepository();
             prepareBucketWipe();
         } catch (EcsManagementClientException e) {
@@ -383,6 +384,11 @@ public class EcsService {
 
     private void prepareBucketWipe() throws URISyntaxException {
         bucketWipe = bucketWipeFactory.getBucketWipe(broker);
+    }
+
+    private void prepareDefaultReclaimPolicy() {
+        ReclaimPolicy.DEFAULT_RECLAIM_POLICY = ReclaimPolicy.valueOf(broker.getDefaultReclaimPolicy());
+        logger.info("Default Reclaim Policy: "+ReclaimPolicy.DEFAULT_RECLAIM_POLICY);
     }
 
     private String getUserSecret(String id)

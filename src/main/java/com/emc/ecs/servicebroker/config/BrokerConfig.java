@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.config;
 
+import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.emc.ecs.servicebroker.model.TileSelector;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +30,7 @@ public class BrokerConfig {
     private String prefix = "ecs-cf-broker-";
     private String brokerApiVersion = "*";
     private String certificate;
+    private String defaultReclaimPolicy = ReclaimPolicy.Fail.name();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -205,4 +207,11 @@ public class BrokerConfig {
         this.repositoryPlanId = repositoryPlanId;
     }
 
+    public String getDefaultReclaimPolicy() {
+        return defaultReclaimPolicy;
+    }
+
+    public void setDefaultReclaimPolicy(String defaultReclaimPolicy) {
+        this.defaultReclaimPolicy = defaultReclaimPolicy;
+    }
 }
