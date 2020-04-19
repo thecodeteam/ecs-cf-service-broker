@@ -71,7 +71,6 @@ data:
           access-during-outage: true
           head-type: s3
           service-type: bucket
-          allowed-reclaim-policies: Fail, Detach, Delete
         tags:
         - s3
         - bucket
