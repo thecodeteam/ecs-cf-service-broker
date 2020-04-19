@@ -13,6 +13,8 @@ public enum ReclaimPolicy {
     // Delete all Objects before deleting the bucket
     Delete;
 
+    public static ReclaimPolicy DEFAULT_RECLAIM_POLICY = Fail;
+
     private static String RECLAIM_POLICY = "reclaim-policy";
     private static String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
 
@@ -23,8 +25,8 @@ public enum ReclaimPolicy {
             return ReclaimPolicy.valueOf(reclaimPolicy);
         }
 
-        // No Reclaim Policy, Fail is the default
-        return ReclaimPolicy.Fail;
+        // No Explict ReclaimPolicy specified
+        return DEFAULT_RECLAIM_POLICY;
     }
 
     public static List<ReclaimPolicy> getAllowedReclaimPolicies(Map<String, Object> params) {
@@ -38,8 +40,8 @@ public enum ReclaimPolicy {
             return allowedPolicies;
         }
 
-        // If nothing specified then default to only allowing Fail
-        return Collections.singletonList(Fail);
+        // No explicit Allowed Reclaim Policies Specified
+        return Collections.singletonList(DEFAULT_RECLAIM_POLICY);
     }
 
     public static boolean isPolicyAllowed(Map<String, Object> params) {
