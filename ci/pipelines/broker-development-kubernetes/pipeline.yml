@@ -1,0 +1,45 @@
+---
+resources:
+
+  - name: pipelines-repo
+    type: git
+    source:
+      uri: ((pipelines_url))
+      branch: ((pipelines_branch))
+      access_token: ((git_token))
+
+  - name: ecs-broker-repo
+    type: git
+    source:
+      uri: ((broker_repo))
+      branch: ((broker_branch))
+      access_token: ((git_token))
+
+  - name: ecs-broker-docker-image
+    type: docker-image
+    source:
+      email: ((docker_hub_email))
+      username: ((docker_hub_username))
+      password: ((docker_hub_password))
+      repository: ((docker_hub_org))/ecs-open-service-broker
+      tag_file: VERSION
+
+jobs:
+
+  - name: build-broker-docker-image
+    plan:
+      - in_parallel:
+          - get: pipelines-repo
+          - get: ecs-broker-repo
+
+      - task: unit-test
+        file: pipelines-repo/tasks/gradlew-test/task.yml
+        input_mapping:
+          pipelies-repo: pipelines-repo
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+
+      - put: ecs-broker-docker-image
+        params:
+          build: ecs-broker-repo

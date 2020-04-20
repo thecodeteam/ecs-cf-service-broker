@@ -1,0 +1,7 @@
+debug: true
+
+broker_repo: https://github.com/thecodeteam/ecs-cf-service-broker.git
+broker_branch: master
+
+broker_version: 2.0.0-SNAPSHOT
+
