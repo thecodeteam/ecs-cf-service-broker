@@ -85,3 +85,105 @@ broker_manifest: |
                 "repository_plan": false
               }
           ]
+        CATALOG_SERVICES[1]_ID: 7a17d149-807b-425c-b15f-b402c866ea63
+        CATALOG_SERVICES[1]_ACTIVE: true
+        CATALOG_SERVICES[1]_NAME: ecs-namespace
+        CATALOG_SERVICES[1]_DESCRIPTION: Elastic Cloud S3 Namespace
+        CATALOG_SERVICES[1]_TAGS: "s3, namespace"
+        CATALOG_SERVICES[1]_BINDABLE: true
+        CATALOG_SERVICES[1]_REPOSITORY_SERVICE: false
+        CATALOG_SERVICES[1]_METADATA[displayName]: ecs-namespace
+        CATALOG_SERVICES[1]_METADATA[imageUrl]: http://www.emc.com/images/products/header-image-icon-ecs.png
+        CATALOG_SERVICES[1]_METADATA[longDescription]: Dell EMC Elastic Cloud Storage (ECS) Object namespace for hosting S3 buckets
+        CATALOG_SERVICES[1]_METADATA[providerDisplayName]: Dell EMC
+        CATALOG_SERVICES[1]_METADATA[documentationUrl]: https://community.emc.com/docs/DOC-45012
+        CATALOG_SERVICES[1]_METADATA[supportUrl]: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
+        CATALOG_SERVICE_SETTINGS1: |
+          {
+            "value": "Namespace",
+            "selected_option": {
+              "head_type": "s3",
+              "service-type": "namespace"
+            }
+          }
+        CATALOG_PLAN_COLLECTION1: |
+          [
+            {
+              "guid": "75a966d8-dabb-48d8-8ccb-d2a7b3f63845",
+              "name": "5gb",
+              "description": "Free Trial",
+              "free": true,
+              "bullet_1": "Shared object storage",
+              "bullet_2": "5 GB Storage",
+              "bullet_3": "S3 protocol access",
+              "cost_unit": "MONTHLY",
+              "cost_usd": "0",
+              "quota_limit": "5",
+              "quota_warn": "4",
+              "repository_plan": false
+            },
+            {
+                "guid": "823c0ebb-c863-4be8-bc26-234bd74e3576",
+                "name": "unlimited",
+                "description": "Pay per GB per Month",
+                "free": false,
+                "bullet_1": "Shared object storage",
+                "bullet_2": "Unlimited Storage",
+                "bullet_3": "S3 protocol access",
+                "cost_unit": "MONTHLY",
+                "cost_usd": "0.03",
+                "repository_plan": false
+              }
+          ]
+        CATALOG_SERVICES[2]_ID: cedeaa9a-f524-47e5-9622-0d50b12925ca
+        CATALOG_SERVICES[2]_ACTIVE: true
+        CATALOG_SERVICES[2]_NAME: ecs-file-bucket
+        CATALOG_SERVICES[2]_DESCRIPTION: Elastic Cloud S3 Object/File bucket
+        CATALOG_SERVICES[2]_TAGS: "s3, bucket, nfs, mount"
+        CATALOG_SERVICES[2]_BINDABLE: true
+        CATALOG_SERVICES[2]_REPOSITORY_SERVICE: false
+        CATALOG_SERVICES[2]_METADATA[displayName]: ecs-file-bucket
+        CATALOG_SERVICES[2]_METADATA[imageUrl]: http://www.emc.com/images/products/header-image-icon-ecs.png
+        CATALOG_SERVICES[2]_METADATA[longDescription]: Dell EMC Elastic Cloud Storage (ECS) Object namespace for hosting S3 buckets
+        CATALOG_SERVICES[2]_METADATA[providerDisplayName]: Dell EMC
+        CATALOG_SERVICES[2]_METADATA[documentationUrl]: https://community.emc.com/docs/DOC-45012
+        CATALOG_SERVICES[2]_METADATA[supportUrl]: http://www.emc.com/products-solutions/trial-software-download/ecs.htm
+        CATALOG_SERVICE_SETTINGS2: |
+          {
+            "value": "Namespace",
+            "selected_option": {
+              "head_type": "s3",
+              "service-type": "bucket",
+              "file-enabled": "true"
+            }
+          }
+        CATALOG_PLAN_COLLECTION2: |
+          [
+            {
+              "guid": "26ff5712-5031-40af-ab88-e49411936a0c",
+              "name": "5gb",
+              "description": "Free Trial",
+              "free": true,
+              "bullet_1": "Shared object storage",
+              "bullet_2": "5 GB Storage",
+              "bullet_3": "S3 protocol access",
+              "cost_unit": "MONTHLY",
+              "cost_usd": "0",
+              "quota_limit": "5",
+              "quota_warn": "4",
+              "repository_plan": false
+            },
+            {
+                "guid": "63a562a1-f7a4-46b8-92c5-a5bbf2296a7b",
+                "name": "unlimited",
+                "description": "Pay per GB per Month",
+                "free": false,
+                "bullet_1": "Shared object storage",
+                "bullet_2": "Unlimited Storage",
+                "bullet_3": "S3 protocol access",
+                "cost_unit": "MONTHLY",
+                "cost_usd": "0.03",
+                "repository_plan": false
+              }
+          ]
+

@@ -47,8 +47,8 @@ resources:
     type: artifactory
     source:
       endpoint: https://asdrepo.isus.emc.com/artifactory
-      repository: /ecs-open-service-broker/ecs-open-service-broker
-      regex: ecs-open-service-broker-(?<version>.*)-RELEASE.jar
+      repository: /ecs-open-service-broker-local-mw/ecs-open-service-broker
+      regex: ecs-open-service-broker-(?<version>.*).jar
       username: ((artifactory_user))
       password: ((artifactory_password))
       skip_ssl_verification: true
@@ -116,11 +116,25 @@ jobs:
           url: https://((broker_app)).((cf_apps_domain))
           space_scoped: false
 
-      - put: cf-enable-service-access-((cf_foundation_name))
+      - put: cf-enable-bucket-access-((cf_foundation_name))
         resource: ((cf_foundation_name))
         params:
           command: enable-service-access
           service: ecs-bucket
+          access_org: ecs-broker-service-org
+
+      - put: cf-enable-namespace-access-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: enable-service-access
+          service: ecs-namespace
+          access_org: ecs-broker-service-org
+
+      - put: cf-enable-file-access-((cf_foundation_name))
+        resource: ((cf_foundation_name))
+        params:
+          command: enable-service-access
+          service: ecs-file-bucket
           access_org: ecs-broker-service-org
 
   - name: test-5gb-bucket-from-app
@@ -275,7 +289,7 @@ jobs:
           command: create-service
           service: ecs-namespace
           plan: 5gb
-          service_instance: ecs-broker-test-namespace
+          service_instance: ecs-broker-test-bucket
 
       - put: cf-push-test-app-((cf_foundation_name))
         resource: ((cf_foundation_name))
@@ -342,7 +356,7 @@ jobs:
         resource: ((cf_foundation_name))
         params:
           command: create-service
-          service: ecs-bucket
+          service: ecs-namespace
           plan: unlimited
           service_instance: ecs-broker-test-bucket
 
