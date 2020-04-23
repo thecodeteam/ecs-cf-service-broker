@@ -14,6 +14,7 @@ data:
   {{- if .Values.certificate }}
       certificate: {{ toYaml .Values.certificate | indent 6 }}
   {{- end }}
+      defaultReclaimPolicy: {{ .Values.defaultReclaimPolicy }}
     catalog:
       services:
       -

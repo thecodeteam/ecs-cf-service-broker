@@ -7,6 +7,7 @@ import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +76,9 @@ public class EcsServiceTest {
     @Mock
     private CatalogConfig catalog;
 
+    @Mock
+    private BucketWipeFactory bucketWipeFactory;
+
     @Autowired
     @InjectMocks
     private EcsService ecs;
@@ -119,7 +123,6 @@ public class EcsServiceTest {
     public void initializeBaseUrlLookup() throws EcsManagementClientException {
         setupInitTest();
         setupBaseUrlTest(BASE_URL_NAME, false);
-        when(broker.getBaseUrl()).thenReturn(BASE_URL_NAME);
 
         ecs.initialize();
         String objEndpoint = HTTP + BASE_URL + _9020;
