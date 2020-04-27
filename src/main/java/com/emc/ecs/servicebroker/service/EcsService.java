@@ -387,8 +387,11 @@ public class EcsService {
     }
 
     private void prepareDefaultReclaimPolicy() {
-        ReclaimPolicy.DEFAULT_RECLAIM_POLICY = ReclaimPolicy.valueOf(broker.getDefaultReclaimPolicy());
-        logger.info("Default Reclaim Policy: "+ReclaimPolicy.DEFAULT_RECLAIM_POLICY);
+        String defaultReclaimPolicy = broker.getDefaultReclaimPolicy();
+        if (defaultReclaimPolicy != null) {
+            ReclaimPolicy.DEFAULT_RECLAIM_POLICY = ReclaimPolicy.valueOf(defaultReclaimPolicy);
+        }
+        logger.info("Default Reclaim Policy: " + ReclaimPolicy.DEFAULT_RECLAIM_POLICY);
     }
 
     private String getUserSecret(String id)
