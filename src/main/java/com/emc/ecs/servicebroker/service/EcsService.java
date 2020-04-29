@@ -83,7 +83,11 @@ public class EcsService {
 
     CompletableFuture deleteBucket(String id) {
         try {
-            BucketAction.delete(connection, prefix(id), broker.getNamespace());
+            if (bucketExists(prefix(id))) {
+                BucketAction.delete(connection, prefix(id), broker.getNamespace());
+            } else {
+                logger.info("Bucket {} no longer exists, assume already deleted", prefix(id));
+            }
 
             return null;
         } catch (Exception e) {
@@ -93,6 +97,11 @@ public class EcsService {
 
     CompletableFuture wipeAndDeleteBucket(String id) {
         try {
+            if (!bucketExists(prefix(id))) {
+                logger.info("Bucket {} no longer exists, assume already deleted", prefix(id));
+                return null;
+            }
+
             addUserToBucket(id, broker.getRepositoryUser());
 
             logger.info("Started Wiped of bucket {}", prefix(id));
@@ -230,7 +239,11 @@ public class EcsService {
     }
 
     void deleteUser(String id) throws EcsManagementClientException {
-        ObjectUserAction.delete(connection, prefix(id));
+        if (userExists(id)) {
+            ObjectUserAction.delete(connection, prefix(id));
+        } else {
+            logger.info("User {} no longer exists, assume already deleted", id);
+        }
     }
 
     void addUserToBucket(String id, String username) {
@@ -269,6 +282,11 @@ public class EcsService {
 
     void removeUserFromBucket(String id, String username)
             throws EcsManagementClientException {
+        if (!bucketExists(prefix(id))) {
+            logger.info("Bucket {} no longer exists when removing user {}", prefix(id), prefix(username));
+            return;
+        }
+
         BucketAcl acl = BucketAclAction.get(connection, prefix(id),
                 broker.getNamespace());
         List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
@@ -468,7 +486,11 @@ public class EcsService {
     }
 
     void deleteNamespace(String id) throws EcsManagementClientException {
-        NamespaceAction.delete(connection, prefix(id));
+        if (namespaceExists(prefix((id)))) {
+            NamespaceAction.delete(connection, prefix(id));
+        } else {
+            logger.info("Namespace {} no longer exists, assume already deleted", prefix(id));
+        }
     }
 
     /**
