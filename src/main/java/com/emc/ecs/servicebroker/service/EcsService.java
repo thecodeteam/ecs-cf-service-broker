@@ -83,7 +83,11 @@ public class EcsService {
 
     CompletableFuture deleteBucket(String bucketName) {
         try {
-            BucketAction.delete(connection, prefix(bucketName), broker.getNamespace());
+            if (bucketExists(prefix(bucketName))) {
+                BucketAction.delete(connection, prefix(bucketName), broker.getNamespace());
+            } else {
+                logger.info("Bucket {} no longer exists, assume already deleted", prefix(bucketName));
+            }
 
             return null;
         } catch (Exception e) {
@@ -93,6 +97,11 @@ public class EcsService {
 
     CompletableFuture wipeAndDeleteBucket(String bucketName) {
         try {
+            if (!bucketExists(prefix(bucketName))) {
+                logger.info("Bucket {} no longer exists, assume already deleted", prefix(bucketName));
+                return null;
+            }
+
             addUserToBucket(bucketName, broker.getRepositoryUser());
 
             logger.info("Started Wiped of bucket {}", prefix(bucketName));
@@ -230,7 +239,11 @@ public class EcsService {
     }
 
     void deleteUser(String userId) throws EcsManagementClientException {
-        ObjectUserAction.delete(connection, prefix(userId));
+        if (userExists(userId)) {
+            ObjectUserAction.delete(connection, prefix(userId));
+        } else {
+            logger.info("User {} no longer exists, assume already deleted", userId);
+        }
     }
 
     void addUserToBucket(String id, String username) {
@@ -467,8 +480,8 @@ public class EcsService {
         return parameters;
     }
 
-    void deleteNamespace(String namespace) throws EcsManagementClientException {
-        NamespaceAction.delete(connection, prefix(namespace));
+    void deleteNamespace(String id) throws EcsManagementClientException {
+        NamespaceAction.delete(connection, prefix(id));
     }
 
     /**
