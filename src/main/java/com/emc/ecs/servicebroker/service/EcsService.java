@@ -501,8 +501,8 @@ public class EcsService {
         // Wipe Succeeded, Attempt Bucket Delete
         try {
             logger.info("BucketWipe SUCCEEDED, deleted {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
-            BucketAction.delete(connection, prefix(id), broker.getNamespace());
-        } catch (EcsManagementClientException e) {
+            deleteBucket(id);
+        } catch (Exception e) {
             logger.error("Error deleting bucket "+prefix(id), e);
             throw new RuntimeException("Error Deleting Bucket "+prefix(id)+" "+e.getMessage());
         }
