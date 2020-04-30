@@ -200,6 +200,11 @@ public class EcsService {
             broker.getNamespace());
     }
 
+    private boolean aclExists(String id) throws EcsManagementClientException {
+        return BucketAclAction.exists(connection, prefix(id),
+            broker.getNamespace());
+    }
+
     UserSecretKey createUser(String id) {
         try {
             logger.debug(String.format("Creating user %s", prefix(id)));
@@ -282,6 +287,11 @@ public class EcsService {
 
     void removeUserFromBucket(String id, String username)
             throws EcsManagementClientException {
+        if (!aclExists(id)) {
+            logger.info("ACL {} no longer exists when removing user {}", prefix(id), prefix(username));
+            return;
+        }
+
         BucketAcl acl = BucketAclAction.get(connection, prefix(id),
                 broker.getNamespace());
         List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
