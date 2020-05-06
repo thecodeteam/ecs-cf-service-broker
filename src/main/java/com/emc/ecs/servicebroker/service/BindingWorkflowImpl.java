@@ -40,10 +40,6 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
         return(this);
     }
 
-    String getUserInfo(String userSecret) {
-        return bindingId + ":" + userSecret;
-    }
-
     public ServiceInstanceBinding getBinding(Map<String, Object> credentials) {
         ServiceInstanceBinding binding = new ServiceInstanceBinding(createRequest);
         binding.setBindingId(bindingId);

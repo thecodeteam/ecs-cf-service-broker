@@ -15,6 +15,7 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -117,8 +118,9 @@ public class BucketBindingWorkflowTest {
                         when(ecs.createUser(eq(BINDING_ID))).thenReturn(userSecretKey);
 
                         // Create credentials fixture
-                        String s3Url = "http://" + BINDING_ID + ":" + SECRET_KEY +
-                                "@127.0.0.1:9020/" + SERVICE_INSTANCE_ID;
+                        String s3Url = "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
+                                + ":" + URLEncoder.encode(SECRET_KEY, "UTF-8")
+                                + "@127.0.0.1:9020/" + SERVICE_INSTANCE_ID;
                         credentials.put("accessKey", BINDING_ID);
                         credentials.put("secretKey", SECRET_KEY);
                         credentials.put("endpoint", OBJ_ENDPOINT);
@@ -167,16 +169,19 @@ public class BucketBindingWorkflowTest {
 
                         Context("with no port in the object endpoint", () -> {
                             BeforeEach(() -> {
-                                when(ecs.getObjectEndpoint()).thenReturn("http://127.0.0.1");
-                                String s3Url = "http://" + BINDING_ID + ":" + SECRET_KEY + "@127.0.0.1/" +
-                                        SERVICE_INSTANCE_ID;
-                                credentials.put("s3Url", s3Url);
-                                credentials.put("endpoint", "http://127.0.0.1");
+                                String host = "127.0.0.1";
+                                String expectedEndpoint = "http://" + host;
+                                when(ecs.getObjectEndpoint()).thenReturn(expectedEndpoint);
+                                String expectedUrl =
+                                        "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
+                                        + ":" + URLEncoder.encode(SECRET_KEY, "UTF-8")
+                                        + "@" + host + "/" + SERVICE_INSTANCE_ID;
+                                credentials.put("s3Url", expectedUrl);
+                                credentials.put("endpoint", expectedEndpoint);
                             });
 
                             It("should return credentials", () -> {
-                                Map<String, Object> actual =
-                                        workflow.getCredentials(SECRET_KEY, parameters);
+                                Map<String, Object> actual = workflow.getCredentials(SECRET_KEY, parameters);
                                 assertCredentialsEqual(actual, credentials);
                             });
 
@@ -191,8 +196,7 @@ public class BucketBindingWorkflowTest {
                         });
 
                         It("should return a response", () -> {
-                            CreateServiceInstanceAppBindingResponse resp =
-                                    workflow.getResponse(credentials);
+                            CreateServiceInstanceAppBindingResponse resp = workflow.getResponse(credentials);
                             assertCredentialsEqual(resp.getCredentials(), credentials);
                         });
                     });
@@ -230,8 +234,9 @@ public class BucketBindingWorkflowTest {
                             CreateServiceInstanceBindingRequest req = bucketBindingRequestFixture(parameters);
                             workflow = workflow.withCreateRequest(req);
 
-                            String s3Url = "http://" + BINDING_ID + ":" + SECRET_KEY + "@" +
-                                    SERVICE_INSTANCE_ID + ".127.0.0.1:9020";
+                            String s3Url = "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
+                                    + ":" + URLEncoder.encode(SECRET_KEY, "UTF-8")
+                                    + "@" + SERVICE_INSTANCE_ID + ".127.0.0.1:9020";
                             credentials.put("s3Url", s3Url);
                             credentials.put("path-style-access", false);
                         });
