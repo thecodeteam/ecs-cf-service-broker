@@ -14,6 +14,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
@@ -27,7 +28,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public void delete(String id) throws EcsManagementClientException {
+    public CompletableFuture delete(String id) throws EcsManagementClientException {
         throw new ServiceBrokerException("remote_connection parameter invalid for delete operation");
     }
 

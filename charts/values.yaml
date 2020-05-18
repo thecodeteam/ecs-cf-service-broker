@@ -71,5 +71,8 @@ tolerations: []
 
 affinity: {}
 
+# The default ReclaimPolicy to use if one has not been explicitly specified (valid values are Fail, Detach, Delete)
+defaultReclaimPolicy: Fail
+
 # Indicates this should be registered as a ServiceCatalog Broker
 serviceCatalog: false

@@ -60,13 +60,15 @@ public class Fixtures {
     private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
     private static final String ENCRYPTED = "encrypted";
     public static final String FILE_ACCESSIBLE = "file-accessible";
+    public static final String RECLAIM_POLICY = "reclaim-policy";
+    public static final String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
     private static final String COMPLIANCE_ENABLED = "compliance-enabled";
     private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";
     public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
     public static final String EXPORT_NAME = "/export/dir";
     public static final String VOLUME_MOUNT = "/mount/dir";
-    public static final String SECRET_KEY = "6b056992-a14a-4fd1-a642-f44a821a7755";
+    public static final String SECRET_KEY = "testKEY@ключ:/-s#cr#T";
     public static final String REMOTE_CONNECTION = "remote_connection";
     public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
 

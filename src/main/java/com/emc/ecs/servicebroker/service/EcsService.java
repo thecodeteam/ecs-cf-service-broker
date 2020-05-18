@@ -7,6 +7,10 @@ import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.ReclaimPolicy;
+import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
+import com.emc.ecs.tool.BucketWipeOperations;
+import com.emc.ecs.tool.BucketWipeResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +19,9 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsEx
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +37,9 @@ public class EcsService {
     private static final String SERVICE_NOT_FOUND =
             "No service matching service id: ";
     private static final String DEFAULT_RETENTION = "default-retention";
+    private static final String INVALID_RECLAIM_POLICY = "Invalid reclaim-policy: ";
+    private static final String INVALID_ALLOWED_RECLAIM_POLICIES = "Invalid reclaim-policies: ";
+    private static final String REJECT_RECLAIM_POLICY = "Reclaim Policy is not allowed: ";
 
     @Autowired
     private Connection connection;
@@ -40,6 +49,11 @@ public class EcsService {
 
     @Autowired
     private CatalogConfig catalog;
+
+    @Autowired
+    private BucketWipeFactory bucketWipeFactory;
+
+    private BucketWipeOperations bucketWipe;
 
     private String replicationGroupID;
     private String objectEndpoint;
@@ -57,15 +71,35 @@ public class EcsService {
         try {
             lookupObjectEndpoints();
             lookupReplicationGroupID();
+            prepareDefaultReclaimPolicy();
             prepareRepository();
+            prepareBucketWipe();
         } catch (EcsManagementClientException e) {
+            throw new ServiceBrokerException(e);
+        } catch (URISyntaxException e) {
             throw new ServiceBrokerException(e);
         }
     }
 
-    void deleteBucket(String id) {
+    CompletableFuture deleteBucket(String id) {
         try {
             BucketAction.delete(connection, prefix(id), broker.getNamespace());
+
+            return null;
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e);
+        }
+    }
+
+    CompletableFuture wipeAndDeleteBucket(String id) {
+        try {
+            addUserToBucket(id, broker.getRepositoryUser());
+
+            logger.info("Started Wiped of bucket {}", prefix(id));
+            BucketWipeResult result = bucketWipeFactory.newBucketWipeResult();
+            bucketWipe.deleteAllObjects(prefix(id), "", result);
+
+            return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id));
         } catch (Exception e) {
             throw new ServiceBrokerException(e);
         }
@@ -90,6 +124,11 @@ public class EcsService {
             // by administrator through the catalog.
             parameters.putAll(plan.getServiceSettings());
             parameters.putAll(service.getServiceSettings());
+
+            // Validate the reclaim-policy
+            if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
+                throw new ServiceBrokerException("Reclaim Policy "+ReclaimPolicy.getReclaimPolicy(parameters)+" is not one of the allowed polices "+ReclaimPolicy.getAllowedReclaimPolicies(parameters));
+            }
 
             BucketAction.create(connection, new ObjectBucketCreate(prefix(id),
                     broker.getNamespace(), replicationGroupID, parameters));
@@ -122,6 +161,9 @@ public class EcsService {
         // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
+
+        // Validate the reclaim-policy
+        validateReclaimPolicy(parameters);
 
         @SuppressWarnings(UNCHECKED)
         Map<String, Object> quota = (Map<String, Object>) parameters
@@ -340,6 +382,18 @@ public class EcsService {
         }
     }
 
+    private void prepareBucketWipe() throws URISyntaxException {
+        bucketWipe = bucketWipeFactory.getBucketWipe(broker);
+    }
+
+    private void prepareDefaultReclaimPolicy() {
+        String defaultReclaimPolicy = broker.getDefaultReclaimPolicy();
+        if (defaultReclaimPolicy != null) {
+            ReclaimPolicy.DEFAULT_RECLAIM_POLICY = ReclaimPolicy.valueOf(defaultReclaimPolicy);
+        }
+        logger.info("Default Reclaim Policy: " + ReclaimPolicy.DEFAULT_RECLAIM_POLICY);
+    }
+
     private String getUserSecret(String id)
             throws EcsManagementClientException {
         return ObjectUserSecretAction.list(connection, prefix(id)).get(0)
@@ -358,6 +412,26 @@ public class EcsService {
     private Boolean namespaceExists(String id)
             throws EcsManagementClientException {
         return NamespaceAction.exists(connection, prefix(id));
+    }
+
+    private void validateReclaimPolicy(Map<String, Object> parameters) {
+        // Ensure Reclaim-Policy can be parsed
+        try {
+            ReclaimPolicy.getReclaimPolicy(parameters);
+        } catch(IllegalArgumentException e) {
+            throw new ServiceBrokerException(INVALID_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+        }
+
+        // Ensure Allowed-Reclaim-Policies can be parsed
+        try {
+            ReclaimPolicy.getAllowedReclaimPolicies(parameters);
+        } catch(IllegalArgumentException e) {
+            throw new ServiceBrokerException(INVALID_ALLOWED_RECLAIM_POLICIES + ReclaimPolicy.getReclaimPolicy(parameters));
+        }
+
+        if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
+            throw new ServiceBrokerException(REJECT_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+        }
     }
 
     Map<String, Object> createNamespace(String id, ServiceDefinitionProxy service,
@@ -398,6 +472,30 @@ public class EcsService {
 
     void deleteNamespace(String id) throws EcsManagementClientException {
         NamespaceAction.delete(connection, prefix(id));
+    }
+
+    /**
+     * Handle extra steps after a bucket wipe has completed.
+     *
+     * Throwing an exception here will throw an exception in the CompletableFuture pipeline to signify the operation failed
+     */
+    private void bucketWipeCompleted(BucketWipeResult result, String id) {
+        // Wipe Failed, mark as error
+        if (!result.getErrors().isEmpty()) {
+            logger.error("BucketWipe FAILED, deleted {} objects. Leaving bucket {}", result.getDeletedObjects(), prefix(id));
+            result.getErrors().forEach(error -> logger.error("BucketWipe {} error: {}", prefix(id), error));
+
+            throw new RuntimeException("BucketWipe Failed with "+result.getErrors().size()+" errors: "+result.getErrors().get(0));
+        }
+
+        // Wipe Succeeded, Attempt Bucket Delete
+        try {
+            logger.info("BucketWipe SUCCEEDED, deleted {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
+            BucketAction.delete(connection, prefix(id), broker.getNamespace());
+        } catch (EcsManagementClientException e) {
+            logger.error("Error deleting bucket "+prefix(id), e);
+            throw new RuntimeException("Error Deleting Bucket "+prefix(id)+" "+e.getMessage());
+        }
     }
 
     Map<String, Object> changeNamespacePlan(String id, ServiceDefinitionProxy service,

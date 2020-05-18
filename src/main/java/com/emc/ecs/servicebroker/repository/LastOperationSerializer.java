@@ -22,7 +22,7 @@ public class LastOperationSerializer {
         super();
     }
 
-    LastOperationSerializer(final OperationState operationState,
+    public LastOperationSerializer(final OperationState operationState,
             final String description, final boolean deleteOperation) {
         super();
         this.setOperationState(operationState);

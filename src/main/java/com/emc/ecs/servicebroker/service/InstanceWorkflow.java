@@ -12,13 +12,19 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public interface InstanceWorkflow {
    InstanceWorkflow withCreateRequest(CreateServiceInstanceRequest request);
    InstanceWorkflow withDeleteRequest(DeleteServiceInstanceRequest request);
    Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
                                   Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException, IOException;
-   void delete(String id) throws EcsManagementClientException, IOException, ServiceBrokerException;
+
+   /**
+    * Perform the delete operation either async or sync
+    * @return CompetableFuture if the delete is being performed async, otherwise null
+    */
+   CompletableFuture delete(String id) throws EcsManagementClientException, IOException, ServiceBrokerException;
    ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
            throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException;
 }

@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.repository;
 
+import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -120,6 +121,14 @@ public class ServiceInstance {
         return references;
     }
 
+    public LastOperationSerializer getLastOperation() {
+        return lastOperation;
+    }
+
+    public void setLastOperation(LastOperationSerializer lastOperation) {
+        this.lastOperation = lastOperation;
+    }
+
     public boolean isAsync() {
         return async;
     }
@@ -190,5 +199,4 @@ public class ServiceInstance {
     public void setServiceSettings(Map<String, Object> serviceSettings) {
         this.serviceSettings = serviceSettings;
     }
-
 }
