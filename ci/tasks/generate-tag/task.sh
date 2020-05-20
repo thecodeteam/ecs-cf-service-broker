@@ -11,3 +11,4 @@ ls -la ./project-repo/.git/refs/heads/
 REV=$(cat project-repo/.git/refs/heads/"$BRANCH")
 VERSION="$VERSION-$REV"
 echo "$VERSION" > image_dir/image_tag
+cat image_dir/image_tag
