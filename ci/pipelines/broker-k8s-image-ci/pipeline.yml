@@ -1,0 +1,49 @@
+---
+resources:
+
+  - name: ecs-broker-repo
+    type: git
+    source:
+      uri: ((broker_repo))
+      branch: ((broker_branch))
+      access_token: ((git_token))
+    check_every: 1m
+
+  - name: docker_registry
+    type: registry-image
+    source:
+      repository: ((custom_registry))
+#      username: ((custom_registry_username))
+#      password: ((custom_registry_password))
+      debug: ((debug))
+
+jobs:
+
+  - name: build-broker-docker-image
+    plan:
+      - get: ecs-broker-repo
+
+      - task: build-image
+        file: ecs-broker-repo/ci/tasks/build-image/task.yml
+        input_mapping:
+          project-repo: ecs-broker-repo
+        output_mapping:
+          image: broker-k8s-image
+        params:
+          DEBUG: ((debug))
+
+      - task: generate-tag
+        file: ecs-broker-repo/ci/tasks/gradlew-test/task.yml
+        input_mapping:
+          project-repo: ecs-broker-repo
+          image_dir: broker-k8s-image
+          git_rev_dir: ecs-broker-repo/.git/refs/heads/
+        params:
+          DEBUG: ((debug))
+          VERSION: ((broker_version))
+          BRANCH: ((broker_branch))
+
+      - put: docker_registry
+        params:
+          image: broker-k8s-image/image.tar
+          additional_tags: broker-k8s-image/image_tag

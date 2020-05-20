@@ -1,0 +1,19 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: alpine
+
+params:
+  VERSION:
+  DEBUG:
+  BRANCH:
+
+inputs:
+  - name: project-repo
+  - name: git_rev_dir
+  - name: image_dir
+
+run:
+  path: project-repo/ci/tasks/generate-tag/task.sh
