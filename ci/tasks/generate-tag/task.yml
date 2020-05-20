@@ -12,7 +12,6 @@ params:
 
 inputs:
   - name: project-repo
-  - name: git_rev_dir
   - name: image_dir
 
 run:

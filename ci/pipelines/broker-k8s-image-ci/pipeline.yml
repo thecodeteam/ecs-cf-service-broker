@@ -38,7 +38,6 @@ jobs:
         input_mapping:
           project-repo: ecs-broker-repo
           image_dir: broker-k8s-image
-          git_rev_dir: ecs-broker-repo/.git/refs/heads/
         params:
           DEBUG: ((debug))
           VERSION: ((broker_version))
