@@ -25,6 +25,7 @@ public final class Constants {
     public static final String APPLICATION_JSON = "application/json";
     public static final String TEST_CHANGE = "application/json";
     public static final String TEST_CHANGE_2 = "application/json";
+    public static final String TEST_CHANGE_3 = "application/json";
 
     public static final String GET = "get";
     public static final String PUT = "put";
