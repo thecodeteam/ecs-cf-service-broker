@@ -24,6 +24,7 @@ jobs:
       - get: ecs-broker-repo
 
       - task: build-image
+        privileged: true
         file: ecs-broker-repo/ci/tasks/build-image/task.yml
         input_mapping:
           project-repo: ecs-broker-repo
@@ -33,7 +34,7 @@ jobs:
           DEBUG: ((debug))
 
       - task: generate-tag
-        file: ecs-broker-repo/ci/tasks/gradlew-test/task.yml
+        file: ecs-broker-repo/ci/tasks/generate-tag/task.yml
         input_mapping:
           project-repo: ecs-broker-repo
           image_dir: broker-k8s-image
