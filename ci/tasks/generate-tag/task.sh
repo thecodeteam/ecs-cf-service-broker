@@ -6,6 +6,6 @@ else
   set -e
 fi
 
-REV=$(cat git_rev_dir/"$BRANCH")
+REV=$(cat project-repo/.git/refs/heads/"$BRANCH" | cut -c1-7)
 VERSION="$VERSION-$REV"
-echo "$VERSION" > image_dir/image_tag
+echo "$VERSION" > generated_tag/image_tag

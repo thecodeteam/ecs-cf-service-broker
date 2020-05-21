@@ -1,4 +1,11 @@
 ---
+resource_types:
+
+  - name: slack-notifier
+    type: docker-image
+    source:
+      repository: mockersf/concourse-slack-notifier
+
 resources:
 
   - name: ecs-broker-repo
@@ -7,6 +14,16 @@ resources:
       uri: ((broker_repo))
       branch: ((broker_branch))
       access_token: ((git_token))
+      ignore_paths:
+        - manifest.yml.default
+        - skaffold.yaml
+        - .travis.yml
+        - LICENSE
+        - README.md
+        - charts/**
+        - kubernetes/**
+        - gradle/**
+        - ci/**
     check_every: 1m
 
   - name: docker_registry
@@ -17,11 +34,17 @@ resources:
 #      password: ((custom_registry_password))
       debug: ((debug))
 
+  - name: slack-alert
+    type: slack-notifier
+    source:
+      url: ((slack_url))
+
 jobs:
 
   - name: build-broker-docker-image
     plan:
       - get: ecs-broker-repo
+        trigger: true
 
       - task: build-image
         privileged: true
@@ -37,8 +60,8 @@ jobs:
         file: ecs-broker-repo/ci/tasks/generate-tag/task.yml
         input_mapping:
           project-repo: ecs-broker-repo
-          image_dir: broker-k8s-image
-          git_rev_dir: ecs-broker-repo/.git/refs/heads/
+        output_mapping:
+          generated_tag: broker-k8s-image-tag
         params:
           DEBUG: ((debug))
           VERSION: ((broker_version))
@@ -47,4 +70,25 @@ jobs:
       - put: docker_registry
         params:
           image: broker-k8s-image/image.tar
-          additional_tags: broker-k8s-image/image_tag
+          additional_tags: broker-k8s-image-tag/image_tag
+
+    on_success:
+      put: slack-alert
+      params:
+        alert_type: success
+
+    on_failure:
+      put: slack-alert
+      params:
+        alert_type: failed
+
+    on_abort:
+      put: slack-alert
+      params:
+        alert_type: aborted
+
+    on_error:
+      put: slack-alert
+      params:
+        alert_type: custom
+        message: Build Error
