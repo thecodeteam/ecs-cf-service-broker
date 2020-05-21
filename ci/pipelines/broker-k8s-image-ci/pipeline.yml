@@ -37,7 +37,8 @@ jobs:
         file: ecs-broker-repo/ci/tasks/generate-tag/task.yml
         input_mapping:
           project-repo: ecs-broker-repo
-          image_dir: broker-k8s-image
+        output_mapping:
+          genetated_tag: broker-k8s-image
         params:
           DEBUG: ((debug))
           VERSION: ((broker_version))
