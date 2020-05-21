@@ -10,4 +10,4 @@ REV=$(cat project-repo/.git/refs/heads/"$BRANCH" | cut -c1-7)
 VERSION="$VERSION-$REV"
 echo "$VERSION" > genetated_tag/image_tag
 cat genetated_tag/image_tag
-la -la ./*
+ls -la ./*
