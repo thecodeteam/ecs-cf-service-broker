@@ -14,7 +14,7 @@ inputs:
   - name: project-repo
 
 outputs:
-  - name: genetated_tag
+  - name: generated_tag
 
 run:
   path: project-repo/ci/tasks/generate-tag/task.sh
