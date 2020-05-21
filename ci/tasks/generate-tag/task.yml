@@ -12,7 +12,9 @@ params:
 
 inputs:
   - name: project-repo
-  - name: image_dir
+
+outputs:
+  - name: genetated_tag
 
 run:
   path: project-repo/ci/tasks/generate-tag/task.sh
