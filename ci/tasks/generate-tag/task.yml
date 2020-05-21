@@ -15,4 +15,5 @@ inputs:
   - name: image_dir
 
 run:
-  path: project-repo/ci/tasks/generate-tag/task.sh
+  path: /bin/sh
+  args: ["./project-repo/ci/tasks/generate-tag/task.sh"]
