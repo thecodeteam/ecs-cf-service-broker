@@ -29,8 +29,11 @@ public class PlanCollectionInstance {
     @JsonProperty("cost_unit")
     private String costUnit;
 
-    @JsonProperty("cost_usd")
-    private String costUSD;
+    @JsonProperty("cost_value")
+    private String costValue;
+
+    @JsonProperty("cost_currency")
+    private String costCurrency;
 
     @JsonProperty("default_retention")
     private String defaultRetention;
@@ -86,8 +89,12 @@ public class PlanCollectionInstance {
         this.costUnit = costUnit;
     }
 
-    public void setCostUSD(String costUSD) {
-        this.costUSD = costUSD;
+    public void setCostValue(String costValue) {
+        this.costValue = costValue;
+    }
+
+    public void setCostCurrency(String costCurrency) {
+        this.costCurrency = costCurrency;
     }
 
     public void setDefaultRetention(String defaultRetention) {
@@ -147,8 +154,13 @@ public class PlanCollectionInstance {
     }
 
     public List<CostProxy> getCosts() {
+        Map<String, Double> val = new HashMap<>();
+        val.put(costCurrency != null ? costCurrency.toLowerCase() : Currency.getInstance("USD").getCurrencyCode().toLowerCase(), Double.valueOf(costValue));
+
         CostProxy costProxy = new CostProxy();
         costProxy.setUnit(costUnit);
+        costProxy.setAmount(val);
+
         return Collections.singletonList(costProxy);
     }
 
