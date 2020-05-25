@@ -24,14 +24,12 @@ resources:
         - kubernetes/**
         - gradle/**
         - ci/**
-    check_every: 1m
+    check_every: 30m
 
   - name: docker_registry
     type: registry-image
     source:
       repository: ((custom_registry))
-#      username: ((custom_registry_username))
-#      password: ((custom_registry_password))
       debug: ((debug))
 
   - name: slack-alert
