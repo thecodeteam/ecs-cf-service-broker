@@ -48,6 +48,10 @@ run:
         FLAGS=("-f" "$VALUES")
       fi
 
+      ls -l ./
+
+      ls -l /
+
       KUBECONFIG=kubeconfig/config helm "${COMMAND}" "${FLAGS[@]}" $RELEASE $CHART
 
       exit 0
