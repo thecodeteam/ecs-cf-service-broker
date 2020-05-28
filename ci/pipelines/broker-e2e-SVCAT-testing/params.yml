@@ -1,0 +1,12 @@
+debug: true
+
+src_image_tag: latest
+
+broker_repo: https://github.com/thecodeteam/ecs-cf-service-broker.git
+broker_branch: master
+
+pipelines_repo: https://github.com/spiegela/objectscale-pipelines.git
+pipelines_branch: master
+
+svc_cat_repo: https://github.com/kubernetes-sigs/service-catalog.git
+svc_cat_repo_branch: master

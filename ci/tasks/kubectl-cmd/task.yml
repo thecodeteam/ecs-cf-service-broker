@@ -1,0 +1,38 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bitnami/kubectl
+    tag: 1.18.0
+
+params:
+  DEBUG:
+  IGNORE_ERROR: false
+  TIMEOUT: 300
+  COMMAND:
+  ARGS:
+
+inputs:
+  - name: config
+
+run:
+  path: /bin/bash
+  args:
+    - -c
+    - |
+      if [[ $DEBUG == true ]]; then
+        set -x
+      fi
+
+      if [[ $IGNORE_ERROR == true ]]; then
+        set +e
+      else
+        set -e
+      fi
+
+      ARG_ARRAY=(${ARGS})
+      kubectl --kubeconfig config/config ${COMMAND} "${ARG_ARRAY[@]}"
+
+      exit 0
