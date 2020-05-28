@@ -48,6 +48,10 @@ run:
         FLAGS=("-f" "$VALUES")
       fi
 
+      if [[ "${CHART}" != "" ]]; then
+        CHART="charts/$CHART"
+      fi
+
       ls -l ./
 
       ls -l /
