@@ -1,0 +1,63 @@
+---
+resource_types:
+
+  - name: slack-notifier
+    type: docker-image
+    source:
+      repository: mockersf/concourse-slack-notifier
+
+resources:
+
+  - name: docker_registry_src
+    type: registry-image
+    source:
+      repository: ((registry_src))
+      debug: ((debug))
+      tag: ((src_image_tag))
+
+  - name: docker_registry_dest
+    type: registry-image
+    source:
+      repository: ((registry_dest))
+      username: ((registry_dest_username))
+      password: ((registry_dest_password))
+      debug: ((debug))
+      tag: ((release_tag))
+
+  - name: slack-alert
+    type: slack-notifier
+    source:
+      url: ((slack_url))
+
+jobs:
+
+  - name: release-broker-image
+    plan:
+      - get: docker_registry_src
+        params:
+          format: oci
+
+      - put: docker_registry_dest
+        params:
+          image: docker_registry_src/image.tar
+
+    on_success:
+      put: slack-alert
+      params:
+        alert_type: success
+
+    on_failure:
+      put: slack-alert
+      params:
+        alert_type: failed
+
+    on_abort:
+      put: slack-alert
+      params:
+        alert_type: aborted
+
+    on_error:
+      put: slack-alert
+      params:
+        alert_type: custom
+        message: Build Error
