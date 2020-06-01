@@ -1,0 +1,151 @@
+---
+resource_types:
+
+  - name: slack-notifier
+    type: docker-image
+    source:
+      repository: mockersf/concourse-slack-notifier
+
+resources:
+  - name: ecs-broker-repo
+    type: git
+    source:
+      uri: ((broker_repo))
+      branch: ((broker_branch))
+      access_token: ((git_token))
+
+  - name: docker_registry_src
+    type: registry-image
+    source:
+      repository: ((registry_src))
+      debug: ((debug))
+      tag: ((src_image_tag))
+    check_every: 30m
+
+  - name: docker_registry_dest
+    type: registry-image
+    source:
+      repository: ((registry_dest))
+      username: ((registry_dest_username))
+      password: ((registry_dest_password))
+      debug: ((debug))
+      tag: green
+
+  - name: svc-cat-repo
+    type: git
+    source:
+      uri: ((svc_cat_repo))
+      branch: ((svc_cat_repo_branch))
+
+  - name: slack-alert
+    type: slack-notifier
+    source:
+      url: ((slack_url))
+
+jobs:
+
+  - name: e2e-test-broker-image
+    plan:
+      - get: docker_registry_src
+        params:
+          format: oci
+        trigger: true
+
+      - in_parallel:
+          - get: ecs-broker-repo
+          - get: svc-cat-repo
+
+      - in_parallel:
+          - task: create-kubeconfig
+            file: ecs-broker-repo/ci/tasks/write-file/task.yml
+            output_mapping:
+              output-folder: config
+            params:
+              DEBUG: ((debug))
+              OUTPUT_FILE_NAME: config
+              PARAM_NAME: ((kubeconfig))
+
+          - task: create-broker-values-file
+            file: ecs-broker-repo/ci/tasks/write-file/task.yml
+            output_mapping:
+              output-folder: broker-values
+            params:
+              DEBUG: ((debug))
+              OUTPUT_FILE_NAME: broker-values.yml
+              PARAM_NAME: ((broker_values))
+
+      - task: install-service-catalog
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          charts: svc-cat-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: install
+          CHART: charts/catalog/
+          RELEASE: service-catalog
+          FLAGS: --wait
+
+      - task: install-service-broker
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          values: broker-values
+          charts: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: install
+          CHART: charts
+          VALUES: values/broker-values.yml
+          RELEASE: ecs-service-broker
+          FLAGS: --wait
+
+      - put: docker_registry_dest
+        params:
+          image: docker_registry_src/image.tar
+
+    on_success:
+      put: slack-alert
+      params:
+        alert_type: success
+
+    on_failure:
+      put: slack-alert
+      params:
+        alert_type: failed
+
+    on_abort:
+      put: slack-alert
+      params:
+        alert_type: aborted
+
+    on_error:
+      put: slack-alert
+      params:
+        alert_type: custom
+        message: Build Error
+
+    ensure:
+      do:
+      - task: uninstall-service-broker
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: uninstall
+          RELEASE: ecs-service-broker
+
+      - task: uninstall-service-catalog
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: uninstall
+          RELEASE: service-catalog
+
