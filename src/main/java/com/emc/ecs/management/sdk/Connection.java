@@ -111,19 +111,13 @@ public class Connection {
     public void login() throws EcsManagementClientException {
         UriBuilder uriBuilder = UriBuilder.fromPath(endpoint).segment("login");
 
-        logger.info("Logging into {}", endpoint);
-
-        logger.info("Current classpath: {}", System.getProperty("java.class.path"));
+        logger.info("Logging into {} as {}", endpoint, username);
 
         HttpAuthenticationFeature authFeature = HttpAuthenticationFeature
                 .basicBuilder().credentials(username, password).build();
         Client jerseyClient = buildJerseyClient().register(authFeature);
 
-        logger.info("Jersey client registered: {}", jerseyClient);
-
         Builder request = jerseyClient.target(uriBuilder).request();
-
-        logger.info("Request prepared: {}", request);
 
         Response response = request.get();
         try {
@@ -174,14 +168,13 @@ public class Connection {
             if (!isLoggedIn())
                 login();
 
+            logger.info("Making {} request to {}", method, uri);
+
             Client jerseyClient = buildJerseyClient();
             Builder request = jerseyClient.target(uri)
                     .register(LoggingFeature.class).request()
                     .header("X-SDS-AUTH-TOKEN", authToken)
                     .header("Accept", "application/xml");
-
-            logger.info("Request target " + uri);
-            logger.info("Making request " + request.toString());
 
             Response response = null;
             if (GET.equals(method)) {
@@ -216,7 +209,7 @@ public class Connection {
             }
             return response;
         } catch (Exception e) {
-            logger.warn("Failed to make a call: {}", e.getMessage());
+            logger.warn("Failed to make a call to {}: {}", uri, e.getMessage());
             logger.warn(e.getMessage(), e.getCause());
             if (e.getCause() != null) {
                 logger.warn(e.getCause().getMessage(), e.getCause().getCause());
