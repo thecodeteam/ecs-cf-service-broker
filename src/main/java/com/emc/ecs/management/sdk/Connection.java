@@ -1,10 +1,11 @@
 package com.emc.ecs.management.sdk;
 
+import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
-import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -27,6 +28,8 @@ import java.util.logging.Logger;
 import static com.emc.ecs.management.sdk.Constants.*;
 
 public class Connection {
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Connection.class);
+
     private static final int AUTH_RETRIES_MAX = 3;
     private final String endpoint;
     private final String username;
@@ -107,14 +110,28 @@ public class Connection {
 
     public void login() throws EcsManagementClientException {
         UriBuilder uriBuilder = UriBuilder.fromPath(endpoint).segment("login");
+
+        logger.info("Logging into {}", endpoint);
+
+        logger.info("Current classpath: {}", System.getProperty("java.class.path"));
+
         HttpAuthenticationFeature authFeature = HttpAuthenticationFeature
                 .basicBuilder().credentials(username, password).build();
         Client jerseyClient = buildJerseyClient().register(authFeature);
 
-        Response response = jerseyClient.target(uriBuilder).request().get();
+        logger.info("Jersey client registered: {}", jerseyClient);
+
+        Builder request = jerseyClient.target(uriBuilder).request();
+
+        logger.info("Request prepared: {}", request);
+
+        Response response = request.get();
         try {
             handleResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
+            logger.warn("Login failed to handle response: {}", e.getMessage());
+            logger.warn("Response: {}", response);
+
             throw new EcsManagementClientException(e);
         }
         this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
@@ -153,46 +170,62 @@ public class Connection {
 
     protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType)
             throws EcsManagementClientException {
-        if (!isLoggedIn())
-            login();
+        try {
+            if (!isLoggedIn())
+                login();
 
-        Client jerseyClient = buildJerseyClient();
-        Builder request = jerseyClient.target(uri)
-                .register(LoggingFeature.class).request()
-                .header("X-SDS-AUTH-TOKEN", authToken)
-                .header("Accept", "application/xml");
-        Response response = null;
-        if (GET.equals(method)) {
-            response = request.get();
-        } else if (POST.equals(method) || PUT.equals(method)) {
-            Entity<Object> objectEntity;
-            if (XML.equals(contentType)) {
-                objectEntity = Entity.xml(arg);
-            } else if (JSON.equals(contentType)) {
-                objectEntity = Entity.json(arg);
+            Client jerseyClient = buildJerseyClient();
+            Builder request = jerseyClient.target(uri)
+                    .register(LoggingFeature.class).request()
+                    .header("X-SDS-AUTH-TOKEN", authToken)
+                    .header("Accept", "application/xml");
+
+            logger.info("Request target " + uri);
+            logger.info("Making request " + request.toString());
+
+            Response response = null;
+            if (GET.equals(method)) {
+                response = request.get();
+            } else if (POST.equals(method) || PUT.equals(method)) {
+                Entity<Object> objectEntity;
+                if (XML.equals(contentType)) {
+                    objectEntity = Entity.xml(arg);
+                } else if (JSON.equals(contentType)) {
+                    objectEntity = Entity.json(arg);
+                } else {
+                    throw new EcsManagementClientException("Content type must be \"XML\" or \"JSON\"");
+                }
+
+                if (POST.equals(method)) {
+                    response = request.post(objectEntity);
+                } else if (PUT.equals(method)) {
+                    response = request.put(objectEntity);
+                }
+            } else if (DELETE.equals(method)) {
+                response = request.delete();
             } else {
-                throw new EcsManagementClientException("Content type must be \"XML\" or \"JSON\"");
+                throw new EcsManagementClientException(
+                        "Invalid request method: " + method);
             }
 
-            if (POST.equals(method)) {
-                response = request.post(objectEntity);
-            } else if (PUT.equals(method)) {
-                response = request.put(objectEntity);
+            if (response.getStatus() == 401 && authRetries < AUTH_RETRIES_MAX) {
+                // attempt to re-authorize and retry up to _authMaxRetries_ times.
+                authRetries += 1;
+                this.authToken = null;
+                response = makeRemoteCall(method, uri, arg, XML);
             }
-        } else if (DELETE.equals(method)) {
-            response = request.delete();
-        } else {
-            throw new EcsManagementClientException(
-                    "Invalid request method: " + method);
+            return response;
+        } catch (Exception e) {
+            logger.warn("Failed to make a call: {}", e.getMessage());
+            logger.warn(e.getMessage(), e.getCause());
+            if (e.getCause() != null) {
+                logger.warn(e.getCause().getMessage(), e.getCause().getCause());
+            }
+            if (e.getCause() != null && e.getCause().getCause() != null) {
+                logger.warn(e.getCause().getCause().getMessage());
+            }
+            throw e;
         }
-
-        if (response.getStatus() == 401 && authRetries < AUTH_RETRIES_MAX) {
-            // attempt to re-authorize and retry up to _authMaxRetries_ times.
-            authRetries += 1;
-            this.authToken = null;
-            response = makeRemoteCall(method, uri, arg, XML);
-        }
-        return response;
     }
 
     protected boolean existenceQuery(UriBuilder uri, Object arg)

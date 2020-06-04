@@ -60,18 +60,19 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceDefinitionId = request.getServiceDefinitionId();
         String planId = request.getPlanId();
 
-        logger.info(format("Creating service instance %s", serviceInstanceId));
+        logger.info(format("Creating service instance %s for service definition %s", serviceInstanceId, serviceDefinitionId));
+        logger.info(format("Create request params: %s", request));
 
         try {
-            ServiceDefinitionProxy service = ecs
-                    .lookupServiceDefinition(serviceDefinitionId);
+            ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
+
+            logger.info(format("Service definition: %s", service));
+
             PlanProxy plan = service.findPlan(planId);
-            InstanceWorkflow workflow = getWorkflow(request)
-                    .withCreateRequest(request);
+            InstanceWorkflow workflow = getWorkflow(request).withCreateRequest(request);
 
             LOG.info("creating service instance");
-            ServiceInstance instance =
-                    workflow.create(serviceInstanceId, service, plan, request.getParameters());
+            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan, request.getParameters());
 
             LOG.info("saving instance...");
             repository.save(instance);
