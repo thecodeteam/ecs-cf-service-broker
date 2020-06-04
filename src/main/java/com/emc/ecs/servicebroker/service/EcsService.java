@@ -68,6 +68,8 @@ public class EcsService {
 
     @PostConstruct
     void initialize() {
+        logger.info("Initializing ECS service with management endpoint {}, base url {}", broker.getManagementEndpoint(), broker.getBaseUrl());
+
         try {
             lookupObjectEndpoints();
             lookupReplicationGroupID();
@@ -409,8 +411,7 @@ public class EcsService {
         return baseUrlList.get(0).getId();
     }
 
-    private Boolean namespaceExists(String id)
-            throws EcsManagementClientException {
+    private Boolean namespaceExists(String id) throws EcsManagementClientException {
         return NamespaceAction.exists(connection, prefix(id));
     }
 
@@ -434,8 +435,7 @@ public class EcsService {
         }
     }
 
-    Map<String, Object> createNamespace(String id, ServiceDefinitionProxy service,
-                                        PlanProxy plan, Map<String, Object> parameters)
+    Map<String, Object> createNamespace(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         if (namespaceExists(id))
             throw new ServiceInstanceExistsException(id, service.getId());
