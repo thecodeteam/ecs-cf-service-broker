@@ -210,13 +210,6 @@ public class Connection {
             return response;
         } catch (Exception e) {
             logger.warn("Failed to make a call to {}: {}", uri, e.getMessage());
-            logger.warn(e.getMessage(), e.getCause());
-            if (e.getCause() != null) {
-                logger.warn(e.getCause().getMessage(), e.getCause().getCause());
-            }
-            if (e.getCause() != null && e.getCause().getCause() != null) {
-                logger.warn(e.getCause().getCause().getMessage());
-            }
             throw e;
         }
     }
