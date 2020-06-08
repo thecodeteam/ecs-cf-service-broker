@@ -27,7 +27,7 @@ ecsConnection:
   password: <PASSWORD>
 
 image:
-  repository: emccorp/ecs-service-broker
+  repository: objectscale/ecs-service-broker
   tag: latest
   pullPolicy: Always
 
