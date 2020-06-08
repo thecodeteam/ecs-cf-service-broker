@@ -21,7 +21,7 @@ for i in $(seq 1 $TIMEOUT); do
 
   echo $ACTUAL_STATUS
 
-  if [[ $ACTUAL_STATUS == $DESIRED_STATUS: ]]; then
+  if [[ $ACTUAL_STATUS == "$DESIRED_STATUS" ]]; then
     echo "READY"
     exit 0
   fi
