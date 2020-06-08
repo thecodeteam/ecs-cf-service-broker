@@ -114,7 +114,7 @@ jobs:
           DEBUG: ((debug))
           TIMEOUT: 300
           KIND: ClusterServiceBroker
-          NAME: ecs-service-broker
+          NAME: ecs-service-broker-client
           DESIRED_STATUS: Ready
           CHECK_FIELD: '{.status.lastConditionState}'
 

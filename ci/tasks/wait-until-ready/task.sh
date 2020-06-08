@@ -15,12 +15,13 @@ if [[ "${NAMESPACE}" != "" ]]; then
 fi
 
 for i in $(seq 1 $TIMEOUT); do
+  echo "$i of $TIMEOUT"
 
   ACTUAL_STATUS=$(kubectl get "${KIND}" "${NAME}" "${FLAGS[@]}" -o jsonpath=${CHECK_FIELD})
 
   echo $ACTUAL_STATUS
 
-  if [[ $ACTUAL_STATUS == DESIRED_STATUS: ]]; then
+  if [[ $ACTUAL_STATUS == $DESIRED_STATUS: ]]; then
     echo "READY"
     exit 0
   fi
