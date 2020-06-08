@@ -1,0 +1,13 @@
+apiVersion: servicecatalog.k8s.io/v1beta1
+kind: ServiceBinding
+metadata:
+  name: ecs-service-broker-binding
+  namespace: default
+spec:
+  instanceRef:
+    # ServiceInstance name
+    name: ecs-service-broker-instance
+  #####
+  # Additional information can be added here, such as a secretName or
+  # service account parameters, which may be used by the service broker.
+  #####
