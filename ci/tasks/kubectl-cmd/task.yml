@@ -3,7 +3,6 @@ platform: linux
 
 image_resource:
   type: docker-image
-  files:
   source:
     repository: bitnami/kubectl
     tag: 1.18.0
@@ -34,6 +33,10 @@ run:
       else
         set -e
       fi
+
+      ls -l
+
+      ls -l ./files
 
       ARG_ARRAY=(${ARGS})
       kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} "${ARG_ARRAY[@]}"
