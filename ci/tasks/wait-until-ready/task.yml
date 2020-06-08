@@ -10,87 +10,14 @@ image_resource:
 params:
   DEBUG:
   TIMEOUT: 300
-  KIND: deploy
+  KIND:
   NAMESPACE:
-  DESIRED: '{.items[*].spec.replicas}'
-  READY: '{.items[*].status.readyReplicas}'
-  SUM:
-  LABEL_SELECTOR:
+  DESIRED_STATUS:
+  CHECK_FIELD:
 
 inputs:
   - name: kubeconfig
+  - name: project-repo
 
 run:
-  path: /bin/bash
-  args:
-    - -c
-    - |
-      sum() {
-        local RESULT=$1
-
-        if [[ "${SUM}" == "" ]]; then
-          local TOTAL=0
-          for i in $RESULT; do
-            TOTAL=$[ $TOTAL + $i ]
-          done
-        else
-          local SUM_ARRAY=(${SUM})
-          TOTAL=$(echo $RESULT | "${SUM_ARRAY[@]}")
-        fi
-        echo $TOTAL
-      }
-
-      export KUBECONFIG=kubeconfig/config
-
-      if [[ $DEBUG == true ]]; then
-        set -ex
-      else
-        set -e
-      fi
-
-      FLAGS=()
-
-      if [[ "${NAMESPACE}" != "" ]]; then
-        FLAGS=("-n" "$NAMESPACE")
-      fi
-
-      if [[ "${LABEL_SELECTOR}" != "" ]]; then
-        FLAGS=("-l" "${LABEL_SELECTOR}" "${FLAGS[@]}")
-      fi
-
-      REQUEST_ERRORS=0
-      for i in $(seq 1 $TIMEOUT); do
-        if [[ $REQUEST_ERRORS -ge 10 ]]; then
-          echo "Received $REQUEST_ERRORS errors in calling K8s API"
-        fi
-
-        echo -n "."
-
-        # Handle transient API call errors
-        set +e
-
-        DESIRED_RESULT=$(kubectl get "${KIND}" "${FLAGS[@]}" -o jsonpath=${DESIRED})
-        if [[ $? -ne 0 ]]; then
-          REQEST_ERRORS=$[ $REQUEST_ERRORS + $i ]
-          continue
-        fi
-
-        READY_RESULT=$(kubectl get "${KIND}" "${FLAGS[@]}" -o jsonpath=${READY})
-        if [[ $? -ne 0 ]]; then
-          REQEST_ERRORS=$[ $REQUEST_ERRORS + $i ]
-          continue
-        fi
-
-        DESIRED_SUM=$(sum $DESIRED_RESULT)
-        READY_SUM=$(sum $READY_RESULT)
-
-        if [[ $DESIRED_SUM -ge $READY_SUM ]]; then
-          echo "READY"
-          exit 0
-        fi
-
-        sleep 1
-      done
-
-      echo "Timed out waitng for $KIND resources matching $LABEL_SELECTOR to become ready"
-      exit 1
+  path: project-repo/ci/tasks/wait-until-ready/task.sh
