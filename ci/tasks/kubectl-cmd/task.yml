@@ -3,6 +3,7 @@ platform: linux
 
 image_resource:
   type: docker-image
+  files:
   source:
     repository: bitnami/kubectl
     tag: 1.18.0
