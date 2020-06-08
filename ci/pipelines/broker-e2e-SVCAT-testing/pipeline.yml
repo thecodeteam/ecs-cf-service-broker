@@ -209,3 +209,26 @@ jobs:
       params:
         alert_type: custom
         message: Build Error
+
+    ensure:
+      do:
+      - task: uninstall-service-broker
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: uninstall
+          RELEASE: ecs-service-broker
+
+      - task: uninstall-service-catalog
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: uninstall
+          RELEASE: service-catalog
+

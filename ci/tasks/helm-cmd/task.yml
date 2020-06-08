@@ -54,10 +54,6 @@ run:
         CHART="charts/$CHART"
       fi
 
-      ls -l ./
-
-      ls -l /
-
       KUBECONFIG=kubeconfig/${K8S_CONFIG_FILE_NAME} helm "${COMMAND}" "${FLAGS[@]}" $RELEASE $CHART
 
       exit 0
