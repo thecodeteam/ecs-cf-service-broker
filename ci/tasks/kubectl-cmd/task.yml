@@ -10,12 +10,14 @@ image_resource:
 params:
   DEBUG:
   IGNORE_ERROR: false
-  TIMEOUT: 300
   COMMAND:
   ARGS:
+  K8S_CONFIG_FILE_NAME: config
 
 inputs:
   - name: config
+  - name: files
+    optional: true
 
 run:
   path: /bin/bash
@@ -33,6 +35,6 @@ run:
       fi
 
       ARG_ARRAY=(${ARGS})
-      kubectl --kubeconfig config/config ${COMMAND} "${ARG_ARRAY[@]}"
+      kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} "${ARG_ARRAY[@]}"
 
       exit 0

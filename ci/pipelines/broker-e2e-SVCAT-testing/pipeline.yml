@@ -19,7 +19,7 @@ resources:
     source:
       repository: ((registry_src))
       debug: ((debug))
-      tag: ((src_image_tag))  # use latest?
+      tag: ((src_image_tag))
     check_every: 30m
 
   - name: docker_registry_dest
@@ -29,15 +29,7 @@ resources:
       username: ((registry_dest_username))
       password: ((registry_dest_password))
       debug: ((debug))
-      tag: green  #is it ok to use this tag for images which successfully passed tests?
-
-#  - name: objectscale-pipelines-repo
-#    type: git
-#    source:
-#      uri: ((pipelines_repo))
-#      username: ((registry_dest_username))
-#      branch: ((pipelines_branch))
-#      password: ((git_token))
+      tag: green
 
   - name: svc-cat-repo
     type: git
@@ -52,7 +44,7 @@ resources:
 
 jobs:
 
-  - name: release-broker-image
+  - name: e2e-test-broker-image
     plan:
       - get: docker_registry_src
         params:
@@ -60,15 +52,8 @@ jobs:
         trigger: true
 
       - in_parallel:
-#          - get: objectscale-pipelines-repo
           - get: ecs-broker-repo
           - get: svc-cat-repo
-
-#      - task: install-kind
-#        file: ecs-broker-repo/tasks/kind-cmd
-#
-#      - task: create-kind-clister
-#        file: ecs-broker-repo/tasks/kind-cmd
 
       - in_parallel:
           - task: create-kubeconfig
@@ -80,13 +65,12 @@ jobs:
               OUTPUT_FILE_NAME: config
               PARAM_NAME: ((kubeconfig))
 
-          - task: create-broker-values-file    #substitute needed params (sig?)
-            file: ecs-broker-repo/ci/tasks/write-file/task.yml    #create new task
+          - task: create-broker-values-file
+            file: ecs-broker-repo/ci/tasks/write-file/task.yml
             output_mapping:
               output-folder: broker-values
             params:
               DEBUG: ((debug))
-#              TEMPLATE_FILE_NAME: values.yml
               OUTPUT_FILE_NAME: broker-values.yml
               PARAM_NAME: ((broker_values))
 
@@ -94,52 +78,112 @@ jobs:
         file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
         input_mapping:
           kubeconfig: config
-          charts: svc-cat-repo/charts/catalog/
+          charts: svc-cat-repo
         params:
           DEBUG: ((debug))
-          IGNORE_ERROR: true
+          IGNORE_ERROR: false
           COMMAND: install
-          CHART: charts/
+          CHART: charts/catalog/
           RELEASE: service-catalog
-
-      - task: wait-until-ready
-        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
-        input_mapping:
-          kubeconfig: config
-        params:
-          DEBUG: ((debug))
-          LABEL_SELECTOR: release=service-catalog
+          FLAGS: --wait
+          K8S_CONFIG_FILE_NAME: config
 
       - task: install-service-broker
         file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
         input_mapping:
           kubeconfig: config
           values: broker-values
-          charts: ecs-broker-repo/charts
+          charts: ecs-broker-repo
         params:
           DEBUG: ((debug))
-          IGNORE_ERROR: true
+          IGNORE_ERROR: false
           COMMAND: install
-          CHART: charts/
+          CHART: charts
           VALUES: values/broker-values.yml
           RELEASE: ecs-service-broker
+          FLAGS: --wait
+          K8S_CONFIG_FILE_NAME: config
 
-      - task: wait-until-ready
+      #wait until catalog is fetched
+      - task: wait-until-service-broker-ready
         file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
         input_mapping:
           kubeconfig: config
         params:
           DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ClusterServiceBroker
           LABEL_SELECTOR: release=ecs-service-broker
 
-#      - task: create-bucket
-#        file: ecs-broker-repo/tasks/broker-cmd #svcat cmd?
-#
-#      - task: test-bucket
-#        file: ecs-broker-repo/tasks/broker-cmd #svcat cmd?
-#
-#      - task: delete-bucket
-#        file: ecs-broker-repo/tasks/broker-cmd #svcat cmd?
+      - task: list-service-brokers
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: clusterservicebrokers
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: create-service-instance
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: apply
+          ARGS: -f ./files/ServiceInstance.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      #wait until instance is provisioned
+      - task: wait-until-service-instance-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ServiceInstance
+          LABEL_SELECTOR: release=ecs-service-broker
+
+      - task: create-service-binding
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: apply
+          ARGS: -f ./files/ServiceBinding.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: list-service-binding
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: servicebindings
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: list-service-instances
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: serviceinstances
+          K8S_CONFIG_FILE_NAME: config
 
       - put: docker_registry_dest
         params:
