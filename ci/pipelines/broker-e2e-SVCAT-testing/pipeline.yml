@@ -86,6 +86,7 @@ jobs:
           CHART: charts/catalog/
           RELEASE: service-catalog
           FLAGS: --wait
+          K8S_CONFIG_FILE_NAME: config
 
       - task: install-service-broker
         file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
@@ -101,6 +102,88 @@ jobs:
           VALUES: values/broker-values.yml
           RELEASE: ecs-service-broker
           FLAGS: --wait
+          K8S_CONFIG_FILE_NAME: config
+
+      #wait until catalog is fetched
+      - task: wait-until-service-broker-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ClusterServiceBroker
+          LABEL_SELECTOR: release=ecs-service-broker
+
+      - task: list-service-brokers
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: clusterservicebrokers
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: create-service-instance
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: apply
+          ARGS: -f ./files/ServiceInstance.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      #wait until instance is provisioned
+      - task: wait-until-service-instance-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ServiceInstance
+          LABEL_SELECTOR: release=ecs-service-broker
+
+      - task: create-service-binding
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: apply
+          ARGS: -f ./files/ServiceBinding.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: list-service-binding
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: servicebindings
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: list-service-instances
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo/ci/resources/templates/
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: serviceinstances
+          K8S_CONFIG_FILE_NAME: config
 
       - put: docker_registry_dest
         params:

@@ -16,6 +16,7 @@ params:
   CHART:
   VALUES:
   FLAGS:
+  K8S_CONFIG_FILE_NAME: config
 
 inputs:
   - name: kubeconfig
@@ -53,6 +54,6 @@ run:
         CHART="charts/$CHART"
       fi
 
-      KUBECONFIG=kubeconfig/config helm "${COMMAND}" "${FLAGS[@]}" $RELEASE $CHART
+      KUBECONFIG=kubeconfig/${K8S_CONFIG_FILE_NAME} helm "${COMMAND}" "${FLAGS[@]}" $RELEASE $CHART
 
       exit 0
