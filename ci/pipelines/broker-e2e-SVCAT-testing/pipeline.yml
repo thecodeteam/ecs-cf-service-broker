@@ -189,6 +189,61 @@ jobs:
           ARGS: serviceinstances
           K8S_CONFIG_FILE_NAME: config
 
+      - task: deploy-test-app
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: apply
+          ARGS: -f ./files/ci/resources/templates/TestAppPod.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: put-into-bucket
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- sh -c 'curl -X PUT -d 'testValue' 127.0.0.1:8080/testKey'
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: get-from-bucket
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        # TODO add output
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- sh -c 'curl 127.0.0.1:8080/testKey'
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: verify-value
+        file: ecs-broker-repo/ci/tasks/compare-values/task.yml
+        input_mapping:
+          value_dir: put-into-bucket_output
+        params:
+          DEBUG: ((debug))
+          VALUE_FILE_NAME: output
+          EQUALS_TO: testValue
+
+      - task: delete-from-bucket
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- sh -c 'curl -X DELETE 127.0.0.1:8080/testKey'
+          K8S_CONFIG_FILE_NAME: config
+
       - put: docker_registry_dest
         params:
           image: docker_registry_src/image.tar

@@ -1,0 +1,32 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: bash}
+
+params:
+  VALUE_FILE_NAME:
+  EQUALS_TO:
+
+inputs:
+  - name: value_dir
+
+run:
+  path: /usr/local/bin/bash
+  args:
+    - -c
+    - |
+      if [[ $DEBUG == true ]]; then
+        set -ex
+      else
+        set -e
+      fi
+
+      EQUALS_WHAT=value_dir/$VALUE_FILE_NAME
+
+      if [[ $EQUALS_WHAT == "$EQUALS_TO" ]]; then
+        exit 0
+      else
+        exit 1
+      fi
