@@ -19,8 +19,6 @@ for i in $(seq 1 $TIMEOUT); do
 
   ACTUAL_STATUS=$(kubectl get "${KIND}" "${NAME}" "${FLAGS[@]}" -o jsonpath=${CHECK_FIELD})
 
-  echo $ACTUAL_STATUS
-
   if [[ $ACTUAL_STATUS == "$DESIRED_STATUS" ]]; then
     echo "READY"
     exit 0

@@ -13,11 +13,15 @@ params:
   COMMAND:
   ARGS:
   K8S_CONFIG_FILE_NAME: config
+  OUTPUT_FILE_NAME:
 
 inputs:
   - name: config
   - name: files
     optional: true
+
+outputs:
+  -name: output
 
 run:
   path: /bin/bash
@@ -39,6 +43,11 @@ run:
       ls -l ./files
 
       ARG_ARRAY=(${ARGS})
+
+      if [[ $OUTPUT_FILE_NAME != "" ]]; then
+        ARG_ARRAY+=(">" "output/$OUTPUT_FILE_NAME")
+      fi
+
       kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} "${ARG_ARRAY[@]}"
 
       exit 0
