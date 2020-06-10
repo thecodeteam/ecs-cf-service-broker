@@ -136,7 +136,7 @@ jobs:
           files: ecs-broker-repo
         params:
           DEBUG: ((debug))
-          IGNORE_ERROR: true
+          IGNORE_ERROR: false
           COMMAND: apply
           ARGS: -f ./files/ci/resources/templates/ServiceInstance.yaml
           K8S_CONFIG_FILE_NAME: config
@@ -162,10 +162,24 @@ jobs:
           files: ecs-broker-repo
         params:
           DEBUG: ((debug))
-          IGNORE_ERROR: true
+          IGNORE_ERROR: false
           COMMAND: apply
           ARGS: -f ./files/ci/resources/templates/ServiceBinding.yaml
           K8S_CONFIG_FILE_NAME: config
+
+
+      - task: wait-until-service-binding-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ServiceBinding
+          NAME: ecs-service-broker-binding
+          DESIRED_STATUS: Ready
+          CHECK_FIELD: '{.status.lastConditionState}'
 
       - task: list-service-binding
         file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
@@ -196,10 +210,23 @@ jobs:
           files: ecs-broker-repo
         params:
           DEBUG: ((debug))
-          IGNORE_ERROR: true
+          IGNORE_ERROR: false
           COMMAND: apply
           ARGS: -f ./files/ci/resources/templates/TestAppPod.yaml
           K8S_CONFIG_FILE_NAME: config
+
+      - task: wait-until-test-app-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: Pod
+          NAME: broker-test-app
+          DESIRED_STATUS: Running
+          CHECK_FIELD: '{.status.phase}'
 
       - task: put-into-bucket
         file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
@@ -209,7 +236,7 @@ jobs:
           DEBUG: ((debug))
           IGNORE_ERROR: false
           COMMAND: exec
-          ARGS: -it broker-test-app -- sh -c 'curl -X PUT -d 'testValue' 127.0.0.1:8080/testKey'
+          ARGS: -it broker-test-app -- curl -X PUT -d \"testValue\" 127.0.0.1:8080/testKey
           K8S_CONFIG_FILE_NAME: config
 
       - task: get-from-bucket
@@ -222,7 +249,7 @@ jobs:
           DEBUG: ((debug))
           IGNORE_ERROR: false
           COMMAND: exec
-          ARGS: -it broker-test-app -- sh -c 'curl 127.0.0.1:8080/testKey'
+          ARGS: -it broker-test-app -- curl 127.0.0.1:8080/testKey
           K8S_CONFIG_FILE_NAME: config
           OUTPUT_FILE_NAME: obtained-value
 
@@ -245,7 +272,7 @@ jobs:
           DEBUG: ((debug))
           IGNORE_ERROR: false
           COMMAND: exec
-          ARGS: -it broker-test-app -- sh -c 'curl -X DELETE 127.0.0.1:8080/testKey'
+          ARGS: -it broker-test-app -- curl -X DELETE 127.0.0.1:8080/testKey
           K8S_CONFIG_FILE_NAME: config
           OUTPUT_FILE_NAME: deleted-value
 
@@ -259,7 +286,7 @@ jobs:
           DEBUG: ((debug))
           IGNORE_ERROR: false
           COMMAND: exec
-          ARGS: -it broker-test-app -- sh -c 'curl 127.0.0.1:8080/testKey'
+          ARGS: -it broker-test-app -- sh -c curl 127.0.0.1:8080/testKey
           K8S_CONFIG_FILE_NAME: config
           OUTPUT_FILE_NAME: obtained-deleted-value
 
@@ -300,6 +327,17 @@ jobs:
 
     ensure:
       do:
+      - task: delete-test-app
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: delete
+          ARGS: pod broker-test-app
+          K8S_CONFIG_FILE_NAME: config
+
       - task: uninstall-service-broker
         file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
         input_mapping:
