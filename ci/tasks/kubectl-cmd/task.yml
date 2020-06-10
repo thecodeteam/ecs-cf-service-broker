@@ -44,10 +44,10 @@ run:
         ARG_ARRAY+=(">" "output/$OUTPUT_FILE_NAME")
       fi
 
-      KUBECTL_CMD="kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} "${ARG_ARRAY[@]}""
+      KUBECTL_CMD="kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} ${ARG_ARRAY[@]}"
 
       echo $KUBECTL_CMD
 
-      kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} "${ARG_ARRAY[@]}"
+      kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} ${ARG_ARRAY[@]}
 
       exit 0
