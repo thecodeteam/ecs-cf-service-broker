@@ -21,7 +21,7 @@ inputs:
     optional: true
 
 outputs:
-  -name: output
+  - name: output
 
 run:
   path: /bin/bash
