@@ -38,10 +38,6 @@ run:
         set -e
       fi
 
-      ls -l
-
-      ls -l ./files
-
       ARG_ARRAY=(${ARGS})
 
       if [[ $OUTPUT_FILE_NAME != "" ]]; then
