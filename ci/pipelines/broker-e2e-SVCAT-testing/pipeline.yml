@@ -216,33 +216,62 @@ jobs:
         file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
         input_mapping:
           kubeconfig: config
-        # TODO add output
+        output_mapping:
+          output: obtained-value
         params:
           DEBUG: ((debug))
           IGNORE_ERROR: false
           COMMAND: exec
           ARGS: -it broker-test-app -- sh -c 'curl 127.0.0.1:8080/testKey'
           K8S_CONFIG_FILE_NAME: config
+          OUTPUT_FILE_NAME: obtained-value
 
       - task: verify-value
         file: ecs-broker-repo/ci/tasks/compare-values/task.yml
         input_mapping:
-          value_dir: put-into-bucket_output
+          value_dir: obtained-value
         params:
           DEBUG: ((debug))
-          VALUE_FILE_NAME: output
-          EQUALS_TO: testValue
+          VALUE_FILE_NAME: obtained-value
+          COMPARE_WITH: testValue
 
       - task: delete-from-bucket
         file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
         input_mapping:
           kubeconfig: config
+        output_mapping:
+          output: deleted-value
         params:
           DEBUG: ((debug))
           IGNORE_ERROR: false
           COMMAND: exec
           ARGS: -it broker-test-app -- sh -c 'curl -X DELETE 127.0.0.1:8080/testKey'
           K8S_CONFIG_FILE_NAME: config
+          OUTPUT_FILE_NAME: deleted-value
+
+      - task: get-deleted-value
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        output_mapping:
+          output: obtained-deleted-value
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- sh -c 'curl 127.0.0.1:8080/testKey'
+          K8S_CONFIG_FILE_NAME: config
+          OUTPUT_FILE_NAME: obtained-deleted-value
+
+      - task: verify-value-deleted
+        file: ecs-broker-repo/ci/tasks/compare-values/task.yml
+        input_mapping:
+          value_dir: obtained-deleted-value
+        params:
+          DEBUG: ((debug))
+          VALUE_FILE_NAME: obtained-deleted-value
+          COMPARE_WITH: NoSuchKey
+          CONTAINS: true
 
       - put: docker_registry_dest
         params:

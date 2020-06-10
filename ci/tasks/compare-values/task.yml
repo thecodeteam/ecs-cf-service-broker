@@ -7,7 +7,8 @@ image_resource:
 
 params:
   VALUE_FILE_NAME:
-  EQUALS_TO:
+  COMPARE_WITH:
+  CONTAINS: false
 
 inputs:
   - name: value_dir
@@ -23,10 +24,18 @@ run:
         set -e
       fi
 
-      EQUALS_WHAT=value_dir/$VALUE_FILE_NAME
+      COMPARE_WHAT=$(cat "value_dir/$VALUE_FILE_NAME")
 
-      if [[ $EQUALS_WHAT == "$EQUALS_TO" ]]; then
-        exit 0
+      if [[ $CONTAINS == true ]]; then
+        if [[ $COMPARE_WHAT == *"$COMPARE_WITH"* ]]; then
+          exit 0
+        else
+          exit 1
+        fi
       else
-        exit 1
+        if [[ $COMPARE_WHAT == "$COMPARE_WITH" ]]; then
+          exit 0
+        else
+          exit 1
+        fi
       fi
