@@ -16,6 +16,7 @@ params:
   OUTPUT_FILE_NAME:
 
 inputs:
+  - name: project-repo
   - name: config
   - name: files
     optional: true
@@ -24,30 +25,4 @@ outputs:
   - name: output
 
 run:
-  path: /bin/bash
-  args:
-    - -c
-    - |
-      if [[ $DEBUG == true ]]; then
-        set -x
-      fi
-
-      if [[ $IGNORE_ERROR == true ]]; then
-        set +e
-      else
-        set -e
-      fi
-
-      ARG_ARRAY=("${ARGS}")
-
-      if [[ $OUTPUT_FILE_NAME != "" ]]; then
-        ARG_ARRAY+=(">" "output/$OUTPUT_FILE_NAME")
-      fi
-
-      KUBECTL_CMD="kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} ${ARG_ARRAY[@]}"
-
-      echo $KUBECTL_CMD
-
-      kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} ${ARG_ARRAY[@]}
-
-      exit 0
+  path: project-repo/ci/tasks/kubectl-cmd/task.sh
