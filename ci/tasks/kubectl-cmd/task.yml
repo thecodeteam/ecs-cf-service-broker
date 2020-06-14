@@ -21,7 +21,7 @@ inputs:
     optional: true
 
 outputs:
-  -name: output
+  - name: output
 
 run:
   path: /bin/bash
@@ -38,12 +38,12 @@ run:
         set -e
       fi
 
-      ARG_ARRAY=(${ARGS})
+      ARG_ARRAY=("kubectl" "--kubeconfig" "config/${K8S_CONFIG_FILE_NAME}" "${COMMAND}" "${ARGS}")
 
       if [[ $OUTPUT_FILE_NAME != "" ]]; then
-        ARG_ARRAY+=(">" "output/$OUTPUT_FILE_NAME")
+        ARG_ARRAY+=('>' "output/$OUTPUT_FILE_NAME")
       fi
 
-      kubectl --kubeconfig config/${K8S_CONFIG_FILE_NAME} ${COMMAND} "${ARG_ARRAY[@]}"
+      eval "${ARG_ARRAY[*]}"
 
       exit 0
