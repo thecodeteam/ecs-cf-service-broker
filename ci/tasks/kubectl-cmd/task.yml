@@ -38,7 +38,7 @@ run:
         set -e
       fi
 
-      ARG_ARRAY=("${ARGS"})
+      ARG_ARRAY=("${ARGS}")
 
       if [[ $OUTPUT_FILE_NAME != "" ]]; then
         ARG_ARRAY+=('>' "output/$OUTPUT_FILE_NAME")
