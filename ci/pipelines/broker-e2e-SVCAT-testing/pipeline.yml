@@ -22,14 +22,22 @@ resources:
       tag: ((src_image_tag))
     check_every: 30m
 
+  - name: docker_registry_intermediate
+    type: registry-image
+    source:
+      repository: ((registry_inter))
+      username: ((registry_inter_username))
+      password: ((registry_inter_password))
+      debug: ((debug))
+      tag: ((intermediate_image_tag))
+    check_every: 30m
+
   - name: docker_registry_dest
     type: registry-image
     source:
       repository: ((registry_dest))
-      username: ((registry_dest_username))
-      password: ((registry_dest_password))
       debug: ((debug))
-      tag: green
+      tag: ((dest_image_tag))
 
   - name: svc-cat-repo
     type: git
@@ -50,6 +58,10 @@ jobs:
         params:
           format: oci
         trigger: true
+
+      - put: docker_registry_intermediate
+        params:
+          image: docker_registry_src/image.tar
 
       - in_parallel:
           - get: ecs-broker-repo
@@ -166,7 +178,6 @@ jobs:
           COMMAND: apply
           ARGS: -f ./files/ci/resources/templates/ServiceBinding.yaml
           K8S_CONFIG_FILE_NAME: config
-
 
       - task: wait-until-service-binding-ready
         file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml

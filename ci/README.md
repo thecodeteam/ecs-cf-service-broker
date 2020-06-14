@@ -19,7 +19,10 @@ or override in `fly -v` or `-y` command options if needed.
 |---------------------------------|----------------------------------------------|
 | `broker-k8s-image-release`      | Pulls the docker image with specified tag,   |
 |                                 | tags it with needed release tag and pushes to|
-|                                 | specified registry                          |
+|                                 | specified registry                           |
+|---------------------------------|----------------------------------------------|
+| `broker-e2e-SVCAT-testing`      | Deploys k8s service catalog, service broker  |
+|                                 | ans test app and performs tests with a bucket|
 
 ## Running the pipeline
 
@@ -50,7 +53,7 @@ $ fly -t <target_alias> sp -p broker-k8s-image-release-<release_image_tag> \
   -c pipeline.yml \
   -l params.yml \
   -v "registry_src=<docker_ci_repo>" \
-  -v "registry_dest=s<docker_release_repo>" \
+  -v "registry_dest=<docker_release_repo>" \
   -v "registry_dest_username=<docker_release_repo_username>" \
   -v "registry_dest_password=<docker_release_repo_password>" \
   -v src_image_tag=<source_image_tag> \
@@ -58,3 +61,6 @@ $ fly -t <target_alias> sp -p broker-k8s-image-release-<release_image_tag> \
   -v git_token=<git_token> \
   -v slack_url=<slack_webhook_url>
 ```
+
+`broker-e2e-SVCAT-testing` example:
+ look in corresponding README: `ci/pipelines/broker-e2e-SVCAT-testing/README.md`
