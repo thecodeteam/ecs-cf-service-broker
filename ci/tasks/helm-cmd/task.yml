@@ -20,7 +20,6 @@ params:
 
 inputs:
   - name: kubeconfig
-    -
   - name: values
     optional: true
   - name: charts
