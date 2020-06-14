@@ -24,6 +24,8 @@ run:
         set -e
       fi
 
+      cat value_dir/$VALUE_FILE_NAME
+
       COMPARE_WHAT=$(cat "value_dir/$VALUE_FILE_NAME")
 
       if [[ $CONTAINS == true ]]; then
