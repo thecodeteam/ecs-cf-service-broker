@@ -4,8 +4,8 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: alpine/helm
-    tag: latest
+    repository: spiegela/helm
+    tag: 3.1.2
 
 params:
   DEBUG:
@@ -20,6 +20,7 @@ params:
 
 inputs:
   - name: kubeconfig
+    -
   - name: values
     optional: true
   - name: charts
