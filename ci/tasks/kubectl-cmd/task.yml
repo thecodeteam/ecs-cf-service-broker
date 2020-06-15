@@ -1,0 +1,49 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bitnami/kubectl
+    tag: 1.18.0
+
+params:
+  DEBUG:
+  IGNORE_ERROR: false
+  COMMAND:
+  ARGS:
+  K8S_CONFIG_FILE_NAME: config
+  OUTPUT_FILE_NAME:
+
+inputs:
+  - name: config
+  - name: files
+    optional: true
+
+outputs:
+  - name: output
+
+run:
+  path: /bin/bash
+  args:
+    - -c
+    - |
+      if [[ $DEBUG == true ]]; then
+        set -x
+      fi
+
+      if [[ $IGNORE_ERROR == true ]]; then
+        set +e
+      else
+        set -e
+      fi
+
+      ARG_ARRAY=("kubectl" "--kubeconfig" "config/${K8S_CONFIG_FILE_NAME}" "${COMMAND}" "${ARGS}")
+
+      if [[ $OUTPUT_FILE_NAME != "" ]]; then
+        ARG_ARRAY+=('>' "output/$OUTPUT_FILE_NAME")
+      fi
+
+      eval "${ARG_ARRAY[*]}"
+
+      exit 0

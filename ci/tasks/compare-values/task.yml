@@ -1,0 +1,41 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: bash}
+
+params:
+  VALUE_FILE_NAME:
+  COMPARE_WITH:
+  CONTAINS: false
+
+inputs:
+  - name: value_dir
+
+run:
+  path: /usr/local/bin/bash
+  args:
+    - -c
+    - |
+      if [[ $DEBUG == true ]]; then
+        set -ex
+      else
+        set -e
+      fi
+
+      COMPARE_WHAT=$(cat "value_dir/$VALUE_FILE_NAME")
+
+      if [[ $CONTAINS == true ]]; then
+        if [[ $COMPARE_WHAT == *"$COMPARE_WITH"* ]]; then
+          exit 0
+        else
+          exit 1
+        fi
+      else
+        if [[ $COMPARE_WHAT == "$COMPARE_WITH" ]]; then
+          exit 0
+        else
+          exit 1
+        fi
+      fi

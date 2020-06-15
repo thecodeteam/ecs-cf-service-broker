@@ -1,0 +1,59 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: spiegela/helm
+    tag: 3.1.2
+
+params:
+  DEBUG:
+  COMMAND: install
+  IGNORE_ERROR:
+  NAMESPACE:
+  RELEASE:
+  CHART:
+  VALUES:
+  FLAGS:
+  K8S_CONFIG_FILE_NAME: config
+
+inputs:
+  - name: kubeconfig
+  - name: values
+    optional: true
+  - name: charts
+    optional: true
+
+run:
+  path: /bin/bash
+  args:
+    - -c
+    - |
+      if [[ $DEBUG == true ]]; then
+        set -x
+      fi
+
+      if [[ $IGNORE_ERROR == true ]]; then
+        set +e
+      else
+        set -e
+      fi
+
+      FLAGS=(${FLAGS})
+
+      if [[ "${NAMESPACE}" != "" ]]; then
+        FLAGS+=("-n" "$NAMESPACE")
+      fi
+
+      if [[ "${VALUES}" != "" ]]; then
+        FLAGS+=("-f" "$VALUES")
+      fi
+
+      if [[ "${CHART}" != "" ]]; then
+        CHART="charts/$CHART"
+      fi
+
+      KUBECONFIG=kubeconfig/${K8S_CONFIG_FILE_NAME} helm "${COMMAND}" "${FLAGS[@]}" $RELEASE $CHART
+
+      exit 0

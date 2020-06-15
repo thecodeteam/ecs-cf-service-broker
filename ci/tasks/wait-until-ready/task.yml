@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: bitnami/kubectl
+    tag: 1.18.0
+
+params:
+  DEBUG:
+  TIMEOUT: 300
+  KIND:
+  NAMESPACE:
+  DESIRED_STATUS:
+  CHECK_FIELD:
+
+inputs:
+  - name: kubeconfig
+  - name: project-repo
+
+run:
+  path: project-repo/ci/tasks/wait-until-ready/task.sh

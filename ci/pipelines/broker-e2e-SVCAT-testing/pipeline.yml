@@ -1,0 +1,371 @@
+---
+resource_types:
+
+  - name: slack-notifier
+    type: docker-image
+    source:
+      repository: mockersf/concourse-slack-notifier
+
+resources:
+  - name: ecs-broker-repo
+    type: git
+    source:
+      uri: ((broker_repo))
+      branch: ((broker_branch))
+      access_token: ((git_token))
+
+  - name: docker_registry_src
+    type: registry-image
+    source:
+      repository: ((registry_src))
+      debug: ((debug))
+      tag: ((src_image_tag))
+    check_every: 30m
+
+  - name: docker_registry_intermediate
+    type: registry-image
+    source:
+      repository: ((registry_inter))
+      username: ((registry_inter_username))
+      password: ((registry_inter_password))
+      debug: ((debug))
+      tag: ((intermediate_image_tag))
+    check_every: 30m
+
+  - name: docker_registry_dest
+    type: registry-image
+    source:
+      repository: ((registry_dest))
+      debug: ((debug))
+      tag: ((dest_image_tag))
+
+  - name: svc-cat-repo
+    type: git
+    source:
+      uri: ((svc_cat_repo))
+      branch: ((svc_cat_repo_branch))
+
+  - name: slack-alert
+    type: slack-notifier
+    source:
+      url: ((slack_url))
+
+jobs:
+
+  - name: e2e-test-broker-image
+    plan:
+      - get: docker_registry_src
+        params:
+          format: oci
+        trigger: true
+
+      - put: docker_registry_intermediate
+        params:
+          image: docker_registry_src/image.tar
+
+      - in_parallel:
+          - get: ecs-broker-repo
+          - get: svc-cat-repo
+
+      - in_parallel:
+          - task: create-kubeconfig
+            file: ecs-broker-repo/ci/tasks/write-file/task.yml
+            output_mapping:
+              output-folder: config
+            params:
+              DEBUG: ((debug))
+              OUTPUT_FILE_NAME: config
+              PARAM_NAME: ((kubeconfig))
+
+          - task: create-broker-values-file
+            file: ecs-broker-repo/ci/tasks/write-file/task.yml
+            output_mapping:
+              output-folder: broker-values
+            params:
+              DEBUG: ((debug))
+              OUTPUT_FILE_NAME: broker-values.yml
+              PARAM_NAME: ((broker_values))
+
+      - task: install-service-catalog
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          charts: svc-cat-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: install
+          CHART: charts/catalog/
+          RELEASE: service-catalog
+          FLAGS: --wait
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: install-service-broker
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          values: broker-values
+          charts: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: install
+          CHART: charts
+          VALUES: values/broker-values.yml
+          RELEASE: ecs-service-broker
+          FLAGS: --wait
+          K8S_CONFIG_FILE_NAME: config
+
+      #wait until catalog is fetched
+      - task: wait-until-service-broker-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ClusterServiceBroker
+          NAME: ecs-service-broker-client
+          DESIRED_STATUS: Ready
+          CHECK_FIELD: '{.status.lastConditionState}'
+
+      - task: list-service-brokers
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: clusterservicebrokers
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: create-service-instance
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: apply
+          ARGS: -f ./files/ci/resources/templates/ServiceInstance.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      #wait until instance is provisioned
+      - task: wait-until-service-instance-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ServiceInstance
+          NAME: ecs-service-broker-instance
+          DESIRED_STATUS: Ready
+          CHECK_FIELD: '{.status.lastConditionState}'
+
+      - task: create-service-binding
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: apply
+          ARGS: -f ./files/ci/resources/templates/ServiceBinding.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: wait-until-service-binding-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: ServiceBinding
+          NAME: ecs-service-broker-binding
+          DESIRED_STATUS: Ready
+          CHECK_FIELD: '{.status.lastConditionState}'
+
+      - task: list-service-binding
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: servicebindings
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: list-service-instances
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: get
+          ARGS: serviceinstances
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: deploy-test-app
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+          files: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: apply
+          ARGS: -f ./files/ci/resources/templates/TestAppPod.yaml
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: wait-until-test-app-ready
+        file: ecs-broker-repo/ci/tasks/wait-until-ready/task.yml
+        input_mapping:
+          kubeconfig: config
+          project-repo: ecs-broker-repo
+        params:
+          DEBUG: ((debug))
+          TIMEOUT: 300
+          KIND: Pod
+          NAME: broker-test-app
+          DESIRED_STATUS: Running
+          CHECK_FIELD: '{.status.phase}'
+
+      - task: put-into-bucket
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- curl -X PUT -d testValue 127.0.0.1:8080/testKey
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: get-from-bucket
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        output_mapping:
+          output: obtained-value
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- curl 127.0.0.1:8080/testKey
+          K8S_CONFIG_FILE_NAME: config
+          OUTPUT_FILE_NAME: obtained-value
+
+      - task: verify-value
+        file: ecs-broker-repo/ci/tasks/compare-values/task.yml
+        input_mapping:
+          value_dir: obtained-value
+        params:
+          DEBUG: ((debug))
+          VALUE_FILE_NAME: obtained-value
+          COMPARE_WITH: testValue
+
+      - task: delete-from-bucket
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        output_mapping:
+          output: deleted-value
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: false
+          COMMAND: exec
+          ARGS: -it broker-test-app -- curl -X DELETE 127.0.0.1:8080/testKey
+          K8S_CONFIG_FILE_NAME: config
+          OUTPUT_FILE_NAME: deleted-value
+
+      - task: get-deleted-value
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        output_mapping:
+          output: obtained-deleted-value
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: exec
+          ARGS: -it broker-test-app -- curl 127.0.0.1:8080/testKey
+          K8S_CONFIG_FILE_NAME: config
+          OUTPUT_FILE_NAME: obtained-deleted-value
+
+      - task: verify-value-deleted
+        file: ecs-broker-repo/ci/tasks/compare-values/task.yml
+        input_mapping:
+          value_dir: obtained-deleted-value
+        params:
+          DEBUG: ((debug))
+          VALUE_FILE_NAME: obtained-deleted-value
+          COMPARE_WITH: NoSuchKey
+          CONTAINS: true
+
+      - put: docker_registry_dest
+        params:
+          image: docker_registry_src/image.tar
+
+    on_success:
+      put: slack-alert
+      params:
+        alert_type: success
+
+    on_failure:
+      put: slack-alert
+      params:
+        alert_type: failed
+
+    on_abort:
+      put: slack-alert
+      params:
+        alert_type: aborted
+
+    on_error:
+      put: slack-alert
+      params:
+        alert_type: custom
+        message: Build Error
+
+    ensure:
+      do:
+      - task: delete-test-app
+        file: ecs-broker-repo/ci/tasks/kubectl-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: delete
+          ARGS: pod broker-test-app
+          K8S_CONFIG_FILE_NAME: config
+
+      - task: uninstall-service-broker
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: uninstall
+          RELEASE: ecs-service-broker
+
+      - task: uninstall-service-catalog
+        file: ecs-broker-repo/ci/tasks/helm-cmd/task.yml
+        input_mapping:
+          kubeconfig: config
+        params:
+          DEBUG: ((debug))
+          IGNORE_ERROR: true
+          COMMAND: uninstall
+          RELEASE: service-catalog
+
