@@ -10,4 +10,8 @@ public class EcsManagementClientException extends Exception {
     public EcsManagementClientException(Exception e) {
         super(e);
     }
+
+    public EcsManagementClientException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

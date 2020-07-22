@@ -21,12 +21,13 @@ import java.net.URLEncoder;
 import java.util.*;
 
 public class BucketBindingWorkflow extends BindingWorkflowImpl {
+    private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
+
     private static final String VOLUME_DRIVER = "nfsv3driver";
     private static final String DEFAULT_MOUNT = "/var/vcap/data";
     private static final String MOUNT = "mount";
+
     private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
-    private static final Logger LOG =
-            LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
     BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
         super(instanceRepo, ecs);
@@ -39,15 +40,10 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
+        String bucketName = getInstanceName();
+
         UserSecretKey userSecretKey = ecs.createUser(bindingId);
         Map<String, Object> parameters = createRequest.getParameters();
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-        String bucketName = instance.getName();
 
         String export = "";
         List<String> permissions = null;
@@ -63,32 +59,24 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (ecs.getBucketFileEnabled(bucketName)) {
-            volumeMounts = createVolumeExport(export,
-                    new URL(ecs.getObjectEndpoint()), parameters);
+            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), parameters);
         }
 
         return userSecretKey.getSecretKey();
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding)
-            throws EcsManagementClientException, IOException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-        String bucketName = instance.getName();
+    public void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException, IOException {
+        String bucketName = getInstanceName();
 
         List<VolumeMount> volumes = binding.getVolumeMounts();
+
         if (volumes != null && volumes.size() > 0) {
-            Map<String, Object> mountConfig = (
-                    (SharedVolumeDevice) volumes.get(0).getDevice()
-            ).getMountConfig();
+            Map<String, Object> mountConfig = ((SharedVolumeDevice) volumes.get(0).getDevice()).getMountConfig();
             String unixId = (String) mountConfig.get("uid");
-            LOG.error("Deleting user map of instance Id and Binding Id " +
-                    bucketName + " " + bindingId);
+
+            LOG.info("Deleting user map for bucket '{}' binding '{}' ", bucketName, bindingId);
+
             try {
                 ecs.deleteUserMap(bindingId, unixId);
             } catch (EcsManagementClientException e) {
@@ -96,20 +84,15 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             }
         }
 
+        LOG.info("Removing binding user {} from bucket {}", bindingId, bucketName);
+
         ecs.removeUserFromBucket(bucketName, bindingId);
         ecs.deleteUser(bindingId);
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
-            throws IOException, EcsManagementClientException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-        String bucketName = instance.getName();
+    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
+        String bucketName = getInstanceName();
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
@@ -121,8 +104,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         URL baseUrl = new URL(endpoint);
         credentials.put("s3Url", getS3Url(baseUrl, secretKey, parameters));
 
-        if (parameters != null && parameters.containsKey("path-style-access") &&
-                !(Boolean) parameters.get("path-style-access")) {
+        if (parameters != null && parameters.containsKey("path-style-access") && !(Boolean) parameters.get("path-style-access")) {
             credentials.put("path-style-access", false);
         } else {
             credentials.put("path-style-access", true);
@@ -150,7 +132,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
                 .credentials(credentials);
 
         if (volumeMounts != null) {
-                builder.volumeMounts(volumeMounts);
+            builder.volumeMounts(volumeMounts);
         }
 
         return builder.build();
@@ -191,18 +173,17 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return unixUid;
     }
 
-    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, Map<String, Object> parameters)
-            throws EcsManagementClientException {
+    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, Map<String, Object> parameters) throws EcsManagementClientException {
         int unixUid = createUserMap();
         String host = ecs.getNfsMountHost();
         if (host == null || host.isEmpty()) {
             host = baseUrl.getHost();
         }
 
-        LOG.info("Adding export:  " + export + " to bucket: " + instanceId);
+        LOG.info("Adding export '{}' to bucket '{}'", export, instanceId);
         String volumeGUID = UUID.randomUUID().toString();
         String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
-        LOG.info("export added.");
+        LOG.debug("Export added: '{}' for bucket '{}'", export, instanceId);
 
         Map<String, Object> opts = new HashMap<>();
         String nfsUrl = "nfs://" + host + absoluteExportPath;

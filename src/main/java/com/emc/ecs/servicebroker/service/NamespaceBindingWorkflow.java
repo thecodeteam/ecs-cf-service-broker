@@ -27,16 +27,9 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-        String namespaceName = instance.getName();
-
-        return ecs.createUser(bindingId, namespaceName).getSecretKey();
+        return ecs.createUser(bindingId, getInstanceName()).getSecretKey();
     }
+
 
     @Override
     public void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException {
@@ -44,14 +37,14 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
-            throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);
 
         if (instance.getName() == null)
             instance.setName(instance.getServiceInstanceId());
+
         String namespaceName = instance.getName();
 
         Map<String, Object> credentials = super.getCredentials(secretKey);

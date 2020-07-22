@@ -33,24 +33,23 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
             ServiceInstance instance = instanceRepository.find(id);
             if (instance.getReferences().size() > 1) {
                 removeInstanceFromReferences(instance, id);
-
                 return null;
             } else {
                 ReclaimPolicy reclaimPolicy = ReclaimPolicy.getReclaimPolicy(instance.getServiceSettings());
 
                 switch(reclaimPolicy) {
                     case Fail:
-                        logger.info("Reclaim Policy is {} for bucket {}, attempting to delete bucket", reclaimPolicy, ecs.prefix(instance.getName()));
+                        logger.info("Reclaim Policy for bucket '{}' is '{}', attempting to delete bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         ecs.deleteBucket(id);
                         return null;
                     case Detach:
-                        logger.info("Reclaim Policy is {} for bucket {}, Not Deleting Bucket", reclaimPolicy, ecs.prefix(instance.getName()));
+                        logger.info("Reclaim Policy for bucket '{}' is '{}', not deleting Bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         return null;
                     case Delete:
-                        logger.info("Reclaim Policy is {} for bucket {}, Wiping and Deleting bucket", reclaimPolicy, ecs.prefix(instance.getName()));
+                        logger.info("Reclaim Policy for bucket '{}' is '{}', wiping and deleting bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         return ecs.wipeAndDeleteBucket(id);
                     default:
-                        throw new ServiceBrokerException("ReclaimPolicy "+reclaimPolicy+" not supported");
+                        throw new ServiceBrokerException("ReclaimPolicy '" + reclaimPolicy + "' not supported");
                 }
             }
         } catch (IOException e) {
@@ -73,8 +72,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public ServiceInstance create(String bucketName, ServiceDefinitionProxy service, PlanProxy plan,
-                                  Map<String, Object> parameters) {
+    public ServiceInstance create(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
         Map<String, Object> serviceSettings = ecs.createBucket(bucketName, service, plan, parameters);
 
         return getServiceInstance(serviceSettings);

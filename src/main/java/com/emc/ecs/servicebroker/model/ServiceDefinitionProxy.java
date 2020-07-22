@@ -215,4 +215,13 @@ public class ServiceDefinitionProxy {
                 .findFirst()
                 .orElseThrow(() -> new ServiceBrokerException("At least one plan must be configured as a 'repository-plan"));
     }
+
+    @Override
+    public String toString() {
+        return "ServiceDefinitionProxy{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", serviceSettings=" + serviceSettings +
+                '}';
+    }
 }
