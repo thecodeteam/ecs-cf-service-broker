@@ -499,10 +499,16 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException when resources are not found
      */
     @Test
-    public void deleteUser() throws EcsManagementClientException {
+    public void deleteUser() throws Exception {
         PowerMockito.mockStatic(ObjectUserAction.class);
+        PowerMockito
+                .when(ObjectUserAction.class, "exists", same(connection), any(String.class), any(String.class))
+                .thenReturn(true);
+
         ecs.deleteUser(USER1);
         PowerMockito.verifyStatic(ObjectUserAction.class);
+
+        ObjectUserAction.exists(same(connection), eq(PREFIX + USER1), eq(NAMESPACE));
         ObjectUserAction.delete(same(connection), eq(PREFIX + USER1));
     }
 
