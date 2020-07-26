@@ -435,7 +435,7 @@ public class EcsService {
     }
 
     private Boolean namespaceExists(String id) throws EcsManagementClientException {
-        return NamespaceAction.exists(connection, prefix(id));
+        return NamespaceAction.exists(connection, id);
     }
 
     private void validateReclaimPolicy(Map<String, Object> parameters) {
@@ -460,16 +460,18 @@ public class EcsService {
 
     Map<String, Object> createNamespace(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
-        if (namespaceExists(id))
+        if (namespaceExists(prefix(id))) {
             throw new ServiceInstanceExistsException(id, service.getId());
+        }
+
         if (parameters == null) parameters = new HashMap<>();
         // merge serviceSettings into parameters, overwriting parameter values
         // with service/plan serviceSettings, since serviceSettings are forced
         // by administrator through the catalog.
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
-        NamespaceAction.create(connection, new NamespaceCreate(prefix(id),
-                replicationGroupID, parameters));
+
+        NamespaceAction.create(connection, new NamespaceCreate(prefix(id), replicationGroupID, parameters));
 
         if (parameters.containsKey(QUOTA)) {
             @SuppressWarnings(UNCHECKED)
