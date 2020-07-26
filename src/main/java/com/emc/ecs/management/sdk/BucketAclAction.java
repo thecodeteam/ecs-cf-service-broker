@@ -29,4 +29,11 @@ public final class BucketAclAction {
         return response.readEntity(BucketAcl.class);
     }
 
+    public static boolean exists(Connection connection, String id,
+                                 String namespace) throws EcsManagementClientException {
+        UriBuilder uri = connection.getUriBuilder()
+            .segment(OBJECT, BUCKET, id, ACL)
+            .queryParam(NAMESPACE, namespace);
+        return connection.existenceQuery(uri, null);
+    }
 }
