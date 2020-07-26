@@ -481,15 +481,12 @@ public class EcsServiceTest {
         ecs.removeUserFromBucket(BUCKET_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
-        BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME),
-                eq(NAMESPACE));
-        ArgumentCaptor<BucketAcl> aclCaptor = ArgumentCaptor
-                .forClass(BucketAcl.class);
+        BucketAclAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE));
+        BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE));
+        ArgumentCaptor<BucketAcl> aclCaptor = ArgumentCaptor.forClass(BucketAcl.class);
         PowerMockito.verifyStatic(BucketAclAction.class);
-        BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME),
-                aclCaptor.capture());
-        List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl()
-                .getUserAccessList();
+        BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), aclCaptor.capture());
+        List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl().getUserAccessList();
         assertFalse(actualUserAcl.contains(userAcl));
     }
 
@@ -925,10 +922,9 @@ public class EcsServiceTest {
 
         ecs.deleteNamespace(NAMESPACE);
 
-        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic(NamespaceAction.class);
-        NamespaceAction.delete(same(connection), nsCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+        NamespaceAction.exists(same(connection), eq(PREFIX + NAMESPACE));
+        NamespaceAction.delete(same(connection), eq(PREFIX + NAMESPACE));
     }
 
     /**
@@ -1208,6 +1204,8 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(NamespaceAction.class);
         PowerMockito.doNothing().when(NamespaceAction.class, DELETE,
                 same(connection), anyString());
+        PowerMockito.when(NamespaceAction.class, "exists", same(connection), any(String.class))
+            .thenReturn(true);
     }
 
     private void setupCreateNamespaceRetentionTest(boolean exists) throws Exception {
