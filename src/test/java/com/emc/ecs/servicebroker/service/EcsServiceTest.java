@@ -464,19 +464,23 @@ public class EcsServiceTest {
     @Test
     public void removeUserFromBucketTest() throws Exception {
         BucketAcl bucketAcl = new BucketAcl();
-        BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1,
-                Collections.singletonList("full_control"));
+        BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1, Collections.singletonList("full_control"));
         BucketAclAcl acl = new BucketAclAcl();
         acl.setUserAccessList(Collections.singletonList(userAcl));
         bucketAcl.setAcl(acl);
+
         PowerMockito.mockStatic(BucketAclAction.class);
         PowerMockito
-                .when(BucketAclAction.class, GET, same(connection),
-                        eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+                .when(BucketAclAction.class, GET,
+                        same(connection),eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
                 .thenReturn(bucketAcl);
-        PowerMockito.doNothing().when(BucketAclAction.class, UPDATE,
-                same(connection), eq(PREFIX + BUCKET_NAME),
-                any(BucketAcl.class));
+        PowerMockito.doNothing()
+                .when(BucketAclAction.class, UPDATE,
+                        same(connection), eq(PREFIX + BUCKET_NAME), any(BucketAcl.class));
+        PowerMockito
+                .when(BucketAclAction.class, "exists",
+                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+                .thenReturn(true);
 
         ecs.removeUserFromBucket(BUCKET_NAME, USER1);
 
