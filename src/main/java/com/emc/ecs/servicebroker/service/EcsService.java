@@ -360,11 +360,14 @@ public class EcsService {
     }
 
     private void lookupReplicationGroupID() throws EcsManagementClientException {
-        replicationGroupID = ReplicationGroupAction.list(connection).stream()
-                .filter(r -> broker.getReplicationGroup() != null && r != null && broker.getReplicationGroup().equals(r.getName()))
+        DataServiceReplicationGroup replicationGroup = ReplicationGroupAction.list(connection).stream()
+                .filter(r -> broker.getReplicationGroup() != null && r != null
+                        && (broker.getReplicationGroup().equals(r.getName()) || broker.getReplicationGroup().equals(r.getId()))
+                )
                 .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("Configured ECS replication group not found: " + broker.getReplicationGroup()))
-                .getId();
+                .orElseThrow(() -> new ServiceBrokerException("Configured ECS replication group not found: " + broker.getReplicationGroup()));
+        logger.info("Replication group found: {} ({})", replicationGroup.getName(), replicationGroup.getId());
+        replicationGroupID = replicationGroup.getId();
     }
 
     private void prepareRepository() throws EcsManagementClientException {
