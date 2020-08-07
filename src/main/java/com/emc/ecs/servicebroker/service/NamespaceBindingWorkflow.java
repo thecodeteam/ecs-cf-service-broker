@@ -11,8 +11,8 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Map;
 
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
@@ -75,10 +75,11 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
                 .build();
     }
 
-    private String getS3Url(String endpoint, String secretKey) throws MalformedURLException {
+    private String getS3Url(String endpoint, String secretKey) throws IOException {
         URL baseUrl = new URL(endpoint);
-        String userInfo = getUserInfo(secretKey);
-        return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" +
-                baseUrl.getHost() + ":" + baseUrl.getPort();
+        String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
+        String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
+        String userInfo = encodedBinding + ":" + encodedSecret;
+        return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" + baseUrl.getHost() + ":" + baseUrl.getPort();
     }
 }

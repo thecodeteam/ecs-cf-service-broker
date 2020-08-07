@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.model.PlanProxy;
+import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -11,11 +12,11 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotE
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(Ginkgo4jRunner.class)
@@ -37,6 +38,8 @@ public class BucketInstanceWorkflowTest {
                 ecs = mock(EcsService.class);
                 instanceRepo = mock(ServiceInstanceRepository.class);
                 workflow = new BucketInstanceWorkflow(instanceRepo, ecs);
+
+                when(ecs.wipeAndDeleteBucket(any())).thenReturn(CompletableFuture.completedFuture(true));
             });
 
             Context("#changePlan", () -> {
@@ -90,6 +93,56 @@ public class BucketInstanceWorkflowTest {
                 });
             });
 
+            Context("#delete with ReclaimPolicy", () -> {
+
+                BeforeEach(() -> {
+                    doNothing().when(instanceRepo).save(any(ServiceInstance.class));
+                    when(instanceRepo.find(BUCKET_NAME)).thenReturn(bucketInstance);
+                });
+
+                Context("with no ReclaimPolicy", () -> {
+                    It("should call delete and NOT wipe bucket", () -> {
+                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        assertNull(result);
+                        verify(ecs, times(1)).deleteBucket(BUCKET_NAME);
+                        verify(ecs, times(0)).wipeAndDeleteBucket(BUCKET_NAME);
+                    });
+                });
+
+                Context("with Fail ReclaimPolicy", () -> {
+                    It("should call delete and NOT wipe bucket", () -> {
+                        bucketInstance.setServiceSettings(Collections.singletonMap(RECLAIM_POLICY, ReclaimPolicy.Fail));
+
+                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        assertNull(result);
+                        verify(ecs, times(1)).deleteBucket(BUCKET_NAME);
+                        verify(ecs, times(0)).wipeAndDeleteBucket(BUCKET_NAME);
+                    });
+                });
+
+                Context("with Detach ReclaimPolicy", () -> {
+                    It("should not call delete", () -> {
+                        bucketInstance.setServiceSettings(Collections.singletonMap(RECLAIM_POLICY, ReclaimPolicy.Detach));
+
+                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        assertNull(result);
+                        verify(ecs, times(0)).deleteBucket(BUCKET_NAME);
+                        verify(ecs, times(0)).wipeAndDeleteBucket(BUCKET_NAME);
+                    });
+                });
+
+                Context("with Delete ReclaimPolicy", () -> {
+                    It("should wipe and delete", () -> {
+                        bucketInstance.setServiceSettings(Collections.singletonMap(RECLAIM_POLICY, ReclaimPolicy.Delete));
+
+                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        assertNotNull(result);
+                        verify(ecs, times(0)).deleteBucket(BUCKET_NAME);
+                        verify(ecs, times(1)).wipeAndDeleteBucket(BUCKET_NAME);
+                    });
+                });
+            });
+
             Context("#delete", () -> {
 
                 BeforeEach(() -> doNothing().when(instanceRepo)
@@ -133,7 +186,7 @@ public class BucketInstanceWorkflowTest {
                         bucketInstance.setReferences(refs);
                         when(instanceRepo.find(SERVICE_INSTANCE_ID))
                                 .thenReturn(bucketInstance);
-                        doNothing().when(ecs).deleteBucket(SERVICE_INSTANCE_ID);
+                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID)).thenReturn(null);
                     });
 
                     It("should delete the bucket", () -> {

@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
     - name: ecs-broker
-      image: emccorp/ecs-service-broker:latest
+      image: objectscale/ecs-service-broker:latest
       command: [ "java","-jar","-Djava.security.egd=file:/dev/./urandom","app.jar", "-Dspring.config.location=/etc/config/application.yml" ]
       volumeMounts:
       - name: config-volume

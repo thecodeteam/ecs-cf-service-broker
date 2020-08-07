@@ -21,13 +21,14 @@ import java.net.URISyntaxException;
 import static java.lang.String.format;
 
 public class ServiceInstanceRepository {
-
-
     private static final Logger logger = LoggerFactory.getLogger(ServiceInstanceRepository.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     private String bucket;
+
     private S3JerseyClient s3;
+
     @Autowired
     private BrokerConfig broker;
 
@@ -39,19 +40,19 @@ public class ServiceInstanceRepository {
     public void initialize() throws URISyntaxException {
         logger.info(format("Creating S3 config with repository endpoint %s", broker.getRepositoryEndpoint()));
 
-        S3Config s3Config = new S3Config(
-                new URI(broker.getRepositoryEndpoint()));
+        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
 
-        logger.info(format("Created S3 config %s", s3Config));
+        logger.debug(format("Created S3 config %s", s3Config));
 
-        s3Config.withIdentity(broker.getPrefixedUserName())
-                .withSecretKey(broker.getRepositorySecret());
-        this.s3 = new S3JerseyClient(s3Config,
-        		new URLConnectionClientHandler());
+        s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
 
-        logger.info(format("JerseyClient S3 config %s", this.s3.getS3Config()));
+        this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+
+        logger.debug(format("JerseyClient S3 config %s", this.s3.getS3Config()));
 
         this.bucket = broker.getPrefixedBucketName();
+
+        logger.info("Service repository bucket name: {}", this.bucket);
     }
 
     public void save(ServiceInstance instance) throws IOException {
@@ -69,13 +70,16 @@ public class ServiceInstanceRepository {
         ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
 
         logger.info(format("Saving Repository - bucket: %s", bucket));
-        s3.putObject(bucket, getFilename(instance.getServiceInstanceId()),
-                input, null);
+        s3.putObject(bucket, getFilename(instance.getServiceInstanceId()), input, null);
     }
 
     public ServiceInstance find(String id) throws IOException {
-        GetObjectResult<InputStream> input = s3.getObject(bucket,
-                getFilename(id));
+        String filename = getFilename(id);
+
+        logger.debug("Loading file {}", filename);
+
+        GetObjectResult<InputStream> input = s3.getObject(bucket, filename);
+
         return objectMapper.readValue(input.getObject(), ServiceInstance.class);
     }
 

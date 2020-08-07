@@ -7,6 +7,7 @@ import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +76,9 @@ public class EcsServiceTest {
     @Mock
     private CatalogConfig catalog;
 
+    @Mock
+    private BucketWipeFactory bucketWipeFactory;
+
     @Autowired
     @InjectMocks
     private EcsService ecs;
@@ -119,7 +123,6 @@ public class EcsServiceTest {
     public void initializeBaseUrlLookup() throws EcsManagementClientException {
         setupInitTest();
         setupBaseUrlTest(BASE_URL_NAME, false);
-        when(broker.getBaseUrl()).thenReturn(BASE_URL_NAME);
 
         ecs.initialize();
         String objEndpoint = HTTP + BASE_URL + _9020;
@@ -461,32 +464,33 @@ public class EcsServiceTest {
     @Test
     public void removeUserFromBucketTest() throws Exception {
         BucketAcl bucketAcl = new BucketAcl();
-        BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1,
-                Collections.singletonList("full_control"));
+        BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1, Collections.singletonList("full_control"));
         BucketAclAcl acl = new BucketAclAcl();
         acl.setUserAccessList(Collections.singletonList(userAcl));
         bucketAcl.setAcl(acl);
+
         PowerMockito.mockStatic(BucketAclAction.class);
         PowerMockito
-                .when(BucketAclAction.class, GET, same(connection),
-                        eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+                .when(BucketAclAction.class, GET,
+                        same(connection),eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
                 .thenReturn(bucketAcl);
-        PowerMockito.doNothing().when(BucketAclAction.class, UPDATE,
-                same(connection), eq(PREFIX + BUCKET_NAME),
-                any(BucketAcl.class));
+        PowerMockito.doNothing()
+                .when(BucketAclAction.class, UPDATE,
+                        same(connection), eq(PREFIX + BUCKET_NAME), any(BucketAcl.class));
+        PowerMockito
+                .when(BucketAclAction.class, "exists",
+                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+                .thenReturn(true);
 
         ecs.removeUserFromBucket(BUCKET_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
-        BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME),
-                eq(NAMESPACE));
-        ArgumentCaptor<BucketAcl> aclCaptor = ArgumentCaptor
-                .forClass(BucketAcl.class);
+        BucketAclAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE));
+        BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE));
+        ArgumentCaptor<BucketAcl> aclCaptor = ArgumentCaptor.forClass(BucketAcl.class);
         PowerMockito.verifyStatic(BucketAclAction.class);
-        BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME),
-                aclCaptor.capture());
-        List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl()
-                .getUserAccessList();
+        BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), aclCaptor.capture());
+        List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl().getUserAccessList();
         assertFalse(actualUserAcl.contains(userAcl));
     }
 
@@ -496,10 +500,16 @@ public class EcsServiceTest {
      * @throws EcsManagementClientException when resources are not found
      */
     @Test
-    public void deleteUser() throws EcsManagementClientException {
+    public void deleteUser() throws Exception {
         PowerMockito.mockStatic(ObjectUserAction.class);
+        PowerMockito
+                .when(ObjectUserAction.class, "exists", same(connection), any(String.class), any(String.class))
+                .thenReturn(true);
+
         ecs.deleteUser(USER1);
         PowerMockito.verifyStatic(ObjectUserAction.class);
+
+        ObjectUserAction.exists(same(connection), eq(PREFIX + USER1), eq(NAMESPACE));
         ObjectUserAction.delete(same(connection), eq(PREFIX + USER1));
     }
 
@@ -916,10 +926,9 @@ public class EcsServiceTest {
 
         ecs.deleteNamespace(NAMESPACE);
 
-        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic(NamespaceAction.class);
-        NamespaceAction.delete(same(connection), nsCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+        NamespaceAction.exists(same(connection), eq(PREFIX + NAMESPACE));
+        NamespaceAction.delete(same(connection), eq(PREFIX + NAMESPACE));
     }
 
     /**
@@ -1199,6 +1208,8 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(NamespaceAction.class);
         PowerMockito.doNothing().when(NamespaceAction.class, DELETE,
                 same(connection), anyString());
+        PowerMockito.when(NamespaceAction.class, "exists", same(connection), any(String.class))
+            .thenReturn(true);
     }
 
     private void setupCreateNamespaceRetentionTest(boolean exists) throws Exception {

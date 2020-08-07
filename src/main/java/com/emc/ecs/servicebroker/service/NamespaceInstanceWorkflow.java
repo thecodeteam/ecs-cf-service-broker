@@ -13,6 +13,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
@@ -35,7 +36,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public void delete(String id) {
+    public CompletableFuture delete(String id) {
         try {
             ServiceInstance instance = instanceRepository.find(id);
             if (instance.getReferences().size() > 1) {
@@ -43,6 +44,8 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
             } else {
                 ecs.deleteNamespace(instance.getName());
             }
+
+            return null;
         } catch (EcsManagementClientException | JAXBException | IOException e) {
             throw new ServiceBrokerException(e);
         }

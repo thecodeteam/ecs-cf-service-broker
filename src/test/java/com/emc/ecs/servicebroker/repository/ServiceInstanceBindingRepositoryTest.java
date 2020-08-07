@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 
 import static com.emc.ecs.common.Fixtures.serviceInstanceFixture;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
@@ -38,5 +39,11 @@ public class ServiceInstanceBindingRepositoryTest {
         assertEquals(instance.getServiceInstanceId(),
                 instance2.getServiceInstanceId());
         repository.delete(instance.getServiceInstanceId());
+    }
+
+    @Test
+    public void testFindWithV1Json() throws IOException {
+        ServiceInstance serviceInstance = repository.find("service-instance-id-v1");
+        assertNotNull(serviceInstance);
     }
 }

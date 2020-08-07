@@ -17,6 +17,7 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 
 public class BucketBindingWorkflow extends BindingWorkflowImpl {
@@ -156,16 +157,17 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return builder.build();
     }
 
-    private String getS3Url(URL baseUrl, String secretKey, Map<String, Object> parameters) {
-        String userInfo = getUserInfo(secretKey);
+    private String getS3Url(URL baseUrl, String secretKey, Map<String, Object> parameters) throws IOException {
+        String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
+        String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
+        String userInfo = encodedBinding + ":" + encodedSecret;
         String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@";
 
         String portString = "";
         if (baseUrl.getPort() != -1)
             portString = ":" + baseUrl.getPort();
 
-        if (parameters != null && parameters.containsKey("path-style-access") &&
-                !(Boolean) parameters.get("path-style-access")) {
+        if (parameters != null && parameters.containsKey("path-style-access") && !(Boolean) parameters.get("path-style-access")) {
             s3Url = s3Url + ecs.prefix(instanceId) + "." + baseUrl.getHost() + portString;
         } else {
             s3Url = s3Url + baseUrl.getHost() + portString + "/" + ecs.prefix(instanceId);
