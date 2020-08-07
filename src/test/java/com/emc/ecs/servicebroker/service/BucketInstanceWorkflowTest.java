@@ -97,15 +97,15 @@ public class BucketInstanceWorkflowTest {
 
                 BeforeEach(() -> {
                     doNothing().when(instanceRepo).save(any(ServiceInstance.class));
-                    when(instanceRepo.find(BUCKET_NAME)).thenReturn(bucketInstance);
+                    when(instanceRepo.find(SERVICE_INSTANCE_ID)).thenReturn(bucketInstance);
                 });
 
                 Context("with no ReclaimPolicy", () -> {
                     It("should call delete and NOT wipe bucket", () -> {
-                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNull(result);
-                        verify(ecs, times(1)).deleteBucket(BUCKET_NAME);
-                        verify(ecs, times(0)).wipeAndDeleteBucket(BUCKET_NAME);
+                        verify(ecs, times(1)).deleteBucket(bucketInstance.getName());
+                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName());
                     });
                 });
 
@@ -113,10 +113,10 @@ public class BucketInstanceWorkflowTest {
                     It("should call delete and NOT wipe bucket", () -> {
                         bucketInstance.setServiceSettings(Collections.singletonMap(RECLAIM_POLICY, ReclaimPolicy.Fail));
 
-                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNull(result);
-                        verify(ecs, times(1)).deleteBucket(BUCKET_NAME);
-                        verify(ecs, times(0)).wipeAndDeleteBucket(BUCKET_NAME);
+                        verify(ecs, times(1)).deleteBucket(bucketInstance.getName());
+                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName());
                     });
                 });
 
@@ -124,10 +124,10 @@ public class BucketInstanceWorkflowTest {
                     It("should not call delete", () -> {
                         bucketInstance.setServiceSettings(Collections.singletonMap(RECLAIM_POLICY, ReclaimPolicy.Detach));
 
-                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNull(result);
-                        verify(ecs, times(0)).deleteBucket(BUCKET_NAME);
-                        verify(ecs, times(0)).wipeAndDeleteBucket(BUCKET_NAME);
+                        verify(ecs, times(0)).deleteBucket(bucketInstance.getName());
+                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName());
                     });
                 });
 
@@ -135,10 +135,10 @@ public class BucketInstanceWorkflowTest {
                     It("should wipe and delete", () -> {
                         bucketInstance.setServiceSettings(Collections.singletonMap(RECLAIM_POLICY, ReclaimPolicy.Delete));
 
-                        CompletableFuture result = workflow.delete(BUCKET_NAME);
+                        CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNotNull(result);
-                        verify(ecs, times(0)).deleteBucket(BUCKET_NAME);
-                        verify(ecs, times(1)).wipeAndDeleteBucket(BUCKET_NAME);
+                        verify(ecs, times(0)).deleteBucket(bucketInstance.getName());
+                        verify(ecs, times(1)).wipeAndDeleteBucket(bucketInstance.getName());
                     });
                 });
             });
@@ -200,7 +200,7 @@ public class BucketInstanceWorkflowTest {
                     BeforeEach(() -> {
                         when(instanceRepo.find(SERVICE_INSTANCE_ID))
                             .thenReturn(namedBucketInstance);
-                        doNothing().when(ecs).deleteBucket(SERVICE_INSTANCE_ID);
+                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID)).thenReturn(CompletableFuture.completedFuture(true));
                     });
 
                     It("should delete the named bucket", () -> {

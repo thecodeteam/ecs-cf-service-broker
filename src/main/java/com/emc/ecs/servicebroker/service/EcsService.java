@@ -125,7 +125,7 @@ public class EcsService {
                                      PlanProxy plan, Map<String, Object> parameters) {
         if (parameters == null) parameters = new HashMap<>();
 
-        logger.info(String.format("Creating bucket %s", bucketName));
+        logger.info(String.format("Creating bucket %s", prefix(bucketName)));
         try {
             if (bucketExists(bucketName)) {
                 throw new ServiceInstanceExistsException(id, service.getId());
@@ -461,7 +461,7 @@ public class EcsService {
     Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
         if (namespaceExists(prefix(namespace))) {
-            throw new ServiceInstanceExistsException(id, service.getId());
+            throw new ServiceInstanceExistsException(namespace, service.getId());
         }
 
         if (parameters == null) parameters = new HashMap<>();
