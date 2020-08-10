@@ -8,6 +8,9 @@ import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
+import com.emc.ecs.tool.BucketWipeOperations;
+import com.emc.ecs.tool.BucketWipeResult;
+import com.emc.object.s3.bean.Bucket;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,10 +23,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static org.junit.Assert.*;
@@ -314,6 +319,81 @@ public class EcsServiceTest {
         assertTrue(isEnabled);
     }
 
+    @Test
+    public void wipeBucketTest() throws Exception {
+        setupInitTest();
+        when(broker.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
+
+        BucketWipeOperations bucketWipeOperations = mock(BucketWipeOperations.class);
+        doNothing().when(bucketWipeOperations).deleteAllObjects(any(), any(), any());
+
+        when(bucketWipeFactory.getBucketWipe(any())).thenReturn(bucketWipeOperations);
+
+        // Setup bucket wipe with a CompletableFuture that never returns
+        CompletableFuture wipeCompletableFuture = new CompletableFuture();
+        BucketWipeResult bucketWipeResult = mock(BucketWipeResult.class);
+        when(bucketWipeResult.getCompletedFuture()).thenReturn(wipeCompletableFuture);
+        when(bucketWipeFactory.newBucketWipeResult()).thenReturn(bucketWipeResult);
+
+        // Re-initialize EcsService with the new BucketWipeFactory
+        ecs.initialize();
+
+        // Setup Action Static mocks
+        PowerMockito.mockStatic(BucketAction.class);
+        setupBucketExistsTest();
+        setupBucketAclTest();
+        setupBucketGetTest();
+        setupBucketDeleteTest();
+
+        // Perform Test
+        ecs.wipeAndDeleteBucket(BUCKET_NAME);
+
+        // Verify that Bucket Exists Was called correctly
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+
+        BucketAction.exists(same(connection), idCaptor.capture(), nsCaptor.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+
+        // Complete the Delete operation
+        wipeCompletableFuture.complete(true);
+
+        // Verify that Delete Bucket was called
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        ArgumentCaptor<String> idCaptor2 = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor2 = ArgumentCaptor.forClass(String.class);
+
+        BucketAction.delete(same(connection), idCaptor2.capture(), nsCaptor2.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor2.getValue());
+    }
+
+    @Test
+    public void deleteBucketTest() throws Exception {
+        PowerMockito.mockStatic(BucketAction.class);
+        setupBucketExistsTest();
+        setupBucketDeleteTest();
+
+        // Perform Test
+        ecs.deleteBucket(BUCKET_NAME);
+
+        // Verify that Bucket Exists Was called correctly
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+
+        BucketAction.exists(same(connection), idCaptor.capture(), nsCaptor.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+
+        // Verify that Delete Bucket was called
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        ArgumentCaptor<String> idCaptor2 = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor2 = ArgumentCaptor.forClass(String.class);
+
+        BucketAction.delete(same(connection), idCaptor2.capture(), nsCaptor2.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor2.getValue());
+
+    }
 
     /**
      * When changing plans from one with a quota to one without a quota any
@@ -1178,6 +1258,36 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(BucketAction.class);
         PowerMockito.doNothing().when(BucketAction.class, CREATE,
                 same(connection), any(ObjectBucketCreate.class));
+    }
+
+    private void setupBucketExistsTest() throws Exception {
+        PowerMockito.when(BucketAction.class, EXISTS, same(connection), eq(PREFIX+BUCKET_NAME), anyString())
+                    .thenReturn(true);
+    }
+
+    private void setupBucketGetTest() throws Exception {
+        ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
+        bucketInfo.setFsAccessEnabled(true);
+
+        PowerMockito.when(BucketAction.class, GET, same(connection), eq(PREFIX+BUCKET_NAME), anyString())
+            .thenReturn(bucketInfo);
+    }
+
+    private void setupBucketDeleteTest() throws Exception {
+        PowerMockito.doNothing().when(BucketAction.class, DELETE, same(connection), eq(PREFIX+BUCKET_NAME), anyString());
+    }
+
+    private void setupBucketAclTest() throws Exception {
+        BucketAclAcl bucketAclAcl = new BucketAclAcl();
+        bucketAclAcl.setUserAccessList(new ArrayList<>());
+        bucketAclAcl.setGroupAccessList(new ArrayList<>());
+
+        BucketAcl bucketAcl = new BucketAcl();
+        bucketAcl.setAcl(bucketAclAcl);
+
+        PowerMockito.mockStatic(BucketAclAction.class);
+        PowerMockito.when(BucketAclAction.class, GET, same(connection), eq(PREFIX+BUCKET_NAME), anyString()).thenReturn(bucketAcl);
+        PowerMockito.doNothing().when(BucketAclAction.class, UPDATE, same(connection), eq(PREFIX+BUCKET_NAME), any());
     }
 
     private void setupDeleteBucketQuotaTest() throws Exception {
