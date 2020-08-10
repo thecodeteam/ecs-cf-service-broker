@@ -85,7 +85,7 @@ public class EcsService {
 
     CompletableFuture deleteBucket(String bucketName) {
         try {
-            if (bucketExists(id)) {
+            if (bucketExists(bucketName)) {
                 BucketAction.delete(connection, prefix(bucketName), broker.getNamespace());
             } else {
                 logger.info("Bucket {} no longer exists, assume already deleted", prefix(bucketName));
