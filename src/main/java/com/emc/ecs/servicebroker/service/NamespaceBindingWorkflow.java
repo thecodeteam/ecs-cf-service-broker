@@ -9,6 +9,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingE
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -20,7 +21,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         super(instanceRepo, ecs);
     }
 
-    public void checkIfUserExists() {
+    public void checkIfUserExists() throws EcsManagementClientException, IOException {
         if (ecs.userExists(bindingId))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
@@ -35,12 +36,12 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
             instance.setName(instance.getServiceInstanceId());
         String namespaceName = instance.getName();
 
-        return ecs.createUser(bindingId, namespaceName).getSecretKey();
+        return ecs.createUser(binding.getName(), namespaceName).getSecretKey();
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException {
-        ecs.deleteUser(bindingId);
+    public void removeBinding() throws EcsManagementClientException {
+        ecs.deleteUser(binding.getName());
     }
 
     @Override

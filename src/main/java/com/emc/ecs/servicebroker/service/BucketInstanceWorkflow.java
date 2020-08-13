@@ -8,6 +8,7 @@ import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -23,10 +24,18 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        return ecs.changeBucketPlan(id, service, plan, parameters);
-    }
+    public Map<String, Object> changePlan(String instanceId, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
+        try {
+            ServiceInstance instance = instanceRepository.find(instanceId);
+            if (instance == null) {
+                throw new ServiceInstanceDoesNotExistException(instanceId);
+            }
 
+            return ecs.changeBucketPlan(instance.getName(), service, plan, parameters);
+        } catch (IOException e) {
+            throw new ServiceBrokerException(e);
+        }
+    }
     @Override
     public CompletableFuture delete(String id) {
         try {
@@ -41,14 +50,14 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 switch(reclaimPolicy) {
                     case Fail:
                         logger.info("Reclaim Policy is {} for bucket {}, attempting to delete bucket", reclaimPolicy, ecs.prefix(instance.getName()));
-                        ecs.deleteBucket(id);
+                        ecs.deleteBucket(instance.getName());
                         return null;
                     case Detach:
                         logger.info("Reclaim Policy is {} for bucket {}, Not Deleting Bucket", reclaimPolicy, ecs.prefix(instance.getName()));
                         return null;
                     case Delete:
                         logger.info("Reclaim Policy is {} for bucket {}, Wiping and Deleting bucket", reclaimPolicy, ecs.prefix(instance.getName()));
-                        return ecs.wipeAndDeleteBucket(id);
+                        return ecs.wipeAndDeleteBucket(instance.getName());
                     default:
                         throw new ServiceBrokerException("ReclaimPolicy "+reclaimPolicy+" not supported");
                 }
@@ -63,9 +72,9 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
             if (!refId.equals(id)) {
                 ServiceInstance ref = instanceRepository.find(refId);
                 Set<String> references = ref.getReferences()
-                        .stream()
-                        .filter((String i) -> ! i.equals(id))
-                        .collect(Collectors.toSet());
+                    .stream()
+                    .filter((String i) -> ! i.equals(id))
+                    .collect(Collectors.toSet());
                 ref.setReferences(references);
                 instanceRepository.save(ref);
             }
@@ -73,10 +82,13 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public ServiceInstance create(String bucketName, ServiceDefinitionProxy service, PlanProxy plan,
+    public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan,
                                   Map<String, Object> parameters) {
-        Map<String, Object> serviceSettings = ecs.createBucket(bucketName, service, plan, parameters);
+        ServiceInstance instance = getServiceInstance(parameters);
+        Map<String, Object> serviceSettings = ecs.createBucket(id, instance.getName(), service, plan, parameters);
 
-        return getServiceInstance(serviceSettings);
+        instance.setServiceSettings(serviceSettings);
+
+        return instance;
     }
 }

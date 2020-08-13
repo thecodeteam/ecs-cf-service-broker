@@ -161,7 +161,7 @@ public class ReclaimPolicyTests {
         plan.setServiceSettings(new HashMap<>());
 
         Map<String, Object> params = new HashMap<>();
-        ecs.createBucket(BUCKET_NAME, service, plan, params);
+        ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
     }
 
     @Test
@@ -178,15 +178,15 @@ public class ReclaimPolicyTests {
 
         params.put(ALLOWED_RECLAIM_POLICIES, "Delete, Detach");
         params.put(RECLAIM_POLICY, ReclaimPolicy.Delete);
-        ecs.createBucket(BUCKET_NAME, service, plan, params);
+        ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
 
         params.put(ALLOWED_RECLAIM_POLICIES, "Detach,Fail");
         params.put(RECLAIM_POLICY, ReclaimPolicy.Fail);
-        ecs.createBucket(BUCKET_NAME, service, plan, params);
+        ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
 
         params.put(ALLOWED_RECLAIM_POLICIES, "Delete, Detach");
         params.put(RECLAIM_POLICY, ReclaimPolicy.Detach);
-        ecs.createBucket(BUCKET_NAME, service, plan, params);
+        ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
     }
 
     @Test
@@ -201,7 +201,7 @@ public class ReclaimPolicyTests {
         try {
             service.getServiceSettings().put(ALLOWED_RECLAIM_POLICIES, "Detach");
             params.put(RECLAIM_POLICY, ReclaimPolicy.Delete);
-            ecs.createBucket(BUCKET_NAME, service, plan, params);
+            ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
             fail("Expected Exception");
         }catch(Exception ignore) {
         }
@@ -209,7 +209,7 @@ public class ReclaimPolicyTests {
         try {
             service.getServiceSettings().put(ALLOWED_RECLAIM_POLICIES, "Delete");
             params.put(RECLAIM_POLICY, ReclaimPolicy.Fail);
-            ecs.createBucket(BUCKET_NAME, service, plan, params);
+            ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
             fail("Expected Exception");
         }catch(Exception ignore) {
         }
@@ -217,7 +217,7 @@ public class ReclaimPolicyTests {
         try {
             service.getServiceSettings().put(ALLOWED_RECLAIM_POLICIES, "Fail");
             params.put(RECLAIM_POLICY, ReclaimPolicy.Detach);
-            ecs.createBucket(BUCKET_NAME, service, plan, params);
+            ecs.createBucket(SERVICE_INSTANCE_ID, BUCKET_NAME, service, plan, params);
             fail("Expected Exception");
         }catch(Exception ignore) {
         }

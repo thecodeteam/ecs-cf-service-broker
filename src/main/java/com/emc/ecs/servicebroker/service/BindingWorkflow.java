@@ -12,10 +12,10 @@ import java.util.Map;
 
 public interface BindingWorkflow {
     BindingWorkflow withCreateRequest(CreateServiceInstanceBindingRequest request);
-    BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request);
+    BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request, ServiceInstanceBinding existingBinding);
     void checkIfUserExists() throws EcsManagementClientException, IOException;
     String createBindingUser() throws EcsManagementClientException, IOException, JAXBException;
-    void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException, IOException, JAXBException;
+    void removeBinding() throws EcsManagementClientException, IOException, JAXBException;
     Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
             throws IOException, EcsManagementClientException;
     ServiceInstanceBinding getBinding(Map<String, Object> credentials);
