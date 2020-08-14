@@ -67,7 +67,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding) throws EcsManagementClientException, IOException {
+    public void removeBinding() throws EcsManagementClientException, IOException {
         String bucketName = getInstanceName();
 
         List<VolumeMount> volumes = binding.getVolumeMounts();

@@ -291,7 +291,7 @@ public class EcsService {
 
     void removeUserFromBucket(String bucket, String username) throws EcsManagementClientException {
         if (!aclExists(bucket)) {
-            logger.info("ACL {} no longer exists when removing user {}", prefix(id), prefix(username));
+            logger.info("ACL {} no longer exists when removing user {}", prefix(bucket), prefix(username));
             return;
         }
         BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), broker.getNamespace());

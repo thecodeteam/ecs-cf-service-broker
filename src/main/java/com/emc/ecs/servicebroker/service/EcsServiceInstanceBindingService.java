@@ -85,9 +85,9 @@ public class EcsServiceInstanceBindingService
 
             LOG.debug("Binding found: {}", bindingId);
 
-            BindingWorkflow workflow = getWorkflow(request).withDeleteRequest(request);
+            BindingWorkflow workflow = getWorkflow(request, binding);
 
-            workflow.removeBinding(binding);
+            workflow.removeBinding();
 
             LOG.debug("Deleting binding {}", bindingId);
 
