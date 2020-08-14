@@ -65,6 +65,7 @@ public class EcsServiceInstanceBindingService
 
             return Mono.just(workflow.getResponse(credentials));
         } catch (IOException | JAXBException | EcsManagementClientException e) {
+            LOG.error("Error ", e);
             throw new ServiceBrokerException(e);
         }
     }
@@ -76,8 +77,6 @@ public class EcsServiceInstanceBindingService
         LOG.info("Deleting binding {} ", bindingId);
 
         try {
-            BindingWorkflow workflow = getWorkflow(request).withDeleteRequest(request);
-
             ServiceInstanceBinding binding = repository.find(bindingId);
 
             if (binding == null) {
@@ -85,6 +84,8 @@ public class EcsServiceInstanceBindingService
             }
 
             LOG.debug("Binding found: {}", bindingId);
+
+            BindingWorkflow workflow = getWorkflow(request).withDeleteRequest(request);
 
             workflow.removeBinding(binding);
 
@@ -103,12 +104,12 @@ public class EcsServiceInstanceBindingService
         }
     }
 
-    private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest) throws EcsManagementClientException, IOException {
+    private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest, ServiceInstanceBinding existingBinding) throws EcsManagementClientException, IOException {
         if (isRemoteConnectBinding(deleteRequest)) {
-            return new RemoteConnectBindingWorkflow(instanceRepo, ecs);
+            return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withDeleteRequest(deleteRequest, existingBinding);
         }
         ServiceDefinitionProxy service = ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
-        return getWorkflow(service).withDeleteRequest(deleteRequest);
+        return getWorkflow(service).withDeleteRequest(deleteRequest, existingBinding);
     }
 
     private BindingWorkflow getWorkflow(CreateServiceInstanceBindingRequest createRequest) throws EcsManagementClientException, IOException {

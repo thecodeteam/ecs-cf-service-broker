@@ -1,0 +1,25 @@
+{
+  "scenarioName": "binding-cf2f8326-3465-4810-9da1-54d328935b81",
+  "requiredScenarioState": "Created",
+  "request": {
+    "method": "GET",
+    "url": "/ecs-cf-broker-repository/service-instance-binding/cf2f8326-3465-4810-9da1-54d328935b81.json",
+    "headers": {
+      "Authorization" : {
+        "matches": "AWS ecs-cf-broker-user:.*"
+      }
+    }
+  },
+  "response": {
+    "status": "200",
+    "headers": {
+      "x-amz-request-id": "0a05881f:150a5d74db8:1b23:0",
+      "x-amz-id-2": "9edc6c7b2841f4facfc63af0f50256253fa46e1ec24cc03172f28660fa13efe3",
+      "ETag": "\"f9b585d21982a02a25527705d66bd6d6\"",
+      "x-emc-mtime": "1450675293828",
+      "Content-Encoding": "identity",
+      "Content-Type": "application/octet-stream"
+    },
+    "body": "{\"name\":\"cf2f8326-3465-4810-9da1-54d328935b81\",\"binding_id\":\"cf2f8326-3465-4810-9da1-54d328935b81\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"bind_resource\":{\"app_guid\":\"app-guid\",\"route\":null},\"parameters\":{\"number\":1234,\"flag\":true,\"text\":\"abcdefg\",\"nested\":{\"text2\":\"zyxwvu\",\"flag2\":true,\"number2\":9876}},\"credentials\":{\"bucket\":\"bucket\",\"endpoint\":\"http://127.0.0.1:9020\",\"secretKey\":\"password\",\"accessKey\":\"user\"}}"
+  }
+}

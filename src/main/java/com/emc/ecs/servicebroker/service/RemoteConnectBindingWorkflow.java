@@ -49,7 +49,7 @@ public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public void removeBinding(ServiceInstanceBinding binding)
+    public void removeBinding()
             throws EcsManagementClientException, IOException, JAXBException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)

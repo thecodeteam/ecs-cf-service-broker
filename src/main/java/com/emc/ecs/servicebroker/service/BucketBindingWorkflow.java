@@ -34,7 +34,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(bindingId))
+        if (ecs.userExists(binding.getName()))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
@@ -42,7 +42,8 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
         String bucketName = getInstanceName();
 
-        UserSecretKey userSecretKey = ecs.createUser(bindingId);
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName());
+
         Map<String, Object> parameters = createRequest.getParameters();
 
         String export = "";
@@ -53,13 +54,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (permissions == null) {
-            ecs.addUserToBucket(bucketName, bindingId);
+            ecs.addUserToBucket(bucketName, binding.getName());
         } else {
-            ecs.addUserToBucket(bucketName, bindingId, permissions);
+            ecs.addUserToBucket(bucketName, binding.getName(), permissions);
         }
 
         if (ecs.getBucketFileEnabled(bucketName)) {
-            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), parameters);
+            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucketName, parameters);
         }
 
         return userSecretKey.getSecretKey();
@@ -78,7 +79,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             LOG.info("Deleting user map for bucket '{}' binding '{}' ", bucketName, bindingId);
 
             try {
-                ecs.deleteUserMap(bindingId, unixId);
+                ecs.deleteUserMap(binding.getName(), unixId);
             } catch (EcsManagementClientException e) {
                 LOG.error("Error deleting user map: " + e.getMessage());
             }
@@ -86,8 +87,8 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         LOG.info("Removing binding user {} from bucket {}", bindingId, bucketName);
 
-        ecs.removeUserFromBucket(bucketName, bindingId);
-        ecs.deleteUser(bindingId);
+        ecs.removeUserFromBucket(bucketName, binding.getName());
+        ecs.deleteUser(binding.getName());
     }
 
     @Override
@@ -160,7 +161,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         int unixUid = (int) (2000 + System.currentTimeMillis() % 8000);
         while (true) {
             try {
-                ecs.createUserMap(bindingId, unixUid);
+                ecs.createUserMap(binding.getName(), unixUid);
                 break;
             } catch (EcsManagementClientException e) {
                 if (e.getMessage().contains("Bad request body (1013)")) {
@@ -173,17 +174,17 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return unixUid;
     }
 
-    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, Map<String, Object> parameters) throws EcsManagementClientException {
+    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, String bucketName, Map<String, Object> parameters) throws EcsManagementClientException {
         int unixUid = createUserMap();
         String host = ecs.getNfsMountHost();
         if (host == null || host.isEmpty()) {
             host = baseUrl.getHost();
         }
 
-        LOG.info("Adding export '{}' to bucket '{}'", export, instanceId);
+        LOG.info("Adding export '{}' to bucket '{}'", export, bucketName);
         String volumeGUID = UUID.randomUUID().toString();
-        String absoluteExportPath = ecs.addExportToBucket(instanceId, export);
-        LOG.debug("Export added: '{}' for bucket '{}'", export, instanceId);
+        String absoluteExportPath = ecs.addExportToBucket(bucketName, export);
+        LOG.debug("Export added: '{}' for bucket '{}'", export, bucketName);
 
         Map<String, Object> opts = new HashMap<>();
         String nfsUrl = "nfs://" + host + absoluteExportPath;
