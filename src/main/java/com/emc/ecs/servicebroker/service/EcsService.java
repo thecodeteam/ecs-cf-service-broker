@@ -19,7 +19,9 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsEx
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -308,7 +310,13 @@ public class EcsService {
 
     private void lookupObjectEndpoints() throws EcsManagementClientException {
         if (broker.getObjectEndpoint() != null) {
-            objectEndpoint = broker.getObjectEndpoint();
+            try {
+                URL endpointUrl = new URL(broker.getObjectEndpoint());
+                objectEndpoint = broker.getObjectEndpoint();
+                logger.info("Using object endpoint address from broker configuration: {}, use ssl: {}", objectEndpoint, broker.getUseSsl());
+            } catch (MalformedURLException e) {
+                throw new EcsManagementClientException("Malformed URL provided as object endpoint: " + broker.getObjectEndpoint());
+            }
         } else {
             List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
             String urlId;
@@ -333,7 +341,7 @@ public class EcsService {
             }
 
             BaseUrlInfo baseUrl = BaseUrlAction.get(connection, urlId);
-            objectEndpoint = baseUrl.getNamespaceUrl(broker.getNamespace(), false);
+            objectEndpoint = baseUrl.getNamespaceUrl(broker.getNamespace(), broker.getUseSsl());
 
             logger.info("Object Endpoint address from configured base url '{}': {}", baseUrl.getName(), objectEndpoint);
 
@@ -368,11 +376,16 @@ public class EcsService {
 
     private String getNamespaceURL(String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
         String baseUrl = (String) parameters.getOrDefault("base-url", broker.getBaseUrl());
-        Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", false);
+        Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", broker.getUseSsl());
         return getNamespaceURL(namespace, useSSL, baseUrl);
     }
 
     private String getNamespaceURL(String namespace, Boolean useSSL, String baseUrl) throws EcsManagementClientException {
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            logger.warn("Base url name is empty, returning object endpoint URL as S3 endpoint for namespace {}: {}", namespace, objectEndpoint);
+            return objectEndpoint;
+        }
+
         List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
         String urlId = baseUrlList.stream()
                 .filter(b -> baseUrl != null && b != null && baseUrl.equals(b.getName()))

@@ -85,7 +85,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             }
         }
 
-        LOG.info("Removing binding user {} from bucket {}", bindingId, bucketName);
+        LOG.info("Removing binding user '{}' from bucket '{}'", bindingId, bucketName);
 
         ecs.removeUserFromBucket(bucketName, binding.getName());
         ecs.deleteUser(binding.getName());
