@@ -3,8 +3,10 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
@@ -65,5 +67,17 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
         credentials.put("secretKey", secretKey);
 
         return credentials;
+    }
+
+
+    public String getInstanceName() throws IOException {
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
+
+        return instance.getName();
     }
 }

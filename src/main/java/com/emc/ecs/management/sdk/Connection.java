@@ -2,6 +2,7 @@ package com.emc.ecs.management.sdk;
 
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.EcsManagementClientUnauthorizedException;
 import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
@@ -119,17 +120,26 @@ public class Connection {
 
         Builder request = jerseyClient.target(uriBuilder).request();
 
-        Response response = request.get();
+        Response response = null;
+
         try {
+            response = request.get();
             handleResponse(response);
+
+            this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
+            this.authRetries = 0;
         } catch (EcsManagementResourceNotFoundException e) {
             logger.warn("Login failed to handle response: {}", e.getMessage());
             logger.warn("Response: {}", response);
 
             throw new EcsManagementClientException(e);
+        } catch (EcsManagementClientUnauthorizedException e) {
+            logger.error("Failed to login to ECS management endpoint {}: {}", endpoint, e.getMessage());
+            throw new EcsManagementClientUnauthorizedException("Login attempt failed: " + e.toString(), e);
+        } catch (Exception e) {
+            logger.error("Failed to login to ECS management endpoint {}: {}", endpoint, e.getMessage());
+            throw new EcsManagementClientException(e.getMessage(), e);
         }
-        this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
-        this.authRetries = 0;
     }
 
     public void logout() throws EcsManagementClientException {
@@ -164,11 +174,12 @@ public class Connection {
 
     protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType)
             throws EcsManagementClientException {
-        try {
-            if (!isLoggedIn())
-                login();
+        if (!isLoggedIn()) {
+            login();
+        }
 
-            logger.info("Making {} request to {}", method, uri);
+        try {
+            logger.info("{} {}", method, uri);
 
             Client jerseyClient = buildJerseyClient();
             Builder request = jerseyClient.target(uri)
@@ -214,8 +225,7 @@ public class Connection {
         }
     }
 
-    protected boolean existenceQuery(UriBuilder uri, Object arg)
-            throws EcsManagementClientException {
+    protected boolean existenceQuery(UriBuilder uri, Object arg) throws EcsManagementClientException {
         Response response = makeRemoteCall(GET, uri, arg, XML);
         try {
             handleResponse(response);
@@ -226,18 +236,15 @@ public class Connection {
         return true;
     }
 
-    private void handleResponse(Response response)
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
+    private void handleResponse(Response response) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
         if (response.getStatus() > 399) {
-            EcsManagementClientError error = response
-                    .readEntity(EcsManagementClientError.class);
+            EcsManagementClientError error = response.readEntity(EcsManagementClientError.class);
             if (response.getStatus() == 404) {
-                throw new EcsManagementResourceNotFoundException(
-                        response.getStatusInfo().toString());
+                throw new EcsManagementResourceNotFoundException(response.getStatusInfo().toString());
+            } else if (response.getStatus() == 401) {
+                throw new EcsManagementClientUnauthorizedException(error.toString());
             } else if (error.getCode() == 1004) {
-                throw new EcsManagementResourceNotFoundException(
-                        error.toString());
+                throw new EcsManagementResourceNotFoundException(error.toString());
             } else {
                 throw new EcsManagementClientException(error.toString());
             }

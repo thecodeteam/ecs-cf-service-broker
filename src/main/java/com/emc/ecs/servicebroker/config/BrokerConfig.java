@@ -21,6 +21,7 @@ public class BrokerConfig {
     private String objectEndpoint;
     private String nfsMountHost;
     private String repositoryEndpoint;
+    private boolean useSsl;
 
     private String repositorySecret;
     private String repositoryUser = "user";
@@ -205,6 +206,14 @@ public class BrokerConfig {
 
     public void setRepositoryPlanId(String repositoryPlanId) {
         this.repositoryPlanId = repositoryPlanId;
+    }
+
+    public boolean getUseSsl() {
+        return useSsl;
+    }
+
+    public void setUseSsl(boolean useSsl) {
+        this.useSsl = useSsl;
     }
 
     public String getDefaultReclaimPolicy() {

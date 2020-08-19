@@ -42,24 +42,23 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
             ServiceInstance instance = instanceRepository.find(id);
             if (instance.getReferences().size() > 1) {
                 removeInstanceFromReferences(instance, id);
-
                 return null;
             } else {
                 ReclaimPolicy reclaimPolicy = ReclaimPolicy.getReclaimPolicy(instance.getServiceSettings());
 
                 switch(reclaimPolicy) {
                     case Fail:
-                        logger.info("Reclaim Policy is {} for bucket {}, attempting to delete bucket", reclaimPolicy, ecs.prefix(instance.getName()));
+                        logger.info("Reclaim Policy for bucket '{}' is '{}', attempting to delete bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         ecs.deleteBucket(instance.getName());
                         return null;
                     case Detach:
-                        logger.info("Reclaim Policy is {} for bucket {}, Not Deleting Bucket", reclaimPolicy, ecs.prefix(instance.getName()));
+                        logger.info("Reclaim Policy for bucket '{}' is '{}', not deleting Bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         return null;
                     case Delete:
-                        logger.info("Reclaim Policy is {} for bucket {}, Wiping and Deleting bucket", reclaimPolicy, ecs.prefix(instance.getName()));
+                        logger.info("Reclaim Policy for bucket '{}' is '{}', wiping and deleting bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         return ecs.wipeAndDeleteBucket(instance.getName());
                     default:
-                        throw new ServiceBrokerException("ReclaimPolicy "+reclaimPolicy+" not supported");
+                        throw new ServiceBrokerException("ReclaimPolicy '" + reclaimPolicy + "' not supported");
                 }
             }
         } catch (IOException e) {

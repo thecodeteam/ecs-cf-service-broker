@@ -47,21 +47,21 @@ public class EcsServiceInstanceBindingService
 
     @Override
     public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request) throws ServiceBrokerException {
+        LOG.info("Creating binding '{}' for service '{}'", request.getBindingId(), request.getServiceInstanceId());
         try {
             BindingWorkflow workflow = getWorkflow(request);
 
-            LOG.info("creating binding");
             workflow.checkIfUserExists();
+
             String secretKey = workflow.createBindingUser();
 
-            LOG.info("building binding response");
-            Map<String, Object> credentials = workflow.getCredentials(secretKey,
-                    request.getParameters());
+            LOG.debug("Building binding response for binding {}", request.getBindingId());
+            Map<String, Object> credentials = workflow.getCredentials(secretKey, request.getParameters());
             ServiceInstanceBinding binding = workflow.getBinding(credentials);
 
-            LOG.info("saving binding...");
+            LOG.debug("Saving binding {}", request.getBindingId());
             repository.save(binding);
-            LOG.info("binding saved.");
+            LOG.debug("Binding {} saved.", request.getBindingId());
 
             return Mono.just(workflow.getResponse(credentials));
         } catch (IOException | JAXBException | EcsManagementClientException e) {
@@ -71,51 +71,52 @@ public class EcsServiceInstanceBindingService
     }
 
     @Override
-    public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(DeleteServiceInstanceBindingRequest request)
-            throws ServiceBrokerException {
-
+    public Mono<DeleteServiceInstanceBindingResponse> deleteServiceInstanceBinding(DeleteServiceInstanceBindingRequest request) throws ServiceBrokerException {
         String bindingId = request.getBindingId();
-        try {
-            LOG.info("looking up binding: " + bindingId);
-            ServiceInstanceBinding existingBinding = repository.find(bindingId);
-            if (existingBinding == null)
-                throw new ServiceInstanceBindingDoesNotExistException(bindingId);
 
-            LOG.info("binding found: " + bindingId);
-            BindingWorkflow workflow = getWorkflow(request, existingBinding);
+        LOG.info("Deleting binding {} ", bindingId);
+
+        try {
+            ServiceInstanceBinding binding = repository.find(bindingId);
+
+            if (binding == null) {
+                throw new ServiceInstanceBindingDoesNotExistException(bindingId);
+            }
+
+            LOG.debug("Binding found: {}", bindingId);
+
+            BindingWorkflow workflow = getWorkflow(request, binding);
+
             workflow.removeBinding();
 
-            LOG.info("deleting from repository" + bindingId);
+            LOG.debug("Deleting binding {}", bindingId);
+
             repository.delete(bindingId);
-            return Mono.just(DeleteServiceInstanceBindingResponse.builder()
-                    .async(false)
-                    .build());
+
+            return Mono.just(
+                    DeleteServiceInstanceBindingResponse.builder()
+                            .async(false)
+                            .build()
+            );
         } catch (Exception e) {
             LOG.error("Error deleting binding: " + e);
             throw new ServiceBrokerException(e);
         }
     }
 
-    private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest, ServiceInstanceBinding existingBinding)
-            throws EcsManagementClientException, IOException {
-
-        if (isRemoteConnectBinding(deleteRequest))
+    private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest, ServiceInstanceBinding existingBinding) throws EcsManagementClientException, IOException {
+        if (isRemoteConnectBinding(deleteRequest)) {
             return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withDeleteRequest(deleteRequest, existingBinding);
-
-        ServiceDefinitionProxy service =
-                ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
+        }
+        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
         return getWorkflow(service).withDeleteRequest(deleteRequest, existingBinding);
     }
 
-    private BindingWorkflow getWorkflow(CreateServiceInstanceBindingRequest createRequest)
-            throws EcsManagementClientException, IOException {
-
-        if (isRemoteConnectBinding(createRequest))
-            return new RemoteConnectBindingWorkflow(instanceRepo, ecs)
-                    .withCreateRequest(createRequest);
-
-        ServiceDefinitionProxy service =
-                ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
+    private BindingWorkflow getWorkflow(CreateServiceInstanceBindingRequest createRequest) throws EcsManagementClientException, IOException {
+        if (isRemoteConnectBinding(createRequest)) {
+            return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withCreateRequest(createRequest);
+        }
+        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
         return getWorkflow(service).withCreateRequest(createRequest);
     }
 
@@ -134,8 +135,9 @@ public class EcsServiceInstanceBindingService
     private boolean isRemoteConnectBinding(DeleteServiceInstanceBindingRequest deleteRequest) throws IOException {
         String bindingId = deleteRequest.getBindingId();
         ServiceInstanceBinding binding = repository.find(bindingId);
-        if (binding == null)
+        if (binding == null) {
             throw new ServiceInstanceBindingDoesNotExistException(bindingId);
+        }
         return isRemoteConnectBinding(binding.getParameters());
     }
 
@@ -145,8 +147,9 @@ public class EcsServiceInstanceBindingService
     }
 
     private boolean isRemoteConnectBinding(Map<String, Object> parameters) {
-        return (parameters != null) && parameters.containsKey("remote_connection") &&
-                (Boolean) parameters.get("remote_connection");
+        return (parameters != null)
+                && parameters.containsKey("remote_connection")
+                && (Boolean) parameters.get("remote_connection");
     }
 
 }

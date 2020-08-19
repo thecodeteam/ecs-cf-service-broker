@@ -18,8 +18,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static java.lang.String.format;
-
 public class ServiceInstanceRepository {
     private static final Logger logger = LoggerFactory.getLogger(ServiceInstanceRepository.class);
 
@@ -38,45 +36,47 @@ public class ServiceInstanceRepository {
 
     @PostConstruct
     public void initialize() throws URISyntaxException {
-        logger.info(format("Creating S3 config with repository endpoint %s", broker.getRepositoryEndpoint()));
+        logger.info("Creating S3 config with repository endpoint {}", broker.getRepositoryEndpoint());
 
         S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
 
-        logger.debug(format("Created S3 config %s", s3Config));
+        logger.debug("Created S3 config {}", s3Config);
 
         s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
 
         this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
 
-        logger.debug(format("JerseyClient S3 config %s", this.s3.getS3Config()));
+        logger.debug("JerseyClient S3 config {}", this.s3.getS3Config());
 
         this.bucket = broker.getPrefixedBucketName();
 
-        logger.info("Service repository bucket name: {}", this.bucket);
+        logger.info("Service repository bucket: {}", this.bucket);
     }
 
     public void save(ServiceInstance instance) throws IOException {
-        logger.info(format("Host: %s, Namespace: %s, Protocol: %s, Identity: %s, Port: %s",
-                this.s3.getS3Config().getHost(),
-                this.s3.getS3Config().getNamespace(),
-                this.s3.getS3Config().getProtocol(),
-                this.s3.getS3Config().getIdentity(),
-                this.s3.getS3Config().getPort()));
-
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         objectMapper.writeValue(output, instance);
         output.close();
 
         ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
 
-        logger.info(format("Saving Repository - bucket: %s", bucket));
-        s3.putObject(bucket, getFilename(instance.getServiceInstanceId()), input, null);
+        String filename = getFilename(instance.getServiceInstanceId());
+
+        logger.info("Saving repository to {}:{}", bucket, filename);
+        logger.info("S3 config: Host: {}, Namespace: {}, Protocol: {}, Identity: {}, Port: {}",
+                this.s3.getS3Config().getHost(),
+                this.s3.getS3Config().getNamespace(),
+                this.s3.getS3Config().getProtocol(),
+                this.s3.getS3Config().getIdentity(),
+                this.s3.getS3Config().getPort());
+
+        s3.putObject(bucket, filename, input, null);
     }
 
     public ServiceInstance find(String id) throws IOException {
         String filename = getFilename(id);
 
-        logger.debug("Loading file {}", filename);
+        logger.debug("Loading repository from {}:{}", bucket, filename);
 
         GetObjectResult<InputStream> input = s3.getObject(bucket, filename);
 
@@ -84,7 +84,9 @@ public class ServiceInstanceRepository {
     }
 
     public void delete(String id) {
-        s3.deleteObject(bucket, getFilename(id));
+        String filename = getFilename(id);
+        logger.info("Deleting repository instance {}:{}", bucket, filename);
+        s3.deleteObject(bucket, filename);
     }
 
 }
