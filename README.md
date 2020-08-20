@@ -1,9 +1,9 @@
 # ECS Open Service Broker
-[![Build Status](https://persi.ci.cf-app.com/api/v1/pipelines/persi/jobs/ecs-broker-unit/badge)](https://persi.ci.cf-app.com/teams/main/pipelines/persi/jobs/ecs-broker-unit) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
 ## Description
 
 This service broker enables Kubernetes & Cloud Foundry applications to create,
-delete and modify EMC [ECS](http://emc.com/ecs) (Elastic Cloud Storage) object
+delete and modify Dell EMC [ECS](https://www.delltechnologies.com/en-us/storage/ecs/index.htm) (Elastic Cloud Storage) object
 storage buckets & namespaces; and bind multiple applications to the same resources.
 
 ## Features
@@ -50,7 +50,8 @@ bundled ECS simulator.  For more info, check the
 | managementEndpoint | -              | true     | ECS management API URI (https://<ip>:<port>)       |
 | replicationGroup   | -              | true     | Name (not ID) of replication group                 |
 | namespace          | -              | true     | Default ECS Namespace name                         |
-| baseUrl            | -              | false    | ECS Base URL name (otherwise, a default is picked) | 
+| baseUrl            | -              | false    | ECS Base URL name (DefaultBaseUrl is picked if value is not provided) | 
+| useSsl             | false          | false    | Whether to use HTTPS for object endpoint connections (when base url is provided) | 
 | objectEndpoint     | -              | false    | Override endpoint for the object endpoint          |
 | repositoryEndpoint | objectEndpoint | false    | Override endpoint for broker metadata storage      |
 | repositoryUser     | user           | false    | Username to authenticate to intenal bucket         |
@@ -146,10 +147,11 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | bucket            | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
 | bucket            | remote_connection***| -       | JSON Map | Remote connection details for previously created bucket |
+| bucket            | name                | -       | String   | String to add to bucket name after the broker prefix (prefix-name-id)  |
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
-| bucket binding    | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
 | bucket binding    | path-style-access   | true    | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
+| bucket binding    | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
 | namespace         | domain-group-admins | -       | JSON List| List of domain admins to be added to namespace |
 | namespace         | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
 | namespace         | compliance-enabled  | false   | Boolean  | Enable compliance adhearance of retention      |
@@ -159,8 +161,10 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |
 | namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
 | namespace         | remote_connection***| -       | JSON Map | Remote connection details for previously created namespace |
+| namespace         | name                | -       | String   | String to add to namespace name after the broker prefix (prefix-name-id)  |
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
+| namespace binding | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
 
 \* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
 
@@ -322,4 +326,4 @@ You can then run the test-suite with gradle:
 
 ## TODOs
 
-Up to date tasks are on our [Github issues](https://github.com/codedellemc/ecs-cf-service-broker/issues) page.
+Up to date tasks are on our [Github issues](https://github.com/thecodeteam/ecs-cf-service-broker/issues) page.
