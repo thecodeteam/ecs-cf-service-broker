@@ -125,7 +125,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .async(future != null)
                     .build());
         } catch (Exception e) {
-            LOG.error("Error Deleting", e);
+            LOG.error("Error deleting service instance '" + serviceDefinitionId + "': " + e.getMessage(), e);
             throw new ServiceBrokerException(e);
         }
     }
@@ -229,6 +229,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             ServiceInstance instance = repository.find(instanceId);
             if (instance == null) {
                 LOG.error("Unable to find instance '{}' when async delete completed", instanceId);
+                return;
             }
 
             if (exception == null) {
@@ -248,7 +249,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             repository.save(instance);
         } catch (IOException e) {
-            LOG.error("Unable to find instance {} when delete completed async");
+            LOG.error("Unable to find instance '{}' when delete completed async", instanceId);
         }
     }
 }
