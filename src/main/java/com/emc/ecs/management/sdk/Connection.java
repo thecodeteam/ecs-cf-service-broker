@@ -184,6 +184,7 @@ public class Connection {
             Client jerseyClient = buildJerseyClient();
             Builder request = jerseyClient.target(uri)
                     .register(LoggingFeature.class).request()
+                    .header("X-EMC-Override", "true")
                     .header("X-SDS-AUTH-TOKEN", authToken)
                     .header("Accept", "application/xml");
 
