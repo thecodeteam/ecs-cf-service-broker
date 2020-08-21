@@ -184,6 +184,7 @@ public class Connection {
             Client jerseyClient = buildJerseyClient();
             Builder request = jerseyClient.target(uri)
                     .register(LoggingFeature.class).request()
+                    .header("X-EMC-Override", "true")            // enables access to ECS Flex API (pre-GA limitation)
                     .header("X-SDS-AUTH-TOKEN", authToken)
                     .header("Accept", "application/xml");
 
