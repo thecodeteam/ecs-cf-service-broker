@@ -5,8 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.NoSuchElementException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class EcsManagementResourceNotFoundException extends Exception {
+public class EcsManagementResourceNotFoundException extends EcsManagementClientException {
     private static final long serialVersionUID = 1L;
 
     public EcsManagementResourceNotFoundException(String message) {

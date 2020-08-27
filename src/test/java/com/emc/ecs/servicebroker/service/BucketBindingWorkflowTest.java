@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.common.Fixtures;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -45,7 +46,8 @@ public class BucketBindingWorkflowTest {
             BeforeEach(() -> {
                 ecs = mock(EcsService.class);
                 instanceRepo = mock(ServiceInstanceRepository.class);
-                workflow = new BucketBindingWorkflow(instanceRepo, ecs);
+                workflow = new BucketBindingWorkflow(instanceRepo, ecs)
+                    .withCreateRequest(Fixtures.bucketBindingRequestFixture());
             });
 
             Context("with binding ID conflict", () -> {
@@ -82,7 +84,8 @@ public class BucketBindingWorkflowTest {
 
                     It("should throw a service-does-not-exist exception on removeBinding", () -> {
                         try {
-                            workflow.removeBinding(bindingInstanceFixture());
+                            workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceFixture());
+                            workflow.removeBinding();
                         } catch (ServiceInstanceDoesNotExistException e) {
                             assert e.getClass().equals(ServiceInstanceDoesNotExistException.class);
                         }
@@ -116,6 +119,7 @@ public class BucketBindingWorkflowTest {
                         UserSecretKey userSecretKey = new UserSecretKey();
                         userSecretKey.setSecretKey(SECRET_KEY);
                         when(ecs.createUser(eq(BINDING_ID))).thenReturn(userSecretKey);
+                        when(ecs.createUser(eq(BUCKET_NAME+"-"+BINDING_ID))).thenReturn(userSecretKey);
 
                         // Create credentials fixture
                         String s3Url = "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
@@ -148,17 +152,91 @@ public class BucketBindingWorkflowTest {
                         });
 
                         It("should delete the user", () -> {
-                            workflow.removeBinding(bindingInstanceFixture());
+                            workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceFixture());
+                            workflow.removeBinding();
                             verify(ecs, times(1))
                                     .deleteUser(BINDING_ID);
                         });
 
                         It("should remove the user from a bucket", () -> {
-                            workflow.removeBinding(bindingInstanceFixture());
+                            workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceFixture());
+                            workflow.removeBinding();
                             verify(ecs, times(1))
                                     .removeUserFromBucket(SERVICE_INSTANCE_ID, BINDING_ID);
                         });
 
+                        Context("create binding with custom name", () -> {
+                            BeforeEach(() -> {
+                                workflow = new BucketBindingWorkflow(instanceRepo, ecs)
+                                    .withCreateRequest(Fixtures.bucketBindingRequestWithNameFixture(BUCKET_NAME));
+                            });
+
+                            It("should create a new named user", () -> {
+                                workflow.createBindingUser();
+                                verify(ecs, times(1))
+                                    .createUser(BUCKET_NAME+"-"+BINDING_ID);
+                            });
+
+                            It("should add the named user to a bucket", () -> {
+                                workflow.createBindingUser();
+                                verify(ecs, times(1))
+                                    .addUserToBucket(eq(SERVICE_INSTANCE_ID), eq(BUCKET_NAME+"-"+BINDING_ID));
+                            });
+
+                            Context("with custom instance name", () -> {
+                                BeforeEach(() -> {
+                                    workflow = new BucketBindingWorkflow(instanceRepo, ecs)
+                                        .withCreateRequest(Fixtures.bucketBindingRequestWithNameFixture(BUCKET_NAME));
+
+                                    when(instanceRepo.find(eq(SERVICE_INSTANCE_ID))).thenReturn(serviceInstanceWithNameFixture(BUCKET_NAME));
+                                });
+
+                                It("should add the named user to a bucket", () -> {
+                                    workflow.createBindingUser();
+                                    verify(ecs, times(1))
+                                        .addUserToBucket(eq(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID), eq(BUCKET_NAME+"-"+BINDING_ID));
+                                });
+                            });
+                        });
+
+                        Context("delete binding with custom name", () -> {
+                            It("should delete named user", () -> {
+                                workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceWithNameFixture(BUCKET_NAME));
+                                workflow.removeBinding();
+                                verify(ecs, times(1))
+                                    .deleteUser(BUCKET_NAME+"-"+BINDING_ID);
+                            });
+
+                            It("should remove the named user to a bucket", () -> {
+                                workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceWithNameFixture(BUCKET_NAME));
+                                workflow.removeBinding();
+                                verify(ecs, times(1))
+                                    .removeUserFromBucket(eq(SERVICE_INSTANCE_ID), eq(BUCKET_NAME+"-"+BINDING_ID));
+                            });
+
+                            Context("with custom instance name", () -> {
+                                BeforeEach(() -> {
+                                    workflow = new BucketBindingWorkflow(instanceRepo, ecs)
+                                        .withCreateRequest(Fixtures.bucketBindingRequestWithNameFixture(BUCKET_NAME));
+
+                                    when(instanceRepo.find(eq(SERVICE_INSTANCE_ID))).thenReturn(serviceInstanceWithNameFixture(BUCKET_NAME));
+                                });
+
+                                It("should delete named user", () -> {
+                                    workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceWithNameFixture(BUCKET_NAME));
+                                    workflow.removeBinding();
+                                    verify(ecs, times(1))
+                                        .deleteUser(BUCKET_NAME+"-"+BINDING_ID);
+                                });
+
+                                It("should remove the named user to a bucket", () -> {
+                                    workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceWithNameFixture(BUCKET_NAME));
+                                    workflow.removeBinding();
+                                    verify(ecs, times(1))
+                                        .removeUserFromBucket(eq(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID), eq(BUCKET_NAME+"-"+BINDING_ID));
+                                });
+                            });
+                        });
 
                         Context("with a port in the object endpoint", () ->
                                 It("should return credentials", () -> {
@@ -273,11 +351,14 @@ public class BucketBindingWorkflowTest {
                             });
 
                             It("should delete the NFS export", () -> {
-                                workflow.removeBinding(bindingInstanceVolumeMountFixture());
+                                ServiceInstanceBinding existingBinding = bindingInstanceVolumeMountFixture();
+                                workflow.withDeleteRequest(bucketBindingRemoveFixture(), existingBinding);
+                                workflow.removeBinding();
+
                                 verify(ecs, times(1))
-                                        .deleteUser(BINDING_ID);
+                                        .deleteUser(existingBinding.getName());
                                 verify(ecs, times(1))
-                                        .deleteUserMap(eq(BINDING_ID), eq("456"));
+                                        .deleteUserMap(eq(existingBinding.getName()), eq("456"));
                             });
 
                             It("should return a binding mount", () -> {

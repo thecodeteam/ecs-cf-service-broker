@@ -5,6 +5,7 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
+import com.google.errorprone.annotations.Var;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
@@ -58,14 +59,14 @@ public class EcsServiceInstanceServiceTest {
 
                         BeforeEach(() -> {
                             createReq = bucketCreateRequestFixture(params);
-                            when(ecs.createBucket(BUCKET_NAME, serviceDef, plan, params))
+                            when(ecs.createBucket(BUCKET_NAME, BUCKET_NAME, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.createServiceInstance(createReq);
                         });
 
                         It("should create the bucket", () ->
                                 verify(ecs, times(1))
-                                        .createBucket(BUCKET_NAME, serviceDef, plan, params));
+                                        .createBucket(BUCKET_NAME, BUCKET_NAME,  serviceDef, plan, params));
 
                         It("should save the service instance to the repo", () -> {
                             ArgumentCaptor<ServiceInstance> instCap =
@@ -123,7 +124,7 @@ public class EcsServiceInstanceServiceTest {
                             });
 
                             It("should not create a bucket", () -> verify(ecs, times(0))
-                                    .createBucket(any(), any(), any(), any()));
+                                    .createBucket(any(), any(), any(), any(), any()));
 
                             It("should save the original & remote service instances to the repo", () -> {
                                 ArgumentCaptor<ServiceInstance> instCap =
@@ -230,7 +231,7 @@ public class EcsServiceInstanceServiceTest {
                         });
 
                         It("should find the service instance in the repo", () ->
-                                verify(repo, times(1))
+                                verify(repo, times(2))
                                         .find(BUCKET_NAME));
 
                         It("should not delete the service instance from the repo", () ->
@@ -455,15 +456,15 @@ public class EcsServiceInstanceServiceTest {
                     Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst =
-                                    new ServiceInstance(namespaceCreateRequestFixture(params));
-                            when(repo.find(NAMESPACE))
+                                    new ServiceInstance(namespaceCreateRequestFixture(SERVICE_INSTANCE_ID, params));
+                            when(repo.find(SERVICE_INSTANCE_ID))
                                     .thenReturn(inst);
-                            instSvc.deleteServiceInstance(namespaceDeleteRequestFixture());
+                            instSvc.deleteServiceInstance(namespaceDeleteRequestFixture(inst.getServiceInstanceId()));
                         });
 
                         It("should delete the namespace", () ->
                                 verify(ecs, times(1))
-                                        .deleteNamespace(NAMESPACE));
+                                        .deleteNamespace(SERVICE_INSTANCE_ID));
                     });
 
                     Context(WITH_REMOTE_CONNECTION, () -> {
@@ -512,34 +513,34 @@ public class EcsServiceInstanceServiceTest {
                 Context("#updateServiceInstance", () -> {
                     Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
-                            when(repo.find(NAMESPACE))
+                            when(repo.find(SERVICE_INSTANCE_ID))
                                     .thenReturn(new ServiceInstance(namespaceCreateRequestFixture(params)));
-                            when(ecs.changeNamespacePlan(NAMESPACE, serviceDef, plan, params))
+                            when(ecs.changeNamespacePlan(SERVICE_INSTANCE_ID, serviceDef, plan, params))
                                     .thenReturn(settings);
                             instSvc.updateServiceInstance(namespaceUpdateRequestFixture(params));
                         });
 
                         It("should find the service instance in the repo", () ->
-                                verify(repo, times(1))
-                                        .find(NAMESPACE));
+                                verify(repo, times(2))
+                                        .find(SERVICE_INSTANCE_ID));
 
                         It("should not delete the service instance from the repo", () ->
                                 verify(repo, times(0))
-                                        .delete(NAMESPACE));
+                                        .delete(SERVICE_INSTANCE_ID));
 
                         It("should save the updated service instance to the repo", () -> {
                             ArgumentCaptor<ServiceInstance> instCap =
                                     ArgumentCaptor.forClass(ServiceInstance.class);
                             verify(repo, times(1))
                                     .save(instCap.capture());
-                            assertEquals(NAMESPACE, instCap.getValue().getServiceInstanceId());
+                            assertEquals(SERVICE_INSTANCE_ID, instCap.getValue().getServiceInstanceId());
                             assertEquals("namespace",
                                     instCap.getValue().getServiceSettings().get("service-type"));
                         });
 
                         It("should update the namespace", () ->
                                 verify(ecs, times(1))
-                                        .changeNamespacePlan(NAMESPACE, serviceDef, plan, params));
+                                        .changeNamespacePlan(SERVICE_INSTANCE_ID, serviceDef, plan, params));
 
                     });
 
@@ -548,7 +549,7 @@ public class EcsServiceInstanceServiceTest {
                             ServiceInstance inst =
                                     new ServiceInstance(namespaceCreateRequestFixture(params));
                             inst.addReference(SERVICE_INSTANCE_ID);
-                            when(repo.find(NAMESPACE))
+                            when(repo.find(SERVICE_INSTANCE_ID))
                                     .thenReturn(inst);
                         });
 
@@ -565,7 +566,7 @@ public class EcsServiceInstanceServiceTest {
                     Context("with remote connection parameters", () -> {
                         BeforeEach(() -> {
                             ServiceInstance inst = new ServiceInstance(namespaceCreateRequestFixture(params));
-                            when(repo.find(NAMESPACE))
+                            when(repo.find(SERVICE_INSTANCE_ID))
                                     .thenReturn(inst);
                         });
 

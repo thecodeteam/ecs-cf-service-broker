@@ -3,13 +3,16 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.servicebroker.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +24,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     String instanceId;
     String bindingId;
     CreateServiceInstanceBindingRequest createRequest;
+    ServiceInstanceBinding binding;
 
     BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         this.instanceRepository = instanceRepo;
@@ -31,18 +35,18 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
         this.instanceId = request.getServiceInstanceId();
         this.bindingId = request.getBindingId();
         this.createRequest = request;
+        this.binding = new ServiceInstanceBinding(createRequest);
         return(this);
     }
 
-    public BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request) {
+    public BindingWorkflow withDeleteRequest(DeleteServiceInstanceBindingRequest request, ServiceInstanceBinding existingBinding) {
         this.instanceId = request.getServiceInstanceId();
         this.bindingId = request.getBindingId();
+        this.binding = existingBinding;
         return(this);
     }
 
     public ServiceInstanceBinding getBinding(Map<String, Object> credentials) {
-        ServiceInstanceBinding binding = new ServiceInstanceBinding(createRequest);
-        binding.setBindingId(bindingId);
         binding.setCredentials(credentials);
         return binding;
     }
@@ -59,9 +63,21 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
             throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
 
-        credentials.put("accessKey", ecs.prefix(bindingId));
+        credentials.put("accessKey", ecs.prefix(binding.getName()));
         credentials.put("secretKey", secretKey);
 
         return credentials;
+    }
+
+
+    public String getInstanceName() throws IOException {
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
+
+        return instance.getName();
     }
 }

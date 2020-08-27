@@ -193,7 +193,7 @@ public class EcsServiceTest {
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
         Map<String, Object> params = new HashMap<>();
-        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, BUCKET_NAME, service, plan, params);
 
         Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get("quota");
         assertEquals(4, quota.get(WARN).longValue());
@@ -232,7 +232,7 @@ public class EcsServiceTest {
                 .thenReturn(service);
 
         Map<String, Object> serviceSettings =
-                ecs.createBucket(BUCKET_NAME, service, plan, new HashMap<>());
+                ecs.createBucket(BUCKET_NAME,  BUCKET_NAME, service, plan, new HashMap<>());
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
@@ -273,7 +273,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, BUCKET_NAME, service, plan, params);
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
         assertEquals(4, returnQuota.get(WARN).longValue());
         assertEquals(5, returnQuota.get(LIMIT).longValue());
@@ -986,7 +986,7 @@ public class EcsServiceTest {
         when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
 
-        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, BUCKET_NAME, service, plan, params);
         assertEquals(THIRTY_DAYS_IN_SEC, serviceSettings.get(DEFAULT_RETENTION));
 
         PowerMockito.verifyStatic(BucketRetentionAction.class);

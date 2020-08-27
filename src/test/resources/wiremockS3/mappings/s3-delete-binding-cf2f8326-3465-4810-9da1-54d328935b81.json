@@ -1,0 +1,21 @@
+{
+	"scenarioName": "binding-cf2f8326-3465-4810-9da1-54d328935b81",
+	"requiredScenarioState": "Created",
+	"newScenarioState": "Started",
+    "request": {
+        "method": "DELETE",
+        "url": "/ecs-cf-broker-repository/service-instance-binding/cf2f8326-3465-4810-9da1-54d328935b81.json",
+        "headers": {
+        	"Authorization" : {
+        		"matches": "AWS ecs-cf-broker-user:.*"
+        	}
+        }
+    },
+    "response": {
+        "status": "204",
+        "headers": {
+			"x-amz-request-id": "0a05881f:150a5d74db8:1b23:4",
+			"x-amz-id-2": "9edc6c7b2841f4facfc63af0f50256253fa46e1ec24cc03172f28660fa13efe3"
+		}
+    }
+}

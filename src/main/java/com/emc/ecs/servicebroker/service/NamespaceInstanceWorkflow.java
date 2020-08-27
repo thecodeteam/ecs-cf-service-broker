@@ -7,6 +7,7 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -22,7 +23,16 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, IOException {
-        return ecs.changeNamespacePlan(id, service, plan, parameters);
+        try {
+            ServiceInstance instance = instanceRepository.find(id);
+            if (instance == null) {
+                throw new ServiceInstanceDoesNotExistException(id);
+            }
+
+            return ecs.changeNamespacePlan(instance.getName(), service, plan, parameters);
+        } catch (IOException e) {
+            throw new ServiceBrokerException(e);
+        }
     }
 
     @Override
@@ -32,7 +42,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
             if (instance.getReferences().size() > 1) {
                 removeInstanceFromReferences(instance, id);
             } else {
-                ecs.deleteNamespace(id);
+                ecs.deleteNamespace(instance.getName());
             }
 
             return null;
@@ -57,8 +67,12 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
-            throws EcsManagementClientException, EcsManagementResourceNotFoundException {
-        Map<String, Object> serviceSettings = ecs.createNamespace(id, service, plan, parameters);
-        return getServiceInstance(serviceSettings);
+        throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+        ServiceInstance instance = getServiceInstance(parameters);
+        Map<String, Object> serviceSettings = ecs.createNamespace(instance.getName(), service, plan, parameters);
+
+        instance.setServiceSettings(serviceSettings);
+
+        return instance;
     }
 }
