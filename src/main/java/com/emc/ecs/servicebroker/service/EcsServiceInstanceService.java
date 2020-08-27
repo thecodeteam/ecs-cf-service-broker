@@ -1,6 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
-import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.LastOperationSerializer;
@@ -75,8 +75,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .async(false)
                     .build());
         } catch (Exception e) {
-            LOG.error(format("Unexpected error creating service %s", serviceInstanceId), e);
-            throw new ServiceBrokerException(e);
+            String errorMessage = format("Error creating service %s: %s", serviceInstanceId, e.getMessage());
+            LOG.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
     }
 
@@ -125,8 +126,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .async(future != null)
                     .build());
         } catch (Exception e) {
-            LOG.error("Error Deleting", e);
-            throw new ServiceBrokerException(e);
+            String errorMessage = format("Error deleting service %s: %s", serviceInstanceId, e.getMessage());
+            LOG.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
     }
 
@@ -165,7 +167,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             // Rethrow "does not exist" so that it's not caught by the generic case
             throw e;
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            String errorMessage = format("Error updating service %s: %s", serviceInstanceId, e.getMessage());
+            LOG.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
     }
 
@@ -195,7 +199,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .operationState(lastOperation.getOperationState())
                     .build());
         } catch (IOException e) {
-            throw new ServiceBrokerException(e);
+            String errorMessage = format("Error getting last operation for service %s: %s", request.getServiceInstanceId(), e.getMessage());
+            LOG.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
     }
 
@@ -232,7 +238,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             }
 
             if (exception == null) {
-                LOG.info("Setting last operation state 'Succeeded - Delete complete' on instance '{}'", instance.getServiceInstanceId());
+                LOG.info("Setting last operation state 'Succeeded - Delete complete' on instance '{}'", instance != null ? instance.getServiceInstanceId() : null);
                 instance.setLastOperation(new LastOperationSerializer(OperationState.SUCCEEDED, "Delete Complete", true));
             } else {
                 String errorMsg;
@@ -242,13 +248,13 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     errorMsg = exception.getMessage();
                 }
 
-                LOG.warn("Delete operation on instance '{}' failed: {}", instance.getServiceInstanceId(), errorMsg);
+                LOG.warn("Delete operation on instance '{}' failed: {}", instance != null ? instance.getServiceInstanceId() : null, errorMsg);
                 instance.setLastOperation(new LastOperationSerializer(OperationState.FAILED, errorMsg, true));
             }
 
             repository.save(instance);
         } catch (IOException e) {
-            LOG.error("Unable to find instance {} when delete completed async");
+            LOG.error("Unable to find instance {} when delete completed async", instanceId);
         }
     }
 }

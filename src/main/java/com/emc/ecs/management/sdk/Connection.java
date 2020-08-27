@@ -1,9 +1,9 @@
 package com.emc.ecs.management.sdk;
 
 import com.emc.ecs.management.sdk.model.EcsManagementClientError;
-import com.emc.ecs.servicebroker.EcsManagementClientException;
-import com.emc.ecs.servicebroker.EcsManagementClientUnauthorizedException;
-import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientUnauthorizedException;
+import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.slf4j.LoggerFactory;

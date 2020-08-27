@@ -1,4 +1,4 @@
-package com.emc.ecs.servicebroker;
+package com.emc.ecs.servicebroker.exception;
 
 import java.util.NoSuchElementException;
 

@@ -6,7 +6,7 @@ import com.emc.ecs.management.sdk.model.BaseUrlInfo;
 import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
 import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
-import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
