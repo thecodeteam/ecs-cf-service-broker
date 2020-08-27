@@ -22,9 +22,10 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 @Service
-public class EcsServiceInstanceBindingService
-        implements ServiceInstanceBindingService {
+public class EcsServiceInstanceBindingService implements ServiceInstanceBindingService {
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
 
@@ -65,8 +66,9 @@ public class EcsServiceInstanceBindingService
 
             return Mono.just(workflow.getResponse(credentials));
         } catch (IOException | JAXBException | EcsManagementClientException e) {
-            LOG.error("Error ", e);
-            throw new ServiceBrokerException(e);
+            String errorMessage = format("Error creating binding '%s' for service '%s': %s", request.getBindingId(), request.getServiceInstanceId(), e.getMessage());
+            LOG.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
     }
 
@@ -99,8 +101,9 @@ public class EcsServiceInstanceBindingService
                             .build()
             );
         } catch (Exception e) {
-            LOG.error("Error deleting binding: " + e);
-            throw new ServiceBrokerException(e);
+            String errorMessage = format("Error deleting binding '%s' for service '%s': %s", request.getBindingId(), request.getServiceInstanceId(), e.getMessage());
+            LOG.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
     }
 
