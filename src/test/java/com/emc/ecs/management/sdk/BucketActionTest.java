@@ -1,7 +1,7 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.servicebroker.EcsManagementClientException;
-import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.common.EcsActionTest;
 import org.junit.After;
 import org.junit.Before;

@@ -1,8 +1,8 @@
 package com.emc.ecs.servicebroker.repository;
 
 import com.emc.ecs.management.sdk.ObjectUserMapAction;
-import com.emc.ecs.servicebroker.EcsManagementClientException;
-import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;

@@ -1,7 +1,4 @@
-package com.emc.ecs.servicebroker;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+package com.emc.ecs.servicebroker.exception;
 
 import java.util.NoSuchElementException;
 
