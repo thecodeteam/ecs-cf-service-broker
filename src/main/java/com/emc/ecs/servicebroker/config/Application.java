@@ -1,7 +1,7 @@
 package com.emc.ecs.servicebroker.config;
 
-import com.emc.ecs.servicebroker.EcsManagementClientException;
-import com.emc.ecs.servicebroker.EcsManagementResourceNotFoundException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;

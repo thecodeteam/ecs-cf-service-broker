@@ -2,7 +2,7 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
-import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.model.PlanProxy;
@@ -10,7 +10,6 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
-import com.emc.object.s3.bean.Bucket;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

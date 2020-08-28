@@ -1,4 +1,4 @@
-package com.emc.ecs.servicebroker;
+package com.emc.ecs.servicebroker.exception;
 
 public class EcsManagementClientUnauthorizedException extends EcsManagementClientException {
     private static final long serialVersionUID = 1L;

@@ -1,6 +1,6 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.management.sdk.model.RetentionClassCreate;
 import com.emc.ecs.management.sdk.model.RetentionClassDetails;
 import com.emc.ecs.management.sdk.model.RetentionClassUpdate;

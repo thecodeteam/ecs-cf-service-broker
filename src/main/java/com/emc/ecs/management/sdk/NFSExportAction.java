@@ -1,6 +1,6 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.servicebroker.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.management.sdk.model.NFSExport;
 import com.emc.ecs.management.sdk.model.NFSExportList;
 import com.emc.ecs.management.sdk.model.NFSExportsOption;
