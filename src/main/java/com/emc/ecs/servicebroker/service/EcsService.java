@@ -80,7 +80,7 @@ public class EcsService {
             prepareBucketWipe();
         } catch (EcsManagementClientException | URISyntaxException e) {
             logger.error("Failed to initialize ECS service: {}", e.getMessage());
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -93,7 +93,7 @@ public class EcsService {
             }
             return null;
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -112,7 +112,7 @@ public class EcsService {
 
             return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id));
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -154,8 +154,9 @@ public class EcsService {
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
             }
         } catch (Exception e) {
-            logger.error(String.format("Failed to create bucket %s", bucketName), e);
-            throw new ServiceBrokerException(e);
+            String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
+            logger.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
         return parameters;
     }
@@ -186,7 +187,7 @@ public class EcsService {
                 BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(), limit, warn);
             }
         } catch (EcsManagementClientException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
         return parameters;
     }
@@ -213,7 +214,7 @@ public class EcsService {
 
             return ObjectUserSecretAction.list(connection, userId).get(0);
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -229,7 +230,7 @@ public class EcsService {
             ObjectUserSecretAction.create(connection, userId);
             return ObjectUserSecretAction.list(connection, userId).get(0);
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -245,7 +246,7 @@ public class EcsService {
         try {
             return ObjectUserAction.exists(connection, prefix(userId), broker.getNamespace());
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -263,7 +264,7 @@ public class EcsService {
         try {
             addUserToBucket(id, username, Collections.singletonList("full_control"));
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -371,7 +372,7 @@ public class EcsService {
         try {
             return getNamespaceURL(namespace, parameters);
         } catch (EcsManagementClientException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
