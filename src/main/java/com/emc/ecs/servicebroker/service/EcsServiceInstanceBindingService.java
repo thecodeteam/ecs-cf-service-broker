@@ -26,11 +26,10 @@ import static java.lang.String.format;
 
 @Service
 public class EcsServiceInstanceBindingService implements ServiceInstanceBindingService {
+    private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
+
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
-
-    private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
-    private static final String NO_SERVICE_MATCHING_TYPE = "No service matching type: ";
     private static final String SERVICE_TYPE = "service-type";
 
     @Autowired
@@ -131,7 +130,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
             case BUCKET:
                 return new BucketBindingWorkflow(instanceRepo, ecs);
             default:
-                throw new ServiceBrokerException(NO_SERVICE_MATCHING_TYPE + serviceType);
+                throw new ServiceBrokerException("Unsupported service type type: " + serviceType);
         }
     }
 

@@ -31,7 +31,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
 
             return ecs.changeNamespacePlan(instance.getName(), service, plan, parameters);
         } catch (IOException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -47,7 +47,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
 
             return null;
         } catch (EcsManagementClientException | JAXBException | IOException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 

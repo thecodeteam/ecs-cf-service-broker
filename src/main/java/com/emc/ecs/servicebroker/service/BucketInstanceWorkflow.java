@@ -33,7 +33,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
 
             return ecs.changeBucketPlan(instance.getName(), service, plan, parameters);
         } catch (IOException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
     @Override
@@ -62,7 +62,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 }
             }
         } catch (IOException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 

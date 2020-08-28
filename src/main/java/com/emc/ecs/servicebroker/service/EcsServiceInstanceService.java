@@ -30,7 +30,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceService.class);
 
-    private static final String NO_SERVICE_MATCHING_TYPE = "No service matching type: ";
     private static final String NAMESPACE = "namespace";
     private static final String BUCKET = "bucket";
     private static final String SERVICE_TYPE = "service-type";
@@ -126,7 +125,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     .async(future != null)
                     .build());
         } catch (Exception e) {
-            String errorMessage = format("Error deleting service %s: %s", serviceInstanceId, e.getMessage());
+            String errorMessage = format("Error deleting service instance %s: %s", serviceInstanceId, e.getMessage());
             LOG.error(errorMessage, e);
             throw new ServiceBrokerException(errorMessage, e);
         }
@@ -226,7 +225,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             case BUCKET:
                 return new BucketInstanceWorkflow(repository, ecs);
             default:
-                throw new ServiceBrokerException(NO_SERVICE_MATCHING_TYPE + serviceType);
+                throw new ServiceBrokerException("Unknown service type: " + serviceType);
         }
     }
 
@@ -254,7 +253,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             repository.save(instance);
         } catch (IOException e) {
-            LOG.error("Unable to find instance {} when delete completed async", instanceId);
+            LOG.error("Unable to find instance '{}' when delete completed async", instanceId);
         }
     }
 }

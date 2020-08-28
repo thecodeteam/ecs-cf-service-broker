@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +38,6 @@ public class EcsService {
     private static final String LIMIT = "limit";
     private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
-    private static final String SERVICE_NOT_FOUND = "No service matching service id: ";
     private static final String DEFAULT_RETENTION = "default-retention";
     private static final String INVALID_RECLAIM_POLICY = "Invalid reclaim-policy: ";
     private static final String INVALID_ALLOWED_RECLAIM_POLICIES = "Invalid reclaim-policies: ";
@@ -79,7 +80,7 @@ public class EcsService {
             prepareBucketWipe();
         } catch (EcsManagementClientException | URISyntaxException e) {
             logger.error("Failed to initialize ECS service: {}", e.getMessage());
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -92,7 +93,7 @@ public class EcsService {
             }
             return null;
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -111,7 +112,7 @@ public class EcsService {
 
             return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id));
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -137,7 +138,7 @@ public class EcsService {
 
             // Validate the reclaim-policy
             if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
-                throw new ServiceBrokerException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
+                throw new ServiceBrokerInvalidParametersException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
             }
 
             BucketAction.create(connection, new ObjectBucketCreate(prefix(bucketName), broker.getNamespace(), replicationGroupID, parameters));
@@ -153,8 +154,9 @@ public class EcsService {
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
             }
         } catch (Exception e) {
-            logger.error(String.format("Failed to create bucket %s", bucketName), e);
-            throw new ServiceBrokerException(e);
+            String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
+            logger.error(errorMessage, e);
+            throw new ServiceBrokerException(errorMessage, e);
         }
         return parameters;
     }
@@ -185,7 +187,7 @@ public class EcsService {
                 BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(), limit, warn);
             }
         } catch (EcsManagementClientException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
         return parameters;
     }
@@ -212,7 +214,7 @@ public class EcsService {
 
             return ObjectUserSecretAction.list(connection, userId).get(0);
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -228,7 +230,7 @@ public class EcsService {
             ObjectUserSecretAction.create(connection, userId);
             return ObjectUserSecretAction.list(connection, userId).get(0);
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -244,7 +246,7 @@ public class EcsService {
         try {
             return ObjectUserAction.exists(connection, prefix(userId), broker.getNamespace());
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -262,7 +264,7 @@ public class EcsService {
         try {
             addUserToBucket(id, username, Collections.singletonList("full_control"));
         } catch (Exception e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -370,7 +372,7 @@ public class EcsService {
         try {
             return getNamespaceURL(namespace, parameters);
         } catch (EcsManagementClientException e) {
-            throw new ServiceBrokerException(e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -476,18 +478,18 @@ public class EcsService {
         try {
             ReclaimPolicy.getReclaimPolicy(parameters);
         } catch (IllegalArgumentException e) {
-            throw new ServiceBrokerException(INVALID_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException(INVALID_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
         }
 
         // Ensure Allowed-Reclaim-Policies can be parsed
         try {
             ReclaimPolicy.getAllowedReclaimPolicies(parameters);
         } catch (IllegalArgumentException e) {
-            throw new ServiceBrokerException(INVALID_ALLOWED_RECLAIM_POLICIES + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException(INVALID_ALLOWED_RECLAIM_POLICIES + ReclaimPolicy.getReclaimPolicy(parameters));
         }
 
         if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
-            throw new ServiceBrokerException(REJECT_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException(REJECT_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
         }
     }
 
@@ -596,7 +598,7 @@ public class EcsService {
     ServiceDefinitionProxy lookupServiceDefinition(String serviceDefinitionId) throws ServiceBrokerException {
         ServiceDefinitionProxy service = catalog.findServiceDefinition(serviceDefinitionId);
         if (service == null) {
-            throw new ServiceBrokerException(SERVICE_NOT_FOUND + serviceDefinitionId);
+            throw new ServiceInstanceDoesNotExistException(serviceDefinitionId);
         }
         return service;
     }
