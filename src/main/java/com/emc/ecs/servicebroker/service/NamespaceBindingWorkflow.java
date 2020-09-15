@@ -55,6 +55,9 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
+        // Add namespace title as part of credentials
+        credentials.put("namespace", ecs.prefix(namespaceName));
+
         // Get custom endpoint for namespace
         String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
         credentials.put("endpoint", endpoint);
