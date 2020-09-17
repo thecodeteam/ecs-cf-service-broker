@@ -15,11 +15,11 @@ public class NamespaceUpdate extends NamespaceModel {
         setExternalGroupAdmins(
                 (String) params.get("domain-group-admins"));
         setIsEncryptionEnabled(
-                (Boolean) params.get("encrypted"));
+                (Boolean) params.getOrDefault("encrypted", false));
         setIsComplianceEnabled(
-                (Boolean) params.get("compliance-enabled"));
+                (Boolean) params.getOrDefault("compliance-enabled", false));
         setIsStaleAllowed(
-                (Boolean) params.get("access-during-outage"));
+                (Boolean) params.getOrDefault("access-during-outage", false));
         setDefaultBucketBlockSize(
                 (int) params.getOrDefault("default-bucket-quota", -1));
     }

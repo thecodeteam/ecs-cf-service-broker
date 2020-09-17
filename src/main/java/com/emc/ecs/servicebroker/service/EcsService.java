@@ -506,7 +506,7 @@ public class EcsService {
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
 
-        logger.info("Creating namespace '{}'", namespace);
+        logger.info("Creating namespace '{}' with params {}", namespace, parameters);
         NamespaceAction.create(connection, new NamespaceCreate(prefix(namespace), replicationGroupID, parameters));
 
         if (parameters.containsKey(QUOTA)) {
