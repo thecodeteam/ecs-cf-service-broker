@@ -123,18 +123,14 @@ public class EcsService {
 
     Map<String, Object> createBucket(String id, String bucketName, ServiceDefinitionProxy service,
                                      PlanProxy plan, Map<String, Object> parameters) {
-        if (parameters == null) parameters = new HashMap<>();
-
-        logger.info("Creating bucket '{}'", prefix(bucketName));
         try {
             if (bucketExists(bucketName)) {
                 throw new ServiceInstanceExistsException(id, service.getId());
             }
-            // merge serviceSettings into parameters, overwriting parameter values
-            // with service/plan serviceSettings, since serviceSettings are forced
-            // by administrator through the catalog.
-            parameters.putAll(plan.getServiceSettings());
-            parameters.putAll(service.getServiceSettings());
+
+            parameters = mergeParameters(service, plan, parameters);
+
+            logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
 
             // Validate the reclaim-policy
             if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
@@ -162,14 +158,7 @@ public class EcsService {
     }
 
     Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        if (parameters == null) {
-            parameters = new HashMap<>();
-        }
-        // merge serviceSettings into parameters, overwriting parameter values
-        // with service/plan serviceSettings, since serviceSettings are forced
-        // by administrator through the catalog.
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
+        parameters = mergeParameters(service, plan, parameters);
 
         // Validate the reclaim-policy
         validateReclaimPolicy(parameters);
@@ -499,14 +488,10 @@ public class EcsService {
             throw new ServiceInstanceExistsException(namespace, service.getId());
         }
 
-        if (parameters == null) parameters = new HashMap<>();
-        // merge serviceSettings into parameters, overwriting parameter values
-        // with service/plan serviceSettings, since serviceSettings are forced
-        // by administrator through the catalog.
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
+        parameters = mergeParameters(service, plan, parameters);
 
-        logger.info("Creating namespace '{}' with params {}", namespace, parameters);
+        logger.info("Creating namespace '{}' with plan '{}'({}) and params {}", prefix(namespace), plan.getName(), plan.getId(), parameters);
+
         NamespaceAction.create(connection, new NamespaceCreate(prefix(namespace), replicationGroupID, parameters));
 
         if (parameters.containsKey(QUOTA)) {
@@ -563,12 +548,10 @@ public class EcsService {
     }
 
     Map<String, Object> changeNamespacePlan(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException {
-        logger.info("Changing namespace '{}' plan to '{}'({})", namespace, plan.getName(), plan.getId());
-        // merge serviceSettings into parameters, overwriting parameter values
-        // with service/plan serviceSettings, since serviceSettings are forced
-        // by administrator through the catalog.
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
+        parameters = mergeParameters(service, plan, parameters);
+
+        logger.info("Changing namespace '{}' plan to '{}'({}) with parameters {}", namespace, plan.getName(), plan.getId(), parameters);
+
         NamespaceAction.update(connection, prefix(namespace),
                 new NamespaceUpdate(parameters));
 
@@ -613,5 +596,20 @@ public class EcsService {
             NFSExportAction.create(connection, absoluteExportPath);
         }
         return absoluteExportPath;
+    }
+
+    /**
+     * Merge additional parameters with with plan and service settings
+     *
+     * Parameter values are overwritten with plan and service settings, since service settings are forced by administrator through the catalog
+     */
+    static Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
+        // merge serviceSettings into parameters, overwriting parameter values
+        // with service/plan serviceSettings, since serviceSettings are forced
+        // by administrator through the catalog.
+        if (parameters == null) parameters = new HashMap<>();
+        parameters.putAll(plan.getServiceSettings());
+        parameters.putAll(service.getServiceSettings());
+        return parameters;
     }
 }
