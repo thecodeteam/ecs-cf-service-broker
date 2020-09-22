@@ -3,6 +3,8 @@ package com.emc.ecs.servicebroker.config;
 import com.emc.ecs.servicebroker.model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Catalog;
@@ -19,6 +21,8 @@ import java.util.stream.IntStream;
 @Configuration
 @ConfigurationProperties(prefix = "catalog")
 public class CatalogConfig {
+    private static final Logger logger = LoggerFactory.getLogger(CatalogConfig.class);
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private List<ServiceDefinitionProxy> services;
     private Map<Integer, List<PlanProxy>> plans = new HashMap<>();
@@ -44,10 +48,12 @@ public class CatalogConfig {
     public List<ServiceDefinitionProxy> mergeServices() {
         return IntStream.range(0, services.size()).mapToObj(index -> {
             ServiceDefinitionProxy s = services.get(index);
-            if (plans.containsKey(index))
+            if (plans.containsKey(index)) {
                 s.setPlans(plans.get(index));
-            if (settings.containsKey(index))
+            }
+            if (settings.containsKey(index)) {
                 s.setServiceSettings(settings.get(index));
+            }
             return s;
         }).collect(Collectors.toList());
     }
@@ -90,32 +96,32 @@ public class CatalogConfig {
     }
 
     public void setServiceSettings0(String serviceSettingsJson) throws IOException {
-        this.settings.put(0, parseServiceSettings(serviceSettingsJson));
+        this.settings.put(0, parseServiceSettings(serviceSettingsJson, 0));
     }
 
     public void setServiceSettings1(String serviceSettingsJson) throws IOException {
-        this.settings.put(1, parseServiceSettings(serviceSettingsJson));
+        this.settings.put(1, parseServiceSettings(serviceSettingsJson, 1));
     }
 
     public void setServiceSettings2(String serviceSettingsJson) throws IOException {
-        this.settings.put(2, parseServiceSettings(serviceSettingsJson));
+        this.settings.put(2, parseServiceSettings(serviceSettingsJson, 2));
     }
 
     public void setServiceSettings3(String serviceSettingsJson) throws IOException {
-        this.settings.put(3, parseServiceSettings(serviceSettingsJson));
+        this.settings.put(3, parseServiceSettings(serviceSettingsJson, 3));
     }
 
     public void setServiceSettings4(String serviceSettingsJson) throws IOException {
-        this.settings.put(4, parseServiceSettings(serviceSettingsJson));
+        this.settings.put(4, parseServiceSettings(serviceSettingsJson, 4));
     }
 
-    private Map<String, Object> parseServiceSettings(String settingsJson) throws IOException {
+    private Map<String, Object> parseServiceSettings(String settingsJson, int serviceIndex) throws IOException {
         TileSelector selector = objectMapper.readValue(settingsJson, TileSelector.class);
         Map<String, Object> settings = selector.getSelectedOption();
 
         if (selector.getValue().equals("Bucket")) {
             settings.put("service-type", "bucket");
-        } else if(selector.getValue().equals("Namespace")) {
+        } else if (selector.getValue().equals("Namespace")) {
             settings.put("service-type", "namespace");
         } else {
             throw new ServiceBrokerException("Unable to determine service-type from: " + selector.getValue());
@@ -150,6 +156,15 @@ public class CatalogConfig {
             settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
             settings.remove("default_bucket_quota");
         }
+
+        settings = settings.entrySet().stream()
+                .peek(e -> {
+                    if (e.getValue() == null) {
+                        logger.debug("Removing '{}' from service[{}] settings - null value", e.getKey(), serviceIndex);
+                    }
+                })
+                .filter(e -> e.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return settings;
     }
