@@ -352,6 +352,7 @@ public class EcsService {
                 (parametersAbstract instanceof HashMap)
                         ? (HashMap) parametersAbstract
                         : new HashMap<>(parametersAbstract);
+        // TODO refactor settings merge - see mergeParameters
         if (serviceSettings != null) {
             // merge serviceSettings into parameters, overwriting parameter values
             // with serviceSettings, since serviceSettings are forced by administrator
@@ -604,9 +605,6 @@ public class EcsService {
      * Parameter values are overwritten with plan and service settings, since service settings are forced by administrator through the catalog
      */
     static Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        // merge serviceSettings into parameters, overwriting parameter values
-        // with service/plan serviceSettings, since serviceSettings are forced
-        // by administrator through the catalog.
         if (parameters == null) parameters = new HashMap<>();
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());

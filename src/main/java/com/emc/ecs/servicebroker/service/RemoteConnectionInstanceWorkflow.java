@@ -59,6 +59,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
     private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan,
                                   Map<String, Object> parameters) {
+        // TODO refactor settings merge - see mergeParameters in EcsService
         Map<String, Object> settings = new HashMap<>();
         settings.putAll(parameters);
         settings.putAll(plan.getServiceSettings());
