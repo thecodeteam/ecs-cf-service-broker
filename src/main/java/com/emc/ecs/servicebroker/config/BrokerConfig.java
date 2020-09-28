@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,7 @@ public class BrokerConfig {
         if (selector.getValue().equals("No")) {
             Map<String, Object> settings = selector.getSelectedOption();
 
-            if (settings.containsKey("certificate") && settings.get("certificate") != null ) {
+            if (settings.containsKey("certificate") && settings.get("certificate") != null) {
                 setCertificate(settings.get("certificate").toString());
             }
         }
@@ -99,7 +100,7 @@ public class BrokerConfig {
 
     public void setPassword(String password) {
         if (!password.equals(""))
-        this.password = password;
+            this.password = password;
     }
 
     public String getRepositoryBucket() {
@@ -222,5 +223,13 @@ public class BrokerConfig {
 
     public void setDefaultReclaimPolicy(String defaultReclaimPolicy) {
         this.defaultReclaimPolicy = defaultReclaimPolicy;
+    }
+
+    public Map<String, Object> getSettings() {
+        Map<String, Object> ret = new HashMap<>();
+        ret.put("base-url", getBaseUrl());
+        ret.put("replication-group", getReplicationGroup());
+        ret.put("namespace", getNamespace());
+        return ret;
     }
 }

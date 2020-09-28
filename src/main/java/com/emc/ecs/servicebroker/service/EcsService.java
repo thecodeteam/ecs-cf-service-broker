@@ -128,7 +128,7 @@ public class EcsService {
                 throw new ServiceInstanceExistsException(id, service.getId());
             }
 
-            parameters = mergeParameters(service, plan, parameters);
+            parameters = mergeParameters(broker, service, plan, parameters);
 
             logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
 
@@ -158,7 +158,7 @@ public class EcsService {
     }
 
     Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        parameters = mergeParameters(service, plan, parameters);
+        parameters = mergeParameters(broker, service, plan, parameters);
 
         // Validate the reclaim-policy
         validateReclaimPolicy(parameters);
@@ -185,9 +185,12 @@ public class EcsService {
         return BucketAction.exists(connection, prefix(bucketName), broker.getNamespace());
     }
 
+    private Boolean namespaceExists(String id) throws EcsManagementClientException {
+        return NamespaceAction.exists(connection, id);
+    }
+
     private boolean aclExists(String id) throws EcsManagementClientException {
-        return BucketAclAction.exists(connection, prefix(id),
-            broker.getNamespace());
+        return BucketAclAction.exists(connection, prefix(id), broker.getNamespace());
     }
 
     UserSecretKey createUser(String id) {
@@ -388,14 +391,9 @@ public class EcsService {
     }
 
     private void lookupReplicationGroupID() throws EcsManagementClientException {
-        DataServiceReplicationGroup replicationGroup = ReplicationGroupAction.list(connection).stream()
-                .filter(r -> broker.getReplicationGroup() != null && r != null
-                        && (broker.getReplicationGroup().equals(r.getName()) || broker.getReplicationGroup().equals(r.getId()))
-                )
-                .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("Configured ECS replication group not found: " + broker.getReplicationGroup()));
-        logger.info("Replication group found: {} ({})", replicationGroup.getName(), replicationGroup.getId());
-        replicationGroupID = replicationGroup.getId();
+        DataServiceReplicationGroup rg = lookupReplicationGroup(broker.getReplicationGroup());
+        logger.info("Replication group found: {} ({})", rg.getName(), rg.getId());
+        replicationGroupID = rg.getId();
     }
 
     private void prepareRepository() throws EcsManagementClientException {
@@ -459,10 +457,6 @@ public class EcsService {
         return baseUrlList.get(0).getId();
     }
 
-    private Boolean namespaceExists(String id) throws EcsManagementClientException {
-        return NamespaceAction.exists(connection, id);
-    }
-
     private void validateReclaimPolicy(Map<String, Object> parameters) {
         // Ensure Reclaim-Policy can be parsed
         try {
@@ -489,7 +483,7 @@ public class EcsService {
             throw new ServiceInstanceExistsException(namespace, service.getId());
         }
 
-        parameters = mergeParameters(service, plan, parameters);
+        parameters = mergeParameters(broker, service, plan, parameters);
 
         logger.info("Creating namespace '{}' with plan '{}'({}) and params {}", prefix(namespace), plan.getName(), plan.getId(), parameters);
 
@@ -549,7 +543,7 @@ public class EcsService {
     }
 
     Map<String, Object> changeNamespacePlan(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException {
-        parameters = mergeParameters(service, plan, parameters);
+        parameters = mergeParameters(broker, service, plan, parameters);
 
         logger.info("Changing namespace '{}' plan to '{}'({}) with parameters {}", namespace, plan.getName(), plan.getId(), parameters);
 
@@ -599,15 +593,32 @@ public class EcsService {
         return absoluteExportPath;
     }
 
+
+    public DataServiceReplicationGroup lookupReplicationGroup(String replicationGroup) throws EcsManagementClientException {
+        return ReplicationGroupAction.list(connection).stream()
+                .filter(r -> replicationGroup != null && r != null
+                        && (replicationGroup.equals(r.getName()) || replicationGroup.equals(r.getId()))
+                )
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("ECS replication group not found: " + replicationGroup));
+    }
+
     /**
-     * Merge additional parameters with with plan and service settings
-     *
-     * Parameter values are overwritten with plan and service settings, since service settings are forced by administrator through the catalog
+     * Merge request additional parameters with with broker, plan and service settings
+     * <p>
+     * Broker settings (replication group, namespace and base url name) are overwritten with request parameters;
+     * request parameter values are overwritten with plan and service settings,
+     * since service settings are forced by administrator through the catalog
      */
-    static Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        if (parameters == null) parameters = new HashMap<>();
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
-        return parameters;
+    static Map<String, Object> mergeParameters(BrokerConfig brokerConfig, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
+        Map<String, Object> ret = new HashMap<>(brokerConfig.getSettings());
+
+        if (requestParameters != null) ret.putAll(requestParameters);
+
+        ret.putAll(plan.getServiceSettings());
+
+        ret.putAll(service.getServiceSettings());
+
+        return ret;
     }
 }
