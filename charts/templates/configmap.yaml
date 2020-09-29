@@ -18,10 +18,12 @@ data:
     catalog:
       services:
       -
+        name: ecs-bucket
+        type: bucket
+        id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
+        description: "Elastic Cloud S3 Object Storage Bucket"
         active: true
         bindable: true
-        description: "Elastic Cloud S3 Object Storage Bucket"
-        id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
         repository-service: true
         metadata:
           displayName: ecs-bucket
@@ -30,7 +32,6 @@ data:
           longDescription: "Dell EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3."
           providerDisplayName: "Dell EMC"
           supportUrl: "http://www.emc.com/products-solutions/trial-software-download/ecs.htm"
-        name: ecs-bucket
         plan-updatable: true
         plans:
         -
@@ -74,13 +75,14 @@ data:
         tags:
         - s3
         - bucket
-        type: bucket
       -
+        name: ecs-file-bucket
+        type: bucket
+        id: 9052313c-20b2-47de-900f-6e8b04fafcca
+        description: "Elastic Cloud S3 Object Storage File Accessible Bucket"
         active: false
         bindable: true
-        description: "Elastic Cloud S3 Object Storage File Accessible Bucket"
         repository-service: false
-        id: 9052313c-20b2-47de-900f-6e8b04fafcca
         metadata:
           displayName: ecs-file-bucket
           documentationUrl: "https://community.emc.com/docs/DOC-45012"
@@ -88,7 +90,6 @@ data:
           longDescription: "Dell EMC Elastic Cloud Storage (ECS) Object bucket for storing data using Amazon S3 or NFS."
           providerDisplayName: "Dell EMC"
           supportUrl: "http://www.emc.com/products-solutions/trial-software-download/ecs.htm"
-        name: ecs-file-bucket
         plan-updatable: true
         plans:
         -
@@ -137,12 +138,13 @@ data:
         - bucket
         - nfs
         - hdfs
-        type: bucket
       -
+        name: ecs-namespace
+        type: namespace
+        id: a2ac2a5-5172-4ff1-a5c7-72990f0ce2aa
+        description: "Elastic Cloud S3 Object Storage Namespace"
         active: false
         bindable: true
-        description: "Elastic Cloud S3 Object Storage Namespace"
-        id: a2ac2a5-5172-4ff1-a5c7-72990f0ce2aa
         repository-service: false
         metadata:
           displayName: ecs-namespace
@@ -151,7 +153,10 @@ data:
           longDescription: "Dell EMC Elastic Cloud Storage (ECS) Object namespace for storing data using Amazon S3."
           providerDisplayName: "Dell EMC"
           supportUrl: "http://www.emc.com/products-solutions/trial-software-download/ecs.htm"
-        name: ecs-namespace
+        service-settings:
+          access-during-outage: true
+          head-type: s3
+          service-type: namespace
         plan-updatable: true
         plans:
           - description: "Free Trial"
@@ -184,13 +189,8 @@ data:
                     usd: 0.03
                   unit: "PER GB PER MONTH"
             name: unlimited
-        service-settings:
-          access-during-outage: true
-          head-type: s3
-          service-type: namespace
         tags:
           - s3
           - namespace
-        type: namespace
     spring:
       profiles: default
