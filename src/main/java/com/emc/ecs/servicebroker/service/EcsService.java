@@ -137,7 +137,12 @@ public class EcsService {
                 throw new ServiceBrokerInvalidParametersException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
             }
 
-            BucketAction.create(connection, new ObjectBucketCreate(prefix(bucketName), broker.getNamespace(), replicationGroupID, parameters));
+            BucketAction.create(connection, new ObjectBucketCreate(
+                    prefix(bucketName),
+                    (String) parameters.get("namespace"),
+                    lookupReplicationGroup((String) parameters.get("replication-group")).getId(),
+                    parameters
+            ));
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
@@ -487,14 +492,16 @@ public class EcsService {
 
         logger.info("Creating namespace '{}' with plan '{}'({}) and params {}", prefix(namespace), plan.getName(), plan.getId(), parameters);
 
-        NamespaceAction.create(connection, new NamespaceCreate(prefix(namespace), replicationGroupID, parameters));
+        NamespaceAction.create(connection, new NamespaceCreate(
+                prefix(namespace),
+                lookupReplicationGroup((String) parameters.get("replication-group")).getId(),
+                parameters
+        ));
 
         if (parameters.containsKey(QUOTA)) {
             @SuppressWarnings(UNCHECKED)
-            Map<String, Integer> quota = (Map<String, Integer>) parameters
-                    .get(QUOTA);
-            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace,
-                    quota.get(LIMIT), quota.get(WARN));
+            Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
+            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace, quota.get(LIMIT), quota.get(WARN));
             logger.info("Applying quota to namespace {}: block size {}, notification limit {}", namespace, quotaParam.getBlockSize(), quotaParam.getNotificationSize());
             NamespaceQuotaAction.create(connection, prefix(namespace), quotaParam);
         }
@@ -521,7 +528,7 @@ public class EcsService {
 
     /**
      * Handle extra steps after a bucket wipe has completed.
-     *
+     * <p>
      * Throwing an exception here will throw an exception in the CompletableFuture pipeline to signify the operation failed
      */
     private void bucketWipeCompleted(BucketWipeResult result, String id) {
