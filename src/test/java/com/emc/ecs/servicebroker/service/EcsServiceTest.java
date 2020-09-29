@@ -22,11 +22,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static com.emc.ecs.common.Fixtures.*;
@@ -87,6 +83,13 @@ public class EcsServiceTest {
     @InjectMocks
     private EcsService ecs;
 
+    private Map<String, Object> brokerSettings = new HashMap<>();
+    {
+        brokerSettings.put("namespace", NAMESPACE);
+        brokerSettings.put("replication-group", RG_NAME);
+        brokerSettings.put("base-url", BASE_URL);
+    }
+
     @Before
     public void setUp() {
         when(broker.getPrefix()).thenReturn(PREFIX);
@@ -94,6 +97,8 @@ public class EcsServiceTest {
         when(broker.getNamespace()).thenReturn(NAMESPACE);
         when(broker.getRepositoryUser()).thenReturn(USER);
         when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
+
+        when(broker.getSettings()).thenReturn(brokerSettings);
     }
 
     /**
@@ -1208,9 +1213,10 @@ public class EcsServiceTest {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
         rg.setId(RG_ID);
-        UserSecretKey secretKey = new UserSecretKey();
 
+        UserSecretKey secretKey = new UserSecretKey();
         secretKey.setSecretKey(TEST);
+
         PowerMockito.mockStatic(BucketAction.class);
         when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
                 .thenReturn(true);
@@ -1254,6 +1260,8 @@ public class EcsServiceTest {
     }
 
     private void setupCreateBucketTest() throws Exception {
+        setupReplicationGroupsList();
+
         PowerMockito.mockStatic(BucketAction.class);
         PowerMockito.doNothing().when(BucketAction.class, CREATE,
                 same(connection), any(ObjectBucketCreate.class));
@@ -1296,6 +1304,8 @@ public class EcsServiceTest {
     }
 
     private void setupUpdateNamespaceTest() throws Exception {
+        setupReplicationGroupsList();
+
         PowerMockito.mockStatic(NamespaceAction.class);
         PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
                 same(connection), anyString(), any(NamespaceUpdate.class));
@@ -1308,6 +1318,8 @@ public class EcsServiceTest {
     }
 
     private void setupCreateNamespaceTest() throws Exception {
+        setupReplicationGroupsList();
+
         PowerMockito.mockStatic(NamespaceAction.class);
         PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
                 same(connection), any(NamespaceCreate.class));
@@ -1344,5 +1356,22 @@ public class EcsServiceTest {
         PowerMockito.when(BucketRetentionAction.class, GET,
                 same(connection), anyString(), anyString())
                 .thenReturn(retention);
+    }
+
+
+    private void setupReplicationGroupsList() throws Exception {
+        DataServiceReplicationGroup rg1 = new DataServiceReplicationGroup();
+        rg1.setName(RG_NAME);
+        rg1.setId(RG_ID);
+
+        DataServiceReplicationGroup rg2 = new DataServiceReplicationGroup();
+        rg2.setName(RG_NAME_2);
+        rg2.setId(RG_ID_2);
+
+        List<DataServiceReplicationGroup> replicationGroupsList = Arrays.asList(rg1, rg2);
+
+        PowerMockito.mockStatic(ReplicationGroupAction.class);
+        PowerMockito.when(ReplicationGroupAction.class, "list", same(connection))
+                .thenReturn(replicationGroupsList);
     }
 }

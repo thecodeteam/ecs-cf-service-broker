@@ -33,8 +33,9 @@ public class Fixtures {
     public static final String REPO_BUCKET = "ecs-cf-broker-repository";
     public static final String REPO_USER = "ecs-cf-broker-user";
     public static final String RG_NAME = "rg1";
-    public static final String RG_ID =
-            "urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global";
+    public static final String RG_NAME_2 = "rg2";
+    public static final String RG_ID = "urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global";
+    public static final String RG_ID_2 = "urn:storageos:ReplicationGroupInfo:5e75d1fb-fdb5-4422-a64a-cf5bcba9d9b5:global";
     public static final String OBJ_ENDPOINT = "http://127.0.0.1:9020";
     public static final String BUCKET_SERVICE_ID =
             "7181a3b7-f06f-4cce-976b-cc5e859850bc";
