@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
@@ -20,26 +21,39 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(bindingId))
+//        ServiceInstance instance = instanceRepository.find(instanceId);
+//        if (instance == null)
+//            throw new ServiceInstanceDoesNotExistException(instanceId);
+//
+//        String namespaceName = instance.getName();
+//        namespaceName = ecs.prefix(namespaceName);
+
+//        if (ecs.userExists(bindingId, namespaceName))
+        if (ecs.userExists(bindingId, ecs.prefix(instanceId)))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
+//        ServiceInstance instance = instanceRepository.find(instanceId);
+//        if (instance == null)
+//            throw new ServiceInstanceDoesNotExistException(instanceId);
+//
+//        if (instance.getName() == null)
+//            instance.setName(instance.getServiceInstanceId());
+//
+//        String namespaceName = instance.getName();
+//
+////        namespaceName = ecs.prefix(namespaceName);
 
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-        String namespaceName = instance.getName();
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName(), ecs.prefix(instanceId));
 
-        return ecs.createUser(binding.getName(), namespaceName).getSecretKey();
+        return userSecretKey.getSecretKey();
     }
 
     @Override
     public void removeBinding() throws EcsManagementClientException {
-        ecs.deleteUser(binding.getName());
+        ecs.deleteUser(binding.getName(), ecs.prefix(instanceId));
     }
 
     @Override

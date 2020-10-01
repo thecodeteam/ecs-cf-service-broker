@@ -68,15 +68,4 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
         return credentials;
     }
 
-
-    public String getInstanceName() throws IOException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-
-        return instance.getName();
-    }
 }

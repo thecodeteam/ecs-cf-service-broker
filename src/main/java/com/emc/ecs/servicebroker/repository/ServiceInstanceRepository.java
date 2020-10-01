@@ -83,7 +83,7 @@ public class ServiceInstanceRepository {
     public ServiceInstance find(String id) throws IOException {
         String filename = getFilename(id);
 
-        logger.debug("Loading repository from {}:{}", bucket, filename);
+        logger.debug("Loading service instance from repository file {}:{}", bucket, filename);
 
         GetObjectResult<InputStream> input = s3.getObject(bucket, filename);
 

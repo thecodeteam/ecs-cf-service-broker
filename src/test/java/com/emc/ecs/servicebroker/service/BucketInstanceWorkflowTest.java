@@ -39,7 +39,8 @@ public class BucketInstanceWorkflowTest {
                 instanceRepo = mock(ServiceInstanceRepository.class);
                 workflow = new BucketInstanceWorkflow(instanceRepo, ecs);
 
-                when(ecs.wipeAndDeleteBucket(any())).thenReturn(CompletableFuture.completedFuture(true));
+                when(ecs.wipeAndDeleteBucket(any(), any())).thenReturn(CompletableFuture.completedFuture(true));
+                when(ecs.getDefaultNamespace()).thenReturn(NAMESPACE);
             });
 
             Context("#changePlan", () -> {
@@ -104,8 +105,8 @@ public class BucketInstanceWorkflowTest {
                     It("should call delete and NOT wipe bucket", () -> {
                         CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNull(result);
-                        verify(ecs, times(1)).deleteBucket(bucketInstance.getName());
-                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName());
+                        verify(ecs, times(1)).deleteBucket(bucketInstance.getName(), NAMESPACE);
+                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName(), NAMESPACE);
                     });
                 });
 
@@ -115,8 +116,8 @@ public class BucketInstanceWorkflowTest {
 
                         CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNull(result);
-                        verify(ecs, times(1)).deleteBucket(bucketInstance.getName());
-                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName());
+                        verify(ecs, times(1)).deleteBucket(bucketInstance.getName(), NAMESPACE);
+                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName(), NAMESPACE);
                     });
                 });
 
@@ -126,8 +127,8 @@ public class BucketInstanceWorkflowTest {
 
                         CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNull(result);
-                        verify(ecs, times(0)).deleteBucket(bucketInstance.getName());
-                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName());
+                        verify(ecs, times(0)).deleteBucket(bucketInstance.getName(), NAMESPACE);
+                        verify(ecs, times(0)).wipeAndDeleteBucket(bucketInstance.getName(), NAMESPACE);
                     });
                 });
 
@@ -137,8 +138,8 @@ public class BucketInstanceWorkflowTest {
 
                         CompletableFuture result = workflow.delete(SERVICE_INSTANCE_ID);
                         assertNotNull(result);
-                        verify(ecs, times(0)).deleteBucket(bucketInstance.getName());
-                        verify(ecs, times(1)).wipeAndDeleteBucket(bucketInstance.getName());
+                        verify(ecs, times(0)).deleteBucket(bucketInstance.getName(), NAMESPACE);
+                        verify(ecs, times(1)).wipeAndDeleteBucket(bucketInstance.getName(), NAMESPACE);
                     });
                 });
             });
@@ -164,8 +165,7 @@ public class BucketInstanceWorkflowTest {
                     Context("the bucket is included in references", () -> {
                         It("should not delete the bucket", () -> {
                             workflow.delete(SERVICE_INSTANCE_ID);
-                            verify(ecs, times(0))
-                                    .deleteBucket(SERVICE_INSTANCE_ID);
+                            verify(ecs, times(0)).deleteBucket(SERVICE_INSTANCE_ID, NAMESPACE);
                         });
 
                         It("should update each references", () -> {
@@ -186,13 +186,13 @@ public class BucketInstanceWorkflowTest {
                         bucketInstance.setReferences(refs);
                         when(instanceRepo.find(SERVICE_INSTANCE_ID))
                                 .thenReturn(bucketInstance);
-                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID)).thenReturn(null);
+                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID, NAMESPACE)).thenReturn(null);
                     });
 
                     It("should delete the bucket", () -> {
                         workflow.delete(SERVICE_INSTANCE_ID);
                         verify(ecs, times(1))
-                                .deleteBucket(SERVICE_INSTANCE_ID);
+                                .deleteBucket(SERVICE_INSTANCE_ID, NAMESPACE);
                     });
                 });
 
@@ -200,13 +200,13 @@ public class BucketInstanceWorkflowTest {
                     BeforeEach(() -> {
                         when(instanceRepo.find(SERVICE_INSTANCE_ID))
                             .thenReturn(namedBucketInstance);
-                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID)).thenReturn(CompletableFuture.completedFuture(true));
+                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID, NAMESPACE)).thenReturn(CompletableFuture.completedFuture(true));
                     });
 
                     It("should delete the named bucket", () -> {
                         workflow.delete(SERVICE_INSTANCE_ID);
                         verify(ecs, times(1))
-                            .deleteBucket(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID);
+                            .deleteBucket(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID, NAMESPACE);
                     });
                 });
             });

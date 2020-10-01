@@ -373,7 +373,14 @@ public class Fixtures {
                 .serviceDefinitionId("service-one-id")
                 .planId("plan-one-id")
                 .build();
-        return new ServiceInstance(createReq);
+
+        ServiceInstance serviceInstance = new ServiceInstance(createReq);
+
+        Map<String, Object> instanceSettings = new HashMap<>();
+        instanceSettings.put("namespace", NAMESPACE);
+        serviceInstance.setServiceSettings(instanceSettings);
+
+        return serviceInstance;
     }
 
     public static ServiceInstance serviceInstanceWithNameFixture(String name) {
@@ -386,7 +393,14 @@ public class Fixtures {
             .planId("plan-one-id")
             .parameters(params)
             .build();
-        return new ServiceInstance(createReq);
+
+        ServiceInstance serviceInstance = new ServiceInstance(createReq);
+
+        Map<String, Object> instanceSettings = new HashMap<>();
+        instanceSettings.put("namespace", NAMESPACE);
+        serviceInstance.setServiceSettings(instanceSettings);
+
+        return serviceInstance;
     }
 
     public static ServiceInstanceBinding bindingInstanceFixture() {

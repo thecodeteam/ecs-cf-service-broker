@@ -163,16 +163,16 @@ public class EcsServiceInstanceServiceTest {
                 Context("#deleteServiceInstnace", () -> {
                     Context(BASIC_SERVICE, () -> {
                         BeforeEach(() -> {
-                            ServiceInstance inst =
-                                    new ServiceInstance(bucketCreateRequestFixture(params));
-                            when(repo.find(BUCKET_NAME))
-                                    .thenReturn(inst);
+                            ServiceInstance inst = new ServiceInstance(bucketCreateRequestFixture(params));
+                            when(repo.find(BUCKET_NAME)).thenReturn(inst);
+                            when(ecs.getDefaultNamespace()).thenReturn(NAMESPACE);
+
                             instSvc.deleteServiceInstance(bucketDeleteRequestFixture());
                         });
 
                         It("should delete the bucket", () ->
                                 verify(ecs, times(1))
-                                        .deleteBucket(BUCKET_NAME));
+                                        .deleteBucket(BUCKET_NAME, NAMESPACE));
 
                         It("should delete the instance from the repository", () ->
                                 verify(repo, times(1))
@@ -193,7 +193,7 @@ public class EcsServiceInstanceServiceTest {
 
                         It("should not delete the bucket", () ->
                                 verify(ecs, times(0))
-                                        .deleteBucket(any()));
+                                        .deleteBucket(any(),any()));
 
                         It("should save an update of the remote instance in the repo", () -> {
                             ArgumentCaptor<ServiceInstance> instCap = ArgumentCaptor.forClass(ServiceInstance.class);

@@ -2,11 +2,13 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
+import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
@@ -32,15 +34,19 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(binding.getName()))
+        ServiceInstance serviceInstance = this.instanceRepository.find(this.instanceId);
+        String namespace = (String) serviceInstance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
+        if (ecs.userExists(binding.getName(), namespace))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
-        String bucketName = getInstanceName();
+        ServiceInstance instance = getInstance();
+        String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
+        String bucket = instance.getName();
 
-        UserSecretKey userSecretKey = ecs.createUser(binding.getName());
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName(), namespace);
 
         Map<String, Object> parameters = createRequest.getParameters();
 
@@ -52,13 +58,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (permissions == null) {
-            ecs.addUserToBucket(bucketName, binding.getName());
+            ecs.addUserToBucket(bucket, namespace, binding.getName());
         } else {
-            ecs.addUserToBucket(bucketName, binding.getName(), permissions);
+            ecs.addUserToBucket(bucket, namespace, binding.getName(), permissions);
         }
 
-        if (ecs.getBucketFileEnabled(bucketName)) {
-            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucketName, parameters);
+        if (ecs.getBucketFileEnabled(bucket, namespace)) {
+            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucket, parameters);
         }
 
         return userSecretKey.getSecretKey();
@@ -66,7 +72,9 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     @Override
     public void removeBinding() throws EcsManagementClientException, IOException {
-        String bucketName = getInstanceName();
+        ServiceInstance instance = getInstance();
+        String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
+        String bucket = instance.getName();
 
         List<VolumeMount> volumes = binding.getVolumeMounts();
 
@@ -74,7 +82,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             Map<String, Object> mountConfig = ((SharedVolumeDevice) volumes.get(0).getDevice()).getMountConfig();
             String unixId = (String) mountConfig.get("uid");
 
-            LOG.info("Deleting user map for bucket '{}' binding '{}' ", bucketName, bindingId);
+            LOG.info("Deleting user map for bucket '{}' in namespace '{}', binding '{}' ", bucket, namespace, bindingId);
 
             try {
                 ecs.deleteUserMap(binding.getName(), unixId);
@@ -83,15 +91,17 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             }
         }
 
-        LOG.info("Removing binding user '{}' from bucket '{}'", bindingId, bucketName);
+        LOG.info("Removing binding user '{}' from bucket '{}' in namespace '{}'", bindingId, bucket, namespace);
 
-        ecs.removeUserFromBucket(bucketName, binding.getName());
-        ecs.deleteUser(binding.getName());
+        ecs.removeUserFromBucket(bucket, namespace, binding.getName());
+        ecs.deleteUser(binding.getName(), namespace);
     }
 
     @Override
     public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
-        String bucketName = getInstanceName();
+        ServiceInstance instance = getInstance();
+        String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
+        String bucket = instance.getName();
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
@@ -110,7 +120,8 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         // Add bucket name from repository
-        credentials.put("bucket", ecs.prefix(bucketName));
+        credentials.put("bucket", ecs.prefix(bucket));
+        credentials.put("namespace", namespace);
 
         return credentials;
     }
@@ -209,5 +220,17 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             }
         }
         return DEFAULT_MOUNT + File.separator + bindingId;
+    }
+
+
+    public ServiceInstance getInstance() throws IOException {
+        ServiceInstance instance = instanceRepository.find(instanceId);
+        if (instance == null)
+            throw new ServiceInstanceDoesNotExistException(instanceId);
+
+        if (instance.getName() == null)
+            instance.setName(instance.getServiceInstanceId());
+
+        return instance;
     }
 }

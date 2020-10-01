@@ -233,8 +233,8 @@ public class ReclaimPolicyTests {
 
         workflow.delete(instance.getServiceInstanceId());
 
-        verify(ecs, times(1)).deleteBucket(instance.getServiceInstanceId());
-        verify(ecs, times(0)).wipeAndDeleteBucket(instance.getServiceInstanceId());
+        verify(ecs, times(1)).deleteBucket(instance.getServiceInstanceId(), NAMESPACE);
+        verify(ecs, times(0)).wipeAndDeleteBucket(instance.getServiceInstanceId(), NAMESPACE);
     }
 
     private void setupInitTest() throws EcsManagementClientException {

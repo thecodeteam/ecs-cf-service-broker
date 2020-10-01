@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-              "equalToJson": "{\"references\":[\"service-instance-id\"],\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"remote_connect_keys\":{},\"name\":\"service-instance-id\"}"
+              "equalToJson": "{\"references\":[\"service-instance-id\"],\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"remote_connect_keys\":{},\"name\":\"service-instance-id\",\"service_settings\":{\"namespace\":\"ns1\"}}"
         	}
         ]
     },

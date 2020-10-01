@@ -65,19 +65,22 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test
     public void testCreateNamespaceUser() throws IOException, JAXBException, EcsManagementClientException {
+        when(ecs.getNamespaceURL(eq(SERVICE_INSTANCE_ID), eq(Collections.emptyMap()), anyMap())).thenReturn("http://ns1.example.com:9020");
+//        when(ecs.userExists(BINDING_ID, NAMESPACE)).thenReturn(false);
+
         ServiceDefinitionProxy service = namespaceServiceFixture();
-        when(ecs.userExists(BINDING_ID)).thenReturn(false);
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(service);
+
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
         when(ecs.createUser(BINDING_ID, SERVICE_INSTANCE_ID)).thenReturn(userSecretKey);
-        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(service);
-        when(ecs.getNamespaceURL(eq(SERVICE_INSTANCE_ID), eq(Collections.emptyMap()), isNull())).thenReturn("http://ns1.example.com:9020");
 
-        ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
         when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
-        when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
+        when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
+
+        ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         doNothing().when(repository).save(bindingCaptor.capture());
 
         bindSvc.createServiceInstanceBinding(namespaceBindingRequestFixture());
@@ -89,7 +92,7 @@ public class EcsServiceInstanceBindingServiceTest {
         assertNull(creds.get("bucket"));
         assertEquals(TEST_KEY, creds.get(SECRET_KEY));
         verify(ecs, times(1)).createUser(BINDING_ID, SERVICE_INSTANCE_ID);
-        verify(ecs, times(1)).userExists(BINDING_ID);
+        verify(ecs, times(1)).userExists(BINDING_ID, SERVICE_INSTANCE_ID);
         verify(repository).save(any(ServiceInstanceBinding.class));
     }
 
@@ -103,11 +106,11 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test
     public void testCreateBucketUserWithPerms() throws IOException, JAXBException, EcsManagementClientException {
-        when(ecs.userExists(BINDING_ID)).thenReturn(false);
+        when(ecs.userExists(BINDING_ID, NAMESPACE)).thenReturn(false);
         when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
-        when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
+        when(ecs.createUser(BINDING_ID, NAMESPACE)).thenReturn(userSecretKey);
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID)).thenReturn(bucketServiceFixture());
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
@@ -124,12 +127,13 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(BINDING_ID, creds.get("accessKey"));
         assertEquals(SERVICE_INSTANCE_ID, creds.get("bucket"));
         assertEquals(TEST_KEY, creds.get(SECRET_KEY));
-        verify(ecs, times(1)).createUser(BINDING_ID);
-        verify(ecs, times(1)).userExists(BINDING_ID);
+        verify(ecs, times(1)).createUser(BINDING_ID, NAMESPACE);
+        verify(ecs, times(1)).userExists(BINDING_ID, NAMESPACE);
         verify(repository).save(any(ServiceInstanceBinding.class));
         List<String> permissions = Arrays.asList("READ", "WRITE");
-        verify(ecs, times(1)).addUserToBucket(eq(SERVICE_INSTANCE_ID), eq(BINDING_ID),
-                eq(permissions));
+        verify(ecs, times(1)).addUserToBucket(
+                eq(SERVICE_INSTANCE_ID), eq(NAMESPACE), eq(BINDING_ID), eq(permissions)
+        );
     }
 
     /**
@@ -143,13 +147,13 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test
     public void testCreateBucketUserWithExport()
             throws IOException, JAXBException, EcsManagementClientException {
-        when(ecs.userExists(BINDING_ID)).thenReturn(false);
+        when(ecs.userExists(BINDING_ID, NAMESPACE)).thenReturn(false);
         when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
-        when(ecs.getBucketFileEnabled(anyString())).thenReturn(true);
+        when(ecs.getBucketFileEnabled(anyString(), anyString())).thenReturn(true);
         when(ecs.getNfsMountHost()).thenReturn("foo");
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
-        when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
+        when(ecs.createUser(BINDING_ID, NAMESPACE)).thenReturn(userSecretKey);
         doThrow(new EcsManagementClientException("Bad request body (1013)"))
                 .doNothing()
                 .when(ecs)
@@ -197,11 +201,11 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(nfsUrl, volumeOpts.get("source"));
 
 
-        verify(ecs, times(1)).createUser(BINDING_ID);
+        verify(ecs, times(1)).createUser(BINDING_ID, NAMESPACE);
         verify(ecs, times(2)).createUserMap(anyString(), anyInt());
-        verify(ecs, times(1)).userExists(BINDING_ID);
+        verify(ecs, times(1)).userExists(BINDING_ID, NAMESPACE);
         verify(repository).save(any(ServiceInstanceBinding.class));
-        verify(ecs, times(1)).addUserToBucket(eq(SERVICE_INSTANCE_ID), eq(BINDING_ID));
+        verify(ecs, times(1)).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID));
         verify(ecs, times(1)).addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(EXPORT_NAME));
     }
 
@@ -222,11 +226,11 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test
     public void testCreateBucketUser() throws IOException, JAXBException {
-        when(ecs.userExists(BINDING_ID)).thenReturn(false);
+        when(ecs.userExists(BINDING_ID, NAMESPACE)).thenReturn(false);
         when(ecs.getObjectEndpoint()).thenReturn(OBJ_ENDPOINT);
         UserSecretKey userSecretKey = new UserSecretKey();
         userSecretKey.setSecretKey(TEST_KEY);
-        when(ecs.createUser(BINDING_ID)).thenReturn(userSecretKey);
+        when(ecs.createUser(BINDING_ID, NAMESPACE)).thenReturn(userSecretKey);
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID)).thenReturn(bucketServiceFixture());
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
@@ -243,9 +247,9 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(BINDING_ID, creds.get("accessKey"));
         assertEquals(SERVICE_INSTANCE_ID, creds.get("bucket"));
         assertEquals(TEST_KEY, creds.get(SECRET_KEY));
-        verify(ecs, times(1)).createUser(BINDING_ID);
-        verify(ecs, times(1)).userExists(BINDING_ID);
-        verify(ecs, times(1)).addUserToBucket(eq(SERVICE_INSTANCE_ID), eq(BINDING_ID));
+        verify(ecs, times(1)).createUser(BINDING_ID, NAMESPACE);
+        verify(ecs, times(1)).userExists(BINDING_ID, NAMESPACE);
+        verify(ecs, times(1)).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID));
     }
 
     /**
@@ -276,9 +280,9 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(BINDING_ID, accessKey);
         assertEquals(String.class, secretKey.getClass());
         assertTrue(instanceCaptor.getValue().remoteConnectionKeyValid(accessKey, secretKey));
-        verify(ecs, times(0)).createUser(BINDING_ID);
-        verify(ecs, times(0)).userExists(BINDING_ID);
-        verify(ecs, times(0)).addUserToBucket(eq(SERVICE_INSTANCE_ID), eq(BINDING_ID));
+        verify(ecs, times(0)).createUser(BINDING_ID, NAMESPACE);
+        verify(ecs, times(0)).userExists(BINDING_ID, NAMESPACE);
+        verify(ecs, times(0)).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID));
     }
 
     /**
@@ -307,9 +311,9 @@ public class EcsServiceInstanceBindingServiceTest {
         assertEquals(SERVICE_INSTANCE_ID, instanceId);
         assertEquals(BINDING_ID, accessKey);
         assertTrue(instanceCaptor.getValue().remoteConnectionKeyValid(accessKey, secretKey));
-        verify(ecs, times(0)).createUser(BINDING_ID);
-        verify(ecs, times(0)).userExists(BINDING_ID);
-        verify(ecs, times(0)).addUserToBucket(eq(SERVICE_INSTANCE_ID), eq(BINDING_ID));
+        verify(ecs, times(0)).createUser(BINDING_ID, NAMESPACE);
+        verify(ecs, times(0)).userExists(BINDING_ID, NAMESPACE);
+        verify(ecs, times(0)).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID));
     }
 
     /**
@@ -317,12 +321,15 @@ public class EcsServiceInstanceBindingServiceTest {
      * exists, the service will throw an error.
      */
     @Test(expected = ServiceInstanceBindingExistsException.class)
-    public void testCreateExistingNamespaceUserFails() {
-        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID))
-                .thenReturn(namespaceServiceFixture());
-        when(ecs.userExists(BINDING_ID)).thenReturn(true);
+    public void testCreateExistingNamespaceUserFails() throws IOException {
+//        when(ecs.getDefaultNamespace()).thenReturn(NAMESPACE);
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
+//        when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
+        when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
+        when(ecs.userExists(BINDING_ID, SERVICE_INSTANCE_ID)).thenReturn(true);
 
         bindSvc.createServiceInstanceBinding(namespaceBindingRequestFixture());
+        verify(ecs, times(0)).createUser(BINDING_ID, SERVICE_INSTANCE_ID);
     }
 
     /**
@@ -330,9 +337,10 @@ public class EcsServiceInstanceBindingServiceTest {
      * exists, the service will throw an error.
      */
     @Test(expected = ServiceInstanceBindingExistsException.class)
-    public void testCreateExistingBucketUserFails() {
+    public void testCreateExistingBucketUserFails() throws IOException {
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID)).thenReturn(bucketServiceFixture());
-        when(ecs.userExists(BINDING_ID)).thenReturn(true);
+        when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
+        when(ecs.userExists(BINDING_ID, NAMESPACE)).thenReturn(true);
 
         bindSvc.createServiceInstanceBinding(
                 bucketBindingPermissionRequestFixture());
@@ -343,12 +351,16 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test
     public void testRemoveNamespaceUser() throws EcsManagementClientException, IOException {
-        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
         ServiceInstanceBinding bindingFixture = bindingInstanceFixture();
+
+        when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
+        when(ecs.prefix(NAMESPACE)).thenReturn(PREFIX + NAMESPACE);
         when(repository.find(eq(BINDING_ID))).thenReturn(bindingFixture);
+
         bindSvc.deleteServiceInstanceBinding(namespaceBindingRemoveFixture());
-        verify(ecs, times(1)).deleteUser(bindingFixture.getName());
-        verify(ecs, times(0)).removeUserFromBucket(NAMESPACE, bindingFixture.getName());
+
+        verify(ecs, times(1)).deleteUser(bindingFixture.getName(), PREFIX + NAMESPACE);
+        verify(ecs, times(0)).removeUserFromBucket(NAMESPACE, NAMESPACE, bindingFixture.getName());
     }
 
     /**
@@ -361,8 +373,8 @@ public class EcsServiceInstanceBindingServiceTest {
         when(repository.find(eq(BINDING_ID))).thenReturn(bindingFixture);
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         bindSvc.deleteServiceInstanceBinding(bucketBindingRemoveFixture());
-        verify(ecs, times(1)).removeUserFromBucket(SERVICE_INSTANCE_ID, bindingFixture.getName());
-        verify(ecs, times(1)).deleteUser(bindingFixture.getName());
+        verify(ecs, times(1)).removeUserFromBucket(SERVICE_INSTANCE_ID, NAMESPACE, bindingFixture.getName());
+        verify(ecs, times(1)).deleteUser(bindingFixture.getName(), NAMESPACE);
     }
 
     /**
@@ -385,8 +397,8 @@ public class EcsServiceInstanceBindingServiceTest {
         bindSvc.deleteServiceInstanceBinding(bucketBindingRemoveFixture());
 
         assertFalse(instanceCaptor.getValue().remoteConnectionKeyExists(BINDING_ID));
-        verify(ecs, times(0)).removeUserFromBucket(SERVICE_INSTANCE_ID, BINDING_ID);
-        verify(ecs, times(0)).deleteUser(BINDING_ID);
+        verify(ecs, times(0)).removeUserFromBucket(SERVICE_INSTANCE_ID, NAMESPACE, BINDING_ID);
+        verify(ecs, times(0)).deleteUser(BINDING_ID, NAMESPACE);
     }
 
 }
