@@ -654,6 +654,10 @@ public class EcsService {
         return ret;
     }
 
+    Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
+        return mergeParameters(broker, service, plan, requestParameters);
+    }
+
     public String getDefaultNamespace() {
         return broker.getNamespace();
     }
