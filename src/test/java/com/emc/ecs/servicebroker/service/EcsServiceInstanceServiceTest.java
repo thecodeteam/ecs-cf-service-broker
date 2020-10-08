@@ -225,7 +225,7 @@ public class EcsServiceInstanceServiceTest {
                         BeforeEach(() -> {
                             when(repo.find(BUCKET_NAME))
                                     .thenReturn(new ServiceInstance(bucketCreateRequestFixture(params)));
-                            when(ecs.changeBucketPlan(BUCKET_NAME, serviceDef, plan, params))
+                            when(ecs.changeBucketPlan(BUCKET_NAME, serviceDef, plan, params, null))
                                     .thenReturn(settings);
                             instSvc.updateServiceInstance(bucketUpdateRequestFixture(params));
                         });
@@ -250,7 +250,7 @@ public class EcsServiceInstanceServiceTest {
 
                         It("should update the bucket", () ->
                                 verify(ecs, times(1))
-                                        .changeBucketPlan(BUCKET_NAME, serviceDef, plan, params));
+                                        .changeBucketPlan(BUCKET_NAME, serviceDef, plan, params, null));
                     });
 
                     Context(WITH_REMOTE_CONNECTION, () -> {

@@ -455,7 +455,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
         assertNull(serviceSettings.get(QUOTA));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
@@ -487,7 +487,7 @@ public class EcsServiceTest {
         Map<String, Object> params = new HashMap<>();
         params.put(QUOTA, quota);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
         assertEquals(80, returnQuota.get(WARN).longValue());
         assertEquals(100, returnQuota.get(LIMIT).longValue());
@@ -527,7 +527,7 @@ public class EcsServiceTest {
         Map<String, Object> params = new HashMap<>();
         params.put(QUOTA, quota);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
         assertEquals(4, returnQuota.get(WARN).longValue());
         assertEquals(5, returnQuota.get(LIMIT).longValue());
@@ -562,7 +562,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
         Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
         assertEquals(4, quota.get(WARN).longValue());
         assertEquals(5, quota.get(LIMIT).longValue());
@@ -713,7 +713,7 @@ public class EcsServiceTest {
         assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
         NamespaceUpdate update = updateCaptor.getValue();
         assertEquals(EXTERNAL_ADMIN, update.getExternalGroupAdmins());
-        assertTrue(update.getIsEncryptionEnabled());
+        assertNull("Namespace encryption state cannot be changed after creation, value should be null", update.getIsEncryptionEnabled());
         assertTrue(update.getIsComplianceEnabled());
         assertTrue(update.getIsStaleAllowed());
     }
@@ -862,7 +862,7 @@ public class EcsServiceTest {
         NamespaceUpdate update = updateCaptor.getValue();
         assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
         assertEquals(EXTERNAL_ADMIN, update.getExternalGroupAdmins());
-        assertTrue(update.getIsEncryptionEnabled());
+        assertNull("Namespace encryption state cannot be changed after creation, value should be null", update.getIsEncryptionEnabled());
         assertTrue(update.getIsComplianceEnabled());
         assertTrue(update.getIsStaleAllowed());
         assertEquals(Integer.valueOf(5), update.getDefaultBucketBlockSize());

@@ -139,7 +139,9 @@ public class EcsService {
 
             logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
 
-            if (bucketExists(bucketName, (String) parameters.get(NAMESPACE))) {
+            String namespace = (String) parameters.get(NAMESPACE);
+
+            if (bucketExists(bucketName, namespace)) {
                 throw new ServiceInstanceExistsException(id, service.getId());
             }
 
@@ -152,20 +154,20 @@ public class EcsService {
 
             BucketAction.create(connection, new ObjectBucketCreate(
                     prefix(bucketName),
-                    (String) parameters.get(NAMESPACE),
+                    namespace,
                     replicationGroup.getId(),
                     parameters
             ));
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}': limit {}, warn {}", id, quota.get(LIMIT), quota.get(WARN));
-                BucketQuotaAction.create(connection, prefix(id), (String) parameters.get(NAMESPACE), quota.get(LIMIT), quota.get(WARN));
+                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", id, namespace, quota.get(LIMIT), quota.get(WARN));
+                BucketQuotaAction.create(connection, prefix(id), namespace, quota.get(LIMIT), quota.get(WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
-                logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
-                BucketRetentionAction.update(connection, (String) parameters.get(NAMESPACE), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+                logger.info("Applying bucket retention policy on '{}' in '{}': {}", bucketName, namespace, parameters.get(DEFAULT_RETENTION));
+                BucketRetentionAction.update(connection, namespace, prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
@@ -175,11 +177,18 @@ public class EcsService {
         return parameters;
     }
 
-    Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
+    Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters, Map<String, Object> instanceSettings) {
         parameters = mergeParameters(broker, service, plan, parameters);
 
         // Validate the reclaim-policy
         validateReclaimPolicy(parameters);
+
+        String namespace = instanceSettings != null
+                ? (String) instanceSettings.getOrDefault(NAMESPACE, parameters.get(NAMESPACE))
+                : (String) parameters.get(NAMESPACE);
+
+        // keep value in service instance settings
+        parameters.put(NAMESPACE, namespace);
 
         @SuppressWarnings(UNCHECKED)
         Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>());
@@ -188,14 +197,18 @@ public class EcsService {
 
         try {
             if (limit == -1 && warn == -1) {
+                logger.info("Removing quota from '{}' in '{}'", prefix(bucketName), namespace);
+                BucketQuotaAction.delete(connection, prefix(bucketName), namespace);
+
                 parameters.remove(QUOTA);
-                BucketQuotaAction.delete(connection, prefix(bucketName), (String) parameters.get(NAMESPACE));
             } else {
-                BucketQuotaAction.create(connection, prefix(bucketName), (String) parameters.get(NAMESPACE), limit, warn);
+                logger.info("Setting bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(LIMIT), quota.get(WARN));
+                BucketQuotaAction.create(connection, prefix(bucketName), namespace, limit, warn);
             }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
+
         return parameters;
     }
 

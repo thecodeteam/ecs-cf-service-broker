@@ -14,8 +14,9 @@ public class NamespaceUpdate extends NamespaceModel {
     public NamespaceUpdate(Map<String, Object> params) {
         setExternalGroupAdmins(
                 (String) params.get("domain-group-admins"));
-        setIsEncryptionEnabled(
-                (Boolean) params.get("encrypted"));
+        // Namespace encryption state cannot be changed after creation
+        // setIsEncryptionEnabled(
+        //        (Boolean) params.get("encrypted"));
         setIsComplianceEnabled(
                 (Boolean) params.get("compliance-enabled"));
         setIsStaleAllowed(

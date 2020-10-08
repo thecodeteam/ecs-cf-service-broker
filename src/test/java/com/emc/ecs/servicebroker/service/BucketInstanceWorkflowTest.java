@@ -48,14 +48,14 @@ public class BucketInstanceWorkflowTest {
                     when(instanceRepo.find(SERVICE_INSTANCE_ID))
                         .thenReturn(bucketInstance);
 
-                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters, bucketInstance.getServiceSettings()))
                         .thenReturn(new HashMap<>());
                 });
 
                 It("should change the plan", () -> {
                     workflow.changePlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
                     verify(ecs, times(1))
-                            .changeBucketPlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
+                            .changeBucketPlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters, bucketInstance.getServiceSettings());
                 });
             });
 
@@ -64,14 +64,14 @@ public class BucketInstanceWorkflowTest {
                     when(instanceRepo.find(SERVICE_INSTANCE_ID))
                         .thenReturn(namedBucketInstance);
 
-                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
+                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters, namedBucketInstance.getServiceSettings()))
                         .thenReturn(new HashMap<>());
                 });
 
                 It("should change the plan", () -> {
                     workflow.changePlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
                     verify(ecs, times(1))
-                        .changeBucketPlan(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters);
+                        .changeBucketPlan(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID, serviceProxy, planProxy, parameters, namedBucketInstance.getServiceSettings());
                 });
             });
 
@@ -79,9 +79,6 @@ public class BucketInstanceWorkflowTest {
                 BeforeEach(() -> {
                     when(instanceRepo.find(SERVICE_INSTANCE_ID))
                         .thenReturn(null);
-
-                    when(ecs.changeBucketPlan(BUCKET_NAME, serviceProxy, planProxy, parameters))
-                        .thenReturn(new HashMap<>());
                 });
 
                 It("should throw Exception", () -> {

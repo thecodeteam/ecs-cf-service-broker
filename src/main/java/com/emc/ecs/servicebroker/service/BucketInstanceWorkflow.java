@@ -31,7 +31,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 throw new ServiceInstanceDoesNotExistException(instanceId);
             }
 
-            return ecs.changeBucketPlan(instance.getName(), service, plan, parameters);
+            return ecs.changeBucketPlan(instance.getName(), service, plan, parameters, instance.getServiceSettings());
         } catch (IOException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
