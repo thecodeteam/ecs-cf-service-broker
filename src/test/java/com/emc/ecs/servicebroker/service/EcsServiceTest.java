@@ -1216,7 +1216,7 @@ public class EcsServiceTest {
 
         PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
 
-        ecs.addExportToBucket(BUCKET_NAME, EXPORT_NAME);
+        ecs.addExportToBucket(BUCKET_NAME, NAMESPACE, EXPORT_NAME);
 
         ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic(NFSExportAction.class);
@@ -1244,7 +1244,7 @@ public class EcsServiceTest {
 
         PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
 
-        ecs.addExportToBucket(BUCKET_NAME, null);
+        ecs.addExportToBucket(BUCKET_NAME, NAMESPACE,null);
 
         ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic(NFSExportAction.class);

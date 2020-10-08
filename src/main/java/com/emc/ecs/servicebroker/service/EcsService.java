@@ -601,15 +601,16 @@ public class EcsService {
         return service;
     }
 
-    // TODO pass namespace as parameter
-    String addExportToBucket(String instanceId, String relativeExportPath) throws EcsManagementClientException {
+    String addExportToBucket(String instanceId, String namespace, String relativeExportPath) throws EcsManagementClientException {
         if (relativeExportPath == null)
             relativeExportPath = "";
-        String namespace = broker.getNamespace();
         String absoluteExportPath = "/" + namespace + "/" + prefix(instanceId) + "/" + relativeExportPath;
         List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);
         if (exports == null) {
+            logger.info("Creating NFS export path '{}'", absoluteExportPath);
             NFSExportAction.create(connection, absoluteExportPath);
+        } else {
+            logger.info("Skipping NFC export create - non-empty exports list found for path '{}'", absoluteExportPath);
         }
         return absoluteExportPath;
     }

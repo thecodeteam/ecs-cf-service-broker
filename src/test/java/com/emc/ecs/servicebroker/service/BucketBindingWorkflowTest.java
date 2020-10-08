@@ -336,7 +336,7 @@ public class BucketBindingWorkflowTest {
                         Context("at bucket root", () -> {
                             BeforeEach(() -> {
                                 String path = "/ns1/" + SERVICE_INSTANCE_ID + "/";
-                                when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), any(String.class)))
+                                when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), anyString(), anyString()))
                                         .thenReturn(path);
                                 doNothing().when(ecs).deleteUserMap(eq(BINDING_ID), any(String.class));
                             });
@@ -349,7 +349,7 @@ public class BucketBindingWorkflowTest {
                                 verify(ecs, times(1))
                                         .createUser(BINDING_ID, NAMESPACE);
                                 verify(ecs, times(1))
-                                        .addExportToBucket(eq(SERVICE_INSTANCE_ID), pathCaptor.capture());
+                                        .addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(NAMESPACE), pathCaptor.capture());
                                 assertNull(pathCaptor.getValue());
                             });
 
@@ -395,7 +395,7 @@ public class BucketBindingWorkflowTest {
                                 parameters.put("export", "some-path");
                                 workflow = workflow.withCreateRequest(bucketBindingRequestFixture(parameters));
                                 String path = "/ns1/" + SERVICE_INSTANCE_ID + "/some-path";
-                                when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), any(String.class)))
+                                when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), anyString(), anyString()))
                                         .thenReturn(path);
                             });
 
@@ -405,7 +405,7 @@ public class BucketBindingWorkflowTest {
                                 verify(ecs, times(1))
                                         .createUser(BINDING_ID, NAMESPACE);
                                 verify(ecs, times(1))
-                                        .addExportToBucket(eq(SERVICE_INSTANCE_ID), pathCaptor.capture());
+                                        .addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(NAMESPACE), pathCaptor.capture());
                                 assertEquals(pathCaptor.getValue(), "some-path");
                             });
 
@@ -420,7 +420,7 @@ public class BucketBindingWorkflowTest {
                                     workflow.createBindingUser();
 
                                     verify(ecs, times(1))
-                                            .addExportToBucket(eq(SERVICE_INSTANCE_ID), pathCaptor.capture());
+                                            .addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(NAMESPACE), pathCaptor.capture());
                                     assertEquals(pathCaptor.getValue(), null);
                                 });
 

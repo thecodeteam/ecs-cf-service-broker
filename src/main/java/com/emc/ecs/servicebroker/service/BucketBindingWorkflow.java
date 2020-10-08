@@ -64,7 +64,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (ecs.getBucketFileEnabled(bucket, namespace)) {
-            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucket, parameters);
+            volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucket, namespace, parameters);
         }
 
         return userSecretKey.getSecretKey();
@@ -183,23 +183,22 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return unixUid;
     }
 
-    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, String bucketName, Map<String, Object> parameters) throws EcsManagementClientException {
+    private List<VolumeMount> createVolumeExport(String export, URL baseUrl, String bucketName, String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
         int unixUid = createUserMap();
         String host = ecs.getNfsMountHost();
         if (host == null || host.isEmpty()) {
             host = baseUrl.getHost();
         }
 
-        LOG.info("Adding export '{}' to bucket '{}'", export, bucketName);
-        String volumeGUID = UUID.randomUUID().toString();
-        String absoluteExportPath = ecs.addExportToBucket(bucketName, export);
+        LOG.info("Adding export '{}' to bucket '{}' in namespace '{}'", export, bucketName, namespace);
+        String absoluteExportPath = ecs.addExportToBucket(bucketName, namespace, export);
         LOG.debug("Export added: '{}' for bucket '{}'", export, bucketName);
 
         Map<String, Object> opts = new HashMap<>();
-        String nfsUrl = "nfs://" + host + absoluteExportPath;
-
-        opts.put("source", nfsUrl);
+        opts.put("source", "nfs://" + host + absoluteExportPath);
         opts.put("uid", String.valueOf(unixUid));
+
+        String volumeGUID = UUID.randomUUID().toString();
 
         List<VolumeMount> mounts = new ArrayList<>();
         mounts.add(new VolumeMount(VOLUME_DRIVER, getContainerDir(parameters, bindingId),

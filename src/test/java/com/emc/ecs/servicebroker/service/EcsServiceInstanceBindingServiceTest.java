@@ -172,7 +172,7 @@ public class EcsServiceInstanceBindingServiceTest {
 
         String absolutePath = "/" + NAMESPACE + "/" + SERVICE_INSTANCE_ID + "/" + EXPORT_NAME;
 
-        when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(EXPORT_NAME)))
+        when(ecs.addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(NAMESPACE), eq(EXPORT_NAME)))
                 .thenReturn(absolutePath);
 
         bindSvc.createServiceInstanceBinding(bucketBindingExportRequestFixture());
@@ -206,7 +206,7 @@ public class EcsServiceInstanceBindingServiceTest {
         verify(ecs, times(1)).userExists(BINDING_ID, NAMESPACE);
         verify(repository).save(any(ServiceInstanceBinding.class));
         verify(ecs, times(1)).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID));
-        verify(ecs, times(1)).addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(EXPORT_NAME));
+        verify(ecs, times(1)).addExportToBucket(eq(SERVICE_INSTANCE_ID), eq(NAMESPACE), eq(EXPORT_NAME));
     }
 
     /**
