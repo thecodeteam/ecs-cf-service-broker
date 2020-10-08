@@ -92,6 +92,7 @@ public class EcsService {
         }
         try {
             if (namespaceExists(namespace) && bucketExists(bucketName, namespace)) {
+                logger.info("Deleting bucket '{}' from namespace '{}'", prefix(bucketName), namespace);
                 BucketAction.delete(connection, prefix(bucketName), namespace);
             } else {
                 logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(bucketName), namespace);
@@ -114,7 +115,7 @@ public class EcsService {
 
             addUserToBucket(id, namespace, broker.getRepositoryUser());
 
-            logger.info("Started wipe of bucket '{}'", prefix(id));
+            logger.info("Started wipe of bucket '{}' in namespace '{}'", prefix(id), namespace);
             BucketWipeResult result = bucketWipeFactory.newBucketWipeResult();
             bucketWipe.deleteAllObjects(prefix(id), "", result);
 
