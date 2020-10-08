@@ -87,7 +87,8 @@ public class EcsServiceTest {
     {
         brokerSettings.put("namespace", NAMESPACE);
         brokerSettings.put("replication-group", RG_NAME);
-        brokerSettings.put("base-url", BASE_URL);
+        brokerSettings.put("base-url", DEFAULT_BASE_URL_NAME);
+        brokerSettings.put("use-ssl", false);
     }
 
     @Before
@@ -1123,13 +1124,14 @@ public class EcsServiceTest {
     public void testNamespaceURLNoSSLDefaultBaseURL() throws EcsManagementClientException {
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
+        Map<String, Object> serviceSettings = plan.getServiceSettings();
+        serviceSettings.putAll(service.getServiceSettings());
 
         when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
+
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
 
         String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
-        Map<String, Object> serviceSettings = plan.getServiceSettings();
-        serviceSettings.putAll(service.getServiceSettings());
         assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, Collections.emptyMap(), serviceSettings));
     }
 
@@ -1149,7 +1151,9 @@ public class EcsServiceTest {
         service.setServiceSettings(serviceSettings);
 
         when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
+
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
+
         String expectedUrl = HTTPS + NAMESPACE + DOT + BASE_URL + _9021;
         assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, Collections.emptyMap(), serviceSettings));
     }

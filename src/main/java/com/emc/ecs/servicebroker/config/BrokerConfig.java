@@ -228,6 +228,7 @@ public class BrokerConfig {
     public Map<String, Object> getSettings() {
         Map<String, Object> ret = new HashMap<>();
         ret.put("base-url", getBaseUrl());
+        ret.put("use-ssl", getUseSsl());
         ret.put("replication-group", getReplicationGroup());
         ret.put("namespace", getNamespace());
         return ret;

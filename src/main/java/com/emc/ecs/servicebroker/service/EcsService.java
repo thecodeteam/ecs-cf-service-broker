@@ -94,7 +94,7 @@ public class EcsService {
             if (namespaceExists(namespace) && bucketExists(bucketName, namespace)) {
                 BucketAction.delete(connection, prefix(bucketName), namespace);
             } else {
-                logger.info("Bucket {} no longer exists in {}, assume already deleted", prefix(bucketName), namespace);
+                logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(bucketName), namespace);
             }
             return null;
         } catch (Exception e) {
@@ -104,12 +104,11 @@ public class EcsService {
 
     CompletableFuture wipeAndDeleteBucket(String id, String namespace) {
         if (namespace == null) {
-
             namespace = broker.getNamespace();
         }
         try {
             if (!namespaceExists(namespace) || !bucketExists(id, namespace)) {
-                logger.info("Bucket {} no longer exists in {}, assume already deleted", prefix(id), namespace);
+                logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(id), namespace);
                 return null;
             }
 
@@ -213,9 +212,7 @@ public class EcsService {
     }
 
     public boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException {
-        String prefixedName = prefix(bucketName);
-        boolean exists = BucketAction.exists(connection, prefixedName, namespace);
-        return exists;
+        return BucketAction.exists(connection, prefix(bucketName), namespace);
     }
 
     private Boolean namespaceExists(String id) throws EcsManagementClientException {
@@ -226,23 +223,6 @@ public class EcsService {
         return BucketAclAction.exists(connection, id, namespace);
     }
 
-    // TODO pass namespace as parameter or use next method ???
-    UserSecretKey createUser(String id) {
-        try {
-            String namespace = broker.getNamespace();
-            String userId = prefix(id);
-
-            logger.info("Creating user '{}' in namespace '{}'", userId, namespace);
-            ObjectUserAction.create(connection, userId, namespace);
-
-            logger.info("Creating secret for user '{}'", userId);
-            ObjectUserSecretAction.create(connection, userId);
-
-            return ObjectUserSecretAction.list(connection, userId).get(0);
-        } catch (Exception e) {
-            throw new ServiceBrokerException(e.getMessage(), e);
-        }
-    }
 
     UserSecretKey createUser(String id, String namespace) {
         try {
@@ -269,7 +249,6 @@ public class EcsService {
         ObjectUserMapAction.delete(connection, prefix(username), uid, broker.getNamespace());
     }
 
-    // TODO pass namespace as parameter
     Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
         try {
             return ObjectUserAction.exists(connection, prefix(userId), namespace);
@@ -387,29 +366,26 @@ public class EcsService {
         }
     }
 
-    String getNamespaceURL(String namespace, Map<String, Object> parametersAbstract, Map<String, Object> serviceSettings) {
-        HashMap<String, Object> parameters =
-                (parametersAbstract instanceof HashMap)
-                        ? (HashMap) parametersAbstract
-                        : new HashMap<>(parametersAbstract);
-        // TODO refactor settings merge - see mergeParameters
+    String getNamespaceURL(String namespace, Map<String, Object> requestParameters, Map<String, Object> serviceSettings) {
+        Map<String, Object> parameters = broker.getSettings();
+        if (requestParameters != null) {
+            parameters.putAll(requestParameters);
+        }
         if (serviceSettings != null) {
             // merge serviceSettings into parameters, overwriting parameter values
             // with serviceSettings, since serviceSettings are forced by administrator
             // through the catalog.
             parameters.putAll(serviceSettings);
         }
+
         try {
-            return getNamespaceURL(namespace, parameters);
+            String baseUrl = (String) parameters.getOrDefault("base-url", broker.getBaseUrl());
+            Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", broker.getUseSsl());
+
+            return getNamespaceURL(namespace, useSSL, baseUrl);
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
-    }
-
-    private String getNamespaceURL(String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
-        String baseUrl = (String) parameters.getOrDefault("base-url", broker.getBaseUrl());
-        Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", broker.getUseSsl());
-        return getNamespaceURL(namespace, useSSL, baseUrl);
     }
 
     private String getNamespaceURL(String namespace, Boolean useSSL, String baseUrl) throws EcsManagementClientException {
