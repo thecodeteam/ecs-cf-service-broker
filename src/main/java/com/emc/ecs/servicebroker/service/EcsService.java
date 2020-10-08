@@ -276,7 +276,7 @@ public class EcsService {
     }
 
     void addUserToBucket(String bucketId, String namespace, String username, List<String> permissions) throws EcsManagementClientException {
-        logger.info("Adding user '{}' to bucket '{}' with {} access", prefix(username), prefix(bucketId), permissions);
+        logger.info("Adding user '{}' to bucket '{}' in '{}' with {} access", prefix(username), prefix(bucketId), namespace, permissions);
 
         BucketAcl acl = BucketAclAction.get(connection, prefix(bucketId), namespace);
 
