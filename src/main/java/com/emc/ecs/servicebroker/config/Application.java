@@ -9,6 +9,7 @@ import com.emc.ecs.servicebroker.service.EcsService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceService;
 import com.emc.ecs.management.sdk.Connection;
+import com.emc.ecs.servicebroker.service.S3Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,11 @@ public class Application {
     @Bean
     public EcsService ecsService() {
         return new EcsService();
+    }
+
+    @Bean
+    public S3Service s3Service() {
+        return new S3Service();
     }
 
     @Bean

@@ -79,6 +79,9 @@ public class EcsServiceTest {
     @Mock
     private BucketWipeFactory bucketWipeFactory;
 
+    @Mock
+    private S3Service s3;
+
     @Autowired
     @InjectMocks
     private EcsService ecs;
