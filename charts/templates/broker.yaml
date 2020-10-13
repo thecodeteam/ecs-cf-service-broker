@@ -10,7 +10,4 @@ spec:
       secretRef:
         namespace: {{ .Release.Namespace }}
         name: ecs-broker-catalog-credentials
-  catalogRestrictions:
-    serviceClass:
-      - "spec.externalName==ecs-bucket"
 {{ end }}
