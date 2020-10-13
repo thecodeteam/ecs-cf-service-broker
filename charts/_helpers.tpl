@@ -60,7 +60,7 @@ catalog:
       type: bucket
       id: 9052313c-20b2-47de-900f-6e8b04fafcca
       description: "Elastic Cloud S3 Object Storage File Accessible Bucket"
-      active: true
+      active: false
       bindable: true
       repository-service: false
       metadata:
@@ -123,9 +123,9 @@ catalog:
       type: namespace
       id: 12142a5-5172-4ff1-a5c7-72990f0ce2aa
       description: "Elastic Cloud S3 Object Storage Namespace"
-      active: true
+      active: false
       bindable: true
-      repository-service: true
+      repository-service: false
       metadata:
         displayName: ecs-namespace
         documentationUrl: "https://community.emc.com/docs/DOC-45012"
