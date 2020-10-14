@@ -135,6 +135,8 @@ public class CatalogConfig {
         tileReplacements.put("default_retention", "default-retention");
         tileReplacements.put("compliance_enabled", "compliance-enabled");
         tileReplacements.put("default_bucket_quota", "default-bucket-quota");
+        tileReplacements.put("replication_group", "replication-group");
+        tileReplacements.put("base_url", "base-url");
 
         for (Map.Entry<String, String> e : tileReplacements.entrySet()) {
             if (settings.containsKey(e.getKey())) {
