@@ -59,6 +59,15 @@ public class PlanCollectionInstance {
     @JsonProperty("repository_plan")
     private Boolean repositoryPlan;
 
+    @JsonProperty("replication_group")
+    private String replicationGroup;
+
+    @JsonProperty("namespace")
+    private String namespace;
+
+    @JsonProperty("base_url")
+    private String baseUrl;
+
     public void setBullet1(String bullet1) {
         this.bullet1 = bullet1;
     }
@@ -153,6 +162,18 @@ public class PlanCollectionInstance {
         this.accessDuringOutage = accessDuringOutage;
     }
 
+    public void setReplicationGroup(String replicationGroup) {
+        this.replicationGroup = replicationGroup;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
     public List<CostProxy> getCosts() {
         Map<String, Double> val = new HashMap<>();
         val.put(costCurrency != null ? costCurrency.toLowerCase() : Currency.getInstance("USD").getCurrencyCode().toLowerCase(), Double.valueOf(costValue));
@@ -171,6 +192,15 @@ public class PlanCollectionInstance {
 
         if (defaultRetention != null)
             serviceSettings.put("default-retention", Integer.parseInt(defaultRetention));
+
+        if (namespace != null)
+            serviceSettings.put("namespace", namespace);
+
+        if (replicationGroup != null)
+            serviceSettings.put("replication-group", replicationGroup);
+
+        if (baseUrl != null)
+            serviceSettings.put("base-url", baseUrl);
 
         if (quotaLimit != null || quotaWarn != null) {
             Map<String, Integer> quota = new HashMap<>();
