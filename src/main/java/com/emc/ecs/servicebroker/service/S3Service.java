@@ -3,12 +3,17 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
+import com.emc.object.s3.bean.AccessControlList;
+import com.emc.object.s3.bean.CanonicalUser;
 import com.emc.object.s3.bean.GetObjectResult;
+import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.jersey.S3JerseyClient;
+import com.emc.object.s3.request.ListObjectsRequest;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -33,11 +38,13 @@ public class S3Service {
 
         bucket = broker.getPrefixedBucketName();
 
-        logger.info("Initializing client for S3 endpoint: '{}', bucket '{}'", repositoryEndpoint, bucket);
+        String userName = broker.getPrefixedUserName();
+
+        logger.info("Initializing client for S3 endpoint: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
 
         S3Config s3Config = new S3Config(new URI(repositoryEndpoint));
 
-        s3Config.withIdentity(broker.getPrefixedUserName());
+        s3Config.withIdentity(userName);
 
         logger.info("S3 config {}", s3Config);
 
@@ -45,11 +52,25 @@ public class S3Service {
 
         this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
 
-        logger.info("Testing access to S3 endpoint {} - checking existence of {}", repositoryEndpoint, this.bucket);
+        logger.info("Testing access to S3 endpoint {}", repositoryEndpoint);
 
         if (s3.bucketExists(this.bucket)) {
-            logger.info("Test OK. Bucket {} exists", this.bucket);
-            // TODO verify access to objects inside bucket
+            logger.debug("Test OK. Bucket {} exists", this.bucket);
+            ListObjectsResult listObjectsResult = s3.listObjects(new ListObjectsRequest(this.bucket).withMaxKeys(3));
+            listObjectsResult.getObjects().forEach(
+                    s3Object -> {
+                        logger.debug("Testing access to '{}'", s3Object.getKey());
+                        AccessControlList objectAcl = s3.getObjectAcl(bucket, s3Object.getKey());
+                        CanonicalUser owner = objectAcl.getOwner();
+                        String objectOwner = owner.getDisplayName();
+                        if (userName.equalsIgnoreCase(objectOwner)) {
+                            String errorMessage = String.format(
+                                    "S3 Object owners differ in repository, check repository username in broker settings: current username is '%s', found object owner '%s' on '%s'",
+                                    userName, objectOwner, s3Object.getKey());
+                            logger.warn(errorMessage);
+                        }
+                    }
+            );
         } else {
             logger.info("Test OK. Bucket {} doesnt exist yet", this.bucket);
         }
