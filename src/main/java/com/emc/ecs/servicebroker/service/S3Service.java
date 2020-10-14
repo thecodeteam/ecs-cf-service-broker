@@ -13,7 +13,6 @@ import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -77,7 +76,7 @@ public class S3Service {
     }
 
     public void putObject(String filename, Object content) {
-        s3.putObject(bucket, filename, content, null);
+        s3.putObject(bucket, filename, content, "application/json");
     }
 
     public GetObjectResult<InputStream> getObject(String filename) {
