@@ -127,34 +127,20 @@ public class CatalogConfig {
             throw new ServiceBrokerException("Unable to determine service-type from: " + selector.getValue());
         }
 
-        if (settings.containsKey("head_type")) {
-            settings.put("head-type", settings.get("head_type"));
-            settings.remove("head_type");
-        }
+        // TODO use Map.of after java 9+ migration done
+        Map<String, String> tileReplacements = new HashMap<>();
+        tileReplacements.put("head_type", "head-type");
+        tileReplacements.put("access_during_outage", "access-during-outage");
+        tileReplacements.put("file_accessible", "file-accessible");
+        tileReplacements.put("default_retention", "default-retention");
+        tileReplacements.put("compliance_enabled", "compliance-enabled");
+        tileReplacements.put("default_bucket_quota", "default-bucket-quota");
 
-        if (settings.containsKey("access_during_outage")) {
-            settings.put("access-during-outage", settings.get("access_during_outage"));
-            settings.remove("file_accessible");
-        }
-
-        if (settings.containsKey("file_accessible")) {
-            settings.put("file-accessible", settings.get("file_accessible"));
-            settings.remove("file_accessible");
-        }
-
-        if (settings.containsKey("default_retention")) {
-            settings.put("default-retention", settings.get("default_retention"));
-            settings.remove("default_retention");
-        }
-
-        if (settings.containsKey("compliance_enabled")) {
-            settings.put("compliance-enabled", settings.get("compliance_enabled"));
-            settings.remove("compliance_enabled");
-        }
-
-        if (settings.containsKey("default_bucket_quota")) {
-            settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
-            settings.remove("default_bucket_quota");
+        for (Map.Entry<String, String> e : tileReplacements.entrySet()) {
+            if (settings.containsKey(e.getKey())) {
+                settings.put(e.getValue(), settings.get(e.getKey()));
+                settings.remove(e.getKey());
+            }
         }
 
         settings = settings.entrySet().stream()
