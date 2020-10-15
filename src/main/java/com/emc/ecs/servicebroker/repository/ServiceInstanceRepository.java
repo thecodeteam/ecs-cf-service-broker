@@ -36,11 +36,11 @@ public class ServiceInstanceRepository {
 
     @PostConstruct
     public void initialize() throws URISyntaxException {
-        logger.info("Creating S3 config with repository endpoint {}", broker.getRepositoryEndpoint());
+        logger.info("Initializing repository with repository endpoint {}", broker.getRepositoryEndpoint());
 
         S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
 
-        logger.debug("Created S3 config {}", s3Config);
+        logger.info("Repository S3 config {}", s3Config);
 
         s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
 
@@ -51,6 +51,13 @@ public class ServiceInstanceRepository {
         this.bucket = broker.getPrefixedBucketName();
 
         logger.info("Service repository bucket: {}", this.bucket);
+
+        logger.info("Testing access to S3 endpoint {} - checking existence of {}", broker.getRepositoryEndpoint(), this.bucket);
+        if (s3.bucketExists(this.bucket)) {
+            logger.info("Test OK. Bucket {} exists", this.bucket);
+        } else {
+            logger.info("Test OK. Bucket {} doesnt exist yet", this.bucket);
+        }
     }
 
     public void save(ServiceInstance instance) throws IOException {
@@ -63,7 +70,7 @@ public class ServiceInstanceRepository {
         String filename = getFilename(instance.getServiceInstanceId());
 
         logger.info("Saving repository to {}:{}", bucket, filename);
-        logger.info("S3 config: Host: {}, Namespace: {}, Protocol: {}, Identity: {}, Port: {}",
+        logger.debug("S3 config: Host: {}, Namespace: {}, Protocol: {}, Identity: {}, Port: {}",
                 this.s3.getS3Config().getHost(),
                 this.s3.getS3Config().getNamespace(),
                 this.s3.getS3Config().getProtocol(),
