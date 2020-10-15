@@ -15,6 +15,6 @@ data:
       certificate: {{ toYaml .Values.certificate | indent 6 }}
   {{- end }}
       defaultReclaimPolicy: {{ .Values.defaultReclaimPolicy }}
-    {{- template "ecs-service-broker.catalog" . }}
+  {{ include "ecs-service-broker.catalog" . | indent 4 }}
     spring:
       profiles: default
