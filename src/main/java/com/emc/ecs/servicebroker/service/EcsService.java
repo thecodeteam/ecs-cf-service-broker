@@ -132,17 +132,17 @@ public class EcsService {
         return b.getFsAccessEnabled();
     }
 
-    Map<String, Object> createBucket(String id, String bucketName, ServiceDefinitionProxy service,
+    Map<String, Object> createBucket(String serviceInstanceId, String bucketName, ServiceDefinitionProxy serviceDefinition,
                                      PlanProxy plan, Map<String, Object> parameters) {
         try {
-            parameters = mergeParameters(broker, service, plan, parameters);
+            parameters = mergeParameters(broker, serviceDefinition, plan, parameters);
 
             logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
 
             String namespace = (String) parameters.get(NAMESPACE);
 
             if (bucketExists(bucketName, namespace)) {
-                throw new ServiceInstanceExistsException(id, service.getId());
+                throw new ServiceInstanceExistsException(serviceInstanceId, serviceDefinition.getId());
             }
 
             // Validate the reclaim-policy
@@ -161,8 +161,8 @@ public class EcsService {
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", id, namespace, quota.get(LIMIT), quota.get(WARN));
-                BucketQuotaAction.create(connection, prefix(id), namespace, quota.get(LIMIT), quota.get(WARN));
+                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", bucketName, namespace, quota.get(LIMIT), quota.get(WARN));
+                BucketQuotaAction.create(connection, prefix(bucketName), namespace, quota.get(LIMIT), quota.get(WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
@@ -432,7 +432,7 @@ public class EcsService {
             }
 
             Map<String, Object> parameters = new HashMap<>();
-            parameters.put("namespace", namespace);
+            parameters.put(NAMESPACE, namespace);
 
             createBucket("repository", bucketName, service, plan, parameters);
         }
