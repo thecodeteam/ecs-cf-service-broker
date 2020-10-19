@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.config.BrokerConfig;
+import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.AccessControlList;

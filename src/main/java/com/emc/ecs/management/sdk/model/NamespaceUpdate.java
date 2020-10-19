@@ -4,6 +4,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @XmlRootElement(name = "namespace_update")
 public class NamespaceUpdate extends NamespaceModel {
     private String vpoolsAddedToAllowedVpoolsList;
@@ -12,17 +14,16 @@ public class NamespaceUpdate extends NamespaceModel {
     private String vpoolsRemovedFromDisallowedVpoolsList;
 
     public NamespaceUpdate(Map<String, Object> params) {
-        setExternalGroupAdmins(
-                (String) params.get("domain-group-admins"));
+        setExternalGroupAdmins((String) params.get(DOMAIN_GROUP_ADMINS));
+
         // Namespace encryption state cannot be changed after creation
-        // setIsEncryptionEnabled(
-        //        (Boolean) params.get("encrypted"));
-        setIsComplianceEnabled(
-                (Boolean) params.get("compliance-enabled"));
-        setIsStaleAllowed(
-                (Boolean) params.get("access-during-outage"));
-        setDefaultBucketBlockSize(
-                (int) params.getOrDefault("default-bucket-quota", -1));
+        // setIsEncryptionEnabled((Boolean) params.get(ENCRYPTED));
+
+        setIsComplianceEnabled((Boolean) params.get(COMPLIANCE_ENABLED));
+
+        setIsStaleAllowed((Boolean) params.get(ACCESS_DURING_OUTAGE));
+
+        setDefaultBucketBlockSize((int) params.getOrDefault(DEFAULT_BUCKET_QUOTA, -1));
     }
 
     public NamespaceUpdate() {

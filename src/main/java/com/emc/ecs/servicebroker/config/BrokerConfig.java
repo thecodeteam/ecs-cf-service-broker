@@ -11,6 +11,8 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @SuppressWarnings("unused")
 @Configuration
 @ConfigurationProperties(prefix = "broker")
@@ -46,8 +48,8 @@ public class BrokerConfig {
         if (selector.getValue().equals("No")) {
             Map<String, Object> settings = selector.getSelectedOption();
 
-            if (settings.containsKey("certificate") && settings.get("certificate") != null) {
-                setCertificate(settings.get("certificate").toString());
+            if (settings.containsKey(CERTIFICATE) && settings.get(CERTIFICATE) != null) {
+                setCertificate(settings.get(CERTIFICATE).toString());
             }
         }
     }
@@ -227,10 +229,10 @@ public class BrokerConfig {
 
     public Map<String, Object> getSettings() {
         Map<String, Object> ret = new HashMap<>();
-        ret.put("base-url", getBaseUrl());
-        ret.put("use-ssl", getUseSsl());
-        ret.put("replication-group", getReplicationGroup());
-        ret.put("namespace", getNamespace());
+        ret.put(BASE_URL, getBaseUrl());
+        ret.put(USE_SSL, getUseSsl());
+        ret.put(REPLICATION_GROUP, getReplicationGroup());
+        ret.put(NAMESPACE, getNamespace());
         return ret;
     }
 }

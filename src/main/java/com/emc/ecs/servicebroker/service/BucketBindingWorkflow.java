@@ -20,12 +20,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
-
-    private static final String VOLUME_DRIVER = "nfsv3driver";
-    private static final String DEFAULT_MOUNT = "/var/vcap/data";
-    private static final String MOUNT = "mount";
 
     private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
 
@@ -35,7 +33,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
         ServiceInstance serviceInstance = this.instanceRepository.find(this.instanceId);
-        String namespace = (String) serviceInstance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
+        String namespace = (String) serviceInstance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
         if (ecs.userExists(binding.getName(), namespace))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
@@ -43,7 +41,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
         ServiceInstance instance = getInstance();
-        String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
+        String namespace = (String) instance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
         String bucket = instance.getName();
 
         UserSecretKey userSecretKey = ecs.createUser(binding.getName(), namespace);
@@ -53,8 +51,8 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         String export = "";
         List<String> permissions = null;
         if (parameters != null) {
-            permissions = (List<String>) parameters.get("permissions");
-            export = (String) parameters.getOrDefault("export", null);
+            permissions = (List<String>) parameters.get(USER_PERMISSIONS);
+            export = (String) parameters.getOrDefault(VOLUME_EXPORT, null);
         }
 
         if (permissions == null) {
@@ -85,7 +83,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             LOG.info("Deleting user map for bucket '{}' in namespace '{}', binding '{}' ", bucket, namespace, bindingId);
 
             try {
-                ecs.deleteUserMap(binding.getName(), unixId);
+                ecs.deleteUserMap(binding.getName(), namespace, unixId);
             } catch (EcsManagementClientException e) {
                 LOG.error("Error deleting user map: " + e.getMessage());
             }
@@ -107,21 +105,21 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         // Add default broker endpoint
         String endpoint = ecs.getObjectEndpoint();
-        credentials.put("endpoint", endpoint);
+        credentials.put(ENDPOINT, endpoint);
 
         // Add s3 URL
         URL baseUrl = new URL(endpoint);
-        credentials.put("s3Url", getS3Url(baseUrl, secretKey, parameters));
+        credentials.put(S3_URL, getS3Url(baseUrl, secretKey, parameters));
 
-        if (parameters != null && parameters.containsKey("path-style-access") && !(Boolean) parameters.get("path-style-access")) {
-            credentials.put("path-style-access", false);
+        if (parameters != null && parameters.containsKey(PATH_STYLE_ACCESS) && !(Boolean) parameters.get(PATH_STYLE_ACCESS)) {
+            credentials.put(PATH_STYLE_ACCESS, false);
         } else {
-            credentials.put("path-style-access", true);
+            credentials.put(PATH_STYLE_ACCESS, true);
         }
 
         // Add bucket name from repository
-        credentials.put("bucket", ecs.prefix(bucket));
-        credentials.put("namespace", namespace);
+        credentials.put(BUCKET, ecs.prefix(bucket));
+        credentials.put(NAMESPACE, namespace);
 
         return credentials;
     }
@@ -158,7 +156,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         if (baseUrl.getPort() != -1)
             portString = ":" + baseUrl.getPort();
 
-        if (parameters != null && parameters.containsKey("path-style-access") && !(Boolean) parameters.get("path-style-access")) {
+        if (parameters != null && parameters.containsKey(PATH_STYLE_ACCESS) && !(Boolean) parameters.get(PATH_STYLE_ACCESS)) {
             s3Url = s3Url + ecs.prefix(instanceId) + "." + baseUrl.getHost() + portString;
         } else {
             s3Url = s3Url + baseUrl.getHost() + portString + "/" + ecs.prefix(instanceId);
@@ -166,11 +164,11 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return s3Url;
     }
 
-    private int createUserMap() throws EcsManagementClientException {
+    private int createUserMap(String namespace) throws EcsManagementClientException {
         int unixUid = (int) (2000 + System.currentTimeMillis() % 8000);
         while (true) {
             try {
-                ecs.createUserMap(binding.getName(), unixUid);
+                ecs.createUserMap(binding.getName(), namespace, unixUid);
                 break;
             } catch (EcsManagementClientException e) {
                 if (e.getMessage().contains("Bad request body (1013)")) {
@@ -184,7 +182,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     private List<VolumeMount> createVolumeExport(String export, URL baseUrl, String bucketName, String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
-        int unixUid = createUserMap();
+        int unixUid = createUserMap(namespace);
         String host = ecs.getNfsMountHost();
         if (host == null || host.isEmpty()) {
             host = baseUrl.getHost();
@@ -195,8 +193,8 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         LOG.debug("Export added: '{}' for bucket '{}'", export, bucketName);
 
         Map<String, Object> opts = new HashMap<>();
-        opts.put("source", "nfs://" + host + absoluteExportPath);
-        opts.put("uid", String.valueOf(unixUid));
+        opts.put(VOLUME_EXPORT_SOURCE, "nfs://" + host + absoluteExportPath);
+        opts.put(VOLUME_EXPORT_UID, String.valueOf(unixUid));
 
         String volumeGUID = UUID.randomUUID().toString();
 
@@ -210,7 +208,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     private String getContainerDir(Map<String, Object> parameters, String bindingId) {
         if (parameters != null) {
-            Object o = parameters.get(MOUNT);
+            Object o = parameters.get(VOLUME_MOUNT);
             if (o instanceof String) {
                 String mount = (String) o;
                 if (!mount.isEmpty()) {
@@ -218,7 +216,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
                 }
             }
         }
-        return DEFAULT_MOUNT + File.separator + bindingId;
+        return VOLUME_DEFAULT_MOUNT + File.separator + bindingId;
     }
 
 

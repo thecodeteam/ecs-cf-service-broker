@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.emc.ecs.common.Fixtures.*;
+import static com.emc.ecs.servicebroker.model.Constants.RECLAIM_POLICY;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -44,9 +45,9 @@ import static org.mockito.Mockito.*;
     BucketAclAction.class, NFSExportAction.class, ObjectUserMapAction.class})
 
 public class ReclaimPolicyTests {
-    private static final String BASE_URL = "base-url";
-    private static final String REPOSITORY = "repository";
-    private static final String USER = "user";
+    private static final String BASE_URL = "some-base-url";
+    private static final String REPOSITORY = "repository-bucket";
+    private static final String USER = "some-user";
     private static final String HTTP = "http://";
     private static final String _9020 = ":9020";
     private static final String CREATE = "create";
@@ -75,7 +76,7 @@ public class ReclaimPolicyTests {
     public void setUp() {
         when(broker.getPrefix()).thenReturn(PREFIX);
         when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-        when(broker.getNamespace()).thenReturn(NAMESPACE);
+        when(broker.getNamespace()).thenReturn(NAMESPACE_NAME);
         when(broker.getRepositoryUser()).thenReturn(USER);
         when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
 
@@ -233,8 +234,8 @@ public class ReclaimPolicyTests {
 
         workflow.delete(instance.getServiceInstanceId());
 
-        verify(ecs, times(1)).deleteBucket(instance.getServiceInstanceId(), NAMESPACE);
-        verify(ecs, times(0)).wipeAndDeleteBucket(instance.getServiceInstanceId(), NAMESPACE);
+        verify(ecs, times(1)).deleteBucket(instance.getServiceInstanceId(), NAMESPACE_NAME);
+        verify(ecs, times(0)).wipeAndDeleteBucket(instance.getServiceInstanceId(), NAMESPACE_NAME);
     }
 
     private void setupInitTest() throws EcsManagementClientException {
@@ -245,7 +246,7 @@ public class ReclaimPolicyTests {
 
         secretKey.setSecretKey(TEST);
         PowerMockito.mockStatic(BucketAction.class);
-        when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
+        when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE_NAME))
             .thenReturn(true);
 
         PowerMockito.mockStatic(ReplicationGroupAction.class);
@@ -253,7 +254,7 @@ public class ReclaimPolicyTests {
             .thenReturn(Collections.singletonList(rg));
 
         PowerMockito.mockStatic(ObjectUserAction.class);
-        when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
+        when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE_NAME))
             .thenReturn(true);
 
         PowerMockito.mockStatic(ObjectUserSecretAction.class);

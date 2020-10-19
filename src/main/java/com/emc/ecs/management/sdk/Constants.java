@@ -1,6 +1,8 @@
 package com.emc.ecs.management.sdk;
 
 public final class Constants {
+    public static final String X_SDS_AUTH_TOKEN = "X-SDS-AUTH-TOKEN";
+
     public static final String OBJECT = "object";
     public static final String NAMESPACES = "namespaces";
     public static final String NAMESPACE = "namespace";
@@ -21,6 +23,9 @@ public final class Constants {
     public static final String EXPORTS = "exports";
     public static final String USER = "user";
     public static final String GROUP = "group";
+    public static final String LOGOUT = "logout";
+    public static final String LOGIN = "login";
+
     public static final String APPLICATION_XML = "application/xml";
     public static final String APPLICATION_JSON = "application/json";
 

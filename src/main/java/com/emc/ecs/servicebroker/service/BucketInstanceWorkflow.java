@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     private static final Logger logger = LoggerFactory.getLogger(BucketInstanceWorkflow.class);
 
@@ -46,7 +48,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
             } else {
                 // buckets created prior to ver2.1 doesnt have namespace in their settings - using old default
                 String namespace = instance.getServiceSettings() != null
-                        ? (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace())
+                        ? (String) instance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace())
                         : ecs.getDefaultNamespace();
 
                 ReclaimPolicy reclaimPolicy = ReclaimPolicy.getReclaimPolicy(instance.getServiceSettings());
@@ -86,9 +88,9 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan,
-                                  Map<String, Object> parameters) {
+    public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
         ServiceInstance instance = getServiceInstance(parameters);
+
         Map<String, Object> serviceSettings = ecs.createBucket(id, instance.getName(), service, plan, parameters);
 
         instance.setServiceSettings(serviceSettings);

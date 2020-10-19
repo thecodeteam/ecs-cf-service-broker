@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @Configuration
 @ConfigurationProperties(prefix = "catalog")
 public class CatalogConfig {
@@ -120,23 +122,24 @@ public class CatalogConfig {
         Map<String, Object> settings = selector.getSelectedOption();
 
         if (selector.getValue().equals("Bucket")) {
-            settings.put("service-type", "bucket");
+            settings.put(SERVICE_TYPE, ServiceType.BUCKET.getAlias());
         } else if (selector.getValue().equals("Namespace")) {
-            settings.put("service-type", "namespace");
+            settings.put(SERVICE_TYPE, ServiceType.NAMESPACE.getAlias());
         } else {
             throw new ServiceBrokerException("Unable to determine service-type from: " + selector.getValue());
         }
 
-        // TODO use Map.of after java 9+ migration done
         Map<String, String> tileReplacements = new HashMap<>();
-        tileReplacements.put("head_type", "head-type");
-        tileReplacements.put("access_during_outage", "access-during-outage");
-        tileReplacements.put("file_accessible", "file-accessible");
-        tileReplacements.put("default_retention", "default-retention");
-        tileReplacements.put("compliance_enabled", "compliance-enabled");
-        tileReplacements.put("default_bucket_quota", "default-bucket-quota");
-        tileReplacements.put("replication_group", "replication-group");
-        tileReplacements.put("base_url", "base-url");
+
+        // TODO use Map.of after java 9+ migration done
+        tileReplacements.put("head_type", HEAD_TYPE);
+        tileReplacements.put("access_during_outage", ACCESS_DURING_OUTAGE);
+        tileReplacements.put("file_accessible", FILE_ACCESSIBLE);
+        tileReplacements.put("default_retention", DEFAULT_RETENTION);
+        tileReplacements.put("compliance_enabled", COMPLIANCE_ENABLED);
+        tileReplacements.put("default_bucket_quota", DEFAULT_BUCKET_QUOTA);
+        tileReplacements.put("replication_group", REPLICATION_GROUP);
+        tileReplacements.put("base_url", BASE_URL);
 
         for (Map.Entry<String, String> e : tileReplacements.entrySet()) {
             if (settings.containsKey(e.getKey())) {

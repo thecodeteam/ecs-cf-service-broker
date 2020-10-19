@@ -14,6 +14,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs, ServiceDefinitionProxy service) {
@@ -51,14 +53,14 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
         // Add namespace title as part of credentials
-        credentials.put("namespace", ecs.prefix(namespaceName));
+        credentials.put(NAMESPACE, ecs.prefix(namespaceName));
 
         // Get custom endpoint for namespace
         String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
-        credentials.put("endpoint", endpoint);
+        credentials.put(ENDPOINT, endpoint);
 
         // Add s3 URL
-        credentials.put("s3Url", getS3Url(endpoint, secretKey));
+        credentials.put(S3_URL, getS3Url(endpoint, secretKey));
 
         return credentials;
     }

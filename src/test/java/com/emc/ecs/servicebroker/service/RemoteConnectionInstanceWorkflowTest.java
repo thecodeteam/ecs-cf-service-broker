@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.emc.ecs.common.Fixtures.*;
+import static com.emc.ecs.servicebroker.model.Constants.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -63,7 +64,7 @@ public class RemoteConnectionInstanceWorkflowTest {
             Context("#create", () -> {
 
                 BeforeEach(() -> {
-                    params.put("remote_connection", remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
+                    params.put(REMOTE_CONNECTION, remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
                     CreateServiceInstanceRequest createReq = bucketCreateRequestFixture(params);
                     createReq.setServiceInstanceId(SERVICE_INSTANCE_ID);
                     workflow.withCreateRequest(createReq);
@@ -102,7 +103,7 @@ public class RemoteConnectionInstanceWorkflowTest {
                             It("should raise an exception", () -> {
                                 try {
                                     Map<String, Object> newParams = new HashMap<>(params);
-                                    newParams.put("encrypted", true);
+                                    newParams.put(ENCRYPTED, true);
                                     workflow.create(SERVICE_INSTANCE_ID, serviceProxy, planProxy, newParams);
                                 } catch (ServiceBrokerException e) {
                                     String message = "service definition must match between local and remote instances";
@@ -164,9 +165,9 @@ public class RemoteConnectionInstanceWorkflowTest {
 
     private Map<String, String> remoteConnect(String instanceId, String secretKey) {
         Map<String, String> remoteConnection = new HashMap<>();
-        remoteConnection.put("accessKey", BINDING_ID);
-        remoteConnection.put("secretKey", secretKey);
-        remoteConnection.put("instanceId", instanceId);
+        remoteConnection.put(CREDENTIALS_ACCESS_KEY, BINDING_ID);
+        remoteConnection.put(CREDENTIALS_SECRET_KEY, secretKey);
+        remoteConnection.put(CREDENTIALS_INSTANCE_ID, instanceId);
         return remoteConnection;
     }
 

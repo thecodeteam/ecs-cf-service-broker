@@ -110,7 +110,7 @@ public class Connection {
     }
 
     public void login() throws EcsManagementClientException {
-        UriBuilder uriBuilder = UriBuilder.fromPath(endpoint).segment("login");
+        UriBuilder uriBuilder = UriBuilder.fromPath(endpoint).segment(LOGIN);
 
         logger.info("Logging into {} as {}", endpoint, username);
 
@@ -126,7 +126,7 @@ public class Connection {
             response = request.get();
             handleResponse(response);
 
-            this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
+            this.authToken = response.getHeaderString(X_SDS_AUTH_TOKEN);
             this.authRetries = 0;
         } catch (EcsManagementResourceNotFoundException e) {
             logger.warn("Login failed to handle response: {}", e.getMessage());
@@ -143,7 +143,7 @@ public class Connection {
     }
 
     public void logout() throws EcsManagementClientException {
-        UriBuilder uri = UriBuilder.fromPath(endpoint).segment("logout")
+        UriBuilder uri = UriBuilder.fromPath(endpoint).segment(LOGOUT)
                 .queryParam("force", true);
         handleRemoteCall(GET, uri, null);
         this.authToken = null;
@@ -185,8 +185,8 @@ public class Connection {
             Builder request = jerseyClient.target(uri)
                     .register(LoggingFeature.class).request()
                     .header("X-EMC-Override", "true")            // enables access to ECS Flex API (pre-GA limitation)
-                    .header("X-SDS-AUTH-TOKEN", authToken)
-                    .header("Accept", "application/xml");
+                    .header(X_SDS_AUTH_TOKEN, authToken)
+                    .header("Accept", APPLICATION_XML);
 
             Response response = null;
             if (GET.equals(method)) {

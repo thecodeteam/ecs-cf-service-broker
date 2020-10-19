@@ -28,22 +28,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @Service
 public class EcsService {
-
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
-
-    private static final String UNCHECKED = "unchecked";
-    private static final String WARN = "warn";
-    private static final String LIMIT = "limit";
-    private static final String QUOTA = "quota";
-    private static final String RETENTION = "retention";
-    private static final String NAMESPACE = "namespace";
-    private static final String REPLICATION_GROUP = "replication-group";
-    private static final String DEFAULT_RETENTION = "default-retention";
-    private static final String INVALID_RECLAIM_POLICY = "Invalid reclaim-policy: ";
-    private static final String INVALID_ALLOWED_RECLAIM_POLICIES = "Invalid reclaim-policies: ";
-    private static final String REJECT_RECLAIM_POLICY = "Reclaim Policy is not allowed: ";
 
     @Autowired
     private Connection connection;
@@ -160,9 +149,10 @@ public class EcsService {
             ));
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
+                @SuppressWarnings("unchecked")
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", bucketName, namespace, quota.get(LIMIT), quota.get(WARN));
-                BucketQuotaAction.create(connection, prefix(bucketName), namespace, quota.get(LIMIT), quota.get(WARN));
+                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", bucketName, namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
+                BucketQuotaAction.create(connection, prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
@@ -190,19 +180,19 @@ public class EcsService {
         // keep value in service instance settings
         parameters.put(NAMESPACE, namespace);
 
-        @SuppressWarnings(UNCHECKED)
-        Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>());
-        int limit = (int) quota.getOrDefault(LIMIT, -1);
-        int warn = (int) quota.getOrDefault(WARN, -1);
-
         try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>());
+            int limit = (int) quota.getOrDefault(QUOTA_LIMIT, -1);
+            int warn = (int) quota.getOrDefault(QUOTA_WARN, -1);
+
             if (limit == -1 && warn == -1) {
                 logger.info("Removing quota from '{}' in '{}'", prefix(bucketName), namespace);
                 BucketQuotaAction.delete(connection, prefix(bucketName), namespace);
 
                 parameters.remove(QUOTA);
             } else {
-                logger.info("Setting bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(LIMIT), quota.get(WARN));
+                logger.info("Setting bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
                 BucketQuotaAction.create(connection, prefix(bucketName), namespace, limit, warn);
             }
         } catch (EcsManagementClientException e) {
@@ -240,14 +230,12 @@ public class EcsService {
         }
     }
 
-    // TODO pass namespace as parameter
-    void createUserMap(String username, int uid) throws EcsManagementClientException {
-        ObjectUserMapAction.create(connection, prefix(username), uid, broker.getNamespace());
+    void createUserMap(String username, String namespace, int uid) throws EcsManagementClientException {
+        ObjectUserMapAction.create(connection, prefix(username), uid, namespace);
     }
 
-    // TODO pass namespace as parameter
-    void deleteUserMap(String username, String uid) throws EcsManagementClientException {
-        ObjectUserMapAction.delete(connection, prefix(username), uid, broker.getNamespace());
+    void deleteUserMap(String username, String namespace, String uid) throws EcsManagementClientException {
+        ObjectUserMapAction.delete(connection, prefix(username), uid, namespace);
     }
 
     Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
@@ -269,7 +257,7 @@ public class EcsService {
 
     void addUserToBucket(String bucketId, String namespace, String username) {
         try {
-            addUserToBucket(bucketId, namespace, username, Collections.singletonList("full_control"));
+            addUserToBucket(bucketId, namespace, username, FULL_CONTROL);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -380,8 +368,8 @@ public class EcsService {
         }
 
         try {
-            String baseUrl = (String) parameters.getOrDefault("base-url", broker.getBaseUrl());
-            Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", broker.getUseSsl());
+            String baseUrl = (String) parameters.getOrDefault(BASE_URL, broker.getBaseUrl());
+            Boolean useSSL = (Boolean) parameters.getOrDefault(USE_SSL, broker.getUseSsl());
 
             return getNamespaceURL(namespace, useSSL, baseUrl);
         } catch (EcsManagementClientException e) {
@@ -479,18 +467,18 @@ public class EcsService {
         try {
             ReclaimPolicy.getReclaimPolicy(parameters);
         } catch (IllegalArgumentException e) {
-            throw new ServiceBrokerInvalidParametersException(INVALID_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException("Invalid reclaim-policy: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
 
         // Ensure Allowed-Reclaim-Policies can be parsed
         try {
             ReclaimPolicy.getAllowedReclaimPolicies(parameters);
         } catch (IllegalArgumentException e) {
-            throw new ServiceBrokerInvalidParametersException(INVALID_ALLOWED_RECLAIM_POLICIES + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException("Invalid reclaim-policies: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
 
         if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
-            throw new ServiceBrokerInvalidParametersException(REJECT_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException("Reclaim Policy is not allowed: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
     }
 
@@ -504,7 +492,7 @@ public class EcsService {
 
         logger.info("Creating namespace '{}' with plan '{}'({}) and params {}", prefix(namespace), plan.getName(), plan.getId(), parameters);
 
-        DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get("replication-group"));
+        DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
 
         NamespaceAction.create(connection, new NamespaceCreate(
                 prefix(namespace),
@@ -513,15 +501,15 @@ public class EcsService {
         ));
 
         if (parameters.containsKey(QUOTA)) {
-            @SuppressWarnings(UNCHECKED)
+            @SuppressWarnings("unchecked")
             Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace, quota.get(LIMIT), quota.get(WARN));
+            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
             logger.info("Applying quota to namespace {}: block size {}, notification limit {}", namespace, quotaParam.getBlockSize(), quotaParam.getNotificationSize());
             NamespaceQuotaAction.create(connection, prefix(namespace), quotaParam);
         }
 
         if (parameters.containsKey(RETENTION)) {
-            @SuppressWarnings(UNCHECKED)
+            @SuppressWarnings("unchecked")
             Map<String, Integer> retention = (Map<String, Integer>) parameters.get(RETENTION);
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
                 logger.info("Adding retention class to namespace {}: {} = {}", namespace, entry.getKey(), entry.getValue());
@@ -572,7 +560,7 @@ public class EcsService {
                 new NamespaceUpdate(parameters));
 
         if (parameters.containsKey(RETENTION)) {
-            @SuppressWarnings(UNCHECKED)
+            @SuppressWarnings("unchecked")
             Map<String, Integer> retention = (Map<String, Integer>) parameters.get(RETENTION);
 
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
@@ -602,16 +590,16 @@ public class EcsService {
         return service;
     }
 
-    String addExportToBucket(String instanceId, String namespace, String relativeExportPath) throws EcsManagementClientException {
+    String addExportToBucket(String bucket, String namespace, String relativeExportPath) throws EcsManagementClientException {
         if (relativeExportPath == null)
             relativeExportPath = "";
-        String absoluteExportPath = "/" + namespace + "/" + prefix(instanceId) + "/" + relativeExportPath;
+        String absoluteExportPath = "/" + namespace + "/" + prefix(bucket) + "/" + relativeExportPath;
         List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);
         if (exports == null) {
             logger.info("Creating NFS export path '{}'", absoluteExportPath);
             NFSExportAction.create(connection, absoluteExportPath);
         } else {
-            logger.info("Skipping NFC export create - non-empty exports list found for path '{}'", absoluteExportPath);
+            logger.info("Skipping NFS export create - non-empty exports list found for path '{}'", absoluteExportPath);
         }
         return absoluteExportPath;
     }

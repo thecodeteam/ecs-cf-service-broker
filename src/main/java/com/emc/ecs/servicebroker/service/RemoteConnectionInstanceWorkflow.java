@@ -12,9 +12,10 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
@@ -33,9 +34,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public ServiceInstance create(String id, ServiceDefinitionProxy serviceDef, PlanProxy plan,
-                                  Map<String, Object> parameters)
-            throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException {
+    public ServiceInstance create(String id, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException {
         Map<String, String> remoteConnection = getRemoteConnection(parameters);
         ServiceInstance remoteInstance = getRemoteInstance(remoteConnection);
         validateCredentials(remoteInstance, remoteConnection);
@@ -53,12 +52,11 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
     private Map<String,String> getRemoteConnection(Map<String, Object> parameters) {
         @SuppressWarnings({"unchecked"})
-        Map<String, String> remoteConnection =  (Map<String, String>) parameters.get("remote_connection");
+        Map<String, String> remoteConnection =  (Map<String, String>) parameters.get(REMOTE_CONNECTION);
         return remoteConnection;
     }
 
-    private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan,
-                                  Map<String, Object> parameters) {
+    private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) {
         Map<String, Object> settings = ecs.mergeParameters(serviceDef, plan, parameters);
 
         Map<String, MapDifference.ValueDifference<Object>> settingsDiff =
@@ -69,17 +67,16 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     private ServiceInstance getRemoteInstance(Map<String, String> remoteConnection) throws IOException {
-        String remoteInstanceId = remoteConnection.get("instanceId");
+        String remoteInstanceId = remoteConnection.get(CREDENTIALS_INSTANCE_ID);
         ServiceInstance remoteInstance = instanceRepository.find(remoteInstanceId);
         if (remoteInstance == null)
             throw new ServiceBrokerException("Remotely connected service instance not found");
         return remoteInstance;
     }
 
-    private void validateCredentials(ServiceInstance remoteInstance, Map<String, String> remoteConnection)
-            throws ServiceBrokerException, IOException {
-        String accessKey = remoteConnection.get("accessKey");
-        String secretKey = remoteConnection.get("secretKey");
+    private void validateCredentials(ServiceInstance remoteInstance, Map<String, String> remoteConnection) throws ServiceBrokerException, IOException {
+        String accessKey = remoteConnection.get(CREDENTIALS_ACCESS_KEY);
+        String secretKey = remoteConnection.get(CREDENTIALS_SECRET_KEY);
         if (! remoteInstance.remoteConnectionKeyValid(accessKey, secretKey))
             throw new ServiceBrokerException("invalid accessKey / secretKey combination");
     }

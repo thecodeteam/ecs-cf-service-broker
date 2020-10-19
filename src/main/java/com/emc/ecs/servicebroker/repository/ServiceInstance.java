@@ -1,6 +1,5 @@
 package com.emc.ecs.servicebroker.repository;
 
-import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -11,12 +10,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 
+import static com.emc.ecs.servicebroker.model.Constants.NAME_PARAMETER;
+
 @SuppressWarnings("unused")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstance {
-    private static String NAME_PARAMETER = "name";
-
     @JsonSerialize
     @JsonProperty("service_instance_id")
     private String serviceInstanceId;

@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class PlanCollectionInstance {
     @JsonProperty("access_during_outage")
@@ -187,30 +189,41 @@ public class PlanCollectionInstance {
 
     public Map<String, Object> getServiceSettings() {
         Map<String, Object> serviceSettings = new HashMap<>();
-        if (accessDuringOutage != null)
-            serviceSettings.put("access-during-outage", accessDuringOutage);
 
-        if (defaultRetention != null)
-            serviceSettings.put("default-retention", Integer.parseInt(defaultRetention));
+        if (accessDuringOutage != null) {
+            serviceSettings.put(ACCESS_DURING_OUTAGE, accessDuringOutage);
+        }
 
-        if (namespace != null)
-            serviceSettings.put("namespace", namespace);
+        if (defaultRetention != null) {
+            serviceSettings.put(DEFAULT_RETENTION, Integer.parseInt(defaultRetention));
+        }
 
-        if (replicationGroup != null)
-            serviceSettings.put("replication-group", replicationGroup);
+        if (namespace != null) {
+            serviceSettings.put(NAMESPACE, namespace);
+        }
 
-        if (baseUrl != null)
-            serviceSettings.put("base-url", baseUrl);
+        if (replicationGroup != null) {
+            serviceSettings.put(REPLICATION_GROUP, replicationGroup);
+        }
+
+        if (baseUrl != null) {
+            serviceSettings.put(BASE_URL, baseUrl);
+        }
 
         if (quotaLimit != null || quotaWarn != null) {
             Map<String, Integer> quota = new HashMap<>();
-            if (quotaLimit != null)
-                quota.put("limit", Integer.parseInt(quotaLimit));
 
-            if (quotaWarn != null)
-                quota.put("warn",  Integer.parseInt(quotaWarn));
-            serviceSettings.put("quota", quota);
+            if (quotaLimit != null) {
+                quota.put(QUOTA_LIMIT, Integer.parseInt(quotaLimit));
+            }
+
+            if (quotaWarn != null) {
+                quota.put(QUOTA_WARN,  Integer.parseInt(quotaWarn));
+            }
+
+            serviceSettings.put(QUOTA, quota);
         }
+
         return serviceSettings;
     }
 }
