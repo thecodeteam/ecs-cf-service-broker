@@ -134,7 +134,7 @@ public class CatalogConfig {
 
         if (settings.containsKey("access_during_outage")) {
             settings.put("access-during-outage", settings.get("access_during_outage"));
-            settings.remove("file_accessible");
+            settings.remove("access_during_outage");
         }
 
         if (settings.containsKey("file_accessible")) {
