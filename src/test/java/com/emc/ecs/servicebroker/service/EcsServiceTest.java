@@ -231,7 +231,7 @@ public class EcsServiceTest {
                 .thenReturn(service);
 
         Map<String, Object> serviceSettings =
-                ecs.createBucket(BUCKET_NAME,  BUCKET_NAME, service, plan, new HashMap<>());
+                ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, new HashMap<>());
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
@@ -243,7 +243,7 @@ public class EcsServiceTest {
         BucketAction.create(same(connection), createCaptor.capture());
 
         ObjectBucketCreate create = createCaptor.getValue();
-        assertEquals(PREFIX + BUCKET_NAME, create.getName());
+        assertEquals(PREFIX + CUSTOM_BUCKET_NAME, create.getName());
         assertEquals(NAMESPACE, create.getNamespace());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
@@ -272,7 +272,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, params);
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
         assertEquals(4, returnQuota.get(WARN).longValue());
         assertEquals(5, returnQuota.get(LIMIT).longValue());
@@ -286,14 +286,14 @@ public class EcsServiceTest {
         BucketAction.create(same(connection), createCaptor.capture());
 
         ObjectBucketCreate create = createCaptor.getValue();
-        assertEquals(PREFIX + BUCKET_NAME, create.getName());
+        assertEquals(PREFIX + CUSTOM_BUCKET_NAME, create.getName());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
         assertTrue(create.getFilesystemEnabled());
         assertEquals(NAMESPACE, create.getNamespace());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.create(same(connection), eq(PREFIX + BUCKET_NAME),
+        BucketQuotaAction.create(same(connection), eq(PREFIX + CUSTOM_BUCKET_NAME),
                 eq(NAMESPACE), eq(5), eq(4));
     }
 
