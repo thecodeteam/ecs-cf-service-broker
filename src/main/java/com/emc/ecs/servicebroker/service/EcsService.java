@@ -175,6 +175,12 @@ public class EcsService {
             } else {
                 BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(), limit, warn);
             }
+
+            if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
+                logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
+                BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+            }
+
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
