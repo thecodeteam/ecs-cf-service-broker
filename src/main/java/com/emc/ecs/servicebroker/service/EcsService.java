@@ -141,8 +141,8 @@ public class EcsService {
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}': limit {}, warn {}", id, quota.get(LIMIT), quota.get(WARN));
-                BucketQuotaAction.create(connection, prefix(id), broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
+                logger.info("Applying bucket quota on '{}': limit {}, warn {}", prefix(bucketName), quota.get(LIMIT), quota.get(WARN));
+                BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {

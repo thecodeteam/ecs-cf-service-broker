@@ -57,6 +57,7 @@ public class Fixtures {
     public static final String BINDING_ID =
             "cf2f8326-3465-4810-9da1-54d328935b81";
     public static final String BUCKET_NAME = "testbucket1";
+    public static final String CUSTOM_BUCKET_NAME = "customtestbucket1";
     private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
     private static final String ENCRYPTED = "encrypted";
     public static final String FILE_ACCESSIBLE = "file-accessible";
