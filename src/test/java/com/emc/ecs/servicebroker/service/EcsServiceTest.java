@@ -403,6 +403,7 @@ public class EcsServiceTest {
     @Test
     public void changeBucketPlanTestNoQuota() throws Exception {
         setupDeleteBucketQuotaTest();
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 
@@ -428,6 +429,7 @@ public class EcsServiceTest {
     @Test
     public void changeBucketPlanTestParametersQuota() throws Exception {
         setupCreateBucketQuotaTest(100, 80);
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
@@ -469,6 +471,7 @@ public class EcsServiceTest {
     @Test
     public void changeBucketPlanTestParametersIgnoredQuota() throws Exception {
         setupCreateBucketQuotaTest(5, 4);
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
@@ -509,6 +512,7 @@ public class EcsServiceTest {
     @Test
     public void changeBucketPlanTestNewQuota() throws Exception {
         setupCreateBucketQuotaTest(5, 4);
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -565,6 +569,36 @@ public class EcsServiceTest {
         assertEquals(NAMESPACE, nsCaptor.getValue());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertEquals(Integer.valueOf(THIRTY_DAYS_IN_SEC), periodCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one with no retention period provided
+     * in parameters it should be changed to zero.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestNoRetention() throws Exception {
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupDeleteBucketQuotaTest();
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        assertEquals(0, serviceSettings.get(DEFAULT_RETENTION));
+
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Integer> periodCaptor = ArgumentCaptor
+                .forClass(Integer.class);
+
+        PowerMockito.verifyStatic(BucketRetentionAction.class, times(1));
+        BucketRetentionAction.update(same(connection), nsCaptor.capture(),
+                idCaptor.capture(), periodCaptor.capture());
+        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(Integer.valueOf(0), periodCaptor.getValue());
     }
 
     /**

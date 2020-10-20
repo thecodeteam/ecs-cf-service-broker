@@ -179,6 +179,13 @@ public class EcsService {
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
                 logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+            } else {
+                parameters.put(DEFAULT_RETENTION, 0);
+                DefaultBucketRetention retention = BucketRetentionAction.get(connection,  broker.getNamespace(), prefix(bucketName));
+                if (retention.getPeriod() != 0) {
+                    logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
+                    BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+                }
             }
 
         } catch (EcsManagementClientException e) {
