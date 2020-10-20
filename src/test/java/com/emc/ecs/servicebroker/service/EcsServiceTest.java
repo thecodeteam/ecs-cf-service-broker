@@ -542,14 +542,12 @@ public class EcsServiceTest {
     /**
      * When changing plans from one with a default retention period provided
      * in parameters it should be updated.
-     *
-     * @throws Exception when mocking fails
      */
     @Test
     public void changeBucketPlanTestParametersRetention() throws Exception {
         Map<String, Object> params = new HashMap<>();
         params.put(DEFAULT_RETENTION, THIRTY_DAYS_IN_SEC);
-        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC + 100);
         setupDeleteBucketQuotaTest();
 
         ServiceDefinitionProxy service = bucketServiceFixture();
