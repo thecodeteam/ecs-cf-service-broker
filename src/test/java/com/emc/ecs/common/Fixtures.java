@@ -47,6 +47,7 @@ public class Fixtures {
     private static final String APP_GUID = "eb92048d-6d84-42e0-a293-0b604e53bc6f";
     public static final String BINDING_ID = "cf2f8326-3465-4810-9da1-54d328935b81";
     public static final String BUCKET_NAME = "testbucket1";
+    public static final String CUSTOM_BUCKET_NAME = "customtestbucket1";
     private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
     public static final String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";

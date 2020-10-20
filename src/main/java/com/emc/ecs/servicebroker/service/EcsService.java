@@ -151,7 +151,7 @@ public class EcsService {
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 @SuppressWarnings("unchecked")
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", bucketName, namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
+                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
                 BucketQuotaAction.create(connection, prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
             }
 
@@ -194,6 +194,15 @@ public class EcsService {
             } else {
                 logger.info("Setting bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
                 BucketQuotaAction.create(connection, prefix(bucketName), namespace, limit, warn);
+            }
+
+            DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection,  broker.getNamespace(), prefix(bucketName));
+            int newRetention = (int) parameters.getOrDefault(DEFAULT_RETENTION, 0);
+
+            if (currentRetention.getPeriod() != newRetention) {
+                logger.info("Setting bucket retention policy on '{}': {} instead of {}", prefix(bucketName), newRetention, currentRetention);
+                BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), newRetention);
+                parameters.put(DEFAULT_RETENTION, newRetention);
             }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
