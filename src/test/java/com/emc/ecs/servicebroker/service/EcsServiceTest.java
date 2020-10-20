@@ -597,7 +597,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, new HashMap<>());
         assertEquals(THIRTY_DAYS_IN_SEC, serviceSettings.get(DEFAULT_RETENTION));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
@@ -608,8 +608,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(1));
         BucketRetentionAction.update(same(connection), nsCaptor.capture(),
                 idCaptor.capture(), periodCaptor.capture());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
-        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertEquals(Integer.valueOf(THIRTY_DAYS_IN_SEC), periodCaptor.getValue());
     }
 
@@ -627,7 +626,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), new HashMap<>());
         assertEquals(0, serviceSettings.get(DEFAULT_RETENTION));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
@@ -638,7 +637,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(1));
         BucketRetentionAction.update(same(connection), nsCaptor.capture(),
                 idCaptor.capture(), periodCaptor.capture());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertEquals(Integer.valueOf(0), periodCaptor.getValue());
     }
