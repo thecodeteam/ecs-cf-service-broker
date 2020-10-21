@@ -200,7 +200,7 @@ public class EcsService {
             int newRetention = (int) parameters.getOrDefault(DEFAULT_RETENTION, 0);
 
             if (currentRetention.getPeriod() != newRetention) {
-                logger.info("Setting bucket retention policy on '{}': {} instead of {}", prefix(bucketName), newRetention, currentRetention);
+                logger.info("Setting bucket retention policy on '{}': {} instead of {}", prefix(bucketName), newRetention, currentRetention.getPeriod());
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), newRetention);
                 parameters.put(DEFAULT_RETENTION, newRetention);
             }
