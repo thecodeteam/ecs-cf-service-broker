@@ -49,9 +49,6 @@ public class EcsServiceInstanceBindingServiceTest {
     @Mock
     private ServiceInstanceRepository instanceRepository;
 
-    @Mock
-    private CatalogConfig catalog;
-
     @InjectMocks
     private EcsServiceInstanceBindingService bindSvc;
 
@@ -325,9 +322,7 @@ public class EcsServiceInstanceBindingServiceTest {
      */
     @Test(expected = ServiceInstanceBindingExistsException.class)
     public void testCreateExistingNamespaceUserFails() throws IOException {
-//        when(ecs.getDefaultNamespace()).thenReturn(NAMESPACE);
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
-//        when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
         when(ecs.userExists(BINDING_ID, SERVICE_INSTANCE_ID)).thenReturn(true);
 
