@@ -128,7 +128,11 @@ Valid permissions include:
  * delete
  * none
 
-More detailed instrucitons for using the broker in Cloud Foundry can be found in the
+Service plan can be changed using `update-service` command. Only a subset of service attributes are applied:
+* Buckets: quota and default retention
+* Namespaces: bucket qouta, ADO, compliance and domain group admins 
+
+More detailed instructions for using the broker in Cloud Foundry can be found in the
 [Tanzu Network ECS broker documentation](https://docs.pivotal.io/partners/ecs-service-broker/using.html).
 
 ### Broker Catalog and Plan Configuration
@@ -136,11 +140,13 @@ More detailed instrucitons for using the broker in Cloud Foundry can be found in
 The service broker catalog can be configured through YAML based configuration.  You can create the file manually,
 via PCF or another build tool.  Just add a `catalog` section to the `src/main/resources/application.yml` file:
 
-The following feature flags are supported by the bucket & namespace.  All parameters are optional, and can be set at the service or plan level in the `service-settings` block.  Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.  While buckets don't currently support service-settings or command-line parameters for retention, this will be added soon.
+The following feature flags are supported by the bucket & namespace. All parameters are optional, and can be set at the service or plan level in the `service-settings` block. Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.
 
 | Resource          | Parameter           | Default | Type     |  Description                                   |
 | :---------------- | :-------------------| :-----: | :------- | :--------------------------------------------- |
-| bucket            | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
+| bucket            | namespace           | false   | String   | Namespace where bucket will be created         |
+| bucket            | replication-group   | false   | String   | Replication group for bucket                   |
+| bucket            | encrypted           | false   | Boolean  | Enable encryption of bucket                    |
 | bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
 | bucket            | file-accessible     | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
 | bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
@@ -152,6 +158,7 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
 | bucket binding    | path-style-access   | true    | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
 | bucket binding    | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
+| namespace         | replication-group   | false   | String   | Replication group of namespace                 |
 | namespace         | domain-group-admins | -       | JSON List| List of domain admins to be added to namespace |
 | namespace         | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
 | namespace         | compliance-enabled  | false   | Boolean  | Enable compliance adhearance of retention      |
