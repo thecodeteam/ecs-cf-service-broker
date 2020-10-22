@@ -24,6 +24,7 @@ public class Fixtures {
     private static final String _5GB = "5gb";
     public static final String GET = "get";
     public static final String NAMESPACE_NAME = "ns1";
+    public static final String NAMESPACE_NAME_2 = "ns2";
     public static final String BASE_URL_ID = "urn:ObjectBaseUrl:1b828e4c-b9aa-4c89-915f-d92717b479d2";
     public static final String BASE_URL_NAME = "MyBaseURL";
     public static final String DEFAULT_BASE_URL_NAME = "DefaultBaseURL";
@@ -32,8 +33,12 @@ public class Fixtures {
     public static final String REPO_USER = "ecs-cf-broker-user";
     public static final String RG_NAME = "rg1";
     public static final String RG_NAME_2 = "rg2";
+    public static final String RG_NAME_3 = "rg3";
+    public static final String RG_NAME_4 = "rg4";
     public static final String RG_ID = "urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global";
-    public static final String RG_ID_2 = "urn:storageos:ReplicationGroupInfo:5e75d1fb-fdb5-4422-a64a-cf5bcba9d9b5:global";
+    public static final String RG_ID_2 = "urn:storageos:ReplicationGroupInfo:2222d1fb-fdb5-4422-a64a-cf5bcba9d9b2:global";
+    public static final String RG_ID_3 = "urn:storageos:ReplicationGroupInfo:333041bc-8668-457b-8e36-5fb8df8ee743:global";
+    public static final String RG_ID_4 = "urn:storageos:ReplicationGroupInfo:4444faf5-8aa9-4c5b-a59d-45a870c2de44:global";
     public static final String OBJ_ENDPOINT = "http://127.0.0.1:9020";
     public static final String BUCKET_SERVICE_ID = "7181a3b7-f06f-4cce-976b-cc5e859850bc";
     public static final String NAMESPACE_SERVICE_ID = "09cac1c6-1b0a-11e6-b6ba-3e1d05defe78";
@@ -42,6 +47,7 @@ public class Fixtures {
     private static final String NAMESPACE_PLAN_ID3 = "92ac58fa-6236-4c4f-aab7-9b5f332b487e";
     public static final String BUCKET_PLAN_ID1 = "5161888f-d985-40f6-a9bb-48d91c5805c0";
     public static final String BUCKET_PLAN_ID2 = "2bc4898b-99aa-491b-9c15-7e10a161bd9f";
+    public static final String BUCKET_PLAN_ID3 = "3bb6cddf-c977-4213-9784-48f1e8f06a73";
     public static final String TEST = "test";
     public static final String EXTERNAL_ADMIN = "group1@foo.com";
     private static final String APP_GUID = "eb92048d-6d84-42e0-a293-0b604e53bc6f";
@@ -90,6 +96,48 @@ public class Fixtures {
                 "ECS Bucket", true, true, tags, serviceSettings, null, plans,
                 null, null);
     }
+
+    public static ServiceDefinitionProxy bucketServiceWithSettingOverridesFixture() {
+        /*
+         * Plan 1: QUOTA and BaseUrl name
+         */
+        PlanProxy bucketPlan1 = new PlanProxy(BUCKET_PLAN_ID1, _5GB, FREE_TRIAL, null, true);
+        Map<String, Object> settings1 = new HashMap<>();
+        Map<String, Object> quota = new HashMap<>();
+        quota.put(QUOTA_LIMIT, 5);
+        quota.put(QUOTA_WARN, 4);
+        settings1.put(QUOTA, quota);
+        settings1.put(BASE_URL, BASE_URL_NAME);
+        bucketPlan1.setServiceSettings(settings1);
+
+        /*
+         * Plan 2: Replication group, Encrypted
+         */
+        PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
+        Map<String, Object> settings2 = new HashMap<>();
+        settings2.put(REPLICATION_GROUP, RG_NAME_2);
+        settings2.put(ENCRYPTED, true);
+        bucketPlan2.setServiceSettings(settings2);
+
+        /*
+         * Plan 3: Namespace
+         */
+        PlanProxy bucketPlan3 = new PlanProxy(BUCKET_PLAN_ID3, UNLIMITED, PAY_PER_GB_PER_MONTH, null, false);
+        Map<String, Object> settings3 = new HashMap<>();
+        settings3.put(NAMESPACE, NAMESPACE_NAME_2);
+        bucketPlan3.setServiceSettings(settings3);
+
+        List<PlanProxy> plans = Arrays.asList(bucketPlan1, bucketPlan2, bucketPlan3);
+
+        Map<String, Object> serviceSettings = new HashMap<>();
+        serviceSettings.put(SERVICE_TYPE, ServiceType.BUCKET.getAlias());
+        serviceSettings.put(DEFAULT_RETENTION, 100);
+        serviceSettings.put(REPLICATION_GROUP, RG_NAME_3);
+        return new ServiceDefinitionProxy(BUCKET_SERVICE_ID, "ecs-bucket",
+                "ECS Bucket", true, true, null, serviceSettings, null, plans,
+                null, null);
+    }
+
 
     public static ServiceDefinitionProxy namespaceServiceFixture() {
         /*
