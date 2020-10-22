@@ -130,7 +130,7 @@ Valid permissions include:
 
 Service plan can be changed using `update-service` command. Only a subset of service attributes are applied:
 * Buckets: quota and default retention
-* Namespaces: bucket qouta, ADO, compliance and domain group admins 
+* Namespaces: bucket quota, retention policies, ADO, compliance and domain group admins 
 
 More detailed instructions for using the broker in Cloud Foundry can be found in the
 [Tanzu Network ECS broker documentation](https://docs.pivotal.io/partners/ecs-service-broker/using.html).
