@@ -153,7 +153,7 @@ public class EcsService {
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
                 logger.info("Applying bucket tags on '{}': {}", bucketName, parameters.get(TAGS));
-                BucketTagsAction.create(connection, broker.getNamespace(), prefix(bucketName), (List<Map<String, String> >) parameters.get(TAGS));
+                BucketTagsAction.create(connection, prefix(bucketName), broker.getNamespace(), (List<Map<String, String> >) parameters.get(TAGS));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());

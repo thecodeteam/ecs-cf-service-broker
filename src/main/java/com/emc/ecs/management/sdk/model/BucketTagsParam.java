@@ -17,7 +17,12 @@ public class BucketTagsParam {
 
     private String namespace;
 
+    public BucketTagsParam(){
+        super();
+    };
+
     public BucketTagsParam(String namespace, List<Map<String, String> > tags) {
+        super();
         this.namespace = namespace;
         setTagSet(tags);
     }

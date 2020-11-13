@@ -12,9 +12,11 @@ public class BucketTag {
     private String Value;
 
     public BucketTag() {
+        super();
     }
 
     public BucketTag(String key, String value) {
+        super();
         Key = key;
         Value = value;
     }
