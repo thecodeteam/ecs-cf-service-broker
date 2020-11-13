@@ -38,6 +38,7 @@ public class EcsService {
     private static final String LIMIT = "limit";
     private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
+    private static final String TAGS = "tags";
     private static final String DEFAULT_RETENTION = "default-retention";
     private static final String INVALID_RECLAIM_POLICY = "Invalid reclaim-policy: ";
     private static final String INVALID_ALLOWED_RECLAIM_POLICIES = "Invalid reclaim-policies: ";
@@ -148,6 +149,11 @@ public class EcsService {
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
                 logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+            }
+
+            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
+                logger.info("Applying bucket tags on '{}': {}", bucketName, parameters.get(TAGS));
+                BucketTagsAction.create(connection, broker.getNamespace(), prefix(bucketName), (List<Map<String, String> >) parameters.get(TAGS));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
