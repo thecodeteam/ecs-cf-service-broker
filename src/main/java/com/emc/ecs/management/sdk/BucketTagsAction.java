@@ -1,8 +1,8 @@
 package com.emc.ecs.management.sdk;
 
-import com.emc.ecs.management.sdk.model.BucketQuotaDetails;
-import com.emc.ecs.management.sdk.model.BucketQuotaParam;
-import com.emc.ecs.management.sdk.model.BucketTagsParam;
+import com.emc.ecs.management.sdk.model.BucketTagsParamAdd;
+import com.emc.ecs.management.sdk.model.BucketTagsParamDelete;
+import com.emc.ecs.management.sdk.model.BucketTagsParamUpdate;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 
 import javax.ws.rs.core.Response;
@@ -25,7 +25,7 @@ public class BucketTagsAction {
         UriBuilder uri = connection.getUriBuilder().
                 segment(OBJECT, BUCKET, id, TAGS);
         connection.handleRemoteCall(POST, uri,
-                new BucketTagsParam(namespace, tags));
+                new BucketTagsParamAdd(namespace, tags));
     }
 
     public static void update(Connection connection, String id,
@@ -33,13 +33,13 @@ public class BucketTagsAction {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, id, TAGS);
         connection.handleRemoteCall(PUT, uri,
-                new BucketTagsParam(namespace, tags));
+                new BucketTagsParamUpdate(namespace, tags));
     }
     public static void delete(Connection connection, String id,
                               String namespace, List<Map<String, String> > tags) {
         UriBuilder uri = connection.getUriBuilder()
                 .segment(OBJECT, BUCKET, id, TAGS);
         connection.handleRemoteCall(DELETE, uri,
-                new BucketTagsParam(namespace, tags));
+                new BucketTagsParamDelete(namespace, tags));
     }
 }

@@ -190,6 +190,46 @@ public class EcsService {
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), newRetention);
                 parameters.put(DEFAULT_RETENTION, newRetention);
             }
+
+            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
+                ObjectBucketInfo bucketInfo = BucketAction.get(connection, prefix(bucketName), broker.getNamespace());
+                List<Map<String, String> > currentTags = bucketInfo.getTagSetAsListOfTags();
+                List<Map<String, String> > newTags = (List<Map<String, String>>) parameters.get(TAGS);
+
+                List<Map<String, String> > updateTags = new ArrayList<Map<String, String> >();
+                List<Map<String, String> > createTags = new ArrayList<Map<String, String> >();
+                List<Map<String, String> > paramsTags = new ArrayList<Map<String, String> >();
+
+                do {
+                    Map<String, String> newTag = newTags.get(0);
+                    boolean isNew = true;
+                    for (Map<String, String> currentTag: currentTags) {
+                        if (newTag.get("key").equals(currentTag.get("key"))) {
+                            if (!newTag.get("value").equals(currentTag.get("value"))) {
+                                updateTags.add(newTag);
+                            }
+                            isNew = false;
+                            currentTags.remove(currentTag);
+                            break;
+                        }
+                    }
+                    paramsTags.add(newTag);
+                    if (isNew) {
+                        createTags.add(newTag);
+                    }
+                    newTags.remove(newTag);
+                } while (!newTags.isEmpty());
+                paramsTags.addAll(currentTags);
+
+                logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), tagsOutput(createTags));
+                BucketTagsAction.create(connection, prefix(bucketName), broker.getNamespace(), createTags);
+
+                logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), tagsOutput(updateTags));
+                BucketTagsAction.update(connection, prefix(bucketName), broker.getNamespace(), updateTags);
+
+                logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), tagsOutput(paramsTags));
+                parameters.put(TAGS, paramsTags);
+            }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -312,6 +352,15 @@ public class EcsService {
 
     String prefix(String string) {
         return broker.getPrefix() + string;
+    }
+
+    String tagsOutput(List<Map<String, String> > tags) {
+        String output = new String("{");
+        for (Map<String, String> tag: tags) {
+            output += tag.get("key") + ":" + tag.get("value") + ", ";
+        }
+        output = output.substring(0, output.length() - 2) + "}";
+        return output;
     }
 
     private void lookupObjectEndpoints() throws EcsManagementClientException {
