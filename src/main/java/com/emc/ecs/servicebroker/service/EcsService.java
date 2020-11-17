@@ -192,43 +192,7 @@ public class EcsService {
             }
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
-                ObjectBucketInfo bucketInfo = BucketAction.get(connection, prefix(bucketName), broker.getNamespace());
-                List<Map<String, String> > currentTags = bucketInfo.getTagSetAsListOfTags();
-                List<Map<String, String> > newTags = (List<Map<String, String>>) parameters.get(TAGS);
-
-                List<Map<String, String> > updateTags = new ArrayList<Map<String, String> >();
-                List<Map<String, String> > createTags = new ArrayList<Map<String, String> >();
-                List<Map<String, String> > paramsTags = new ArrayList<Map<String, String> >();
-
-                do {
-                    Map<String, String> newTag = newTags.get(0);
-                    boolean isNew = true;
-                    for (Map<String, String> currentTag: currentTags) {
-                        if (newTag.get("key").equals(currentTag.get("key"))) {
-                            if (!newTag.get("value").equals(currentTag.get("value"))) {
-                                updateTags.add(newTag);
-                            }
-                            isNew = false;
-                            currentTags.remove(currentTag);
-                            break;
-                        }
-                    }
-                    paramsTags.add(newTag);
-                    if (isNew) {
-                        createTags.add(newTag);
-                    }
-                    newTags.remove(newTag);
-                } while (!newTags.isEmpty());
-                paramsTags.addAll(currentTags);
-
-                logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), tagsOutput(createTags));
-                BucketTagsAction.create(connection, prefix(bucketName), broker.getNamespace(), createTags);
-
-                logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), tagsOutput(updateTags));
-                BucketTagsAction.update(connection, prefix(bucketName), broker.getNamespace(), updateTags);
-
-                logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), tagsOutput(paramsTags));
-                parameters.put(TAGS, paramsTags);
+                changeBucketTags(bucketName, parameters);
             }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
@@ -352,15 +316,6 @@ public class EcsService {
 
     String prefix(String string) {
         return broker.getPrefix() + string;
-    }
-
-    String tagsOutput(List<Map<String, String> > tags) {
-        String output = new String("{");
-        for (Map<String, String> tag: tags) {
-            output += tag.get("key") + ":" + tag.get("value") + ", ";
-        }
-        output = output.substring(0, output.length() - 2) + "}";
-        return output;
     }
 
     private void lookupObjectEndpoints() throws EcsManagementClientException {
@@ -672,6 +627,57 @@ public class EcsService {
         if (parameters == null) parameters = new HashMap<>();
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
+        return parameters;
+    }
+
+    private Map<String, Object> changeBucketTags(String bucketName, Map<String, Object> parameters) {
+        List<BucketTag> requestedTags = new BucketTagSetRootElement((List<Map<String, String>>) parameters.get(TAGS)).getTagSet();
+        List<BucketTag> currentTags = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getTagSet();
+
+        List<BucketTag> updateTags = new ArrayList<>();
+        List<BucketTag> createTags = new ArrayList<>();
+        List<BucketTag> paramsTags = new ArrayList<>();
+
+        do {
+            BucketTag requestedTag = requestedTags.get(0);
+            boolean isNew = true;
+            for (BucketTag currentTag: currentTags) {
+                if (requestedTag.getKey().equals(currentTag.getKey())) {
+                    if (!requestedTag.getValue().equals(currentTag.getValue())) {
+                        updateTags.add(requestedTag);
+                    }
+                    isNew = false;
+                    currentTags.remove(currentTag);
+                    break;
+                }
+            }
+            paramsTags.add(requestedTag);
+            if (isNew) {
+                createTags.add(requestedTag);
+            }
+            requestedTags.remove(requestedTag);
+        } while (!requestedTags.isEmpty());
+        paramsTags.addAll(currentTags);
+
+        if (createTags.size() != 0) {
+            BucketTagSetRootElement createTagSet = new BucketTagSetRootElement();
+            createTagSet.setTagSet(createTags);
+            logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet.toString());
+            BucketTagsAction.create(connection, prefix(bucketName), broker.getNamespace(), createTagSet.getTagSetAsListOfTags());
+        }
+        if (updateTags.size() != 0) {
+            BucketTagSetRootElement updateTagSet = new BucketTagSetRootElement();
+            updateTagSet.setTagSet(updateTags);
+            logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet.toString());
+            BucketTagsAction.update(connection, prefix(bucketName), broker.getNamespace(), updateTagSet.getTagSetAsListOfTags());
+        }
+
+        BucketTagSetRootElement paramsTagSet = new BucketTagSetRootElement();
+        paramsTagSet.setTagSet(paramsTags);
+        parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
+        if (updateTags.size() + createTags.size() != 0) {
+            logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), paramsTagSet.toString());
+        }
         return parameters;
     }
 }

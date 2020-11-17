@@ -36,4 +36,9 @@ public class BucketTag {
     public void setValue(String value) {
         Value = value;
     }
+
+    @Override
+    public String toString() {
+        return Key + ':' + Value;
+    }
 }
