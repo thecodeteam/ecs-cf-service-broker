@@ -72,6 +72,12 @@ public class Fixtures {
     public static final String SECRET_KEY = "testKEY@ключ:/-s#cr#T";
     public static final String REMOTE_CONNECTION = "remote_connection";
     public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
+    public static final String KEY1 = "tag1";
+    public static final String KEY2 = "tag2";
+    public static final String KEY3 = "tag3";
+    public static final String VALUE1 = "value1";
+    public static final String VALUE2 = "value2";
+    public static final String VALUE3 = "value3";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
         /*

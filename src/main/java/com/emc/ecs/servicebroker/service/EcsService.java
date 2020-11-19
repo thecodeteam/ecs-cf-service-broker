@@ -153,7 +153,8 @@ public class EcsService {
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
                 logger.info("Applying bucket tags on '{}': {}", bucketName, parameters.get(TAGS));
-                BucketTagsAction.create(connection, prefix(bucketName), broker.getNamespace(), (List<Map<String, String> >) parameters.get(TAGS));
+                BucketTagsAction.create(connection, prefix(bucketName),
+                        new BucketTagsParamAdd(broker.getNamespace(), (List<Map<String, String> >) parameters.get(TAGS)));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
@@ -630,7 +631,7 @@ public class EcsService {
         return parameters;
     }
 
-    private Map<String, Object> changeBucketTags(String bucketName, Map<String, Object> parameters) {
+    Map<String, Object> changeBucketTags(String bucketName, Map<String, Object> parameters) {
         List<BucketTag> requestedTags = new BucketTagSetRootElement((List<Map<String, String>>) parameters.get(TAGS)).getTagSet();
         List<BucketTag> currentTags = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getTagSet();
 
@@ -663,13 +664,13 @@ public class EcsService {
             BucketTagSetRootElement createTagSet = new BucketTagSetRootElement();
             createTagSet.setTagSet(createTags);
             logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet.toString());
-            BucketTagsAction.create(connection, prefix(bucketName), broker.getNamespace(), createTagSet.getTagSetAsListOfTags());
+            BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(broker.getNamespace(), createTagSet.getTagSetAsListOfTags()));
         }
         if (updateTags.size() != 0) {
             BucketTagSetRootElement updateTagSet = new BucketTagSetRootElement();
             updateTagSet.setTagSet(updateTags);
             logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet.toString());
-            BucketTagsAction.update(connection, prefix(bucketName), broker.getNamespace(), updateTagSet.getTagSetAsListOfTags());
+            BucketTagsAction.update(connection, prefix(bucketName), new BucketTagsParamUpdate(broker.getNamespace(), updateTagSet.getTagSetAsListOfTags()));
         }
 
         BucketTagSetRootElement paramsTagSet = new BucketTagSetRootElement();
