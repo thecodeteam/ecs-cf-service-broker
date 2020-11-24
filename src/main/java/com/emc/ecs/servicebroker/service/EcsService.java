@@ -38,6 +38,7 @@ public class EcsService {
     private static final String LIMIT = "limit";
     private static final String QUOTA = "quota";
     private static final String RETENTION = "retention";
+    private static final String TAGS = "tags";
     private static final String DEFAULT_RETENTION = "default-retention";
     private static final String INVALID_RECLAIM_POLICY = "Invalid reclaim-policy: ";
     private static final String INVALID_ALLOWED_RECLAIM_POLICIES = "Invalid reclaim-policies: ";
@@ -149,6 +150,12 @@ public class EcsService {
                 logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
             }
+
+            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
+                logger.info("Applying bucket tags on '{}': {}", bucketName, parameters.get(TAGS));
+                BucketTagsAction.create(connection, prefix(bucketName),
+                        new BucketTagsParamAdd(broker.getNamespace(), (List<Map<String, String> >) parameters.get(TAGS)));
+            }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
             logger.error(errorMessage, e);
@@ -183,6 +190,10 @@ public class EcsService {
                 logger.info("Setting bucket retention policy on '{}': {} instead of {}", prefix(bucketName), newRetention, currentRetention);
                 BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), newRetention);
                 parameters.put(DEFAULT_RETENTION, newRetention);
+            }
+
+            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
+                changeBucketTags(bucketName, parameters);
             }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
@@ -617,6 +628,57 @@ public class EcsService {
         if (parameters == null) parameters = new HashMap<>();
         parameters.putAll(plan.getServiceSettings());
         parameters.putAll(service.getServiceSettings());
+        return parameters;
+    }
+
+    Map<String, Object> changeBucketTags(String bucketName, Map<String, Object> parameters) {
+        List<BucketTag> requestedTags = new BucketTagSetRootElement((List<Map<String, String>>) parameters.get(TAGS)).getTagSet();
+        List<BucketTag> currentTags = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getTagSet();
+
+        List<BucketTag> updateTags = new ArrayList<>();
+        List<BucketTag> createTags = new ArrayList<>();
+        List<BucketTag> paramsTags = new ArrayList<>();
+
+        do {
+            BucketTag requestedTag = requestedTags.get(0);
+            boolean isNew = true;
+            for (BucketTag currentTag: currentTags) {
+                if (requestedTag.getKey().equals(currentTag.getKey())) {
+                    if (!requestedTag.getValue().equals(currentTag.getValue())) {
+                        updateTags.add(requestedTag);
+                    }
+                    isNew = false;
+                    currentTags.remove(currentTag);
+                    break;
+                }
+            }
+            paramsTags.add(requestedTag);
+            if (isNew) {
+                createTags.add(requestedTag);
+            }
+            requestedTags.remove(requestedTag);
+        } while (!requestedTags.isEmpty());
+        paramsTags.addAll(currentTags);
+
+        if (createTags.size() != 0) {
+            BucketTagSetRootElement createTagSet = new BucketTagSetRootElement();
+            createTagSet.setTagSet(createTags);
+            logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet);
+            BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(broker.getNamespace(), createTagSet.getTagSetAsListOfTags()));
+        }
+        if (updateTags.size() != 0) {
+            BucketTagSetRootElement updateTagSet = new BucketTagSetRootElement();
+            updateTagSet.setTagSet(updateTags);
+            logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet);
+            BucketTagsAction.update(connection, prefix(bucketName), new BucketTagsParamUpdate(broker.getNamespace(), updateTagSet.getTagSetAsListOfTags()));
+        }
+
+        BucketTagSetRootElement paramsTagSet = new BucketTagSetRootElement();
+        paramsTagSet.setTagSet(paramsTags);
+        parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
+        if (updateTags.size() + createTags.size() != 0) {
+            logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), paramsTagSet);
+        }
         return parameters;
     }
 }
