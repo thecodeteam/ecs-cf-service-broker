@@ -1603,12 +1603,11 @@ public class EcsServiceTest {
     }
 
     private List<Map<String, String>> createListOfTags(String ... args) throws IllegalArgumentException {
-        int args_num = args.length;
-        if (args_num % 2 != 0) {
+        if (args.length % 2 != 0) {
             throw new IllegalArgumentException("Number of arguments should be multiple of two.");
         }
         List<Map<String, String> > tags = new ArrayList<>();
-        for (int i = 0; i < args_num; i += 2) {
+        for (int i = 0; i < args.length; i += 2) {
             Map<String, String> tag = new HashMap<>();
             tag.put(KEY, args[i]);
             tag.put(VALUE, args[i + 1]);
