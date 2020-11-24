@@ -32,6 +32,8 @@ public class Constants {
     public static final String QUOTA_LIMIT = "limit";
     public static final String S3_URL = "s3Url";
 
+    public static final String TAGS = "tags";
+
     public static final String VOLUME_EXPORT = "export";
     public static final String VOLUME_EXPORT_SOURCE = "source";
     public static final String VOLUME_EXPORT_UID = "uid";

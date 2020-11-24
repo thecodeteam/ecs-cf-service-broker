@@ -2,9 +2,9 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
-import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
@@ -49,8 +49,6 @@ public class EcsService {
     private BucketWipeOperations bucketWipe;
 
     private String objectEndpoint;
-
-    private static final String TAGS = "tags";
 
     String getObjectEndpoint() {
         return objectEndpoint;
@@ -123,6 +121,7 @@ public class EcsService {
         return b.getFsAccessEnabled();
     }
 
+    @SuppressWarnings("unchecked")
     Map<String, Object> createBucket(String serviceInstanceId, String bucketName, ServiceDefinitionProxy serviceDefinition,
                                      PlanProxy plan, Map<String, Object> parameters) {
         try {
@@ -151,10 +150,9 @@ public class EcsService {
             ));
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
-                @SuppressWarnings("unchecked")
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
                 logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
-                BucketQuotaAction.create(connection, prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
+                BucketQuotaAction.create(connection, namespace, prefix(bucketName), quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
@@ -163,9 +161,9 @@ public class EcsService {
             }
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
-                logger.info("Applying bucket tags on '{}': {}", bucketName, parameters.get(TAGS));
-                BucketTagsAction.create(connection, prefix(bucketName),
-                        new BucketTagsParamAdd(broker.getNamespace(), (List<Map<String, String> >) parameters.get(TAGS)));
+                List<Map<String, String>> bucketTags = (List<Map<String, String>>) parameters.get(TAGS);
+                logger.info("Applying bucket tags on '{}': {}", bucketName, bucketTags);
+                BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(namespace, bucketTags));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
@@ -196,12 +194,12 @@ public class EcsService {
 
             if (limit == -1 && warn == -1) {
                 logger.info("Removing quota from '{}' in '{}'", prefix(bucketName), namespace);
-                BucketQuotaAction.delete(connection, prefix(bucketName), namespace);
+                BucketQuotaAction.delete(connection, namespace, prefix(bucketName));
 
                 parameters.remove(QUOTA);
             } else {
                 logger.info("Setting bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
-                BucketQuotaAction.create(connection, prefix(bucketName), namespace, limit, warn);
+                BucketQuotaAction.create(connection, namespace, prefix(bucketName), limit, warn);
             }
 
             DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection,  broker.getNamespace(), prefix(bucketName));
@@ -214,7 +212,7 @@ public class EcsService {
             }
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
-                changeBucketTags(bucketName, parameters);
+                changeBucketTags(bucketName, namespace, parameters);
             }
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
@@ -662,12 +660,13 @@ public class EcsService {
         return broker.getNamespace();
     }
 
-    Map<String, Object> changeBucketTags(String bucketName, Map<String, Object> parameters) {
+    @SuppressWarnings("unchecked")
+    Map<String, Object> changeBucketTags(String bucketName, String namespace, Map<String, Object> parameters) {
         List<BucketTag> requestedTags = new BucketTagSetRootElement((List<Map<String, String>>) parameters.get(TAGS)).getTagSet();
-        List<BucketTag> currentTags = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getTagSet();
+        List<BucketTag> currentTags = BucketAction.get(connection, prefix(bucketName), namespace).getTagSet();
 
-        List<BucketTag> updateTags = new ArrayList<>();
         List<BucketTag> createTags = new ArrayList<>();
+        List<BucketTag> updateTags = new ArrayList<>();
         List<BucketTag> paramsTags = new ArrayList<>();
 
         do {
@@ -689,27 +688,32 @@ public class EcsService {
             }
             requestedTags.remove(requestedTag);
         } while (!requestedTags.isEmpty());
+
         paramsTags.addAll(currentTags);
 
-        if (createTags.size() != 0) {
+        if (!createTags.isEmpty()) {
             BucketTagSetRootElement createTagSet = new BucketTagSetRootElement();
             createTagSet.setTagSet(createTags);
             logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet);
-            BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(broker.getNamespace(), createTagSet.getTagSetAsListOfTags()));
+            BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(namespace, createTagSet.getTagSetAsListOfTags()));
         }
-        if (updateTags.size() != 0) {
+
+        if (!updateTags.isEmpty()) {
             BucketTagSetRootElement updateTagSet = new BucketTagSetRootElement();
             updateTagSet.setTagSet(updateTags);
             logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet);
-            BucketTagsAction.update(connection, prefix(bucketName), new BucketTagsParamUpdate(broker.getNamespace(), updateTagSet.getTagSetAsListOfTags()));
+            BucketTagsAction.update(connection, prefix(bucketName), new BucketTagsParamUpdate(namespace, updateTagSet.getTagSetAsListOfTags()));
         }
 
         BucketTagSetRootElement paramsTagSet = new BucketTagSetRootElement();
         paramsTagSet.setTagSet(paramsTags);
-        parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
+
         if (updateTags.size() + createTags.size() != 0) {
-            logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), paramsTagSet);
+            logger.info("Full set of bucket tags on '{}' in '{}' is {}", prefix(bucketName), namespace, paramsTagSet);
         }
+
+        parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
+
         return parameters;
     }
 }

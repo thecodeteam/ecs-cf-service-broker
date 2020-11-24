@@ -9,8 +9,8 @@ import java.util.Map;
 @XmlRootElement
 public class BucketTagSetRootElement {
 
-    private static final String KEY = "key";
-    private static final String VALUE = "value";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
 
     private List<BucketTag> tagSet;
 
