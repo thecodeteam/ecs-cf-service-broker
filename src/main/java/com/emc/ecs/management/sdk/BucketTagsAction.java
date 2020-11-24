@@ -8,9 +8,6 @@ import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 
 import javax.ws.rs.core.UriBuilder;
 
-import java.util.List;
-import java.util.Map;
-
 import static com.emc.ecs.management.sdk.Constants.*;
 
 public class BucketTagsAction {

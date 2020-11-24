@@ -2,14 +2,18 @@ package com.emc.ecs.management.sdk.model;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "Tag")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class BucketTag {
 
-    private String Key;
-    private String Value;
+    @XmlElement(name = "Key")
+    private String key;
+
+    @XmlElement(name = "Value")
+    private String value;
 
     public BucketTag() {
         super();
@@ -17,28 +21,28 @@ public class BucketTag {
 
     public BucketTag(String key, String value) {
         super();
-        Key = key;
-        Value = value;
+        this.key = key;
+        this.value = value;
     }
 
     public String getKey() {
-        return Key;
+        return key;
     }
 
     public void setKey(String key) {
-        Key = key;
+        this.key = key;
     }
 
     public String getValue() {
-        return Value;
+        return value;
     }
 
     public void setValue(String value) {
-        Value = value;
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return Key + ':' + Value;
+        return key + ':' + value;
     }
 }

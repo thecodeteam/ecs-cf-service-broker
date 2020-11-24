@@ -663,13 +663,13 @@ public class EcsService {
         if (createTags.size() != 0) {
             BucketTagSetRootElement createTagSet = new BucketTagSetRootElement();
             createTagSet.setTagSet(createTags);
-            logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet.toString());
+            logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet);
             BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(broker.getNamespace(), createTagSet.getTagSetAsListOfTags()));
         }
         if (updateTags.size() != 0) {
             BucketTagSetRootElement updateTagSet = new BucketTagSetRootElement();
             updateTagSet.setTagSet(updateTags);
-            logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet.toString());
+            logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet);
             BucketTagsAction.update(connection, prefix(bucketName), new BucketTagsParamUpdate(broker.getNamespace(), updateTagSet.getTagSetAsListOfTags()));
         }
 
@@ -677,7 +677,7 @@ public class EcsService {
         paramsTagSet.setTagSet(paramsTags);
         parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
         if (updateTags.size() + createTags.size() != 0) {
-            logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), paramsTagSet.toString());
+            logger.info("Full set of bucket tags on '{}' is {}", prefix(bucketName), paramsTagSet);
         }
         return parameters;
     }

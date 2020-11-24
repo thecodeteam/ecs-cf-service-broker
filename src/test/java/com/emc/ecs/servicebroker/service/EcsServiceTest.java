@@ -10,6 +10,7 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -269,7 +270,7 @@ public class EcsServiceTest {
         quota.put(LIMIT, 10);
         params.put(QUOTA, quota);
         params.put(FILE_ACCESSIBLE, true);
-        List<Map<String, String>> tags = createListOfTags(new String[]{KEY1, KEY2}, new String[]{VALUE1, VALUE2});
+        List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
         params.put(TAGS, tags);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -283,7 +284,7 @@ public class EcsServiceTest {
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
-        assertTrue(setTags.size() == tags.size() && setTags.containsAll(tags) && tags.containsAll(setTags));
+        assertTrue(CollectionUtils.isEqualCollection(tags, setTags));
 
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
         PowerMockito.verifyStatic(BucketAction.class, times(1));
@@ -305,7 +306,7 @@ public class EcsServiceTest {
         BucketTagsAction.create(same(connection), eq(PREFIX + CUSTOM_BUCKET_NAME), tagsParamAddCaptor.capture());
         BucketTagsParamAdd tagsParamAdd = tagsParamAddCaptor.getValue();
         List<Map<String, String> > invokedTags = tagsParamAdd.getTagSetAsListOfTags();
-        assertTrue(tags.size() == invokedTags.size() && tags.containsAll(invokedTags) && invokedTags.containsAll(tags));
+        assertTrue(CollectionUtils.isEqualCollection(tags, invokedTags));
         assertEquals(NAMESPACE, tagsParamAdd.getNamespace());
     }
 
@@ -620,7 +621,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestTags() throws Exception {
-        List<Map<String, String>> currentTags = createListOfTags(new String[]{KEY2, KEY3}, new String[]{VALUE2, VALUE3});
+        List<Map<String, String>> currentTags = createListOfTags(KEY2, VALUE2, KEY3, VALUE3);
 
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
@@ -630,9 +631,9 @@ public class EcsServiceTest {
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(TAGS, createListOfTags(new String[]{KEY2, KEY1}, new String[]{VALUE1, VALUE1}));
+        params.put(TAGS, createListOfTags(KEY2, VALUE1, KEY1, VALUE1));
 
-        List<Map<String, String>> expectedTags = createListOfTags(new String[]{KEY1, KEY2, KEY3}, new String[]{VALUE1, VALUE1, VALUE3});
+        List<Map<String, String>> expectedTags = createListOfTags(KEY1, VALUE1, KEY2, VALUE1, KEY3, VALUE3);
         Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(expectedTags.size() == setTags.size() && expectedTags.containsAll(setTags) && setTags.containsAll(expectedTags));
@@ -1315,17 +1316,16 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketTagsDefaultTest() throws Exception {
-        setupChangeBucketTagsTest(createListOfTags(new String[]{KEY1, KEY2}, new String[]{VALUE1, VALUE2}));
+        setupChangeBucketTagsTest(createListOfTags(KEY1, VALUE1, KEY2, VALUE2));
 
         Map<String, Object> params = new HashMap<>();
-        params.put(TAGS, createListOfTags(new String[]{KEY1, KEY3}, new String[]{VALUE2, VALUE3}));
+        params.put(TAGS, createListOfTags(KEY1, VALUE2, KEY3, VALUE3));
         Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
         List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
-        List<Map<String, String> > expectedTags =
-                createListOfTags(new String[]{KEY1, KEY2, KEY3}, new String[]{VALUE2, VALUE2, VALUE3});
+        List<Map<String, String> > expectedTags = createListOfTags(KEY1, VALUE2, KEY2, VALUE2, KEY3, VALUE3);
 
-        assertTrue(setTags.size() == expectedTags.size() && setTags.containsAll(expectedTags) && expectedTags.containsAll(setTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
@@ -1341,11 +1341,10 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.create(same(connection), idCaptor.capture(), tagsParamAddCaptor.capture());
         BucketTagsParamAdd tagsParamAdd = tagsParamAddCaptor.getValue();
-        List<Map<String, String> > expectedCreatedTags = createListOfTags(new String[]{KEY3}, new String[]{VALUE3});
+        List<Map<String, String> > expectedCreatedTags = createListOfTags(KEY3, VALUE3);
         List<Map<String, String> > invokedCreatedTags = tagsParamAdd.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertTrue(expectedCreatedTags.size() == invokedCreatedTags.size() &&
-                expectedCreatedTags.containsAll(invokedCreatedTags) && invokedCreatedTags.containsAll(expectedCreatedTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedCreatedTags, invokedCreatedTags));
         assertEquals(NAMESPACE, tagsParamAdd.getNamespace());
 
         ArgumentCaptor<BucketTagsParamUpdate> tagsParamUpdateCaptor = ArgumentCaptor.forClass(BucketTagsParamUpdate.class);
@@ -1353,11 +1352,10 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.update(same(connection), idCaptor.capture(), tagsParamUpdateCaptor.capture());
         BucketTagsParamUpdate tagsParamUpdate = tagsParamUpdateCaptor.getValue();
-        List<Map<String, String> > expectedUpdatedTags = createListOfTags(new String[]{KEY1}, new String[]{VALUE2});
+        List<Map<String, String> > expectedUpdatedTags = createListOfTags(KEY1, VALUE2);
         List<Map<String, String> > invokedUpdatedTags = tagsParamUpdate.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertTrue(expectedUpdatedTags.size() == invokedUpdatedTags.size() &&
-                expectedUpdatedTags.containsAll(invokedUpdatedTags) && invokedUpdatedTags.containsAll(expectedUpdatedTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedUpdatedTags, invokedUpdatedTags));
         assertEquals(NAMESPACE, tagsParamAdd.getNamespace());
     }
 
@@ -1368,17 +1366,16 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketTagsUpdateTest() throws Exception {
-        setupChangeBucketTagsTest(createListOfTags(new String[]{KEY1}, new String[]{VALUE1}));
+        setupChangeBucketTagsTest(createListOfTags(KEY1, VALUE1));
 
         Map<String, Object> params = new HashMap<>();
-        params.put(TAGS, createListOfTags(new String[]{KEY1}, new String[]{VALUE2}));
+        params.put(TAGS, createListOfTags(KEY1, VALUE2));
         Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
         List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
-        List<Map<String, String> > expectedTags =
-                createListOfTags(new String[]{KEY1}, new String[]{VALUE2});
+        List<Map<String, String> > expectedTags = createListOfTags(KEY1, VALUE2);
 
-        assertTrue(setTags.size() == expectedTags.size() && setTags.containsAll(expectedTags) && expectedTags.containsAll(setTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<BucketTagsParamUpdate> tagsParamCaptor = ArgumentCaptor.forClass(BucketTagsParamUpdate.class);
@@ -1386,11 +1383,10 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.update(same(connection), idCaptor.capture(), tagsParamCaptor.capture());
         BucketTagsParamUpdate tagsParam = tagsParamCaptor.getValue();
-        List<Map<String, String> > expectedCreatedTags = createListOfTags(new String[]{KEY1}, new String[]{VALUE2});
+        List<Map<String, String> > expectedCreatedTags = createListOfTags(KEY1, VALUE2);
         List<Map<String, String> > invokedCreatedTags = tagsParam.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertTrue(expectedCreatedTags.size() == invokedCreatedTags.size() &&
-                expectedCreatedTags.containsAll(invokedCreatedTags) && invokedCreatedTags.containsAll(expectedCreatedTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedCreatedTags, invokedCreatedTags));
         assertEquals(NAMESPACE, tagsParam.getNamespace());
     }
 
@@ -1401,17 +1397,17 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketTagsNoUpdateTest() throws Exception {
-        setupChangeBucketTagsTest(createListOfTags(new String[]{KEY1}, new String[]{VALUE1}));
+        setupChangeBucketTagsTest(createListOfTags(KEY1, VALUE1));
 
         Map<String, Object> params = new HashMap<>();
-        params.put(TAGS, createListOfTags(new String[]{KEY1}, new String[]{VALUE1}));
+        params.put(TAGS, createListOfTags(KEY1, VALUE1));
         Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
         List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
         List<Map<String, String> > expectedTags =
-                createListOfTags(new String[]{KEY1}, new String[]{VALUE1});
+                createListOfTags(KEY1, VALUE1);
 
-        assertTrue(setTags.size() == expectedTags.size() && setTags.containsAll(expectedTags) && expectedTags.containsAll(setTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<BucketTagsParamUpdate> tagsParamCaptor = ArgumentCaptor.forClass(BucketTagsParamUpdate.class);
@@ -1427,17 +1423,17 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketTagsCreateTest() throws Exception {
-        setupChangeBucketTagsTest(createListOfTags(new String[]{KEY1}, new String[]{VALUE1}));
+        setupChangeBucketTagsTest(createListOfTags(KEY1, VALUE1));
 
         Map<String, Object> params = new HashMap<>();
-        params.put(TAGS, createListOfTags(new String[]{KEY2}, new String[]{VALUE2}));
+        params.put(TAGS, createListOfTags(KEY2, VALUE2));
         Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
         List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
         List<Map<String, String> > expectedTags =
-                createListOfTags(new String[]{KEY1, KEY2}, new String[]{VALUE1, VALUE2});
+                createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
 
-        assertTrue(setTags.size() == expectedTags.size() && setTags.containsAll(expectedTags) && expectedTags.containsAll(setTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<BucketTagsParamAdd> tagsParamCaptor = ArgumentCaptor.forClass(BucketTagsParamAdd.class);
@@ -1445,11 +1441,10 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.create(same(connection), idCaptor.capture(), tagsParamCaptor.capture());
         BucketTagsParamAdd tagsParam = tagsParamCaptor.getValue();
-        List<Map<String, String> > expectedCreatedTags = createListOfTags(new String[]{KEY2}, new String[]{VALUE2});
+        List<Map<String, String> > expectedCreatedTags = createListOfTags(KEY2, VALUE2);
         List<Map<String, String> > invokedCreatedTags = tagsParam.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertTrue(expectedCreatedTags.size() == invokedCreatedTags.size() &&
-                expectedCreatedTags.containsAll(invokedCreatedTags) && invokedCreatedTags.containsAll(expectedCreatedTags));
+        assertTrue(CollectionUtils.isEqualCollection(expectedCreatedTags, invokedCreatedTags));
         assertEquals(NAMESPACE, tagsParam.getNamespace());
     }
 
@@ -1607,13 +1602,16 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(BucketTagsAction.class, UPDATE, same(connection), anyString(), any(BucketTagsParamUpdate.class));
     }
 
-    private List<Map<String, String>> createListOfTags(String[] keys, String[] values) {
+    private List<Map<String, String>> createListOfTags(String ... args) throws IllegalArgumentException {
+        int args_num = args.length;
+        if (args_num % 2 != 0) {
+            throw new IllegalArgumentException("Number of arguments should be multiple of two.");
+        }
         List<Map<String, String> > tags = new ArrayList<>();
-        int amount = keys.length;
-        for (int i = 0; i < amount; i++) {
+        for (int i = 0; i < args_num; i += 2) {
             Map<String, String> tag = new HashMap<>();
-            tag.put(KEY, keys[i]);
-            tag.put(VALUE, values[i]);
+            tag.put(KEY, args[i]);
+            tag.put(VALUE, args[i + 1]);
             tags.add(tag);
         }
         return tags;
