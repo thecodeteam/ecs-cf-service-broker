@@ -1,8 +1,6 @@
 package com.emc.ecs.management.sdk.model;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +12,7 @@ public class BucketTagSetRootElement {
     private static final String KEY = "key";
     private static final String VALUE = "value";
 
-    @XmlElementWrapper(name = "TagSet")
-    @XmlElement(name = "Tag")
-    private List<BucketTag> TagSet;
+    private List<BucketTag> tagSet;
 
     public BucketTagSetRootElement(){};
 
@@ -25,17 +21,19 @@ public class BucketTagSetRootElement {
         setTagSetAsListOfMaps(tags);
     }
 
+    @XmlElementWrapper(name = "TagSet")
+    @XmlElement(name = "Tag")
     public List<BucketTag> getTagSet() {
-        return TagSet;
+        return tagSet;
     }
 
     public void setTagSet(List<BucketTag> tagSet) {
-        TagSet = tagSet;
+        this.tagSet = tagSet;
     }
 
     public List<Map<String, String> > getTagSetAsListOfTags() {
         List<Map<String, String> > list = new ArrayList<Map<String, String> >();
-        for (BucketTag tag: TagSet) {
+        for (BucketTag tag: tagSet) {
             Map<String, String> map = new HashMap<String, String>() {{
                 put(KEY, tag.getKey());
                 put(VALUE, tag.getValue());
@@ -56,13 +54,13 @@ public class BucketTagSetRootElement {
                 throw new IllegalArgumentException("Key and Value should be specified for bucket tag", e);
             }
         }
-        TagSet = tagList;
+        tagSet = tagList;
     }
 
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder("{");
-        for (BucketTag tag: TagSet) {
+        for (BucketTag tag: tagSet) {
             output.append(tag.toString()).append(", ");
         }
         int length = output.length();
