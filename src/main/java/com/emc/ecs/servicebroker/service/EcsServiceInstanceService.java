@@ -3,6 +3,7 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.ServiceType;
 import com.emc.ecs.servicebroker.repository.LastOperationSerializer;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -23,16 +24,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static com.emc.ecs.servicebroker.model.Constants.REMOTE_CONNECTION;
+import static com.emc.ecs.servicebroker.model.ServiceType.*;
 import static java.lang.String.format;
 
 @Service
 public class EcsServiceInstanceService implements ServiceInstanceService {
 
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceService.class);
-
-    private static final String NAMESPACE = "namespace";
-    private static final String BUCKET = "bucket";
-    private static final String SERVICE_TYPE = "service-type";
 
     private static final LastOperationSerializer SUCCEEDED_OPERATION = new LastOperationSerializer(OperationState.SUCCEEDED, "", false);
 
@@ -85,6 +84,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceInstanceId = request.getServiceInstanceId();
         String serviceDefinitionId = request.getServiceDefinitionId();
 
+        LOG.info("Deleting service instance '{}'", serviceInstanceId);
+
         try {
             ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
             InstanceWorkflow workflow = getWorkflow(service).withDeleteRequest(request);
@@ -98,11 +99,10 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     return Mono.just(DeleteServiceInstanceResponse.builder().build());
                 }
             } catch (S3Exception e) {
-                LOG.info("Instance '{}' not found, assuming already deleted", serviceInstanceId);
-                return Mono.just(DeleteServiceInstanceResponse.builder().build());
+                String errorMessage = format("Cannot find instance %s, S3 exception: %s", serviceInstanceId, e.getMessage());
+                LOG.warn(errorMessage);
+                throw new ServiceBrokerException(errorMessage, e);
             }
-
-            LOG.info("Deleting service instance '{}'", serviceInstanceId);
 
             CompletableFuture future = workflow.delete(serviceInstanceId);
 
@@ -213,12 +213,13 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
     private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
         Map<String, Object> parameters = createRequest.getParameters();
-        return parameters != null && parameters.containsKey("remote_connection");
+        return parameters != null && parameters.containsKey(REMOTE_CONNECTION);
     }
 
     private InstanceWorkflow getWorkflow(ServiceDefinitionProxy service) throws EcsManagementClientException {
-        String serviceType = (String) service.getServiceSettings().get(SERVICE_TYPE);
+        ServiceType serviceType = fromSettings(service.getServiceSettings());
         LOG.debug("Service '{}'({}) type is {}", service.getName(), service.getId(), serviceType);
+
         switch (serviceType) {
             case NAMESPACE:
                 return new NamespaceInstanceWorkflow(repository, ecs);
@@ -233,11 +234,15 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         try {
             ServiceInstance instance = repository.find(instanceId);
             if (instance == null) {
-                LOG.error("Unable to find instance '{}' when async delete completed", instanceId);
+                LOG.warn("Unable to find instance '{}' when async delete completed", instanceId);
+                if (exception != null) {
+                    LOG.warn("Exception on delete of '{}': {}", instanceId, exception);
+                }
+                return;
             }
 
             if (exception == null) {
-                LOG.info("Setting last operation state 'Succeeded - Delete complete' on instance '{}'", instance != null ? instance.getServiceInstanceId() : null);
+                LOG.info("Setting last operation state 'Succeeded - Delete complete' on instance '{}'", instanceId);
                 instance.setLastOperation(new LastOperationSerializer(OperationState.SUCCEEDED, "Delete Complete", true));
             } else {
                 String errorMsg;
@@ -247,7 +252,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                     errorMsg = exception.getMessage();
                 }
 
-                LOG.warn("Delete operation on instance '{}' failed: {}", instance != null ? instance.getServiceInstanceId() : null, errorMsg);
+                LOG.warn("Delete operation on instance '{}' failed: {}", instanceId, errorMsg);
                 instance.setLastOperation(new LastOperationSerializer(OperationState.FAILED, errorMsg, true));
             }
 

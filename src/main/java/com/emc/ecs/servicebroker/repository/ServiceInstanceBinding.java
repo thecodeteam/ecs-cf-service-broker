@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.repository;
 
+import com.emc.ecs.servicebroker.model.Constants;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,11 +12,12 @@ import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
 import java.util.List;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.NAME_PARAMETER;
+
 @SuppressWarnings("unused")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ServiceInstanceBinding {
-    private static String NAME_PARAM = "name";
 
     @JsonSerialize
     @JsonProperty("name")
@@ -69,8 +71,8 @@ public class ServiceInstanceBinding {
             return name;
         }
 
-        if (parameters != null && parameters.containsKey(NAME_PARAM)) {
-            return parameters.get(NAME_PARAM).toString() + "-" + bindingId;
+        if (parameters != null && parameters.containsKey(NAME_PARAMETER)) {
+            return parameters.get(NAME_PARAMETER) + "-" + bindingId;
         } else {
             return getBindingId();
         }

@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public enum ReclaimPolicy {
     // Attempt to delete but fail if the bucket isn't empty
     Fail,
@@ -14,9 +16,6 @@ public enum ReclaimPolicy {
     Delete;
 
     public static ReclaimPolicy DEFAULT_RECLAIM_POLICY = Fail;
-
-    private static String RECLAIM_POLICY = "reclaim-policy";
-    private static String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
 
     public static ReclaimPolicy getReclaimPolicy(Map<String, Object> params) {
         if (params != null && params.containsKey(RECLAIM_POLICY)) {

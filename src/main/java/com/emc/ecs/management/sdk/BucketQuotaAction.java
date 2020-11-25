@@ -14,27 +14,22 @@ public final class BucketQuotaAction {
     private BucketQuotaAction() {
     }
 
-    public static void create(Connection connection, String id,
-                              String namespace, int limit, int warn)
+    public static void create(Connection connection, String namespace, String bucket, int limit, int warn)
             throws EcsManagementClientException {
-        UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET, id,
-                QUOTA);
-        connection.handleRemoteCall(PUT, uri,
-                new BucketQuotaParam(namespace, limit, warn));
+        UriBuilder uri = connection.getUriBuilder().segment(OBJECT, BUCKET, bucket, QUOTA);
+        connection.handleRemoteCall(PUT, uri, new BucketQuotaParam(namespace, limit, warn));
     }
 
-    public static void delete(Connection connection, String id,
-            String namespace) throws EcsManagementClientException {
+    public static void delete(Connection connection, String namespace, String bucket) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
-                .segment(OBJECT, BUCKET, id, QUOTA)
+                .segment(OBJECT, BUCKET, bucket, QUOTA)
                 .queryParam(NAMESPACE, namespace);
         connection.handleRemoteCall(DELETE, uri, null);
     }
 
-    public static BucketQuotaDetails get(Connection connection, String id,
-            String namespace) throws EcsManagementClientException {
+    public static BucketQuotaDetails get(Connection connection, String namespace, String bucket) throws EcsManagementClientException {
         UriBuilder uri = connection.getUriBuilder()
-                .segment(OBJECT, BUCKET, id, QUOTA)
+                .segment(OBJECT, BUCKET, bucket, QUOTA)
                 .queryParam(NAMESPACE, namespace);
         Response response = connection.handleRemoteCall(GET, uri, null);
         return response.readEntity(BucketQuotaDetails.class);

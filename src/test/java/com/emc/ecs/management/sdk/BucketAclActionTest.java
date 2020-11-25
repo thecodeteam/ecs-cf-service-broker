@@ -9,9 +9,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
 
+import static com.emc.ecs.servicebroker.model.Constants.FULL_CONTROL;
 import static org.junit.Assert.assertTrue;
 
 public class BucketAclActionTest extends EcsActionTest {
@@ -39,7 +39,7 @@ public class BucketAclActionTest extends EcsActionTest {
             EcsManagementResourceNotFoundException {
         BucketAcl acl = BucketAclAction.get(connection, bucket, namespace);
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-        userAcl.add(new BucketUserAcl(user, Collections.singletonList("full_control")));
+        userAcl.add(new BucketUserAcl(user, FULL_CONTROL));
         acl.getAcl().setUserAccessList(userAcl);
         BucketAclAction.update(connection, bucket, acl);
         BucketAcl bucketAcl = BucketAclAction.get(connection, bucket,

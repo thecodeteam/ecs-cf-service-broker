@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.ServiceType;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -22,15 +23,12 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.REMOTE_CONNECTION;
 import static java.lang.String.format;
 
 @Service
 public class EcsServiceInstanceBindingService implements ServiceInstanceBindingService {
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
-
-    private static final String NAMESPACE = "namespace";
-    private static final String BUCKET = "bucket";
-    private static final String SERVICE_TYPE = "service-type";
 
     @Autowired
     private EcsService ecs;
@@ -123,14 +121,14 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
     }
 
     private BindingWorkflow getWorkflow(ServiceDefinitionProxy service) throws IOException {
-        String serviceType = (String) service.getServiceSettings().get(SERVICE_TYPE);
+        ServiceType serviceType = ServiceType.fromSettings(service.getServiceSettings());
         switch (serviceType) {
             case NAMESPACE:
                 return new NamespaceBindingWorkflow(instanceRepo, ecs, service);
             case BUCKET:
                 return new BucketBindingWorkflow(instanceRepo, ecs);
             default:
-                throw new ServiceBrokerException("Unsupported service type type: " + serviceType);
+                throw new ServiceBrokerException("Unsupported service type: " + serviceType);
         }
     }
 
@@ -150,8 +148,8 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 
     private boolean isRemoteConnectBinding(Map<String, Object> parameters) {
         return (parameters != null)
-                && parameters.containsKey("remote_connection")
-                && (Boolean) parameters.get("remote_connection");
+                && parameters.containsKey(REMOTE_CONNECTION)
+                && (Boolean) parameters.get(REMOTE_CONNECTION);
     }
 
 }

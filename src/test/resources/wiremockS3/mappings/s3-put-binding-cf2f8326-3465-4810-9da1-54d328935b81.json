@@ -7,7 +7,7 @@
         "url": "/ecs-cf-broker-repository/service-instance-binding/cf2f8326-3465-4810-9da1-54d328935b81.json",
         "headers": {
         	"Content-Type": {
-        		"equalTo": "application/octet-stream"
+        		"equalTo": "application/json"
         	},
         	"Authorization" : {
         		"matches": "AWS ecs-cf-broker-user:.*"

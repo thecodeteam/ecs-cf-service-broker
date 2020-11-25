@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class PlanCollectionInstance {
     @JsonProperty("access_during_outage")
@@ -58,6 +60,15 @@ public class PlanCollectionInstance {
 
     @JsonProperty("repository_plan")
     private Boolean repositoryPlan;
+
+    @JsonProperty("replication_group")
+    private String replicationGroup;
+
+    @JsonProperty("namespace")
+    private String namespace;
+
+    @JsonProperty("base_url")
+    private String baseUrl;
 
     public void setBullet1(String bullet1) {
         this.bullet1 = bullet1;
@@ -153,6 +164,18 @@ public class PlanCollectionInstance {
         this.accessDuringOutage = accessDuringOutage;
     }
 
+    public void setReplicationGroup(String replicationGroup) {
+        this.replicationGroup = replicationGroup;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
     public List<CostProxy> getCosts() {
         Map<String, Double> val = new HashMap<>();
         val.put(costCurrency != null ? costCurrency.toLowerCase() : Currency.getInstance("USD").getCurrencyCode().toLowerCase(), Double.valueOf(costValue));
@@ -166,21 +189,41 @@ public class PlanCollectionInstance {
 
     public Map<String, Object> getServiceSettings() {
         Map<String, Object> serviceSettings = new HashMap<>();
-        if (accessDuringOutage != null)
-            serviceSettings.put("access-during-outage", accessDuringOutage);
 
-        if (defaultRetention != null)
-            serviceSettings.put("default-retention", Integer.parseInt(defaultRetention));
+        if (accessDuringOutage != null) {
+            serviceSettings.put(ACCESS_DURING_OUTAGE, accessDuringOutage);
+        }
+
+        if (defaultRetention != null) {
+            serviceSettings.put(DEFAULT_RETENTION, Integer.parseInt(defaultRetention));
+        }
+
+        if (namespace != null) {
+            serviceSettings.put(NAMESPACE, namespace);
+        }
+
+        if (replicationGroup != null) {
+            serviceSettings.put(REPLICATION_GROUP, replicationGroup);
+        }
+
+        if (baseUrl != null) {
+            serviceSettings.put(BASE_URL, baseUrl);
+        }
 
         if (quotaLimit != null || quotaWarn != null) {
             Map<String, Integer> quota = new HashMap<>();
-            if (quotaLimit != null)
-                quota.put("limit", Integer.parseInt(quotaLimit));
 
-            if (quotaWarn != null)
-                quota.put("warn",  Integer.parseInt(quotaWarn));
-            serviceSettings.put("quota", quota);
+            if (quotaLimit != null) {
+                quota.put(QUOTA_LIMIT, Integer.parseInt(quotaLimit));
+            }
+
+            if (quotaWarn != null) {
+                quota.put(QUOTA_WARN,  Integer.parseInt(quotaWarn));
+            }
+
+            serviceSettings.put(QUOTA, quota);
         }
+
         return serviceSettings;
     }
 }

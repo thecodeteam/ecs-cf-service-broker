@@ -2,9 +2,9 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
-import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static com.emc.ecs.common.Fixtures.*;
+import static com.emc.ecs.servicebroker.model.Constants.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -42,35 +43,21 @@ public class EcsServiceTest {
     private static final String FOO = "foo";
     private static final String ONE_YEAR = "one-year";
     private static final int ONE_YEAR_IN_SECS = 31536000;
-    private static final String BASE_URL = "base-url";
-    private static final String USE_SSL = "use-ssl";
     private static final String USER1 = "user1";
     private static final String EXISTS = "exists";
-    private static final String DEFAULT_BUCKET_QUOTA = "default-bucket-quota";
-    private static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
-    private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
-    private static final String ENCRYPTED = "encrypted";
     private static final String REPOSITORY = "repository";
     private static final String USER = "user";
-    private static final String WARN = "warn";
-    private static final String QUOTA = "quota";
-    private static final String LIMIT = "limit";
     private static final String DOT = ".";
     private static final String HTTPS = "https://";
     private static final int THIRTY_DAYS_IN_SEC = 2592000;
     private static final String HTTP = "http://";
     private static final String _9020 = ":9020";
     private static final String _9021 = ":9021";
-    private static final String RETENTION = "retention";
     private static final String THIRTY_DAYS = "thirty-days";
     private static final String UPDATE = "update";
     private static final String CREATE = "create";
     private static final String DELETE = "delete";
-    private static final String TAGS ="tags";
-    private static final String KEY = "key";
-    private static final String VALUE = "value";
-    public static final String COMPLIANCE_ENABLED = "compliance-enabled";
-    public static final String DEFAULT_RETENTION = "default-retention";
+    private static final String SOME_OTHER_NAMESPACE_NAME = NAMESPACE_NAME + "_OTHER";
 
     @Mock
     private Connection connection;
@@ -88,13 +75,24 @@ public class EcsServiceTest {
     @InjectMocks
     private EcsService ecs;
 
+    private Map<String, Object> brokerSettings = new HashMap<>();
+
+    {
+        brokerSettings.put(NAMESPACE, NAMESPACE_NAME);
+        brokerSettings.put(REPLICATION_GROUP, RG_NAME);
+        brokerSettings.put(BASE_URL, DEFAULT_BASE_URL_NAME);
+        brokerSettings.put(USE_SSL, false);
+    }
+
     @Before
     public void setUp() {
         when(broker.getPrefix()).thenReturn(PREFIX);
         when(broker.getReplicationGroup()).thenReturn(RG_NAME);
-        when(broker.getNamespace()).thenReturn(NAMESPACE);
+        when(broker.getNamespace()).thenReturn(NAMESPACE_NAME);
         when(broker.getRepositoryUser()).thenReturn(USER);
         when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
+
+        when(broker.getSettings()).thenReturn(brokerSettings);
     }
 
     /**
@@ -195,9 +193,9 @@ public class EcsServiceTest {
         Map<String, Object> params = new HashMap<>();
         Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, BUCKET_NAME, service, plan, params);
 
-        Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get("quota");
-        assertEquals(4, quota.get(WARN).longValue());
-        assertEquals(5, quota.get(LIMIT).longValue());
+        Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
+        assertEquals(4, quota.get(QUOTA_WARN).longValue());
+        assertEquals(5, quota.get(QUOTA_LIMIT).longValue());
 
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor
                 .forClass(ObjectBucketCreate.class);
@@ -207,11 +205,11 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, create.getName());
         assertNull(create.getIsEncryptionEnabled());
         assertNull(create.getIsStaleAllowed());
-        assertEquals(NAMESPACE, create.getNamespace());
+        assertEquals(NAMESPACE_NAME, create.getNamespace());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.create(same(connection), eq(PREFIX + BUCKET_NAME),
-                eq(NAMESPACE), eq(5), eq(4));
+        BucketQuotaAction.create(same(connection), eq(NAMESPACE_NAME), eq(PREFIX + BUCKET_NAME),
+                eq(5), eq(4));
     }
 
     /**
@@ -231,59 +229,67 @@ public class EcsServiceTest {
         when(catalog.findServiceDefinition(BUCKET_SERVICE_ID))
                 .thenReturn(service);
 
-        Map<String, Object> serviceSettings =
-                ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, new HashMap<>());
+
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
         assertNull(serviceSettings.get(QUOTA));
 
-        ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor
-                .forClass(ObjectBucketCreate.class);
+        ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
+
         PowerMockito.verifyStatic(BucketAction.class, times(1));
         BucketAction.create(same(connection), createCaptor.capture());
 
         ObjectBucketCreate create = createCaptor.getValue();
         assertEquals(PREFIX + CUSTOM_BUCKET_NAME, create.getName());
-        assertEquals(NAMESPACE, create.getNamespace());
+        assertEquals(NAMESPACE_NAME, create.getNamespace());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
         assertTrue(create.getFilesystemEnabled());
-        assertEquals("s3", create.getHeadType());
+        assertEquals(HEAD_TYPE_S3, create.getHeadType());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(0));
-        BucketQuotaAction.create(any(Connection.class), anyString(),
-                anyString(), anyInt(), anyInt());
+        BucketQuotaAction.create(any(Connection.class), anyString(), anyString(), anyInt(), anyInt());
+
+        PowerMockito.verifyStatic(BucketRetentionAction.class, times(0));
+        BucketRetentionAction.update(any(Connection.class), anyString(), anyString(), anyInt());
     }
 
     @Test
     public void createBucketWithParamsTest() throws Exception {
         setupCreateBucketTest();
         setupCreateBucketQuotaTest(5, 4);
+        setupBucketRetentionUpdate(100);
         setupChangeBucketTagsTest(null);
 
-        Map<String, Object> params = new HashMap<>();
-        params.put(ENCRYPTED, true);
-        params.put(ACCESS_DURING_OUTAGE, true);
-        Map<String, Object> quota = new HashMap<>();
-        quota.put(WARN, 9);
-        quota.put(LIMIT, 10);
-        params.put(QUOTA, quota);
-        params.put(FILE_ACCESSIBLE, true);
+        Map<String, Object> additionalParamsQuota = new HashMap<>();
+        additionalParamsQuota.put(QUOTA_WARN, 9);
+        additionalParamsQuota.put(QUOTA_LIMIT, 10);
+
+        Map<String, Object> additionalParams = new HashMap<>();
+        additionalParams.put(QUOTA, additionalParamsQuota);
+        additionalParams.put(ENCRYPTED, true);
+        additionalParams.put(ACCESS_DURING_OUTAGE, true);
+        additionalParams.put(FILE_ACCESSIBLE, true);
+        additionalParams.put(DEFAULT_RETENTION, 100);
+
         List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
-        params.put(TAGS, tags);
+        additionalParams.put(TAGS, tags);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
+
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
-        List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
-        assertEquals(4, returnQuota.get(WARN).longValue());
-        assertEquals(5, returnQuota.get(LIMIT).longValue());
+        assertEquals(4, returnQuota.get(QUOTA_WARN).longValue());
+        assertEquals(5, returnQuota.get(QUOTA_LIMIT).longValue());
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
+
+        List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(CollectionUtils.isEqualCollection(tags, setTags));
 
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
@@ -295,19 +301,63 @@ public class EcsServiceTest {
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
         assertTrue(create.getFilesystemEnabled());
-        assertEquals(NAMESPACE, create.getNamespace());
+        assertEquals(NAMESPACE_NAME, create.getNamespace());
+        assertEquals(RG_ID, create.getVpool());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.create(same(connection), eq(PREFIX + CUSTOM_BUCKET_NAME),
-                eq(NAMESPACE), eq(5), eq(4));
+        BucketQuotaAction.create(same(connection), eq(NAMESPACE_NAME), eq(PREFIX + CUSTOM_BUCKET_NAME), eq(5), eq(4));
+
+        PowerMockito.verifyStatic(BucketRetentionAction.class, times(1));
+        BucketRetentionAction.update(same(connection), eq(NAMESPACE_NAME), eq(PREFIX + CUSTOM_BUCKET_NAME), eq(100));
 
         ArgumentCaptor<BucketTagsParamAdd> tagsParamAddCaptor = ArgumentCaptor.forClass(BucketTagsParamAdd.class);
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.create(same(connection), eq(PREFIX + CUSTOM_BUCKET_NAME), tagsParamAddCaptor.capture());
         BucketTagsParamAdd tagsParamAdd = tagsParamAddCaptor.getValue();
-        List<Map<String, String> > invokedTags = tagsParamAdd.getTagSetAsListOfTags();
+        List<Map<String, String>> invokedTags = tagsParamAdd.getTagSetAsListOfTags();
         assertTrue(CollectionUtils.isEqualCollection(tags, invokedTags));
-        assertEquals(NAMESPACE, tagsParamAdd.getNamespace());
+        assertEquals(NAMESPACE_NAME, tagsParamAdd.getNamespace());
+    }
+
+    @Test
+    public void createBucketInRgAndNsInParamsTest() throws Exception {
+        setupCreateBucketTest();
+        setupCreateBucketQuotaTest(5, 4);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(ENCRYPTED, true);
+        params.put(ACCESS_DURING_OUTAGE, true);
+
+        params.put(NAMESPACE, SOME_OTHER_NAMESPACE_NAME);
+        params.put(REPLICATION_GROUP, RG_NAME_2);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+        Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, BUCKET_NAME, service, plan, params);
+
+        Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
+        assertEquals(4, returnQuota.get(QUOTA_WARN).longValue());
+        assertEquals(5, returnQuota.get(QUOTA_LIMIT).longValue());
+        assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
+        assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertNull(serviceSettings.get(FILE_ACCESSIBLE));
+
+        ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        BucketAction.create(same(connection), createCaptor.capture());
+
+        ObjectBucketCreate create = createCaptor.getValue();
+        assertEquals(PREFIX + BUCKET_NAME, create.getName());
+        assertTrue(create.getIsEncryptionEnabled());
+        assertTrue(create.getIsStaleAllowed());
+        assertNull(create.getFilesystemEnabled());
+
+        assertEquals(SOME_OTHER_NAMESPACE_NAME, create.getNamespace());
+        assertEquals(RG_ID_2, create.getVpool());
+
+        PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
+        BucketQuotaAction.create(same(connection), eq(SOME_OTHER_NAMESPACE_NAME), eq(PREFIX + BUCKET_NAME), eq(5), eq(4));
     }
 
     /**
@@ -323,11 +373,11 @@ public class EcsServiceTest {
         PowerMockito.when(BucketAction.class, GET,
                 same(connection), anyString(), anyString()).thenReturn(fakeBucket);
 
-        boolean isEnabled = ecs.getBucketFileEnabled(FOO);
+        boolean isEnabled = ecs.getBucketFileEnabled(FOO, NAMESPACE_NAME);
         assertFalse(isEnabled);
 
         fakeBucket.setFsAccessEnabled(true);
-        isEnabled = ecs.getBucketFileEnabled(FOO);
+        isEnabled = ecs.getBucketFileEnabled(FOO, NAMESPACE_NAME);
         assertTrue(isEnabled);
     }
 
@@ -358,7 +408,7 @@ public class EcsServiceTest {
         setupBucketDeleteTest();
 
         // Perform Test
-        ecs.wipeAndDeleteBucket(BUCKET_NAME);
+        ecs.wipeAndDeleteBucket(BUCKET_NAME, NAMESPACE_NAME);
 
         // Verify that Bucket Exists Was called correctly
         PowerMockito.verifyStatic(BucketAction.class, times(1));
@@ -387,7 +437,7 @@ public class EcsServiceTest {
         setupBucketDeleteTest();
 
         // Perform Test
-        ecs.deleteBucket(BUCKET_NAME);
+        ecs.deleteBucket(BUCKET_NAME, NAMESPACE_NAME);
 
         // Verify that Bucket Exists Was called correctly
         PowerMockito.verifyStatic(BucketAction.class, times(1));
@@ -420,17 +470,17 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
         assertNull(serviceSettings.get(QUOTA));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.delete(same(connection), idCaptor.capture(),
-                nsCaptor.capture());
+        BucketQuotaAction.delete(same(connection), nsCaptor.capture(), idCaptor.capture()
+        );
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
     }
 
     /**
@@ -448,15 +498,15 @@ public class EcsServiceTest {
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 
         Map<String, Object> quota = new HashMap<>();
-        quota.put(LIMIT, 100);
-        quota.put(WARN, 80);
+        quota.put(QUOTA_LIMIT, 100);
+        quota.put(QUOTA_WARN, 80);
         Map<String, Object> params = new HashMap<>();
         params.put(QUOTA, quota);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
-        assertEquals(80, returnQuota.get(WARN).longValue());
-        assertEquals(100, returnQuota.get(LIMIT).longValue());
+        assertEquals(80, returnQuota.get(QUOTA_WARN).longValue());
+        assertEquals(100, returnQuota.get(QUOTA_LIMIT).longValue());
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
@@ -466,11 +516,11 @@ public class EcsServiceTest {
                 .forClass(Integer.class);
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.create(same(connection), idCaptor.capture(),
-                nsCaptor.capture(), limitCaptor.capture(),
+        BucketQuotaAction.create(same(connection), nsCaptor.capture(), idCaptor.capture(),
+                limitCaptor.capture(),
                 warnCaptor.capture());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(Integer.valueOf(100), limitCaptor.getValue());
         assertEquals(Integer.valueOf(80), warnCaptor.getValue());
     }
@@ -489,15 +539,15 @@ public class EcsServiceTest {
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
         Map<String, Object> quota = new HashMap<>();
-        quota.put(LIMIT, 100);
-        quota.put(WARN, 80);
+        quota.put(QUOTA_LIMIT, 100);
+        quota.put(QUOTA_WARN, 80);
         Map<String, Object> params = new HashMap<>();
         params.put(QUOTA, quota);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
         Map<String, Integer> returnQuota = (Map<String, Integer>) serviceSettings.get(QUOTA);
-        assertEquals(4, returnQuota.get(WARN).longValue());
-        assertEquals(5, returnQuota.get(LIMIT).longValue());
+        assertEquals(4, returnQuota.get(QUOTA_WARN).longValue());
+        assertEquals(5, returnQuota.get(QUOTA_LIMIT).longValue());
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
@@ -507,11 +557,11 @@ public class EcsServiceTest {
                 .forClass(Integer.class);
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.create(same(connection), idCaptor.capture(),
-                nsCaptor.capture(), limitCaptor.capture(),
+        BucketQuotaAction.create(same(connection), nsCaptor.capture(), idCaptor.capture(),
+                limitCaptor.capture(),
                 warnCaptor.capture());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(Integer.valueOf(5), limitCaptor.getValue());
         assertEquals(Integer.valueOf(4), warnCaptor.getValue());
     }
@@ -530,10 +580,10 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
         Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
-        assertEquals(4, quota.get(WARN).longValue());
-        assertEquals(5, quota.get(LIMIT).longValue());
+        assertEquals(4, quota.get(QUOTA_WARN).longValue());
+        assertEquals(5, quota.get(QUOTA_LIMIT).longValue());
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
@@ -543,11 +593,11 @@ public class EcsServiceTest {
                 .forClass(Integer.class);
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
-        BucketQuotaAction.create(same(connection), idCaptor.capture(),
-                nsCaptor.capture(), limitCaptor.capture(),
+        BucketQuotaAction.create(same(connection), nsCaptor.capture(), idCaptor.capture(),
+                limitCaptor.capture(),
                 warnCaptor.capture());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(Integer.valueOf(5), limitCaptor.getValue());
         assertEquals(Integer.valueOf(4), warnCaptor.getValue());
     }
@@ -566,7 +616,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, new HashMap<>());
         assertEquals(THIRTY_DAYS_IN_SEC, serviceSettings.get(DEFAULT_RETENTION));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
@@ -577,8 +627,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(1));
         BucketRetentionAction.update(same(connection), nsCaptor.capture(),
                 idCaptor.capture(), periodCaptor.capture());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
-        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertEquals(Integer.valueOf(THIRTY_DAYS_IN_SEC), periodCaptor.getValue());
     }
 
@@ -596,7 +645,7 @@ public class EcsServiceTest {
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), new HashMap<>());
         assertEquals(0, serviceSettings.get(DEFAULT_RETENTION));
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
@@ -607,7 +656,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(1));
         BucketRetentionAction.update(same(connection), nsCaptor.capture(),
                 idCaptor.capture(), periodCaptor.capture());
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertEquals(Integer.valueOf(0), periodCaptor.getValue());
     }
@@ -634,7 +683,7 @@ public class EcsServiceTest {
         params.put(TAGS, createListOfTags(KEY2, VALUE1, KEY1, VALUE1));
 
         List<Map<String, String>> expectedTags = createListOfTags(KEY1, VALUE1, KEY2, VALUE1, KEY3, VALUE3);
-        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(expectedTags.size() == setTags.size() && expectedTags.containsAll(setTags) && setTags.containsAll(expectedTags));
     }
@@ -647,7 +696,7 @@ public class EcsServiceTest {
     @Test
     public void removeUserFromBucketTest() throws Exception {
         BucketAcl bucketAcl = new BucketAcl();
-        BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1, Collections.singletonList("full_control"));
+        BucketUserAcl userAcl = new BucketUserAcl(PREFIX + USER1, FULL_CONTROL);
         BucketAclAcl acl = new BucketAclAcl();
         acl.setUserAccessList(Collections.singletonList(userAcl));
         bucketAcl.setAcl(acl);
@@ -655,21 +704,21 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(BucketAclAction.class);
         PowerMockito
                 .when(BucketAclAction.class, GET,
-                        same(connection),eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
                 .thenReturn(bucketAcl);
         PowerMockito.doNothing()
                 .when(BucketAclAction.class, UPDATE,
                         same(connection), eq(PREFIX + BUCKET_NAME), any(BucketAcl.class));
         PowerMockito
-                .when(BucketAclAction.class, "exists",
-                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE))
+                .when(BucketAclAction.class, EXISTS,
+                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
                 .thenReturn(true);
 
-        ecs.removeUserFromBucket(BUCKET_NAME, USER1);
+        ecs.removeUserFromBucket(BUCKET_NAME, NAMESPACE_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
-        BucketAclAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE));
-        BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE));
+        BucketAclAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
+        BucketAclAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
         ArgumentCaptor<BucketAcl> aclCaptor = ArgumentCaptor.forClass(BucketAcl.class);
         PowerMockito.verifyStatic(BucketAclAction.class);
         BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), aclCaptor.capture());
@@ -686,13 +735,13 @@ public class EcsServiceTest {
     public void deleteUser() throws Exception {
         PowerMockito.mockStatic(ObjectUserAction.class);
         PowerMockito
-                .when(ObjectUserAction.class, "exists", same(connection), any(String.class), any(String.class))
+                .when(ObjectUserAction.class, EXISTS, same(connection), any(String.class), any(String.class))
                 .thenReturn(true);
 
-        ecs.deleteUser(USER1);
+        ecs.deleteUser(USER1, NAMESPACE_NAME);
         PowerMockito.verifyStatic(ObjectUserAction.class);
 
-        ObjectUserAction.exists(same(connection), eq(PREFIX + USER1), eq(NAMESPACE));
+        ObjectUserAction.exists(same(connection), eq(PREFIX + USER1), eq(NAMESPACE_NAME));
         ObjectUserAction.delete(same(connection), eq(PREFIX + USER1));
     }
 
@@ -712,10 +761,10 @@ public class EcsServiceTest {
         PlanProxy plan = service.getPlans().get(0);
 
         Map<String, Object> params = new HashMap<>();
-        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE, namespaceServiceFixture(), plan, params);
+        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE_NAME, namespaceServiceFixture(), plan, params);
         Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
-        assertEquals(4, quota.get(WARN).longValue());
-        assertEquals(5, quota.get(LIMIT).longValue());
+        assertEquals(4, quota.get(QUOTA_WARN).longValue());
+        assertEquals(5, quota.get(QUOTA_LIMIT).longValue());
 
         PowerMockito.verifyStatic(NamespaceAction.class);
 
@@ -723,7 +772,7 @@ public class EcsServiceTest {
                 .forClass(NamespaceCreate.class);
         NamespaceAction.create(same(connection), createCaptor.capture());
         NamespaceCreate create = createCaptor.getValue();
-        assertEquals(PREFIX + NAMESPACE, create.getNamespace());
+        assertEquals(PREFIX + NAMESPACE_NAME, create.getNamespace());
         assertNull(create.getIsEncryptionEnabled());
         assertNull(create.getIsComplianceEnabled());
         assertNull(create.getIsStaleAllowed());
@@ -736,7 +785,7 @@ public class EcsServiceTest {
                 .forClass(NamespaceQuotaParam.class);
         NamespaceQuotaAction.create(same(connection), idCaptor.capture(),
                 quotaParamCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+        assertEquals(PREFIX + NAMESPACE_NAME, idCaptor.getValue());
         assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
         assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
@@ -753,22 +802,20 @@ public class EcsServiceTest {
         setupUpdateNamespaceTest();
 
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor
-                .forClass(NamespaceUpdate.class);
+        ArgumentCaptor<NamespaceUpdate> updateCaptor = ArgumentCaptor.forClass(NamespaceUpdate.class);
 
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
         Map<String, Object> params = new HashMap<>();
-        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE_NAME, service, plan, params);
         assertNull(serviceSettings.get(QUOTA));
 
         PowerMockito.verifyStatic(NamespaceAction.class);
-        NamespaceAction.update(same(connection), idCaptor.capture(),
-                updateCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+        NamespaceAction.update(same(connection), idCaptor.capture(), updateCaptor.capture());
+        assertEquals(PREFIX + NAMESPACE_NAME, idCaptor.getValue());
         NamespaceUpdate update = updateCaptor.getValue();
         assertEquals(EXTERNAL_ADMIN, update.getExternalGroupAdmins());
-        assertTrue(update.getIsEncryptionEnabled());
+        assertNull("Namespace encryption state cannot be changed after creation, value should be null", update.getIsEncryptionEnabled());
         assertTrue(update.getIsComplianceEnabled());
         assertTrue(update.getIsStaleAllowed());
     }
@@ -784,36 +831,34 @@ public class EcsServiceTest {
         setupCreateNamespaceTest();
         setupCreateNamespaceQuotaTest();
 
-        ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
-                .forClass(NamespaceCreate.class);
+        ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor.forClass(NamespaceCreate.class);
 
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.getPlans().get(0);
-        when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-                .thenReturn(service);
+        when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(service);
 
-        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE, service, plan, new HashMap<>());
+        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE_NAME, service, plan, new HashMap<>());
         Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
-        assertEquals(4, quota.get(WARN).longValue());
-        assertEquals(5, quota.get(LIMIT).longValue());
+        assertEquals(4, quota.get(QUOTA_WARN).longValue());
+        assertEquals(5, quota.get(QUOTA_LIMIT).longValue());
 
         PowerMockito.verifyStatic(NamespaceAction.class);
         NamespaceAction.create(same(connection), createCaptor.capture());
         NamespaceCreate create = createCaptor.getValue();
-        assertEquals(PREFIX + NAMESPACE, create.getNamespace());
+        assertEquals(PREFIX + NAMESPACE_NAME, create.getNamespace());
         assertEquals(null, create.getExternalGroupAdmins());
         assertEquals(null, create.getIsEncryptionEnabled());
         assertEquals(null, create.getIsComplianceEnabled());
         assertEquals(null, create.getIsStaleAllowed());
         assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
+        assertEquals(DEFAULT_BASE_URL_NAME, serviceSettings.get(BASE_URL));
+        assertEquals(RG_ID, create.getAllowedVpoolsList());
 
         PowerMockito.verifyStatic(NamespaceQuotaAction.class);
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
-                .forClass(NamespaceQuotaParam.class);
-        NamespaceQuotaAction.create(same(connection), idCaptor.capture(),
-                quotaParamCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+        ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor.forClass(NamespaceQuotaParam.class);
+        NamespaceQuotaAction.create(same(connection), idCaptor.capture(), quotaParamCaptor.capture());
+        assertEquals(PREFIX + NAMESPACE_NAME, idCaptor.getValue());
         assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
         assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
@@ -829,49 +874,52 @@ public class EcsServiceTest {
     @Test
     public void createNamespaceWithParamsTest() throws Exception {
         setupCreateNamespaceTest();
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(DOMAIN_GROUP_ADMINS, EXTERNAL_ADMIN);
-        params.put(ENCRYPTED, true);
-        params.put(COMPLIANCE_ENABLED, true);
-        params.put(ACCESS_DURING_OUTAGE, true);
-        params.put(DEFAULT_BUCKET_QUOTA, 10);
-
-        ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor
-                .forClass(NamespaceCreate.class);
-
         setupCreateNamespaceQuotaTest();
+        setupReplicationGroupsList();
+
+        Map<String, Object> additionalParameters = new HashMap<>();
+        additionalParameters.put(DOMAIN_GROUP_ADMINS, EXTERNAL_ADMIN);
+        additionalParameters.put(ENCRYPTED, true);
+        additionalParameters.put(COMPLIANCE_ENABLED, true);
+        additionalParameters.put(ACCESS_DURING_OUTAGE, true);
+        additionalParameters.put(DEFAULT_BUCKET_QUOTA, 10);
+        additionalParameters.put(BASE_URL, BASE_URL_NAME);
+        additionalParameters.put(REPLICATION_GROUP, RG_NAME_2);
+
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.getPlans().get(0);
-        when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
-                .thenReturn(service);
 
-        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE, service, plan, params);
-        Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
+        when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(service);
+
+        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE_NAME, service, plan, additionalParameters);
+
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(COMPLIANCE_ENABLED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertEquals(BASE_URL_NAME, serviceSettings.get(BASE_URL));
         assertEquals(5, serviceSettings.get(DEFAULT_BUCKET_QUOTA));
-        assertEquals(4, quota.get(WARN).longValue());
-        assertEquals(5, quota.get(LIMIT).longValue());
+        Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
+        assertEquals(4, quota.get(QUOTA_WARN).longValue());
+        assertEquals(5, quota.get(QUOTA_LIMIT).longValue());
 
         PowerMockito.verifyStatic(NamespaceAction.class);
+        ArgumentCaptor<NamespaceCreate> createCaptor = ArgumentCaptor.forClass(NamespaceCreate.class);
         NamespaceAction.create(same(connection), createCaptor.capture());
         NamespaceCreate create = createCaptor.getValue();
-        assertEquals(PREFIX + NAMESPACE, create.getNamespace());
+        assertEquals(PREFIX + NAMESPACE_NAME, create.getNamespace());
         assertEquals(EXTERNAL_ADMIN, create.getExternalGroupAdmins());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsComplianceEnabled());
         assertTrue(create.getIsStaleAllowed());
         assertEquals(Integer.valueOf(5), create.getDefaultBucketBlockSize());
+        assertEquals(RG_ID_2, create.getAllowedVpoolsList());
 
         PowerMockito.verifyStatic(NamespaceQuotaAction.class);
         ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor
-                .forClass(NamespaceQuotaParam.class);
-        NamespaceQuotaAction.create(same(connection), idCaptor.capture(),
-                quotaParamCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+        ArgumentCaptor<NamespaceQuotaParam> quotaParamCaptor = ArgumentCaptor.forClass(NamespaceQuotaParam.class);
+
+        NamespaceQuotaAction.create(same(connection), idCaptor.capture(), quotaParamCaptor.capture());
+        assertEquals(PREFIX + NAMESPACE_NAME, idCaptor.getValue());
         assertEquals(5, quotaParamCaptor.getValue().getBlockSize());
         assertEquals(4, quotaParamCaptor.getValue().getNotificationSize());
     }
@@ -901,23 +949,23 @@ public class EcsServiceTest {
 
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
-        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE_NAME, service, plan, params);
         Map<String, Integer> quota = (Map<String, Integer>) serviceSettings.get(QUOTA);
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(COMPLIANCE_ENABLED));
         assertEquals(EXTERNAL_ADMIN, serviceSettings.get(DOMAIN_GROUP_ADMINS));
         assertEquals(5, serviceSettings.get(DEFAULT_BUCKET_QUOTA));
-        assertEquals(4, quota.get(WARN).longValue());
-        assertEquals(5, quota.get(LIMIT).longValue());
+        assertEquals(4, quota.get(QUOTA_WARN).longValue());
+        assertEquals(5, quota.get(QUOTA_LIMIT).longValue());
 
         PowerMockito.verifyStatic(NamespaceAction.class);
         NamespaceAction.update(same(connection), idCaptor.capture(),
                 updateCaptor.capture());
         NamespaceUpdate update = updateCaptor.getValue();
-        assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+        assertEquals(PREFIX + NAMESPACE_NAME, idCaptor.getValue());
         assertEquals(EXTERNAL_ADMIN, update.getExternalGroupAdmins());
-        assertTrue(update.getIsEncryptionEnabled());
+        assertNull("Namespace encryption state cannot be changed after creation, value should be null", update.getIsEncryptionEnabled());
         assertTrue(update.getIsComplianceEnabled());
         assertTrue(update.getIsStaleAllowed());
         assertEquals(Integer.valueOf(5), update.getDefaultBucketBlockSize());
@@ -942,7 +990,7 @@ public class EcsServiceTest {
         when(catalog.findServiceDefinition(NAMESPACE_SERVICE_ID))
                 .thenReturn(namespaceServiceFixture());
 
-        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.createNamespace(NAMESPACE_NAME, service, plan, params);
         Map<String, Object> returnRetention = (Map<String, Object>) serviceSettings.get(RETENTION);
         assertEquals(ONE_YEAR_IN_SECS, returnRetention.get(ONE_YEAR));
 
@@ -951,7 +999,7 @@ public class EcsServiceTest {
                 .forClass(NamespaceCreate.class);
         NamespaceAction.create(same(connection), createCaptor.capture());
         NamespaceCreate create = createCaptor.getValue();
-        assertEquals(PREFIX + NAMESPACE, create.getNamespace());
+        assertEquals(PREFIX + NAMESPACE_NAME, create.getNamespace());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
         assertTrue(create.getIsComplianceEnabled());
@@ -963,7 +1011,7 @@ public class EcsServiceTest {
         NamespaceRetentionAction.create(same(connection), idCaptor.capture(),
                 retentionCreateCaptor.capture());
         RetentionClassCreate retention = retentionCreateCaptor.getValue();
-        assertEquals(PREFIX + NAMESPACE, idCaptor.getValue());
+        assertEquals(PREFIX + NAMESPACE_NAME, idCaptor.getValue());
         assertEquals(ONE_YEAR, retention.getName());
         assertEquals(ONE_YEAR_IN_SECS, retention.getPeriod());
     }
@@ -990,14 +1038,14 @@ public class EcsServiceTest {
 
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
-        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE_NAME, service, plan, params);
         Map<String, Object> returnRetention = (Map<String, Object>) serviceSettings.get(RETENTION);
         assertEquals(THIRTY_DAYS_IN_SEC, returnRetention.get(THIRTY_DAYS));
 
         PowerMockito.verifyStatic(NamespaceRetentionAction.class);
         NamespaceRetentionAction.create(same(connection), nsCaptor.capture(),
                 createCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+        assertEquals(PREFIX + NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(THIRTY_DAYS, createCaptor.getValue().getName());
         assertEquals(THIRTY_DAYS_IN_SEC, createCaptor.getValue().getPeriod());
     }
@@ -1020,7 +1068,7 @@ public class EcsServiceTest {
 
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
-        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE_NAME, service, plan, params);
         assertNull(serviceSettings.get(RETENTION));
 
         PowerMockito.verifyStatic(NamespaceRetentionAction.class);
@@ -1029,7 +1077,7 @@ public class EcsServiceTest {
         ArgumentCaptor<String> rcCaptor = ArgumentCaptor.forClass(String.class);
         NamespaceRetentionAction.delete(same(connection), nsCaptor.capture(),
                 rcCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+        assertEquals(PREFIX + NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(THIRTY_DAYS, rcCaptor.getValue());
     }
 
@@ -1057,14 +1105,14 @@ public class EcsServiceTest {
 
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID2);
-        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE, service, plan, params);
+        Map<String, Object> serviceSettings = ecs.changeNamespacePlan(NAMESPACE_NAME, service, plan, params);
         Map<String, Object> returnRetention = (Map<String, Object>) serviceSettings.get(RETENTION);
         assertEquals(THIRTY_DAYS_IN_SEC, returnRetention.get(THIRTY_DAYS));
 
         PowerMockito.verifyStatic(NamespaceRetentionAction.class);
         NamespaceRetentionAction.update(same(connection), nsCaptor.capture(),
                 rcCaptor.capture(), updateCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+        assertEquals(PREFIX + NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(THIRTY_DAYS, rcCaptor.getValue());
         assertEquals(THIRTY_DAYS_IN_SEC, updateCaptor.getValue().getPeriod());
     }
@@ -1093,7 +1141,7 @@ public class EcsServiceTest {
         assertEquals(THIRTY_DAYS_IN_SEC, serviceSettings.get(DEFAULT_RETENTION));
 
         PowerMockito.verifyStatic(BucketRetentionAction.class);
-        BucketRetentionAction.update(same(connection), eq(NAMESPACE),
+        BucketRetentionAction.update(same(connection), eq(NAMESPACE_NAME),
                 eq(PREFIX + BUCKET_NAME), eq(THIRTY_DAYS_IN_SEC));
     }
 
@@ -1107,11 +1155,11 @@ public class EcsServiceTest {
     public void deleteNamespace() throws Exception {
         setupDeleteNamespaceTest();
 
-        ecs.deleteNamespace(NAMESPACE);
+        ecs.deleteNamespace(NAMESPACE_NAME);
 
         PowerMockito.verifyStatic(NamespaceAction.class);
-        NamespaceAction.exists(same(connection), eq(PREFIX + NAMESPACE));
-        NamespaceAction.delete(same(connection), eq(PREFIX + NAMESPACE));
+        NamespaceAction.exists(same(connection), eq(PREFIX + NAMESPACE_NAME));
+        NamespaceAction.delete(same(connection), eq(PREFIX + NAMESPACE_NAME));
     }
 
     /**
@@ -1134,7 +1182,7 @@ public class EcsServiceTest {
                         anyString())
                 .thenReturn(Collections.singletonList(new UserSecretKey()));
 
-        ecs.createUser(USER1, NAMESPACE);
+        ecs.createUser(USER1, NAMESPACE_NAME);
 
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> userCaptor = ArgumentCaptor
@@ -1142,7 +1190,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(ObjectUserAction.class);
         ObjectUserAction.create(same(connection), userCaptor.capture(),
                 nsCaptor.capture());
-        assertEquals(PREFIX + NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(PREFIX + USER1, userCaptor.getValue());
     }
 
@@ -1178,14 +1226,15 @@ public class EcsServiceTest {
     public void testNamespaceURLNoSSLDefaultBaseURL() throws EcsManagementClientException {
         ServiceDefinitionProxy service = namespaceServiceFixture();
         PlanProxy plan = service.findPlan(NAMESPACE_PLAN_ID1);
-
-        when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
-        setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
-
-        String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
         Map<String, Object> serviceSettings = plan.getServiceSettings();
         serviceSettings.putAll(service.getServiceSettings());
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, Collections.emptyMap(), serviceSettings));
+
+        when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
+
+        setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
+
+        String expectedUrl = HTTP + NAMESPACE_NAME + DOT + BASE_URL + _9020;
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE_NAME, Collections.emptyMap(), serviceSettings));
     }
 
     /**
@@ -1204,9 +1253,11 @@ public class EcsServiceTest {
         service.setServiceSettings(serviceSettings);
 
         when(broker.getBaseUrl()).thenReturn(DEFAULT_BASE_URL_NAME);
+
         setupBaseUrlTest(DEFAULT_BASE_URL_NAME, true);
-        String expectedUrl = HTTPS + NAMESPACE + DOT + BASE_URL + _9021;
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, Collections.emptyMap(), serviceSettings));
+
+        String expectedUrl = HTTPS + NAMESPACE_NAME + DOT + BASE_URL + _9021;
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE_NAME, Collections.emptyMap(), serviceSettings));
     }
 
     /**
@@ -1226,8 +1277,8 @@ public class EcsServiceTest {
 
         setupBaseUrlTest(BASE_URL_NAME, true);
 
-        String expectedUrl = HTTP + NAMESPACE + DOT + BASE_URL + _9020;
-        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE, params, serviceSettings));
+        String expectedUrl = HTTP + NAMESPACE_NAME + DOT + BASE_URL + _9020;
+        assertEquals(expectedUrl, ecs.getNamespaceURL(NAMESPACE_NAME, params, serviceSettings));
     }
 
     /**
@@ -1248,8 +1299,8 @@ public class EcsServiceTest {
 
         setupBaseUrlTest(BASE_URL_NAME, true);
 
-        String expectedURl = HTTPS + NAMESPACE + DOT + BASE_URL + _9021;
-        assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE, params, serviceSettings));
+        String expectedURl = HTTPS + NAMESPACE_NAME + DOT + BASE_URL + _9021;
+        assertEquals(expectedURl, ecs.getNamespaceURL(NAMESPACE_NAME, params, serviceSettings));
     }
 
     /**
@@ -1259,7 +1310,7 @@ public class EcsServiceTest {
      */
     @Test
     public void testAddNonexistentExportToBucket() throws Exception {
-        String absolutePath = "/" + NAMESPACE + "/" + PREFIX + BUCKET_NAME + "/" + EXPORT_NAME;
+        String absolutePath = "/" + NAMESPACE_NAME + "/" + PREFIX + BUCKET_NAME + "/" + EXPORT_NAME_VALUE;
         PowerMockito.mockStatic(NFSExportAction.class);
 
         when(NFSExportAction.list(same(connection), eq(absolutePath)))
@@ -1267,7 +1318,7 @@ public class EcsServiceTest {
 
         PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
 
-        ecs.addExportToBucket(BUCKET_NAME, EXPORT_NAME);
+        ecs.addExportToBucket(BUCKET_NAME, NAMESPACE_NAME, EXPORT_NAME_VALUE);
 
         ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic(NFSExportAction.class);
@@ -1287,7 +1338,7 @@ public class EcsServiceTest {
      */
     @Test
     public void testAddNullExportPathToBucket() throws Exception {
-        String absolutePath = "/" + NAMESPACE + "/" + PREFIX + BUCKET_NAME + "/";
+        String absolutePath = "/" + NAMESPACE_NAME + "/" + PREFIX + BUCKET_NAME + "/";
         PowerMockito.mockStatic(NFSExportAction.class);
 
         when(NFSExportAction.list(same(connection), eq(absolutePath)))
@@ -1295,7 +1346,7 @@ public class EcsServiceTest {
 
         PowerMockito.doNothing().when(NFSExportAction.class, CREATE, same(connection), eq(absolutePath));
 
-        ecs.addExportToBucket(BUCKET_NAME, null);
+        ecs.addExportToBucket(BUCKET_NAME, NAMESPACE_NAME, null);
 
         ArgumentCaptor<String> listPathCaptor = ArgumentCaptor.forClass(String.class);
         PowerMockito.verifyStatic(NFSExportAction.class);
@@ -1320,10 +1371,10 @@ public class EcsServiceTest {
 
         Map<String, Object> params = new HashMap<>();
         params.put(TAGS, createListOfTags(KEY1, VALUE2, KEY3, VALUE3));
-        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
-        List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
+        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, NAMESPACE_NAME, params);
+        List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
-        List<Map<String, String> > expectedTags = createListOfTags(KEY1, VALUE2, KEY2, VALUE2, KEY3, VALUE3);
+        List<Map<String, String>> expectedTags = createListOfTags(KEY1, VALUE2, KEY2, VALUE2, KEY3, VALUE3);
 
         assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
@@ -1333,7 +1384,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketAction.class, times(1));
         BucketAction.get(same(connection), idCaptor.capture(), nsCaptor.capture());
 
-        assertEquals(NAMESPACE, nsCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
 
         ArgumentCaptor<BucketTagsParamAdd> tagsParamAddCaptor = ArgumentCaptor.forClass(BucketTagsParamAdd.class);
@@ -1341,22 +1392,22 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.create(same(connection), idCaptor.capture(), tagsParamAddCaptor.capture());
         BucketTagsParamAdd tagsParamAdd = tagsParamAddCaptor.getValue();
-        List<Map<String, String> > expectedCreatedTags = createListOfTags(KEY3, VALUE3);
-        List<Map<String, String> > invokedCreatedTags = tagsParamAdd.getTagSetAsListOfTags();
+        List<Map<String, String>> expectedCreatedTags = createListOfTags(KEY3, VALUE3);
+        List<Map<String, String>> invokedCreatedTags = tagsParamAdd.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertTrue(CollectionUtils.isEqualCollection(expectedCreatedTags, invokedCreatedTags));
-        assertEquals(NAMESPACE, tagsParamAdd.getNamespace());
+        assertEquals(NAMESPACE_NAME, tagsParamAdd.getNamespace());
 
         ArgumentCaptor<BucketTagsParamUpdate> tagsParamUpdateCaptor = ArgumentCaptor.forClass(BucketTagsParamUpdate.class);
 
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.update(same(connection), idCaptor.capture(), tagsParamUpdateCaptor.capture());
         BucketTagsParamUpdate tagsParamUpdate = tagsParamUpdateCaptor.getValue();
-        List<Map<String, String> > expectedUpdatedTags = createListOfTags(KEY1, VALUE2);
-        List<Map<String, String> > invokedUpdatedTags = tagsParamUpdate.getTagSetAsListOfTags();
+        List<Map<String, String>> expectedUpdatedTags = createListOfTags(KEY1, VALUE2);
+        List<Map<String, String>> invokedUpdatedTags = tagsParamUpdate.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertTrue(CollectionUtils.isEqualCollection(expectedUpdatedTags, invokedUpdatedTags));
-        assertEquals(NAMESPACE, tagsParamAdd.getNamespace());
+        assertEquals(NAMESPACE_NAME, tagsParamAdd.getNamespace());
     }
 
     /**
@@ -1370,10 +1421,10 @@ public class EcsServiceTest {
 
         Map<String, Object> params = new HashMap<>();
         params.put(TAGS, createListOfTags(KEY1, VALUE2));
-        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
-        List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
+        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, NAMESPACE_NAME, params);
+        List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
-        List<Map<String, String> > expectedTags = createListOfTags(KEY1, VALUE2);
+        List<Map<String, String>> expectedTags = createListOfTags(KEY1, VALUE2);
 
         assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
@@ -1383,11 +1434,11 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.update(same(connection), idCaptor.capture(), tagsParamCaptor.capture());
         BucketTagsParamUpdate tagsParam = tagsParamCaptor.getValue();
-        List<Map<String, String> > expectedCreatedTags = createListOfTags(KEY1, VALUE2);
-        List<Map<String, String> > invokedCreatedTags = tagsParam.getTagSetAsListOfTags();
+        List<Map<String, String>> expectedCreatedTags = createListOfTags(KEY1, VALUE2);
+        List<Map<String, String>> invokedCreatedTags = tagsParam.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertTrue(CollectionUtils.isEqualCollection(expectedCreatedTags, invokedCreatedTags));
-        assertEquals(NAMESPACE, tagsParam.getNamespace());
+        assertEquals(NAMESPACE_NAME, tagsParam.getNamespace());
     }
 
     /**
@@ -1401,10 +1452,10 @@ public class EcsServiceTest {
 
         Map<String, Object> params = new HashMap<>();
         params.put(TAGS, createListOfTags(KEY1, VALUE1));
-        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
-        List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
+        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, NAMESPACE_NAME, params);
+        List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
-        List<Map<String, String> > expectedTags =
+        List<Map<String, String>> expectedTags =
                 createListOfTags(KEY1, VALUE1);
 
         assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
@@ -1427,11 +1478,11 @@ public class EcsServiceTest {
 
         Map<String, Object> params = new HashMap<>();
         params.put(TAGS, createListOfTags(KEY2, VALUE2));
-        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, params);
-        List<Map<String, String> > setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
 
-        List<Map<String, String> > expectedTags =
-                createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
+        Map<String, Object> serviceSettings = ecs.changeBucketTags(BUCKET_NAME, NAMESPACE_NAME, params);
+
+        List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
+        List<Map<String, String>> expectedTags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
 
         assertTrue(CollectionUtils.isEqualCollection(expectedTags, setTags));
 
@@ -1441,22 +1492,23 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketTagsAction.class, times(1));
         BucketTagsAction.create(same(connection), idCaptor.capture(), tagsParamCaptor.capture());
         BucketTagsParamAdd tagsParam = tagsParamCaptor.getValue();
-        List<Map<String, String> > expectedCreatedTags = createListOfTags(KEY2, VALUE2);
-        List<Map<String, String> > invokedCreatedTags = tagsParam.getTagSetAsListOfTags();
+        List<Map<String, String>> expectedCreatedTags = createListOfTags(KEY2, VALUE2);
+        List<Map<String, String>> invokedCreatedTags = tagsParam.getTagSetAsListOfTags();
         assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
         assertTrue(CollectionUtils.isEqualCollection(expectedCreatedTags, invokedCreatedTags));
-        assertEquals(NAMESPACE, tagsParam.getNamespace());
+        assertEquals(NAMESPACE_NAME, tagsParam.getNamespace());
     }
 
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
         rg.setId(RG_ID);
-        UserSecretKey secretKey = new UserSecretKey();
 
+        UserSecretKey secretKey = new UserSecretKey();
         secretKey.setSecretKey(TEST);
+
         PowerMockito.mockStatic(BucketAction.class);
-        when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE))
+        when(BucketAction.exists(connection, REPO_BUCKET, NAMESPACE_NAME))
                 .thenReturn(true);
 
         PowerMockito.mockStatic(ReplicationGroupAction.class);
@@ -1464,7 +1516,7 @@ public class EcsServiceTest {
                 .thenReturn(Collections.singletonList(rg));
 
         PowerMockito.mockStatic(ObjectUserAction.class);
-        when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE))
+        when(ObjectUserAction.exists(connection, REPO_USER, NAMESPACE_NAME))
                 .thenReturn(true);
 
         PowerMockito.mockStatic(ObjectUserSecretAction.class);
@@ -1493,31 +1545,43 @@ public class EcsServiceTest {
             throws Exception {
         PowerMockito.mockStatic(BucketQuotaAction.class);
         PowerMockito.doNothing().when(BucketQuotaAction.class, CREATE,
-                same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE),
+                same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME),
                 eq(limit), eq(warn));
     }
 
+    private void setupBucketRetentionUpdate(int expectedValue) throws Exception {
+        PowerMockito.mockStatic(BucketRetentionAction.class);
+        PowerMockito.doNothing().when(BucketRetentionAction.class, UPDATE,
+                same(connection), eq(NAMESPACE_NAME), eq(PREFIX + BUCKET_NAME),
+                eq(expectedValue));
+    }
+
     private void setupCreateBucketTest() throws Exception {
+        setupReplicationGroupsList();
+
         PowerMockito.mockStatic(BucketAction.class);
         PowerMockito.doNothing().when(BucketAction.class, CREATE,
                 same(connection), any(ObjectBucketCreate.class));
+
+        PowerMockito.mockStatic(BucketRetentionAction.class);
     }
 
     private void setupBucketExistsTest() throws Exception {
-        PowerMockito.when(BucketAction.class, EXISTS, same(connection), eq(PREFIX+BUCKET_NAME), anyString())
-                    .thenReturn(true);
+        PowerMockito.mockStatic(NamespaceAction.class);
+        PowerMockito.when(NamespaceAction.class, EXISTS, same(connection), eq(NAMESPACE_NAME)).thenReturn(true);
+        PowerMockito.when(BucketAction.class, EXISTS, same(connection), eq(PREFIX + BUCKET_NAME), anyString()).thenReturn(true);
     }
 
     private void setupBucketGetTest() throws Exception {
         ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
         bucketInfo.setFsAccessEnabled(true);
 
-        PowerMockito.when(BucketAction.class, GET, same(connection), eq(PREFIX+BUCKET_NAME), anyString())
-            .thenReturn(bucketInfo);
+        PowerMockito.when(BucketAction.class, GET, same(connection), eq(PREFIX + BUCKET_NAME), anyString())
+                .thenReturn(bucketInfo);
     }
 
     private void setupBucketDeleteTest() throws Exception {
-        PowerMockito.doNothing().when(BucketAction.class, DELETE, same(connection), eq(PREFIX+BUCKET_NAME), anyString());
+        PowerMockito.doNothing().when(BucketAction.class, DELETE, same(connection), eq(PREFIX + BUCKET_NAME), anyString());
     }
 
     private void setupBucketAclTest() throws Exception {
@@ -1529,17 +1593,19 @@ public class EcsServiceTest {
         bucketAcl.setAcl(bucketAclAcl);
 
         PowerMockito.mockStatic(BucketAclAction.class);
-        PowerMockito.when(BucketAclAction.class, GET, same(connection), eq(PREFIX+BUCKET_NAME), anyString()).thenReturn(bucketAcl);
-        PowerMockito.doNothing().when(BucketAclAction.class, UPDATE, same(connection), eq(PREFIX+BUCKET_NAME), any());
+        PowerMockito.when(BucketAclAction.class, GET, same(connection), eq(PREFIX + BUCKET_NAME), anyString()).thenReturn(bucketAcl);
+        PowerMockito.doNothing().when(BucketAclAction.class, UPDATE, same(connection), eq(PREFIX + BUCKET_NAME), any());
     }
 
     private void setupDeleteBucketQuotaTest() throws Exception {
         PowerMockito.mockStatic(BucketQuotaAction.class);
         PowerMockito.doNothing().when(BucketQuotaAction.class, DELETE,
-                same(connection), eq(BUCKET_NAME), eq(NAMESPACE));
+                same(connection), eq(BUCKET_NAME), eq(NAMESPACE_NAME));
     }
 
     private void setupUpdateNamespaceTest() throws Exception {
+        setupReplicationGroupsList();
+
         PowerMockito.mockStatic(NamespaceAction.class);
         PowerMockito.doNothing().when(NamespaceAction.class, UPDATE,
                 same(connection), anyString(), any(NamespaceUpdate.class));
@@ -1552,6 +1618,8 @@ public class EcsServiceTest {
     }
 
     private void setupCreateNamespaceTest() throws Exception {
+        setupReplicationGroupsList();
+
         PowerMockito.mockStatic(NamespaceAction.class);
         PowerMockito.doNothing().when(NamespaceAction.class, CREATE,
                 same(connection), any(NamespaceCreate.class));
@@ -1562,7 +1630,7 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(NamespaceAction.class, DELETE,
                 same(connection), anyString());
         PowerMockito.when(NamespaceAction.class, "exists", same(connection), any(String.class))
-            .thenReturn(true);
+                .thenReturn(true);
     }
 
     private void setupCreateNamespaceRetentionTest(boolean exists) throws Exception {
@@ -1590,7 +1658,32 @@ public class EcsServiceTest {
                 .thenReturn(retention);
     }
 
-    private void setupChangeBucketTagsTest(List<Map<String, String> > tags) throws Exception {
+
+    private void setupReplicationGroupsList() throws Exception {
+        DataServiceReplicationGroup rg1 = new DataServiceReplicationGroup();
+        rg1.setName(RG_NAME);
+        rg1.setId(RG_ID);
+
+        DataServiceReplicationGroup rg2 = new DataServiceReplicationGroup();
+        rg2.setName(RG_NAME_2);
+        rg2.setId(RG_ID_2);
+
+        DataServiceReplicationGroup rg3 = new DataServiceReplicationGroup();
+        rg3.setName(RG_NAME_3);
+        rg3.setId(RG_ID_3);
+
+        DataServiceReplicationGroup rg4 = new DataServiceReplicationGroup();
+        rg4.setName(RG_NAME_4);
+        rg4.setId(RG_ID_4);
+
+        List<DataServiceReplicationGroup> replicationGroupsList = Arrays.asList(rg1, rg2, rg3, rg4);
+
+        PowerMockito.mockStatic(ReplicationGroupAction.class);
+        PowerMockito.when(ReplicationGroupAction.class, "list", same(connection))
+                .thenReturn(replicationGroupsList);
+    }
+
+    private void setupChangeBucketTagsTest(List<Map<String, String>> tags) throws Exception {
         if (tags != null) {
             PowerMockito.mockStatic(BucketAction.class);
             ObjectBucketInfo bucket = new ObjectBucketInfo();
@@ -1602,15 +1695,15 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(BucketTagsAction.class, UPDATE, same(connection), anyString(), any(BucketTagsParamUpdate.class));
     }
 
-    private List<Map<String, String>> createListOfTags(String ... args) throws IllegalArgumentException {
+    private List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {
         if (args.length % 2 != 0) {
             throw new IllegalArgumentException("Number of arguments should be multiple of two.");
         }
-        List<Map<String, String> > tags = new ArrayList<>();
+        List<Map<String, String>> tags = new ArrayList<>();
         for (int i = 0; i < args.length; i += 2) {
             Map<String, String> tag = new HashMap<>();
-            tag.put(KEY, args[i]);
-            tag.put(VALUE, args[i + 1]);
+            tag.put(BucketTagSetRootElement.KEY, args[i]);
+            tag.put(BucketTagSetRootElement.VALUE, args[i + 1]);
             tags.add(tag);
         }
         return tags;

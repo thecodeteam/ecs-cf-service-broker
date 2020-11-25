@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
@@ -13,6 +14,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs, ServiceDefinitionProxy service) {
@@ -20,26 +23,20 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(bindingId))
+        if (ecs.userExists(bindingId, ecs.prefix(instanceId)))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName(), ecs.prefix(instanceId));
 
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-        String namespaceName = instance.getName();
-
-        return ecs.createUser(binding.getName(), namespaceName).getSecretKey();
+        return userSecretKey.getSecretKey();
     }
 
     @Override
     public void removeBinding() throws EcsManagementClientException {
-        ecs.deleteUser(binding.getName());
+        ecs.deleteUser(binding.getName(), ecs.prefix(instanceId));
     }
 
     @Override
@@ -56,14 +53,14 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
         // Add namespace title as part of credentials
-        credentials.put("namespace", ecs.prefix(namespaceName));
+        credentials.put(NAMESPACE, ecs.prefix(namespaceName));
 
         // Get custom endpoint for namespace
         String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
-        credentials.put("endpoint", endpoint);
+        credentials.put(ENDPOINT, endpoint);
 
         // Add s3 URL
-        credentials.put("s3Url", getS3Url(endpoint, secretKey));
+        credentials.put(S3_URL, getS3Url(endpoint, secretKey));
 
         return credentials;
     }
