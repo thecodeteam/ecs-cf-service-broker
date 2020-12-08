@@ -1,23 +1,19 @@
 package com.emc.ecs.servicebroker.repository;
 
-import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.service.S3Service;
-import com.emc.object.s3.S3Config;
 import com.emc.object.s3.bean.GetObjectResult;
-import com.emc.object.s3.jersey.S3JerseyClient;
+import com.emc.object.s3.bean.ListObjectsResult;
+import com.emc.object.s3.bean.S3Object;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServiceInstanceRepository {
     private static final Logger logger = LoggerFactory.getLogger(ServiceInstanceRepository.class);
@@ -54,9 +50,25 @@ public class ServiceInstanceRepository {
 
     public ServiceInstance find(String id) throws IOException {
         String filename = getFilename(id);
+        return findByFilename(filename);
+    }
+
+    public ServiceInstance findByFilename(String filename) throws IOException {
         logger.debug("Loading service instance from repository file {}", filename);
         GetObjectResult<InputStream> input = s3.getObject(filename);
         return objectMapper.readValue(input.getObject(), ServiceInstance.class);
+    }
+
+    public List<ServiceInstance> listServiceInstances() throws IOException {
+        List<ServiceInstance> instances = new ArrayList<>();
+        ListObjectsResult list = s3.listObjects();
+        //
+        for (S3Object s3Object: list.getObjects()) {
+            String filename = s3Object.getKey();
+            ServiceInstance instance = findByFilename(filename);
+            instances.add(instance);
+        }
+        return instances;
     }
 
     public void delete(String id) {

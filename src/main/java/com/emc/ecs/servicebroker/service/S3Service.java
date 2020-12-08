@@ -87,4 +87,8 @@ public class S3Service {
     public void deleteObject(String filename) {
         s3.deleteObject(bucket, filename);
     }
+
+    public ListObjectsResult listObjects() {
+        return  s3.listObjects(bucket);
+    }
 }
