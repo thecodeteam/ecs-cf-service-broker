@@ -15,6 +15,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.String.format;
+
 public class ServiceInstanceRepository {
     private static final Logger logger = LoggerFactory.getLogger(ServiceInstanceRepository.class);
 
@@ -27,6 +29,10 @@ public class ServiceInstanceRepository {
 
     private static String getFilename(String id) {
         return FILENAME_PREFIX + "/" + id + ".json";
+    }
+
+    private static boolean isCorrectFilename (String filename) {
+        return filename.matches(FILENAME_PREFIX + "/.*\\.json");
     }
 
     @PostConstruct
@@ -54,6 +60,10 @@ public class ServiceInstanceRepository {
     }
 
     public ServiceInstance findByFilename(String filename) throws IOException {
+        if (!isCorrectFilename(filename)) {
+            String errorMessage = format("Invalid filename of service instance provided: %s", filename);
+            throw new IOException(errorMessage);
+        }
         logger.debug("Loading service instance from repository file {}", filename);
         GetObjectResult<InputStream> input = s3.getObject(filename);
         return objectMapper.readValue(input.getObject(), ServiceInstance.class);
@@ -62,11 +72,13 @@ public class ServiceInstanceRepository {
     public List<ServiceInstance> listServiceInstances() throws IOException {
         List<ServiceInstance> instances = new ArrayList<>();
         ListObjectsResult list = s3.listObjects();
-        //
+        // TODO: Add pagination support
         for (S3Object s3Object: list.getObjects()) {
             String filename = s3Object.getKey();
-            ServiceInstance instance = findByFilename(filename);
-            instances.add(instance);
+            if (isCorrectFilename(filename)) {
+                ServiceInstance instance = findByFilename(filename);
+                instances.add(instance);
+            }
         }
         return instances;
     }

@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.servicebroker.model.BrokerApiVersion;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.DependsOn;
 
 import java.net.URISyntaxException;
 
@@ -70,6 +71,7 @@ public class Application {
     }
 
     @Bean
+    @DependsOn("ecsService")
     public S3Service s3Service() {
         return new S3Service();
     }

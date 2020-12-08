@@ -3,6 +3,8 @@ package com.emc.ecs.servicebroker.repository;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.service.S3Service;
 import com.emc.object.s3.bean.GetObjectResult;
+import com.emc.object.s3.bean.ListObjectsResult;
+import com.emc.object.s3.bean.S3Object;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +21,10 @@ import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
 
 @SuppressWarnings("unused")
 public class ServiceInstanceBindingRepository {
@@ -45,6 +51,10 @@ public class ServiceInstanceBindingRepository {
         return FILENAME_PREFIX + "/" + id + ".json";
     }
 
+    private static boolean isCorrectFilename (String filename) {
+        return filename.matches(FILENAME_PREFIX + "/.*\\.json");
+    }
+
     @PostConstruct
     public void initialize() throws EcsManagementClientException {
         logger.info("Service binding file prefix: {}", FILENAME_PREFIX);
@@ -58,8 +68,31 @@ public class ServiceInstanceBindingRepository {
 
     public ServiceInstanceBinding find(String id) throws IOException {
         String filename = getFilename(id);
+        return findByFilename(filename);
+    }
+
+    public ServiceInstanceBinding findByFilename(String filename) throws IOException {
+        if (!isCorrectFilename(filename)) {
+            String errorMessage = format("Invalid filename of service instance binding provided: %s", filename);
+            throw new IOException(errorMessage);
+        }
+        logger.debug("Loading service instance binding from repository file {}", filename);
         GetObjectResult<InputStream> input = s3.getObject(filename);
         return objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
+    }
+
+    public List<ServiceInstanceBinding> listServiceInstanceBindings() throws IOException {
+        List<ServiceInstanceBinding> bindings = new ArrayList<>();
+        ListObjectsResult list = s3.listObjects();
+        // TODO: Add pagination support
+        for (S3Object s3Object: list.getObjects()) {
+            String filename = s3Object.getKey();
+            if (isCorrectFilename(filename)) {
+                ServiceInstanceBinding binding = findByFilename(filename);
+                bindings.add(binding);
+            }
+        }
+        return bindings;
     }
 
     public void delete(String id) {
