@@ -4,10 +4,7 @@ import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
-import com.emc.object.s3.bean.AccessControlList;
-import com.emc.object.s3.bean.CanonicalUser;
-import com.emc.object.s3.bean.GetObjectResult;
-import com.emc.object.s3.bean.ListObjectsResult;
+import com.emc.object.s3.bean.*;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.object.s3.request.ListObjectsRequest;
 import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
@@ -89,6 +86,16 @@ public class S3Service {
     }
 
     public ListObjectsResult listObjects() {
-        return  s3.listObjects(bucket);
+        return s3.listObjects(bucket);
+    }
+
+    public ListObjectsResult listObjects(String prefix, String marker, int pageSize) {
+        ListObjectsRequest request = new ListObjectsRequest(bucket);
+        if (marker != null) {
+            request.setMarker(marker);
+        }
+        request.setPrefix(prefix);
+        request.setMaxKeys(pageSize);
+        return s3.listObjects(request);
     }
 }

@@ -1,9 +1,7 @@
 package com.emc.ecs.servicebroker.repository;
 
 import com.emc.ecs.servicebroker.service.S3Service;
-import com.emc.object.s3.bean.GetObjectResult;
-import com.emc.object.s3.bean.ListObjectsResult;
-import com.emc.object.s3.bean.S3Object;
+import com.emc.object.s3.bean.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +67,12 @@ public class ServiceInstanceRepository {
         return objectMapper.readValue(input.getObject(), ServiceInstance.class);
     }
 
-    public List<ServiceInstance> listServiceInstances() throws IOException {
+    public List<ServiceInstance> listServiceInstances(String marker, int pageSize) throws IOException {
         List<ServiceInstance> instances = new ArrayList<>();
-        ListObjectsResult list = s3.listObjects();
-        // TODO: Add pagination support
+        ListObjectsResult list = marker != null ?
+                s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :
+                s3.listObjects(FILENAME_PREFIX + "/", null, pageSize);
+
         for (S3Object s3Object: list.getObjects()) {
             String filename = s3Object.getKey();
             if (isCorrectFilename(filename)) {

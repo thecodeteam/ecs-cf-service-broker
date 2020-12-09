@@ -81,10 +81,11 @@ public class ServiceInstanceBindingRepository {
         return objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
     }
 
-    public List<ServiceInstanceBinding> listServiceInstanceBindings() throws IOException {
+    public List<ServiceInstanceBinding> listServiceInstanceBindings(String marker, int pageSize) throws IOException {
         List<ServiceInstanceBinding> bindings = new ArrayList<>();
-        ListObjectsResult list = s3.listObjects();
-        // TODO: Add pagination support
+        ListObjectsResult list = marker != null ?
+                s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :
+                s3.listObjects(FILENAME_PREFIX + "/", null, pageSize);
         for (S3Object s3Object: list.getObjects()) {
             String filename = s3Object.getKey();
             if (isCorrectFilename(filename)) {

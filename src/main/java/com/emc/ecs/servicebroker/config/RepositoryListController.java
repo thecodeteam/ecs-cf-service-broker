@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.annotation.ServiceBrokerRestController;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -28,9 +29,9 @@ public class RepositoryListController {
     }
 
     @GetMapping("/v2/repository/instances")
-    public void getInstances() {
+    public void getInstances(@RequestParam(name = "marker", required = false) String marker, @RequestParam(name = "pageSize", defaultValue = "100") int pageSize) {
         try {
-            List<ServiceInstance> instances = instanceRepository.listServiceInstances();
+            List<ServiceInstance> instances = instanceRepository.listServiceInstances(marker, pageSize);
             for (ServiceInstance instance: instances) {
                 logger.info("Info from instance: {}, service_instance_id: {}, service_id: {}, plan_id: {}, settings: {}",
                         instance.getName(), instance.getServiceInstanceId(), instance.getServiceDefinitionId(), instance.getPlanId(), instance.getServiceSettings());
@@ -43,9 +44,9 @@ public class RepositoryListController {
     }
 
     @GetMapping("/v2/repository/bindings")
-    public void getBindings() {
+    public void getBindings(@RequestParam(name = "marker", required = false) String marker, @RequestParam(name = "pageSize", defaultValue = "100") int pageSize) {
         try {
-            List<ServiceInstanceBinding> bindings = bindingRepository.listServiceInstanceBindings();
+            List<ServiceInstanceBinding> bindings = bindingRepository.listServiceInstanceBindings(marker, pageSize);
             for (ServiceInstanceBinding binding: bindings) {
                 logger.info("Info from instance: {}, binding_id: {}, service_id: {}, plan_id: {}, pars: {}",
                         binding.getName(), binding.getBindingId(), binding.getServiceDefinitionId(), binding.getPlanId(), binding.getParameters());
