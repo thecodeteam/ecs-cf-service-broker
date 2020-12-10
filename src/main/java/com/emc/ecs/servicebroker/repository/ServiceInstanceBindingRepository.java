@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.model.binding.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -81,7 +82,7 @@ public class ServiceInstanceBindingRepository {
         return objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
     }
 
-    public List<ServiceInstanceBinding> listServiceInstanceBindings(String marker, int pageSize) throws IOException {
+    public Mono<ListServiceInstanceBindingsResponse> listServiceInstanceBindings(String marker, int pageSize) throws IOException {
         List<ServiceInstanceBinding> bindings = new ArrayList<>();
         ListObjectsResult list = marker != null ?
                 s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :
@@ -93,7 +94,11 @@ public class ServiceInstanceBindingRepository {
                 bindings.add(binding);
             }
         }
-        return bindings;
+        ListServiceInstanceBindingsResponse response = new ListServiceInstanceBindingsResponse(bindings);
+        response.setMarker(list.getMarker());
+        response.setPageSize(list.getMaxKeys());
+        response.setNextMarker(list.getNextMarker());
+        return Mono.just(response);
     }
 
     public void delete(String id) {
