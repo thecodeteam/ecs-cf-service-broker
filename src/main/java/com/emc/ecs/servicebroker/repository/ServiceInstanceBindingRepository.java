@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -32,6 +33,8 @@ public class ServiceInstanceBindingRepository {
     static final Logger logger = LoggerFactory.getLogger(ServiceInstanceBindingRepository.class);
 
     public static final String FILENAME_PREFIX = "service-instance-binding";
+    public static final String S3URL = "s3Url";
+    public static final String SECRET_KEY = "secretKey";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     {
@@ -54,6 +57,14 @@ public class ServiceInstanceBindingRepository {
 
     private static boolean isCorrectFilename (String filename) {
         return filename.matches(FILENAME_PREFIX + "/.*\\.json");
+    }
+
+    private ServiceInstanceBinding removeSecretCredentials(ServiceInstanceBinding binding) {
+        Map<String, Object> credentials = binding.getCredentials();
+        credentials.remove(S3URL);
+        credentials.remove(SECRET_KEY);
+        binding.setCredentials(credentials);
+        return binding;
     }
 
     @PostConstruct
@@ -91,7 +102,7 @@ public class ServiceInstanceBindingRepository {
             String filename = s3Object.getKey();
             if (isCorrectFilename(filename)) {
                 ServiceInstanceBinding binding = findByFilename(filename);
-                bindings.add(binding);
+                bindings.add(removeSecretCredentials(binding));
             }
         }
         ListServiceInstanceBindingsResponse response = new ListServiceInstanceBindingsResponse(bindings);
