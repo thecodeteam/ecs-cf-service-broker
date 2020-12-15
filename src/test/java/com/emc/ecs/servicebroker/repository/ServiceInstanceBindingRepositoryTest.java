@@ -14,10 +14,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Map;
 
-import static com.emc.ecs.common.Fixtures.serviceInstanceFixture;
+import static com.emc.ecs.common.Fixtures.bindingInstanceFixture;
+import static com.emc.ecs.servicebroker.model.Constants.CREDENTIALS_SECRET_KEY;
+import static com.emc.ecs.servicebroker.model.Constants.S3_URL;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
@@ -26,24 +29,30 @@ import static org.junit.Assert.assertNotNull;
 public class ServiceInstanceBindingRepositoryTest {
 
     @Autowired
-    private ServiceInstanceRepository repository;
+    private ServiceInstanceBindingRepository repository;
 
     @Test
     public void testSaveFindDelete()
             throws IOException, JAXBException, EcsManagementClientException,
             EcsManagementResourceNotFoundException, URISyntaxException {
-        ServiceInstance instance = serviceInstanceFixture();
-        repository.save(instance);
-        ServiceInstance instance2 = repository
-                .find(instance.getServiceInstanceId());
-        assertEquals(instance.getServiceInstanceId(),
-                instance2.getServiceInstanceId());
-        repository.delete(instance.getServiceInstanceId());
+        ServiceInstanceBinding binding = bindingInstanceFixture();
+        repository.save(binding);
+        ServiceInstanceBinding binding2 = repository
+                .find(binding.getBindingId());
+        assertEquals(binding.getBindingId(), binding2.getBindingId());
+        repository.delete(binding.getBindingId());
     }
 
     @Test
-    public void testFindWithV1Json() throws IOException {
-        ServiceInstance serviceInstance = repository.find("service-instance-id-v1");
-        assertNotNull(serviceInstance);
+    public void testRemoveSecretCredentials() {
+        ServiceInstanceBinding binding = bindingInstanceFixture();
+        Map<String, Object> credentials = binding.getCredentials();
+        assertTrue(credentials.containsKey(CREDENTIALS_SECRET_KEY));
+        assertTrue(credentials.containsKey(S3_URL));
+
+        ServiceInstanceBinding bindingWithoutSecrets = repository.removeSecretCredentials(binding);
+        Map<String, Object> credentialsWithoutSecrets = bindingWithoutSecrets.getCredentials();
+        assertTrue(!credentialsWithoutSecrets.containsKey(CREDENTIALS_SECRET_KEY));
+        assertTrue(!credentialsWithoutSecrets.containsKey(S3_URL));
     }
 }

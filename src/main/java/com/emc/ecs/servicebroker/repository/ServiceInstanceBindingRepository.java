@@ -59,7 +59,7 @@ public class ServiceInstanceBindingRepository {
         return filename.matches(FILENAME_PREFIX + "/.*\\.json");
     }
 
-    private ServiceInstanceBinding removeSecretCredentials(ServiceInstanceBinding binding) {
+    ServiceInstanceBinding removeSecretCredentials(ServiceInstanceBinding binding) {
         Map<String, Object> credentials = binding.getCredentials();
         credentials.remove(S3URL);
         credentials.remove(SECRET_KEY);

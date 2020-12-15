@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-        		"equalToJson": "{\"name\":\"cf2f8326-3465-4810-9da1-54d328935b81\",\"binding_id\":\"cf2f8326-3465-4810-9da1-54d328935b81\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"bind_resource\":{\"app_guid\":\"app-guid\",\"route\":null},\"parameters\":{\"number\":1234,\"flag\":true,\"text\":\"abcdefg\",\"nested\":{\"text2\":\"zyxwvu\",\"flag2\":true,\"number2\":9876}},\"credentials\":{\"bucket\":\"bucket\",\"endpoint\":\"http://127.0.0.1:9020\",\"secretKey\":\"password\",\"accessKey\":\"user\"}}"
+        		"equalToJson": "{\"name\":\"cf2f8326-3465-4810-9da1-54d328935b81\",\"binding_id\":\"cf2f8326-3465-4810-9da1-54d328935b81\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"bind_resource\":{\"app_guid\":\"app-guid\",\"route\":null},\"parameters\":{\"number\":1234,\"flag\":true,\"text\":\"abcdefg\",\"nested\":{\"text2\":\"zyxwvu\",\"flag2\":true,\"number2\":9876}},\"credentials\":{\"bucket\":\"bucket\",\"endpoint\":\"http://127.0.0.1:9020\",\"s3Url\":\"http://null:password@127.0.0.1:9020/bucket\",\"secretKey\":\"password\",\"accessKey\":\"user\"}}"
         	}
         ]
     },

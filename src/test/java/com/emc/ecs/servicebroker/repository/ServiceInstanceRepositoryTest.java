@@ -15,8 +15,9 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import static com.emc.ecs.common.Fixtures.bindingInstanceFixture;
+import static com.emc.ecs.common.Fixtures.serviceInstanceFixture;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
@@ -25,17 +26,24 @@ import static org.junit.Assert.assertEquals;
 public class ServiceInstanceRepositoryTest {
 
     @Autowired
-    private ServiceInstanceBindingRepository repository;
+    private ServiceInstanceRepository repository;
 
     @Test
     public void testSaveFindDelete()
             throws IOException, JAXBException, EcsManagementClientException,
             EcsManagementResourceNotFoundException, URISyntaxException {
-        ServiceInstanceBinding binding = bindingInstanceFixture();
-        repository.save(binding);
-        ServiceInstanceBinding binding2 = repository
-                .find(binding.getBindingId());
-        assertEquals(binding.getBindingId(), binding2.getBindingId());
-        repository.delete(binding.getBindingId());
+        ServiceInstance instance = serviceInstanceFixture();
+        repository.save(instance);
+        ServiceInstance instance2 = repository
+                .find(instance.getServiceInstanceId());
+        assertEquals(instance.getServiceInstanceId(),
+                instance2.getServiceInstanceId());
+        repository.delete(instance.getServiceInstanceId());
+    }
+
+    @Test
+    public void testFindWithV1Json() throws IOException {
+        ServiceInstance serviceInstance = repository.find("service-instance-id-v1");
+        assertNotNull(serviceInstance);
     }
 }

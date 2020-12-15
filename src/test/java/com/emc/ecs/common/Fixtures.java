@@ -40,6 +40,7 @@ public class Fixtures {
     public static final String RG_ID_3 = "urn:storageos:ReplicationGroupInfo:333041bc-8668-457b-8e36-5fb8df8ee743:global";
     public static final String RG_ID_4 = "urn:storageos:ReplicationGroupInfo:4444faf5-8aa9-4c5b-a59d-45a870c2de44:global";
     public static final String OBJ_ENDPOINT = "http://127.0.0.1:9020";
+    public static final String S3_URL_POSTFIX = ":password@127.0.0.1:9020/bucket";
     public static final String BUCKET_SERVICE_ID = "7181a3b7-f06f-4cce-976b-cc5e859850bc";
     public static final String NAMESPACE_SERVICE_ID = "09cac1c6-1b0a-11e6-b6ba-3e1d05defe78";
     public static final String NAMESPACE_PLAN_ID1 = "09cac5b8-1b0a-11e6-b6ba-3e1d05defe78";
@@ -462,6 +463,7 @@ public class Fixtures {
         creds.put(CREDENTIALS_SECRET_KEY, "password");
         creds.put(BUCKET, "bucket");
         creds.put(ENDPOINT, OBJ_ENDPOINT);
+        creds.put(S3_URL, "http://" + name + S3_URL_POSTFIX);
 
         Map<String, Object> nested = new HashMap<>();
         nested.put("text2", "zyxwvu");
