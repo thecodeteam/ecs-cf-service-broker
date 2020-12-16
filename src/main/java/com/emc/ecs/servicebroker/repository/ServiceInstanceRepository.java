@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -68,7 +67,7 @@ public class ServiceInstanceRepository {
         return objectMapper.readValue(input.getObject(), ServiceInstance.class);
     }
 
-    public Mono<ListServiceInstancesResponse> listServiceInstances(String marker, int pageSize) throws IOException {
+    public ListServiceInstancesResponse listServiceInstances(String marker, int pageSize) throws IOException {
         List<ServiceInstance> instances = new ArrayList<>();
         ListObjectsResult list = marker != null ?
                 s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :
@@ -85,7 +84,7 @@ public class ServiceInstanceRepository {
         response.setMarker(list.getMarker());
         response.setPageSize(list.getMaxKeys());
         response.setNextMarker(list.getNextMarker());
-        return Mono.just(response);
+        return response;
     }
 
     public void delete(String id) {

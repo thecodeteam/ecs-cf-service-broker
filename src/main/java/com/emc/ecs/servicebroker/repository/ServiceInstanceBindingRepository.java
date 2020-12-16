@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.repository;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.service.S3Service;
+import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.bean.S3Object;
@@ -17,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.model.binding.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
-import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -33,8 +33,6 @@ public class ServiceInstanceBindingRepository {
     static final Logger logger = LoggerFactory.getLogger(ServiceInstanceBindingRepository.class);
 
     public static final String FILENAME_PREFIX = "service-instance-binding";
-    public static final String S3URL = "s3Url";
-    public static final String SECRET_KEY = "secretKey";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     {
@@ -59,10 +57,20 @@ public class ServiceInstanceBindingRepository {
         return filename.matches(FILENAME_PREFIX + "/.*\\.json");
     }
 
+    private ServiceInstanceBinding findByFilename(String filename) throws IOException {
+        if (!isCorrectFilename(filename)) {
+            String errorMessage = format("Invalid filename of service instance binding provided: %s", filename);
+            throw new IOException(errorMessage);
+        }
+        logger.debug("Loading service instance binding from repository file {}", filename);
+        GetObjectResult<InputStream> input = s3.getObject(filename);
+        return objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
+    }
+
     ServiceInstanceBinding removeSecretCredentials(ServiceInstanceBinding binding) {
         Map<String, Object> credentials = binding.getCredentials();
-        credentials.remove(S3URL);
-        credentials.remove(SECRET_KEY);
+        credentials.remove(Constants.S3_URL);
+        credentials.remove(Constants.CREDENTIALS_SECRET_KEY);
         binding.setCredentials(credentials);
         return binding;
     }
@@ -83,17 +91,7 @@ public class ServiceInstanceBindingRepository {
         return findByFilename(filename);
     }
 
-    public ServiceInstanceBinding findByFilename(String filename) throws IOException {
-        if (!isCorrectFilename(filename)) {
-            String errorMessage = format("Invalid filename of service instance binding provided: %s", filename);
-            throw new IOException(errorMessage);
-        }
-        logger.debug("Loading service instance binding from repository file {}", filename);
-        GetObjectResult<InputStream> input = s3.getObject(filename);
-        return objectMapper.readValue(input.getObject(), ServiceInstanceBinding.class);
-    }
-
-    public Mono<ListServiceInstanceBindingsResponse> listServiceInstanceBindings(String marker, int pageSize) throws IOException {
+    public ListServiceInstanceBindingsResponse listServiceInstanceBindings(String marker, int pageSize) throws IOException {
         List<ServiceInstanceBinding> bindings = new ArrayList<>();
         ListObjectsResult list = marker != null ?
                 s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :
@@ -109,7 +107,7 @@ public class ServiceInstanceBindingRepository {
         response.setMarker(list.getMarker());
         response.setPageSize(list.getMaxKeys());
         response.setNextMarker(list.getNextMarker());
-        return Mono.just(response);
+        return response;
     }
 
     public void delete(String id) {

@@ -1,4 +1,4 @@
-package com.emc.ecs.servicebroker.config;
+package com.emc.ecs.servicebroker.controller;
 
 import com.emc.ecs.servicebroker.repository.*;
 
@@ -26,10 +26,20 @@ public class RepositoryListController {
     public RepositoryListController() {
     }
 
+    /*
+     * This method processes all requests sent on "/v2/repository/instances" and provides a list of Service Instances.
+     * Also pagination is supported.
+     * Method returns 200 OK on success and 500 Internal Server Error on error
+     *
+     * @param   marker      indicates the name of instance the page should start with (required: false)
+     * @param   pageSize    states the amount of instances that would be presented in the output (default: 100)
+     * @return              list of service instances
+     */
     @GetMapping("/v2/repository/instances")
     public Mono<ListServiceInstancesResponse> getInstances(@RequestParam(name = "marker", required = false) String marker,
                                                            @RequestParam(name = "pageSize", defaultValue = "100") int pageSize) throws IOException {
-        return instanceRepository.listServiceInstances(marker, pageSize)
+        Mono<ListServiceInstancesResponse> response = Mono.just(instanceRepository.listServiceInstances(marker, pageSize));
+        return response
                 .doOnRequest(v -> logger.info("Retrieving service instances"))
                 .doOnSuccess(instancesResponse -> {
                     logger.info("Success retrieving service instances");
@@ -38,10 +48,20 @@ public class RepositoryListController {
                 .doOnError(e -> logger.error("Error retrieving service instances. Error = " + e.getMessage(), e));
     }
 
+    /*
+     * This method processes all requests sent on "/v2/repository/bindings" and provides a list of Service Instance Bindings.
+     * Also pagination is supported.
+     * Method returns 200 OK on success and 500 Internal Server Error on error
+     *
+     * @param   marker      indicates the name of binding the page should start with (required: false)
+     * @param   pageSize    states the amount of bindings that would be presented in the output (default: 100)
+     * @return              list of service instance bindings
+     */
     @GetMapping("/v2/repository/bindings")
     public Mono<ListServiceInstanceBindingsResponse> getBindings(@RequestParam(name = "marker", required = false) String marker,
                                                                  @RequestParam(name = "pageSize", defaultValue = "100") int pageSize) throws IOException {
-        return bindingRepository.listServiceInstanceBindings(marker, pageSize)
+        Mono<ListServiceInstanceBindingsResponse> response = Mono.just(bindingRepository.listServiceInstanceBindings(marker, pageSize));
+        return  response
                 .doOnRequest(v -> logger.info("Retrieving service instance bindings"))
                 .doOnSuccess(bindingsResponse -> {
                     logger.info("Success retrieving service instance bindings");

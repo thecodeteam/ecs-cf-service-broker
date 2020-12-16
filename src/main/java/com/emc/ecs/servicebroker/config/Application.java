@@ -1,5 +1,7 @@
 package com.emc.ecs.servicebroker.config;
 
+import com.emc.ecs.servicebroker.controller.RepositoryListController;
+import com.emc.ecs.servicebroker.controller.RestartController;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
@@ -44,6 +46,16 @@ public class Application {
     public static void main() {
         Application.context.close();
         Application.context = SpringApplication.run(Application.class, getArgs());
+    }
+
+    @Bean
+    public RepositoryListController repositoryListController() {
+        return new RepositoryListController();
+    }
+
+    @Bean
+    public RestartController restartController() {
+        return new RestartController();
     }
 
     @Bean
