@@ -21,8 +21,7 @@ import static com.emc.ecs.common.Fixtures.PAGE_SIZE;
 import static com.emc.ecs.common.Fixtures.MARKER;
 import static com.emc.ecs.servicebroker.model.Constants.CREDENTIALS_SECRET_KEY;
 import static com.emc.ecs.servicebroker.model.Constants.S3_URL;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
