@@ -92,6 +92,9 @@ public class ServiceInstanceBindingRepository {
     }
 
     public ListServiceInstanceBindingsResponse listServiceInstanceBindings(String marker, int pageSize) throws IOException {
+        if (pageSize < 0) {
+            throw new IOException("Page size could not be negative number");
+        }
         List<ServiceInstanceBinding> bindings = new ArrayList<>();
         ListObjectsResult list = marker != null ?
                 s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :

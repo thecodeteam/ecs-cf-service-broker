@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import static com.emc.ecs.common.Fixtures.serviceInstanceFixture;
+import static com.emc.ecs.common.Fixtures.PAGE_SIZE;
+import static com.emc.ecs.common.Fixtures.MARKER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -45,5 +47,33 @@ public class ServiceInstanceRepositoryTest {
     public void testFindWithV1Json() throws IOException {
         ServiceInstance serviceInstance = repository.find("service-instance-id-v1");
         assertNotNull(serviceInstance);
+    }
+
+    @Test
+    public void testListServiceInstances() throws IOException {
+        ListServiceInstancesResponse response = repository.listServiceInstances(null, 0);
+        assertNotNull(response);
+    }
+
+    @Test
+    public void testListServiceInstancesPageSize() throws IOException {
+        ListServiceInstancesResponse response = repository.listServiceInstances(null, PAGE_SIZE);
+        assertNotNull(response);
+        assertEquals(PAGE_SIZE, response.getPageSize());
+    }
+
+    @Test
+    public void testListServiceInstancesMarker() throws IOException {
+        ListServiceInstancesResponse response = repository.listServiceInstances(MARKER, 0);
+        assertNotNull(response);
+        assertEquals(MARKER, response.getMarker());
+    }
+
+    @Test
+    public void testListServiceInstancesArgs() throws IOException {
+        ListServiceInstancesResponse response = repository.listServiceInstances(MARKER, PAGE_SIZE);
+        assertNotNull(response);
+        assertEquals(PAGE_SIZE, response.getPageSize());
+        assertEquals(MARKER, response.getMarker());
     }
 }

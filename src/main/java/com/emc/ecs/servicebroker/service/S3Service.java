@@ -95,7 +95,9 @@ public class S3Service {
             request.setMarker(marker);
         }
         request.setPrefix(prefix);
-        request.setMaxKeys(pageSize);
+        if (pageSize != 0) {
+            request.setMaxKeys(pageSize);
+        }
         return s3.listObjects(request);
     }
 }

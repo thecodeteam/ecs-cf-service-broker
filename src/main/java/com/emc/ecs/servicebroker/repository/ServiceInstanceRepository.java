@@ -68,6 +68,9 @@ public class ServiceInstanceRepository {
     }
 
     public ListServiceInstancesResponse listServiceInstances(String marker, int pageSize) throws IOException {
+        if (pageSize < 0) {
+            throw new IOException("Page size could not be negative number");
+        }
         List<ServiceInstance> instances = new ArrayList<>();
         ListObjectsResult list = marker != null ?
                 s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :

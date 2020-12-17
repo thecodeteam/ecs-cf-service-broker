@@ -69,6 +69,8 @@ public class Fixtures {
     public static final String VALUE1 = "value1";
     public static final String VALUE2 = "value2";
     public static final String VALUE3 = "value3";
+    public static final String MARKER = "marker1";
+    public static final int PAGE_SIZE = 32;
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
         /*

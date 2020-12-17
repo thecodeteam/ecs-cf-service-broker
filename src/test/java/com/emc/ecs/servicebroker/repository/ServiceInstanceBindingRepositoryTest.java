@@ -17,6 +17,8 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import static com.emc.ecs.common.Fixtures.bindingInstanceFixture;
+import static com.emc.ecs.common.Fixtures.PAGE_SIZE;
+import static com.emc.ecs.common.Fixtures.MARKER;
 import static com.emc.ecs.servicebroker.model.Constants.CREDENTIALS_SECRET_KEY;
 import static com.emc.ecs.servicebroker.model.Constants.S3_URL;
 import static org.junit.Assert.assertEquals;
@@ -52,7 +54,35 @@ public class ServiceInstanceBindingRepositoryTest {
 
         ServiceInstanceBinding bindingWithoutSecrets = repository.removeSecretCredentials(binding);
         Map<String, Object> credentialsWithoutSecrets = bindingWithoutSecrets.getCredentials();
-        assertTrue(!credentialsWithoutSecrets.containsKey(CREDENTIALS_SECRET_KEY));
-        assertTrue(!credentialsWithoutSecrets.containsKey(S3_URL));
+        assertFalse(credentialsWithoutSecrets.containsKey(CREDENTIALS_SECRET_KEY));
+        assertFalse(credentialsWithoutSecrets.containsKey(S3_URL));
+    }
+
+    @Test
+    public void testListServiceInstanceBindings() throws IOException {
+        ListServiceInstanceBindingsResponse response = repository.listServiceInstanceBindings(null, 0);
+        assertNotNull(response);
+    }
+
+    @Test
+    public void testListServiceInstanceBindingsPageSize() throws IOException {
+        ListServiceInstanceBindingsResponse response = repository.listServiceInstanceBindings(null, PAGE_SIZE);
+        assertNotNull(response);
+        assertEquals(PAGE_SIZE, response.getPageSize());
+    }
+
+    @Test
+    public void testListServiceInstanceBindingsMarker() throws IOException {
+        ListServiceInstanceBindingsResponse response = repository.listServiceInstanceBindings(MARKER, 0);
+        assertNotNull(response);
+        assertEquals(MARKER, response.getMarker());
+    }
+
+    @Test
+    public void testListServiceInstanceBindingsArgs() throws IOException {
+        ListServiceInstanceBindingsResponse response = repository.listServiceInstanceBindings(MARKER, PAGE_SIZE);
+        assertNotNull(response);
+        assertEquals(PAGE_SIZE, response.getPageSize());
+        assertEquals(MARKER, response.getMarker());
     }
 }
