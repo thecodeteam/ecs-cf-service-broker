@@ -25,8 +25,7 @@ import java.util.Map;
 import static com.emc.ecs.common.Fixtures.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.mock;
 
@@ -387,6 +386,13 @@ public class BucketBindingWorkflowTest {
 
                                 String containerDir = "/var/vcap/data" + File.separator + BINDING_ID;
                                 assertEquals(containerDir, mounts.get(0).getContainerDir());
+                            });
+
+                            It("should provide UID in credentials", () -> {
+                                String secretKey = workflow.createBindingUser();
+                                Map<String, Object> binding_credentials =
+                                        workflow.getCredentials(secretKey, parameters);
+                                assertTrue(binding_credentials.containsKey(VOLUME_EXPORT_UID));
                             });
                         });
 
