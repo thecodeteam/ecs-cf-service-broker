@@ -1,5 +1,7 @@
 package com.emc.ecs.servicebroker.config;
 
+import com.emc.ecs.servicebroker.controller.RepositoryListController;
+import com.emc.ecs.servicebroker.controller.RestartController;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
@@ -18,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.servicebroker.model.BrokerApiVersion;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.DependsOn;
 
 import java.net.URISyntaxException;
 
@@ -46,6 +49,16 @@ public class Application {
     }
 
     @Bean
+    public RepositoryListController repositoryListController() {
+        return new RepositoryListController();
+    }
+
+    @Bean
+    public RestartController restartController() {
+        return new RestartController();
+    }
+
+    @Bean
     public Connection ecsConnection() {
 	if (broker.getCertificate() != null) {
 	    logger.info("Instantiating ecs connection with certificate");
@@ -70,6 +83,7 @@ public class Application {
     }
 
     @Bean
+    @DependsOn("ecsService")
     public S3Service s3Service() {
         return new S3Service();
     }
