@@ -15,7 +15,7 @@
         },
         "bodyPatterns": [
         	{
-        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><object_bucket_create><head_type>s3</head_type><is_stale_allowed>true</is_stale_allowed><name>ecs-cf-broker-repository</name><namespace>ns1</namespace><vpool>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</vpool></object_bucket_create>"
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><object_bucket_create><head_type>s3</head_type><is_stale_allowed>true</is_stale_allowed><name>ecs-cf-broker-repository</name><namespace>ns1</namespace><vpool>urn:storageos:ReplicationGroupInfo:2ef0a92d-cf88-4933-90ba-90245aa031b1:global</vpool><search_metadata></search_metadata></object_bucket_create>"
         	}
         ]
     },
