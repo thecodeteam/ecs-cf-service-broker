@@ -12,11 +12,6 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 @XmlRootElement(name = "object_bucket_create")
 public class ObjectBucketCreate {
 
-    public static final String SEARCH_METADATA = "search_metadata";
-    public static final String TYPE = "type";
-    public static final String NAME = "name";
-    public static final String DATATYPE = "datatype";
-
     private Boolean filesystemEnabled = false;
     private Boolean isStaleAllowed = false;
     private String headType = HEAD_TYPE_S3;

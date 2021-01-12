@@ -33,6 +33,14 @@ public class Constants {
     public static final String S3_URL = "s3Url";
 
     public static final String TAGS = "tags";
+    public static final String SEARCH_METADATA = "search_metadata";
+
+    public static final String TYPE = "type";
+    public static final String NAME = "name";
+    public static final String DATATYPE = "datatype";
+    public static final String SYSTEM = "System";
+    public static final String USER = "User";
+    public static final String USER_METADATA_PREFIX = "x-amz-meta-";
 
     public static final String VOLUME_EXPORT = "export";
     public static final String VOLUME_EXPORT_SOURCE = "source";

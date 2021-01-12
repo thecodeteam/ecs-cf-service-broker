@@ -5,9 +5,7 @@ import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
-import com.emc.ecs.servicebroker.model.PlanProxy;
-import com.emc.ecs.servicebroker.model.ReclaimPolicy;
-import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.*;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
@@ -141,6 +139,8 @@ public class EcsService {
             }
 
             DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
+
+            parameters = validateSearchMetadata(parameters);
 
             BucketAction.create(connection, new ObjectBucketCreate(
                     prefix(bucketName),
@@ -499,6 +499,52 @@ public class EcsService {
         if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
             throw new ServiceBrokerInvalidParametersException("Reclaim Policy is not allowed: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
+    }
+
+    private Map<String, Object> validateSearchMetadata(Map<String, Object> parameters) {
+        if (parameters.containsKey(SEARCH_METADATA)) {
+            List<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
+            List<Map<String, String>> validatedMetadataList = new ArrayList<Map<String, String>>();
+
+            for (Map<String, String> metadata : metadataList) {
+                String name = metadata.getOrDefault(NAME, null);
+                if (name == null) {
+                    throw new ServiceBrokerInvalidParametersException("Invalid search metadata: name is not provided");
+                }
+                String type = metadata.getOrDefault(TYPE, null);
+                String dataType = metadata.getOrDefault(DATATYPE, MetadataDataType.Integer.name());
+                if (type == null) {
+                    if (SystemMetadataName.getSystemMetadataName(name) != null) {
+                        type = SYSTEM;
+                    } else {
+                        type = USER;
+                    }
+                }
+                if (type.equals(SYSTEM)) {
+                    SystemMetadataName systemMetadataName = SystemMetadataName.getSystemMetadataName(name);
+                    if (systemMetadataName == null) {
+                        throw new ServiceBrokerInvalidParametersException("Invalid system search metadata name: " + name);
+                    }
+                    String systemDataType = systemMetadataName.getDataType().name();
+                    if (!dataType.equals(systemDataType)) {
+                        throw new ServiceBrokerInvalidParametersException("Invalid system search metadata '" + name +
+                                "' datatype: '" + dataType + "' provided instead of '" + systemDataType + "'");
+                    }
+
+                } else {
+                    metadata.put(TYPE, USER);
+                    if (!name.startsWith(USER_METADATA_PREFIX)) {
+                        metadata.put(NAME, USER_METADATA_PREFIX + name);
+                    }
+                    if (!MetadataDataType.isMetaDataType(dataType)) {
+                        throw new ServiceBrokerInvalidParametersException("Invalid user search metadata '" + name + "' datatype: '" + dataType + "'");
+                    }
+                }
+                validatedMetadataList.add(metadata);
+            }
+            parameters.put(SEARCH_METADATA, validatedMetadataList);
+        }
+        return parameters;
     }
 
     Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
