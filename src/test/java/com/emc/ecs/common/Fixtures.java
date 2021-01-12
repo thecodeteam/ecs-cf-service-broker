@@ -68,6 +68,11 @@ public class Fixtures {
     public static final String VALUE1 = "value1";
     public static final String VALUE2 = "value2";
     public static final String VALUE3 = "value3";
+    public static final String SYSTEM_METADATA_NAME = "Size";
+    public static final String SYSTEM_METADATA_TYPE = "Integer";
+    public static final String USER_METADATA_NAME = "my_meta";
+    public static final String USER_METADATA_TYPE = "String";
+    public static final String INVALID_METADATA_TYPE = "invalid_data_type";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
         /*

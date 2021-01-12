@@ -5,6 +5,7 @@ import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
@@ -22,6 +23,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -277,6 +279,10 @@ public class EcsServiceTest {
         List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
         additionalParams.put(TAGS, tags);
 
+        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE);
+        additionalParams.put(SEARCH_METADATA, searchMetadata);
+
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
@@ -291,6 +297,9 @@ public class EcsServiceTest {
 
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(CollectionUtils.isEqualCollection(tags, setTags));
+
+        List<Map<String, String>> setSearchMetadata = (List<Map<String, String>>) serviceSettings.get(SEARCH_METADATA);
+        assertTrue(CollectionUtils.isEqualCollection(searchMetadata, setSearchMetadata));
 
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
         PowerMockito.verifyStatic(BucketAction.class, times(1));
@@ -1499,6 +1508,57 @@ public class EcsServiceTest {
         assertEquals(NAMESPACE_NAME, tagsParam.getNamespace());
     }
 
+    @Test
+    public void validateMetadataSearchInvalidDatatypeTest() {
+        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
+            Map<String, Object> parameters = new HashMap<>();
+            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, INVALID_METADATA_TYPE);
+            parameters.put(SEARCH_METADATA, searchMetadata);
+            ecs.validateAndPrepareSearchMetadata(parameters);
+        });
+    }
+
+    @Test
+    public void validateMetadataSearchNoNameTest() {
+        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
+            Map<String, Object> parameters = new HashMap<>();
+            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_USER, null, USER_METADATA_TYPE);
+            parameters.put(SEARCH_METADATA, searchMetadata);
+            ecs.validateAndPrepareSearchMetadata(parameters);
+        });
+    }
+
+    @Test
+    public void validateMetadataSearchInvalidSystemMetadataNameTest() {
+        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
+            Map<String, Object> parameters = new HashMap<>();
+            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, USER_METADATA_NAME, USER_METADATA_TYPE);
+            parameters.put(SEARCH_METADATA, searchMetadata);
+            ecs.validateAndPrepareSearchMetadata(parameters);
+        });
+    }
+
+    @Test
+    public void validateMetadataSearchInvalidSystemMetadataDatatypeTest() {
+        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
+            Map<String, Object> parameters = new HashMap<>();
+            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, USER_METADATA_TYPE);
+            parameters.put(SEARCH_METADATA, searchMetadata);
+            ecs.validateAndPrepareSearchMetadata(parameters);
+        });
+    }
+
+    @Test
+    public void validateMetadataSearchUserMetadataPrefixAdditionTest() {
+        Map<String, Object> parameters = new HashMap<>();
+        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE);
+        parameters.put(SEARCH_METADATA, searchMetadata);
+        Map<String, Object> validatedParameters = ecs.validateAndPrepareSearchMetadata(parameters);
+        List<Map<String, String>> validatedSearchMetadata = (List<Map<String, String>>) validatedParameters.get(SEARCH_METADATA);
+        String name = validatedSearchMetadata.get(0).get(SEARCH_METADATA_NAME);
+        assertTrue(name.startsWith(SEARCH_METADATA_USER_PREFIX));
+    }
+
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
@@ -1707,5 +1767,23 @@ public class EcsServiceTest {
             tags.add(tag);
         }
         return tags;
+    }
+
+    private List<Map<String, String>> createListOfSearchMetadata(String... args) throws IllegalArgumentException {
+        if (args.length % 3 != 0) {
+            throw new IllegalArgumentException("Number of arguments should be multiple of three.");
+        }
+        List<Map<String, String>> searchMetadata = new ArrayList<>();
+        for (int i = 0; i < args.length; i += 3) {
+            Map<String, String> metadata = new HashMap<>();
+            if(args[i] != null)
+                metadata.put(SEARCH_METADATA_TYPE, args[i]);
+            if(args[i + 1] != null)
+                metadata.put(SEARCH_METADATA_NAME, args[i + 1]);
+            if(args[i + 2] != null)
+                metadata.put(SEARCH_METADATA_DATATYPE, args[i + 2]);
+            searchMetadata.add(metadata);
+        }
+        return searchMetadata;
     }
 }
