@@ -1,32 +1,40 @@
 package com.emc.ecs.servicebroker.model;
 
 public enum SystemMetadataName {
-    CreateTime(MetadataDataType.DateTime),
-    LastModified(MetadataDataType.DateTime),
-    ObjectName(MetadataDataType.String),
-    Owner(MetadataDataType.String),
-    Size(MetadataDataType.Integer),
-    ContentType(MetadataDataType.String),
-    Expiration(MetadataDataType.DateTime),
-    ContentEnding(MetadataDataType.String),
-    Expires(MetadataDataType.DateTime),
-    Retention(MetadataDataType.Integer);
+    CreateTime(SearchMetadataDataType.DateTime),
+    LastModified(SearchMetadataDataType.DateTime),
+    ObjectName(SearchMetadataDataType.String),
+    Owner(SearchMetadataDataType.String),
+    Size(SearchMetadataDataType.Integer),
+    ContentType(SearchMetadataDataType.String),
+    Expiration(SearchMetadataDataType.DateTime),
+    ContentEnding(SearchMetadataDataType.String),
+    Expires(SearchMetadataDataType.DateTime),
+    Retention(SearchMetadataDataType.Integer);
 
-    private MetadataDataType dataType;
+    private SearchMetadataDataType dataType;
 
-    SystemMetadataName(MetadataDataType dataType) {
+    SystemMetadataName(SearchMetadataDataType dataType) {
         this.dataType = dataType;
     }
 
-    public MetadataDataType getDataType() {
+    public SearchMetadataDataType getDataType() {
         return dataType;
     }
 
+    public static boolean isSystemMetadata(String name) {
+        for (SystemMetadataName systemMetadata : values()) {
+            if (systemMetadata.name().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static SystemMetadataName getSystemMetadataName(String name) {
-        SystemMetadataName[] values = SystemMetadataName.values();
-        for (SystemMetadataName value: values) {
-            if (value.name().equals(name)) {
-                return value;
+        for (SystemMetadataName systemMetadata : values()) {
+            if (systemMetadata.name().equals(name)) {
+                return systemMetadata;
             }
         }
         return null;

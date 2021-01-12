@@ -124,6 +124,7 @@ public class EcsService {
                                      PlanProxy plan, Map<String, Object> parameters) {
         try {
             parameters = mergeParameters(broker, serviceDefinition, plan, parameters);
+            parameters = validateAndPrepareSearchMetadata(parameters);
 
             logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
 
@@ -139,8 +140,6 @@ public class EcsService {
             }
 
             DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
-
-            parameters = validateSearchMetadata(parameters);
 
             BucketAction.create(connection, new ObjectBucketCreate(
                     prefix(bucketName),
@@ -202,7 +201,7 @@ public class EcsService {
                 BucketQuotaAction.create(connection, namespace, prefix(bucketName), limit, warn);
             }
 
-            DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection,  broker.getNamespace(), prefix(bucketName));
+            DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection, broker.getNamespace(), prefix(bucketName));
             int newRetention = (int) parameters.getOrDefault(DEFAULT_RETENTION, 0);
 
             if (currentRetention.getPeriod() != newRetention) {
@@ -501,49 +500,63 @@ public class EcsService {
         }
     }
 
-    private Map<String, Object> validateSearchMetadata(Map<String, Object> parameters) {
+    @SuppressWarnings("unchecked")
+    Map<String, Object> validateAndPrepareSearchMetadata(Map<String, Object> parameters) {
         if (parameters.containsKey(SEARCH_METADATA)) {
+            parameters = new HashMap<>(parameters);  // don't modify original map
+
             List<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
-            List<Map<String, String>> validatedMetadataList = new ArrayList<Map<String, String>>();
+            List<Map<String, String>> validatedMetadataList = new ArrayList<>();
 
             for (Map<String, String> metadata : metadataList) {
-                String name = metadata.getOrDefault(NAME, null);
+                String name = metadata.get(SEARCH_METADATA_NAME);
                 if (name == null) {
                     throw new ServiceBrokerInvalidParametersException("Invalid search metadata: name is not provided");
                 }
-                String type = metadata.getOrDefault(TYPE, null);
-                String dataType = metadata.getOrDefault(DATATYPE, MetadataDataType.Integer.name());
-                if (type == null) {
-                    if (SystemMetadataName.getSystemMetadataName(name) != null) {
-                        type = SYSTEM;
-                    } else {
-                        type = USER;
-                    }
-                }
-                if (type.equals(SYSTEM)) {
-                    SystemMetadataName systemMetadataName = SystemMetadataName.getSystemMetadataName(name);
-                    if (systemMetadataName == null) {
-                        throw new ServiceBrokerInvalidParametersException("Invalid system search metadata name: " + name);
-                    }
-                    String systemDataType = systemMetadataName.getDataType().name();
-                    if (!dataType.equals(systemDataType)) {
-                        throw new ServiceBrokerInvalidParametersException("Invalid system search metadata '" + name +
-                                "' datatype: '" + dataType + "' provided instead of '" + systemDataType + "'");
-                    }
 
-                } else {
-                    metadata.put(TYPE, USER);
-                    if (!name.startsWith(USER_METADATA_PREFIX)) {
-                        metadata.put(NAME, USER_METADATA_PREFIX + name);
-                    }
-                    if (!MetadataDataType.isMetaDataType(dataType)) {
-                        throw new ServiceBrokerInvalidParametersException("Invalid user search metadata '" + name + "' datatype: '" + dataType + "'");
-                    }
+                String dataType = metadata.get(SEARCH_METADATA_DATATYPE);   // could be empty for system metadata
+                if (dataType != null && !SearchMetadataDataType.isMetaDataType(dataType)) {
+                    throw new ServiceBrokerInvalidParametersException("Invalid search metadata datatype: '" + dataType + "'");
                 }
+
+                String type = metadata.computeIfAbsent(SEARCH_METADATA_TYPE, s ->
+                    SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
+                );
+
+                switch (type) {
+                    case SEARCH_METADATA_TYPE_SYSTEM:
+                        SystemMetadataName systemMetadataName = SystemMetadataName.getSystemMetadataName(name);
+                        if (systemMetadataName == null) {
+                            throw new ServiceBrokerInvalidParametersException("Invalid system search metadata name: " + name);
+                        } else {
+                            String expectedDataType = systemMetadataName.getDataType().name();
+                            if (dataType != null) {
+                                if (!expectedDataType.equals(dataType)) {
+                                    throw new ServiceBrokerInvalidParametersException(
+                                            String.format("Invalid system search metadata '%s' datatype: '%s' provided instead of '%s'", name, dataType, expectedDataType)
+                                    );
+                                }
+                            } else {
+                                metadata.put(SEARCH_METADATA_DATATYPE, expectedDataType);
+                            }
+                        }
+                        break;
+
+                    case SEARCH_METADATA_TYPE_USER:
+                        if (!name.startsWith(SEARCH_METADATA_USER_PREFIX)) {
+                            metadata.put(SEARCH_METADATA_NAME, SEARCH_METADATA_USER_PREFIX + name);
+                        }
+                        break;
+
+                    default:
+                        throw new ServiceBrokerInvalidParametersException("Invalid type specified for search metadata: " + type);
+                }
+
                 validatedMetadataList.add(metadata);
             }
             parameters.put(SEARCH_METADATA, validatedMetadataList);
         }
+
         return parameters;
     }
 
@@ -718,7 +731,7 @@ public class EcsService {
         do {
             BucketTag requestedTag = requestedTags.get(0);
             boolean isNew = true;
-            for (BucketTag currentTag: currentTags) {
+            for (BucketTag currentTag : currentTags) {
                 if (requestedTag.getKey().equals(currentTag.getKey())) {
                     if (!requestedTag.getValue().equals(currentTag.getValue())) {
                         updateTags.add(requestedTag);

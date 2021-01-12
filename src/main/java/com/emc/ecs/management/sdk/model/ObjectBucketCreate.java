@@ -116,7 +116,7 @@ public class ObjectBucketCreate {
     public void setSearchMetadataFromParams(List<Map<String, String> > metadataList) {
         if (metadataList != null) {
             for (Map<String, String> metadata: metadataList) {
-                this.searchMetadataList.add(new SearchMetadata(metadata.get(TYPE), metadata.get(NAME), metadata.get(DATATYPE)));
+                this.searchMetadataList.add(new SearchMetadata(metadata.get(SEARCH_METADATA_TYPE), metadata.get(SEARCH_METADATA_NAME), metadata.get(SEARCH_METADATA_DATATYPE)));
             }
         }
     }
