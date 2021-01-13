@@ -1,7 +1,9 @@
 package com.emc.ecs.management.sdk.model;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 
 @XmlRootElement(name = "bucket_info")
 public class ObjectBucketInfo extends BucketTagSetRootElement{
@@ -26,6 +28,7 @@ public class ObjectBucketInfo extends BucketTagSetRootElement{
     private Boolean internal;
     private Boolean inactive;
     private Vdc vdc;
+    private List<SearchMetadata> searchMetadataList;
 
     public String getCreated() {
         return created;
@@ -192,5 +195,15 @@ public class ObjectBucketInfo extends BucketTagSetRootElement{
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @XmlElementWrapper(name = "search_metadata")
+    @XmlElement(name = "metadata")
+    public List<SearchMetadata> getSearchMetadataList() {
+        return searchMetadataList;
+    }
+
+    public void setSearchMetadataList(List<SearchMetadata> searchMetadataList) {
+        this.searchMetadataList = searchMetadataList;
     }
 }

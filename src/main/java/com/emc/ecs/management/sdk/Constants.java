@@ -15,6 +15,7 @@ public final class Constants {
     public static final String DEACTIVATE = "deactivate";
     public static final String RETENTION = "retention";
     public static final String TAGS = "tags";
+    public static final String SEARCHMETADATA = "searchmetadata";
     public static final String USERS = "users";
     public static final String USER_SECRET_KEYS = "user-secret-keys";
     public static final String VDC = "vdc";

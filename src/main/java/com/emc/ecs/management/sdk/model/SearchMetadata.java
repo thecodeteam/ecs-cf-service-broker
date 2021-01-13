@@ -3,10 +3,13 @@ package com.emc.ecs.management.sdk.model;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
+
+import static com.emc.ecs.servicebroker.model.Constants.*;
 
 @XmlRootElement(name = "metadata")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class SearchMetadata {
+public class SearchMetadata implements Comparable<SearchMetadata> {
 
     private String type;
     private String name;
@@ -20,6 +23,12 @@ public class SearchMetadata {
         this.type = type;
         this.name = name;
         this.datatype = datatype;
+    }
+
+    public SearchMetadata(Map<String, String> metadata) {
+        this.type = metadata.get(SEARCH_METADATA_TYPE);
+        this.name = metadata.get(SEARCH_METADATA_NAME);
+        this.datatype = metadata.get(SEARCH_METADATA_DATATYPE);
     }
 
     public String getType() {
@@ -53,5 +62,10 @@ public class SearchMetadata {
                 ", name='" + name + '\'' +
                 ", datatype='" + datatype + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(SearchMetadata o) {
+        return name.compareTo(o.getName());
     }
 }

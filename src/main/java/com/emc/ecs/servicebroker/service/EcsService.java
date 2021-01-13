@@ -213,6 +213,15 @@ public class EcsService {
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
                 changeBucketTags(bucketName, namespace, parameters);
             }
+
+            parameters = validateAndPrepareSearchMetadata(parameters);
+            List<SearchMetadata> requestedSearchMetadataList = (List<SearchMetadata>) parameters.get(SEARCH_METADATA);
+            List<SearchMetadata> currentSearchMetadataList = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getSearchMetadataList();
+
+            if (!isEqualSearchMetadataList(requestedSearchMetadataList, currentSearchMetadataList)) {
+                SearchMetadataAction.delete(connection, prefix(bucketName), broker.getNamespace());
+            }
+
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -502,9 +511,8 @@ public class EcsService {
 
     @SuppressWarnings("unchecked")
     static Map<String, Object> validateAndPrepareSearchMetadata(Map<String, Object> parameters) {
-        parameters = new HashMap<>(parameters);  // don't modify original map
-
         if (parameters.containsKey(SEARCH_METADATA)) {
+            parameters = new HashMap<>(parameters);  // don't modify original map
 
             List<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
             List<SearchMetadata> validatedMetadataList = new ArrayList<>();
@@ -521,7 +529,7 @@ public class EcsService {
                 }
 
                 String type = metadata.computeIfAbsent(SEARCH_METADATA_TYPE, s ->
-                        SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
+                    SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
                 );
 
                 switch (type) {
@@ -552,15 +560,10 @@ public class EcsService {
                     default:
                         throw new ServiceBrokerInvalidParametersException("Invalid type specified for search metadata: " + type);
                 }
-
-                validatedMetadataList.add(
-                        new SearchMetadata(metadata.get(SEARCH_METADATA_TYPE), metadata.get(SEARCH_METADATA_NAME), metadata.get(SEARCH_METADATA_DATATYPE))
-                );
+                SearchMetadata updatedMetadata = new SearchMetadata(metadata);
+                validatedMetadataList.add(updatedMetadata);
             }
-
             parameters.put(SEARCH_METADATA, validatedMetadataList);
-        } else {
-            parameters.put(SEARCH_METADATA, Collections.emptyList());
         }
 
         return parameters;
@@ -780,5 +783,30 @@ public class EcsService {
         parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
 
         return parameters;
+    }
+
+    boolean isEqualSearchMetadataList(List<SearchMetadata> list1, List<SearchMetadata> list2) {
+        if (list1 == null && list2 == null) {
+            return true;
+        } else if (list1 == null || list2 == null) {
+            return false;
+        } else {
+            if (list1.size() == list2.size()) {
+                list1.sort(SearchMetadata::compareTo);
+                list2.sort(SearchMetadata::compareTo);
+                for (int i = 0; i < list1.size(); i++) {
+                    SearchMetadata metadata1 = list1.get(i);
+                    SearchMetadata metadata2 = list2.get(i);
+                    if (!metadata1.getName().toLowerCase().equals(metadata2.getName().toLowerCase()) ||
+                        !metadata1.getType().toLowerCase().equals(metadata2.getType().toLowerCase()) ||
+                        !metadata1.getDatatype().toLowerCase().equals(metadata2.getDatatype().toLowerCase())) {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }
