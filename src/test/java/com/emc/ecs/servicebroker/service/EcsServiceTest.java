@@ -279,8 +279,10 @@ public class EcsServiceTest {
         List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
         additionalParams.put(TAGS, tags);
 
-        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
-                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE);
+        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE
+        );
         additionalParams.put(SEARCH_METADATA, searchMetadata);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -298,8 +300,8 @@ public class EcsServiceTest {
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(CollectionUtils.isEqualCollection(tags, setTags));
 
-        List<Map<String, String>> setSearchMetadata = (List<Map<String, String>>) serviceSettings.get(SEARCH_METADATA);
-        assertTrue(CollectionUtils.isEqualCollection(searchMetadata, setSearchMetadata));
+        List<SearchMetadata> setSearchMetadata = (List<SearchMetadata>) serviceSettings.get(SEARCH_METADATA);
+        assertSearchMetadataSameAsParams(searchMetadata, setSearchMetadata);
 
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
         PowerMockito.verifyStatic(BucketAction.class, times(1));
@@ -312,6 +314,7 @@ public class EcsServiceTest {
         assertTrue(create.getFilesystemEnabled());
         assertEquals(NAMESPACE_NAME, create.getNamespace());
         assertEquals(RG_ID, create.getVpool());
+        assertSearchMetadataSameAsParams(searchMetadata, create.getSearchMetadataList());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
         BucketQuotaAction.create(same(connection), eq(NAMESPACE_NAME), eq(PREFIX + CUSTOM_BUCKET_NAME), eq(5), eq(4));
@@ -1716,6 +1719,22 @@ public class EcsServiceTest {
             tags.add(tag);
         }
         return tags;
+    }
+
+
+    static void assertSearchMetadataSameAsParams(List<Map<String, String>> input, List<SearchMetadata> output) {
+        assertNotNull(input);
+        assertNotNull(output);
+        assertEquals(input.size(), output.size());
+
+        for (int i = 0; i < input.size(); i++) {
+            Map<String, String> metaInput = input.get(i);
+            SearchMetadata metaReturned = output.get(i);
+
+            assertEquals(metaReturned.getName(), metaInput.get(SEARCH_METADATA_NAME));
+            assertEquals(metaReturned.getType(), metaInput.get(SEARCH_METADATA_TYPE));
+            assertEquals(metaReturned.getDatatype(), metaInput.get(SEARCH_METADATA_DATATYPE));
+        }
     }
 
     private List<Map<String, String>> createListOfSearchMetadata(String... args) throws IllegalArgumentException {

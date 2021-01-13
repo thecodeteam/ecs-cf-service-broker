@@ -3,7 +3,6 @@ package com.emc.ecs.management.sdk.model;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,8 +20,7 @@ public class ObjectBucketCreate {
     private Boolean isEncryptionEnabled;
     private List<SearchMetadata> searchMetadataList;
 
-    public ObjectBucketCreate(String name, String namespace,
-            String replicationGroup, Map<String, Object> params) {
+    public ObjectBucketCreate(String name, String namespace, String replicationGroup, Map<String, Object> params) {
         super();
         this.name = name;
         this.namespace = namespace;
@@ -31,8 +29,7 @@ public class ObjectBucketCreate {
         this.filesystemEnabled = (Boolean) params.get(FILE_ACCESSIBLE);
         this.isStaleAllowed = (Boolean) params.get(ACCESS_DURING_OUTAGE);
         this.headType = (String) params.getOrDefault(HEAD_TYPE, HEAD_TYPE_S3);
-        this.searchMetadataList = new ArrayList<SearchMetadata>();
-        setSearchMetadataFromParams((List<Map<String, String> >)params.get(SEARCH_METADATA));
+        this.searchMetadataList = (List<SearchMetadata>) params.get(SEARCH_METADATA);
     }
 
     public ObjectBucketCreate(String name, String namespace,
@@ -113,11 +110,7 @@ public class ObjectBucketCreate {
         return searchMetadataList;
     }
 
-    public void setSearchMetadataFromParams(List<Map<String, String> > metadataList) {
-        if (metadataList != null) {
-            for (Map<String, String> metadata: metadataList) {
-                this.searchMetadataList.add(new SearchMetadata(metadata.get(SEARCH_METADATA_TYPE), metadata.get(SEARCH_METADATA_NAME), metadata.get(SEARCH_METADATA_DATATYPE)));
-            }
-        }
+    public void setSearchMetadataList(List<SearchMetadata> searchMetadataList) {
+        this.searchMetadataList = searchMetadataList;
     }
 }

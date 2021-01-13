@@ -502,11 +502,12 @@ public class EcsService {
 
     @SuppressWarnings("unchecked")
     static Map<String, Object> validateAndPrepareSearchMetadata(Map<String, Object> parameters) {
+        parameters = new HashMap<>(parameters);  // don't modify original map
+
         if (parameters.containsKey(SEARCH_METADATA)) {
-            parameters = new HashMap<>(parameters);  // don't modify original map
 
             List<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
-            List<Map<String, String>> validatedMetadataList = new ArrayList<>();
+            List<SearchMetadata> validatedMetadataList = new ArrayList<>();
 
             for (Map<String, String> metadata : metadataList) {
                 String name = metadata.get(SEARCH_METADATA_NAME);
@@ -520,7 +521,7 @@ public class EcsService {
                 }
 
                 String type = metadata.computeIfAbsent(SEARCH_METADATA_TYPE, s ->
-                    SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
+                        SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
                 );
 
                 switch (type) {
@@ -552,9 +553,14 @@ public class EcsService {
                         throw new ServiceBrokerInvalidParametersException("Invalid type specified for search metadata: " + type);
                 }
 
-                validatedMetadataList.add(metadata);
+                validatedMetadataList.add(
+                        new SearchMetadata(metadata.get(SEARCH_METADATA_TYPE), metadata.get(SEARCH_METADATA_NAME), metadata.get(SEARCH_METADATA_DATATYPE))
+                );
             }
+
             parameters.put(SEARCH_METADATA, validatedMetadataList);
+        } else {
+            parameters.put(SEARCH_METADATA, Collections.emptyList());
         }
 
         return parameters;

@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.SearchMetadata;
 import com.emc.ecs.servicebroker.model.SearchMetadataDataType;
 import com.emc.ecs.servicebroker.model.SystemMetadataName;
 import org.junit.Assert;
@@ -103,13 +104,13 @@ public class MetadataSearchValidationTests {
 
         Map<String, Object> params = EcsService.validateAndPrepareSearchMetadata(parameters(m));
 
-        List<Map<String, String>> list = (List<Map<String, String>>) params.get(SEARCH_METADATA);
+        List<SearchMetadata> list = (List<SearchMetadata>) params.get(SEARCH_METADATA);
         Assert.assertEquals(1, list.size());
-        Map<String, String> meta = list.get(0);
+        SearchMetadata meta = list.get(0);
 
-        assertEquals(SEARCH_METADATA_TYPE_SYSTEM, meta.get(SEARCH_METADATA_TYPE));
-        assertEquals(SystemMetadataName.LastModified.name(), meta.get(SEARCH_METADATA_NAME));
-        assertEquals(SearchMetadataDataType.DateTime.name(), meta.get(SEARCH_METADATA_DATATYPE));
+        assertEquals(SEARCH_METADATA_TYPE_SYSTEM, meta.getType());
+        assertEquals(SystemMetadataName.LastModified.name(), meta.getName());
+        assertEquals(SearchMetadataDataType.DateTime.name(), meta.getDatatype());
     }
 
     @Test
@@ -121,13 +122,13 @@ public class MetadataSearchValidationTests {
 
         Map<String, Object> params = EcsService.validateAndPrepareSearchMetadata(parameters(m));
 
-        List<Map<String, String>> list = (List<Map<String, String>>) params.get(SEARCH_METADATA);
+        List<SearchMetadata> list = (List<SearchMetadata>) params.get(SEARCH_METADATA);
         Assert.assertEquals(1, list.size());
-        Map<String, String> meta = list.get(0);
+        SearchMetadata meta = list.get(0);
 
-        assertEquals(SEARCH_METADATA_TYPE_USER, meta.get(SEARCH_METADATA_TYPE));
-        assertEquals(SEARCH_METADATA_USER_PREFIX + "abcd", meta.get(SEARCH_METADATA_NAME));
-        assertEquals(SearchMetadataDataType.Decimal.name(), meta.get(SEARCH_METADATA_DATATYPE));
+        assertEquals(SEARCH_METADATA_TYPE_USER, meta.getType());
+        assertEquals(SEARCH_METADATA_USER_PREFIX + "abcd", meta.getName());
+        assertEquals(SearchMetadataDataType.Decimal.name(), meta.getDatatype());
     }
 
     private static Map<String, Object> parameters(Map<String, String> metadataParams) {
