@@ -477,6 +477,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestNoQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupDeleteBucketQuotaTest();
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -503,6 +504,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestParametersQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(100, 80);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
 
@@ -545,6 +547,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestParametersIgnoredQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(5, 4);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -586,6 +589,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestNewQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(5, 4);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
 
@@ -620,6 +624,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestParametersRetention() throws Exception {
+        setupSearchMetadataCheckTest(null);
         Map<String, Object> params = new HashMap<>();
         params.put(DEFAULT_RETENTION, THIRTY_DAYS_IN_SEC);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC + 100);
@@ -651,6 +656,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestNoRetention() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
 
@@ -1705,6 +1711,13 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(BucketTagsAction.class);
         PowerMockito.doNothing().when(BucketTagsAction.class, CREATE, same(connection), anyString(), any(BucketTagsParamAdd.class));
         PowerMockito.doNothing().when(BucketTagsAction.class, UPDATE, same(connection), anyString(), any(BucketTagsParamUpdate.class));
+    }
+
+    private void setupSearchMetadataCheckTest(List<SearchMetadata> searchMetadataList) throws Exception {
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucket = new ObjectBucketInfo();
+        bucket.setSearchMetadataList(searchMetadataList);
+        PowerMockito.when(BucketAction.class, GET, same(connection), anyString(), anyString()).thenReturn(bucket);
     }
 
     private List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {

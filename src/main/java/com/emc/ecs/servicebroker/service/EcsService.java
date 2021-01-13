@@ -219,6 +219,7 @@ public class EcsService {
             List<SearchMetadata> currentSearchMetadataList = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getSearchMetadataList();
 
             if (!isEqualSearchMetadataList(requestedSearchMetadataList, currentSearchMetadataList)) {
+                logger.info("Removing search metadata from '{}' in '{}'", prefix(bucketName), namespace);
                 SearchMetadataAction.delete(connection, prefix(bucketName), broker.getNamespace());
             }
 
