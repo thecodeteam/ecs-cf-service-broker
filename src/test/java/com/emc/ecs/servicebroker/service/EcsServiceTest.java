@@ -1508,57 +1508,6 @@ public class EcsServiceTest {
         assertEquals(NAMESPACE_NAME, tagsParam.getNamespace());
     }
 
-    @Test
-    public void validateMetadataSearchInvalidDatatypeTest() {
-        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
-            Map<String, Object> parameters = new HashMap<>();
-            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, INVALID_METADATA_TYPE);
-            parameters.put(SEARCH_METADATA, searchMetadata);
-            ecs.validateAndPrepareSearchMetadata(parameters);
-        });
-    }
-
-    @Test
-    public void validateMetadataSearchNoNameTest() {
-        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
-            Map<String, Object> parameters = new HashMap<>();
-            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_USER, null, USER_METADATA_TYPE);
-            parameters.put(SEARCH_METADATA, searchMetadata);
-            ecs.validateAndPrepareSearchMetadata(parameters);
-        });
-    }
-
-    @Test
-    public void validateMetadataSearchInvalidSystemMetadataNameTest() {
-        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
-            Map<String, Object> parameters = new HashMap<>();
-            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, USER_METADATA_NAME, USER_METADATA_TYPE);
-            parameters.put(SEARCH_METADATA, searchMetadata);
-            ecs.validateAndPrepareSearchMetadata(parameters);
-        });
-    }
-
-    @Test
-    public void validateMetadataSearchInvalidSystemMetadataDatatypeTest() {
-        assertThrows(ServiceBrokerInvalidParametersException.class, () -> {
-            Map<String, Object> parameters = new HashMap<>();
-            List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, USER_METADATA_TYPE);
-            parameters.put(SEARCH_METADATA, searchMetadata);
-            ecs.validateAndPrepareSearchMetadata(parameters);
-        });
-    }
-
-    @Test
-    public void validateMetadataSearchUserMetadataPrefixAdditionTest() {
-        Map<String, Object> parameters = new HashMap<>();
-        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE);
-        parameters.put(SEARCH_METADATA, searchMetadata);
-        Map<String, Object> validatedParameters = ecs.validateAndPrepareSearchMetadata(parameters);
-        List<Map<String, String>> validatedSearchMetadata = (List<Map<String, String>>) validatedParameters.get(SEARCH_METADATA);
-        String name = validatedSearchMetadata.get(0).get(SEARCH_METADATA_NAME);
-        assertTrue(name.startsWith(SEARCH_METADATA_USER_PREFIX));
-    }
-
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
