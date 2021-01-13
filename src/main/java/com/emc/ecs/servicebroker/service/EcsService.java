@@ -501,7 +501,7 @@ public class EcsService {
     }
 
     @SuppressWarnings("unchecked")
-    Map<String, Object> validateAndPrepareSearchMetadata(Map<String, Object> parameters) {
+    static Map<String, Object> validateAndPrepareSearchMetadata(Map<String, Object> parameters) {
         if (parameters.containsKey(SEARCH_METADATA)) {
             parameters = new HashMap<>(parameters);  // don't modify original map
 
