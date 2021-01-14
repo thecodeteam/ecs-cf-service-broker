@@ -34,7 +34,7 @@ public class Constants {
 
     public static final String TAGS = "tags";
 
-    public static final String SEARCH_METADATA = "search_metadata";
+    public static final String SEARCH_METADATA = "search-metadata";
     public static final String SEARCH_METADATA_TYPE = "type";
     public static final String SEARCH_METADATA_NAME = "name";
     public static final String SEARCH_METADATA_DATATYPE = "datatype";

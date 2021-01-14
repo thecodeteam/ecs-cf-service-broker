@@ -154,6 +154,8 @@ The following feature flags are supported by the bucket & namespace. All paramet
 | bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
 | bucket            | remote_connection***| -       | JSON Map | Remote connection details for previously created bucket |
 | bucket            | name                | -       | String   | String to add to bucket name after the broker prefix (prefix-name-id)  |
+| bucket            | tags****            | -       | JSON List| List of tags that are key-value pairs associated with a bucket |
+| bucket            | search-metadata*****| -       | JSON List| List of search metadata that are used for bucket indexing |
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
 | bucket binding    | path-style-access   | true    | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
@@ -178,6 +180,11 @@ The following feature flags are supported by the bucket & namespace. All paramet
 \*\* Retention policies are defined with the following format: `{retention: {<policy name>: <seconds retained>}}` 
 
 \*\*\* Remote connection details are describe below in _remote connections_
+
+\*\*\*\* Tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`
+
+\*\*\*\*\* List of search metadata is defined with following format: `{"search_metadata": [{"type": <str>,"name": <str>,"datatype": <str>>}, ...]}` 
+Details about search metadata definition are described below in _Search metadata_ section 
 
 For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
@@ -314,10 +321,68 @@ remote connections have been removed. Prior to that, the service instance will b
 from the Cloud Foundry database, and the remote connection will be removed from the ECS
 broker metadata for that instance.
 
-#### Chaning Plans with Remote Connections
+#### Changing Plans with Remote Connections
 
 Changing/upgrading plans with remote connections is currently disabled, as it would leave
 one of the Cloud Foundry instances out of date.
+
+### Search Metadata
+
+Search metadata is used for ECS Object Storage bucket indexing and consists of three fields:
+
+```yaml
+...
+search-metadata: 
+- type: <type>
+  name: <name>
+  datatype: <datatype>
+...
+```
+There are two types of search metadata provided in the ECS buckets: _System_ and _User_.
+
+#### System search metadata
+
+ECS Documentation provides following system metadata:
+
+| Name (Alias)    | Data Type | Description                                           |
+| :-------------- | :---------| :---------------------------------------------------- |
+| ObjectName      | String    |  Name of the object.                                  |
+| Owner           | String    |  Identify the owner of the object.                    |
+| Size            | Integer   |  Size of the object.                                  |
+| CreateTime      | DateTime  |  Time at which the object was created.                |
+| LastModified    | DateTime  |  Time and date at which the object was last modified. |
+| ContentType     | String    |  -                                                    |
+| Expiration      | DateTime  |  -                                                    |
+| ContentEncoding | String    |  -                                                    |
+| Expires         | DateTime  |  -                                                    |
+| Retention       | Integer   |  -                                                    |
+
+System search metadata provided in `service-settings` block should be tagged with _System_ type, existing name and corresponding datatype.
+
+#### User search metadata
+
+User defined search metadata should be tagged with _User_ type, existing datatype and name starting with prefix `x-amz-meta-`.
+
+ECS supports 4 types of datatype: _String_, _Integer_, _DateTime_ and _Decimal_.
+
+#### Example
+
+Example of `service-settings` block part describing Search Metadata is presented in the listing:
+
+```yaml
+...
+search-metadata:
+- type: System
+  name: Expiration
+  datatype: DateTime
+- type: System
+  name: Size
+  datatype: Integer
+- type: User
+  name: x-amz-meta-my-meta
+  datatype: Decimal
+...
+```
 
 ## Testing
 
