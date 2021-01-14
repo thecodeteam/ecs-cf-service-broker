@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.Map;
 
 import static com.emc.ecs.servicebroker.model.Constants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("unchecked")
 @RunWith(MockitoJUnitRunner.class)
 public class MetadataSearchValidationTests {
 
     public static final String WRONG_NAME = "some wrong name";
+    public static final String SOME_USER_METADATA_NAME = "some_name";
 
     @Test
     public void validationFailsOnEmptyName() {
@@ -129,6 +129,47 @@ public class MetadataSearchValidationTests {
         assertEquals(SEARCH_METADATA_TYPE_USER, meta.getType());
         assertEquals(SEARCH_METADATA_USER_PREFIX + "abcd", meta.getName());
         assertEquals(SearchMetadataDataType.Decimal.name(), meta.getDatatype());
+    }
+
+    @Test
+    public void comparisonOfNullListsOfMetadata() {
+        List<SearchMetadata> list1 = null;
+        List<SearchMetadata> list2 = null;
+        assertTrue(EcsService.isEqualSearchMetadataList(list1, list2));
+    }
+
+    @Test
+    public void comparisonOfNullAndNotNullListsOfMetadata() {
+        List<SearchMetadata> list1 = null;
+        List<SearchMetadata> list2 = new ArrayList<>();
+        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name()));
+        assertFalse(EcsService.isEqualSearchMetadataList(list1, list2));
+        assertFalse(EcsService.isEqualSearchMetadataList(list2, list1));
+    }
+
+    @Test
+    public void comparisonOfDifferentListsOfMetadata() {
+        List<SearchMetadata> list1 = new ArrayList<>();
+        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.CreateTime.name(), SearchMetadataDataType.DateTime.name()));
+        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Integer.name()));
+
+        List<SearchMetadata> list2 = new ArrayList<>();
+        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name()));
+
+        assertFalse(EcsService.isEqualSearchMetadataList(list1, list2));
+    }
+
+    @Test
+    public void comparisonOfSameListsOfMetadata() {
+        List<SearchMetadata> list1 = new ArrayList<>();
+        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()));
+        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name()));
+
+        List<SearchMetadata> list2 = new ArrayList<>();
+        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()));
+        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name()));
+
+        assertTrue(EcsService.isEqualSearchMetadataList(list1, list2));
     }
 
     private static Map<String, Object> parameters(Map<String, String> metadataParams) {

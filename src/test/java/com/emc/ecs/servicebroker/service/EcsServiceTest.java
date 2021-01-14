@@ -737,7 +737,7 @@ public class EcsServiceTest {
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
         Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
-        assertTrue(ecs.isEqualSearchMetadataList(currentMetadataList, (List<SearchMetadata>) serviceSettings.get(SEARCH_METADATA)));
+        assertTrue(EcsService.isEqualSearchMetadataList(currentMetadataList, (List<SearchMetadata>) serviceSettings.get(SEARCH_METADATA)));
 
         PowerMockito.verifyStatic(SearchMetadataAction.class, never());
         SearchMetadataAction.delete(same(connection), anyString(), anyString());
