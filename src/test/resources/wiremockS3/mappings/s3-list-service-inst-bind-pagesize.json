@@ -1,0 +1,21 @@
+{
+    "scenarioName": "list-service-inst-bind-pagesize",
+    "requiredScenarioState": "Started",
+    "request": {
+        "method": "GET",
+        "url": "/ecs-cf-broker-repository?max-keys=32&prefix=service-instance-binding%2F",
+        "headers": {
+            "Authorization" : {
+                "matches": "AWS ecs-cf-broker-user:.*"
+            }
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+            "Content-Encoding": "identity",
+            "Content-Type": "application/json"
+        },
+        "body": "{\"Name\":\"bucket1\", \"Prefix\":\"service-instance-binding\", \"MaxKeys\":32, \"Marker\":\"marker1\", \"Contents\":[]}"
+    }
+}

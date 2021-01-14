@@ -121,6 +121,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         credentials.put(BUCKET, ecs.prefix(bucket));
         credentials.put(NAMESPACE, namespace);
 
+        if(!volumeMounts.isEmpty()) {
+            VolumeMount volumeMount = volumeMounts.get(volumeMounts.size() - 1);
+            SharedVolumeDevice volumeDevice = (SharedVolumeDevice) volumeMount.getDevice();
+            Map<String, Object> config = volumeDevice.getMountConfig();
+            int unixID = Integer.parseInt((String)config.get(VOLUME_EXPORT_UID));
+            credentials.put(VOLUME_EXPORT_UID, unixID);
+        }
+
         return credentials;
     }
 

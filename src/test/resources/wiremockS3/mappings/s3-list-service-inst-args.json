@@ -1,0 +1,21 @@
+{
+    "scenarioName": "list-service-inst-args",
+    "requiredScenarioState": "Started",
+    "request": {
+        "method": "GET",
+        "url": "/ecs-cf-broker-repository?marker=service-instance%2Fmarker1.json&max-keys=32&prefix=service-instance%2F",
+        "headers": {
+            "Authorization" : {
+                "matches": "AWS ecs-cf-broker-user:.*"
+            }
+        }
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+            "Content-Encoding": "identity",
+            "Content-Type": "application/json"
+        },
+        "body": "{\"Name\":\"bucket1\", \"Prefix\":\"service-instance\", \"MaxKeys\":32, \"Marker\":\"marker1\", \"Contents\":[]}"
+    }
+}
