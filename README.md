@@ -328,7 +328,12 @@ one of the Cloud Foundry instances out of date.
 
 ### Search Metadata
 
-Search metadata is used for ECS Object Storage bucket indexing and consists of three fields:
+Search metadata is used for ECS Object Storage bucket indexing and allows to lookup objects without iterating through bucket contents.
+
+Metadata fields number is limited to 30, and must be defined when bucket is created.
+_Note:_ plan changes will disable metadata search if plans defines different metadata field sets! 
+
+Each metadata field definition consists of three fields: type, name and datatype.
 
 ```yaml
 ...
@@ -362,8 +367,18 @@ System search metadata provided in `service-settings` block should be tagged wit
 #### User search metadata
 
 User defined search metadata should be tagged with _User_ type, existing datatype and name starting with prefix `x-amz-meta-`.
+Prefix will be added to field name if it is not already there. 
 
+#### Metadata Search Datatypes
+When writing metadata to objects, client should provide data in format appropriate for each fields's datatype.
 ECS supports 4 types of datatype: _String_, _Integer_, _DateTime_ and _Decimal_.
+
+| Datatype | Description |
+|:---------|:------------|
+| String    | Search comparisons are done over plaintext. |
+| Integer   | String should contain only digits, and is converted to integer in search comparisons. |
+| Decimal   | Decimal value with "." character treates as decimap point. |
+| Datetime  | Expected string format is _yyyy-MM-ddTHH:mm:ssZ_ |
 
 #### Example
 
