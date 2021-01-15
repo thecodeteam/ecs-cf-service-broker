@@ -9,10 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.emc.ecs.servicebroker.model.Constants.*;
 import static org.junit.Assert.*;
@@ -132,44 +129,48 @@ public class MetadataSearchValidationTests {
     }
 
     @Test
-    public void comparisonOfNullListsOfMetadata() {
-        List<SearchMetadata> list1 = null;
-        List<SearchMetadata> list2 = null;
-        assertTrue(EcsService.isEqualSearchMetadataList(list1, list2));
+    public void nullListsOfMetadataAreEqual() {
+        assertTrue("Null metadata search lists are equal", EcsService.isEqualSearchMetadataList(null, null));
+        assertTrue("Empty metadata search lists are equal", EcsService.isEqualSearchMetadataList(new ArrayList<>(), new ArrayList<>()));
     }
 
     @Test
-    public void comparisonOfNullAndNotNullListsOfMetadata() {
-        List<SearchMetadata> list1 = null;
-        List<SearchMetadata> list2 = new ArrayList<>();
-        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name()));
-        assertFalse(EcsService.isEqualSearchMetadataList(list1, list2));
-        assertFalse(EcsService.isEqualSearchMetadataList(list2, list1));
+    public void nullAndNonemptyListsAreNotEqual() {
+        List<SearchMetadata> list = Arrays.asList(
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name())
+        );
+        assertFalse("Null and non empty metadata lists are not equal", EcsService.isEqualSearchMetadataList(null, list));
+        assertFalse("Non empty list and null are not equal", EcsService.isEqualSearchMetadataList(list, null));
+
+        assertFalse("Null amd empty metadata search lists are not equal", EcsService.isEqualSearchMetadataList(null, new ArrayList<>()));
+        assertFalse("Empty and null metadata search lists are not equal", EcsService.isEqualSearchMetadataList(new ArrayList<>(), null));
     }
 
     @Test
-    public void comparisonOfDifferentListsOfMetadata() {
-        List<SearchMetadata> list1 = new ArrayList<>();
-        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.CreateTime.name(), SearchMetadataDataType.DateTime.name()));
-        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Integer.name()));
-
-        List<SearchMetadata> list2 = new ArrayList<>();
-        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name()));
-
-        assertFalse(EcsService.isEqualSearchMetadataList(list1, list2));
+    public void differentListsOfMetadataAreNotEqual() {
+        List<SearchMetadata> list1 = Arrays.asList(
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.CreateTime.name(), SearchMetadataDataType.DateTime.name()),
+                new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Integer.name())
+        );
+        List<SearchMetadata> list2 = Arrays.asList(
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name())
+        );
+        assertFalse("Lists with different entries are not equal", EcsService.isEqualSearchMetadataList(list1, list2));
     }
 
     @Test
-    public void comparisonOfSameListsOfMetadata() {
-        List<SearchMetadata> list1 = new ArrayList<>();
-        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()));
-        list1.add(new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name()));
+    public void sameMetadataListsAreEqual() {
+        List<SearchMetadata> list1 = Arrays.asList(
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()),
+                new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name())
+        );
 
-        List<SearchMetadata> list2 = new ArrayList<>();
-        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()));
-        list2.add(new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name()));
+        List<SearchMetadata> list2 = Arrays.asList(
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()),
+                new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name())
+        );
 
-        assertTrue(EcsService.isEqualSearchMetadataList(list1, list2));
+        assertTrue("Lists with entries with same metadata entries are equal", EcsService.isEqualSearchMetadataList(list1, list2));
     }
 
     private static Map<String, Object> parameters(Map<String, String> metadataParams) {

@@ -26,6 +26,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidPar
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
@@ -715,18 +716,15 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestMetadata() throws Exception {
-        int metadataNum = 2;
-        List<Map<String, String>> currentMetadataListOfMaps =
-                createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name(),
-                        SEARCH_METADATA_TYPE_USER, SEARCH_METADATA_USER_PREFIX + SOME_USER_SEARCH_METADATA_NAME, SearchMetadataDataType.Decimal.name());
+        List<Map<String, String>> currentMetadataListOfMaps = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name(),
+                SEARCH_METADATA_TYPE_USER, SEARCH_METADATA_USER_PREFIX + SOME_USER_SEARCH_METADATA_NAME, SearchMetadataDataType.Decimal.name()
+        );
 
         Map<String, Object> params = new HashMap<>();
         params.put(SEARCH_METADATA, currentMetadataListOfMaps);
 
-        List<SearchMetadata> currentMetadataList = new ArrayList<>();
-        for (int i = 0; i < metadataNum; i++) {
-            currentMetadataList.add(new SearchMetadata(currentMetadataListOfMaps.get(i)));
-        }
+        List<SearchMetadata> currentMetadataList = currentMetadataListOfMaps.stream().map(SearchMetadata::new).collect(Collectors.toList());
 
         setupDeleteSearchMetadataTest();
         setupSearchMetadataCheckTest(currentMetadataList);
@@ -751,10 +749,10 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestDisableMetadata() throws Exception {
-        int metadataNum = 2;
-        List<Map<String, String>> currentMetadataListOfMaps =
-                createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name(),
-                        SEARCH_METADATA_TYPE_USER, SEARCH_METADATA_USER_PREFIX + SOME_USER_SEARCH_METADATA_NAME, SearchMetadataDataType.Decimal.name());
+        List<Map<String, String>> currentMetadataListOfMaps = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name(),
+                SEARCH_METADATA_TYPE_USER, SEARCH_METADATA_USER_PREFIX + SOME_USER_SEARCH_METADATA_NAME, SearchMetadataDataType.Decimal.name()
+        );
 
         List<Map<String, String>> providedMetadataListOfMaps =
                 createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Size.name(), SearchMetadataDataType.Integer.name());
@@ -762,10 +760,7 @@ public class EcsServiceTest {
         Map<String, Object> params = new HashMap<>();
         params.put(SEARCH_METADATA, providedMetadataListOfMaps);
 
-        List<SearchMetadata> currentMetadataList = new ArrayList<>();
-        for (int i = 0; i < metadataNum; i++) {
-            currentMetadataList.add(new SearchMetadata(currentMetadataListOfMaps.get(i)));
-        }
+        List<SearchMetadata> currentMetadataList = currentMetadataListOfMaps.stream().map(SearchMetadata::new).collect(Collectors.toList());
 
         setupDeleteSearchMetadataTest();
         setupSearchMetadataCheckTest(currentMetadataList);
