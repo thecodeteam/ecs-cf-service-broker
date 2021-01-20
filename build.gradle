@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.2.9.RELEASE'
+        springBootVersion = '2.3.7.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -28,7 +28,7 @@ repositories {
 }
 
 ext {
-    springCloudServiceBrokerVersion = '3.1.2.RELEASE'
+    springCloudServiceBrokerVersion = '3.2.0'
 }
 
 dependencies {
@@ -45,6 +45,7 @@ dependencies {
         exclude module: "jsr311-api"
     }
     compile(group: 'com.emc.ecs', name: 'bucket-wipe', version: '2.0.0') {
+        exclude module: "log4j"
         exclude module: "slf4j-log4j12"
         exclude module: "jsr311-api"
     }
@@ -59,7 +60,7 @@ dependencies {
 }
 
 task wrapperOld(type: Wrapper) {
-    gradleVersion = '6.2.1'
+    gradleVersion = '6.8'
 }
 
 
