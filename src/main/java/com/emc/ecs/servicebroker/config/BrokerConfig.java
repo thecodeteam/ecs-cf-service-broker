@@ -33,6 +33,8 @@ public class BrokerConfig {
     private String certificate;
     private String defaultReclaimPolicy = ReclaimPolicy.Fail.name();
 
+    private int loginSessionLength = -1;      // Max login session length, in minutes
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // TODO: Add deprecation warning for these settings
@@ -222,5 +224,13 @@ public class BrokerConfig {
 
     public void setDefaultReclaimPolicy(String defaultReclaimPolicy) {
         this.defaultReclaimPolicy = defaultReclaimPolicy;
+    }
+
+    public int getLoginSessionLength() {
+        return loginSessionLength;
+    }
+
+    public void setLoginSessionLength(int loginSessionLength) {
+        this.loginSessionLength = loginSessionLength;
     }
 }

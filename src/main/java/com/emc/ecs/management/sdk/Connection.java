@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,12 +34,16 @@ public class Connection {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Connection.class);
 
     private static final int AUTH_RETRIES_MAX = 3;
+
     private final String endpoint;
     private final String username;
     private final String password;
     private String authToken;
     private String certificate;
+    private int maxLoginSessionLength;
+
     private int authRetries = 0;
+    private Instant authExpiration = null;
 
     public Connection(String endpoint, String username, String password) {
         super();
@@ -109,6 +115,10 @@ public class Connection {
         return authToken != null;
     }
 
+    public boolean sessionExpired() {
+        return isLoggedIn() && authExpiration != null && authExpiration.isBefore(Instant.now());
+    }
+
     public void login() throws EcsManagementClientException {
         UriBuilder uriBuilder = UriBuilder.fromPath(endpoint).segment("login");
 
@@ -128,6 +138,12 @@ public class Connection {
 
             this.authToken = response.getHeaderString("X-SDS-AUTH-TOKEN");
             this.authRetries = 0;
+
+            if (maxLoginSessionLength > 0) {
+                this.authExpiration = Instant.now().plus(maxLoginSessionLength, ChronoUnit.MINUTES);
+            } else {
+                this.authExpiration = null;
+            }
         } catch (EcsManagementResourceNotFoundException e) {
             logger.warn("Login failed to handle response: {}", e.getMessage());
             logger.warn("Response: {}", response);
@@ -143,10 +159,11 @@ public class Connection {
     }
 
     public void logout() throws EcsManagementClientException {
-        UriBuilder uri = UriBuilder.fromPath(endpoint).segment("logout")
-                .queryParam("force", true);
-        handleRemoteCall(GET, uri, null);
         this.authToken = null;
+        this.authExpiration = null;
+//        UriBuilder uri = UriBuilder.fromPath(endpoint).segment("logout")
+//                .queryParam("force", true);
+//        handleRemoteCall(GET, uri, null);
     }
 
     protected Response handleRemoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
@@ -174,6 +191,11 @@ public class Connection {
 
     protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType)
             throws EcsManagementClientException {
+        if (sessionExpired()) {
+            logger.info("Session token expired after {} minutes", maxLoginSessionLength);
+            logout();
+        }
+
         if (!isLoggedIn()) {
             login();
         }
@@ -217,8 +239,10 @@ public class Connection {
                 // attempt to re-authorize and retry up to _authMaxRetries_ times.
                 authRetries += 1;
                 this.authToken = null;
+                this.authExpiration = null;
                 response = makeRemoteCall(method, uri, arg, XML);
             }
+
             return response;
         } catch (Exception e) {
             logger.warn("Failed to make a call to {}: {}", uri, e.getMessage());
@@ -260,4 +284,31 @@ public class Connection {
         this.certificate = certificate;
     }
 
+    public int getMaxLoginSessionLength() {
+        return maxLoginSessionLength;
+    }
+
+    public void setMaxLoginSessionLength(int maxLoginSessionLength) {
+        this.maxLoginSessionLength = maxLoginSessionLength;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    public int getAuthRetries() {
+        return authRetries;
+    }
+
+    public void setAuthRetries(int authRetries) {
+        this.authRetries = authRetries;
+    }
+
+    public Instant getAuthExpiration() {
+        return authExpiration;
+    }
+
+    public void setAuthExpiration(Instant authExpiration) {
+        this.authExpiration = authExpiration;
+    }
 }
