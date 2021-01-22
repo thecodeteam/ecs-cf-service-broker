@@ -31,6 +31,7 @@ import org.junit.runners.Suite.SuiteClasses;
         ObjectUserSecretActionTest.class,
         ReplicationGroupActionTest.class,
         MergeParametersTest.class,
+        MetadataSearchValidationTests.class,
         EcsServiceTest.class,
         CatalogConfigTest.class,
         ServiceDefinitionProxyTest.class,

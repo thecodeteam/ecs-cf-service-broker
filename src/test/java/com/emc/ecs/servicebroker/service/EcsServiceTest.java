@@ -5,8 +5,8 @@ import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
-import com.emc.ecs.servicebroker.model.PlanProxy;
-import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.*;
+import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
@@ -22,9 +22,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.emc.ecs.common.Fixtures.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
@@ -38,7 +40,8 @@ import static org.mockito.Mockito.*;
         BucketRetentionAction.class, NamespaceAction.class,
         NamespaceQuotaAction.class, NamespaceRetentionAction.class,
         BucketAclAction.class, NFSExportAction.class,
-        ObjectUserMapAction.class, BucketTagsAction.class})
+        ObjectUserMapAction.class, BucketTagsAction.class,
+        SearchMetadataAction.class})
 public class EcsServiceTest {
     private static final String FOO = "foo";
     private static final String ONE_YEAR = "one-year";
@@ -58,6 +61,7 @@ public class EcsServiceTest {
     private static final String CREATE = "create";
     private static final String DELETE = "delete";
     private static final String SOME_OTHER_NAMESPACE_NAME = NAMESPACE_NAME + "_OTHER";
+    private static final String SOME_USER_SEARCH_METADATA_NAME = "test_meta";
 
     @Mock
     private Connection connection;
@@ -277,6 +281,12 @@ public class EcsServiceTest {
         List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
         additionalParams.put(TAGS, tags);
 
+        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE
+        );
+        additionalParams.put(SEARCH_METADATA, searchMetadata);
+
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
@@ -292,6 +302,9 @@ public class EcsServiceTest {
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(CollectionUtils.isEqualCollection(tags, setTags));
 
+        List<SearchMetadata> setSearchMetadata = (List<SearchMetadata>) serviceSettings.get(SEARCH_METADATA);
+        assertSearchMetadataSameAsParams(searchMetadata, setSearchMetadata);
+
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
         PowerMockito.verifyStatic(BucketAction.class, times(1));
         BucketAction.create(same(connection), createCaptor.capture());
@@ -303,6 +316,7 @@ public class EcsServiceTest {
         assertTrue(create.getFilesystemEnabled());
         assertEquals(NAMESPACE_NAME, create.getNamespace());
         assertEquals(RG_ID, create.getVpool());
+        assertSearchMetadataSameAsParams(searchMetadata, create.getSearchMetadataList());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(1));
         BucketQuotaAction.create(same(connection), eq(NAMESPACE_NAME), eq(PREFIX + CUSTOM_BUCKET_NAME), eq(5), eq(4));
@@ -465,6 +479,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestNoQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupDeleteBucketQuotaTest();
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -491,6 +506,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestParametersQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(100, 80);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
 
@@ -533,6 +549,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestParametersIgnoredQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(5, 4);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -574,6 +591,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestNewQuota() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(5, 4);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
 
@@ -608,6 +626,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestParametersRetention() throws Exception {
+        setupSearchMetadataCheckTest(null);
         Map<String, Object> params = new HashMap<>();
         params.put(DEFAULT_RETENTION, THIRTY_DAYS_IN_SEC);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC + 100);
@@ -639,6 +658,7 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketPlanTestNoRetention() throws Exception {
+        setupSearchMetadataCheckTest(null);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
 
@@ -686,6 +706,80 @@ public class EcsServiceTest {
         Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(expectedTags.size() == setTags.size() && expectedTags.containsAll(setTags) && setTags.containsAll(expectedTags));
+    }
+
+    /**
+     * When changing plans from one with same search metadata provided in parameters
+     * existing search metadata should be enabled and stay the same.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestMetadata() throws Exception {
+        List<Map<String, String>> currentMetadataListOfMaps = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name(),
+                SEARCH_METADATA_TYPE_USER, SEARCH_METADATA_USER_PREFIX + SOME_USER_SEARCH_METADATA_NAME, SearchMetadataDataType.Decimal.name()
+        );
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(SEARCH_METADATA, currentMetadataListOfMaps);
+
+        List<SearchMetadata> currentMetadataList = currentMetadataListOfMaps.stream().map(SearchMetadata::new).collect(Collectors.toList());
+
+        setupDeleteSearchMetadataTest();
+        setupSearchMetadataCheckTest(currentMetadataList);
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupDeleteBucketQuotaTest();
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
+        assertTrue(EcsService.isEqualSearchMetadataList(currentMetadataList, (List<SearchMetadata>) serviceSettings.get(SEARCH_METADATA)));
+
+        PowerMockito.verifyStatic(SearchMetadataAction.class, never());
+        SearchMetadataAction.delete(same(connection), anyString(), anyString());
+    }
+
+    /**
+     * When changing plans from one with some other search metadata provided in parameters
+     * existing search metadata should be disabled.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestDisableMetadata() throws Exception {
+        List<Map<String, String>> currentMetadataListOfMaps = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name(),
+                SEARCH_METADATA_TYPE_USER, SEARCH_METADATA_USER_PREFIX + SOME_USER_SEARCH_METADATA_NAME, SearchMetadataDataType.Decimal.name()
+        );
+
+        List<Map<String, String>> providedMetadataListOfMaps =
+                createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Size.name(), SearchMetadataDataType.Integer.name());
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(SEARCH_METADATA, providedMetadataListOfMaps);
+
+        List<SearchMetadata> currentMetadataList = currentMetadataListOfMaps.stream().map(SearchMetadata::new).collect(Collectors.toList());
+
+        setupDeleteSearchMetadataTest();
+        setupSearchMetadataCheckTest(currentMetadataList);
+        setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupDeleteBucketQuotaTest();
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
+
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+
+        PowerMockito.verifyStatic(SearchMetadataAction.class, times(1));
+        SearchMetadataAction.delete(same(connection), idCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
     }
 
     /**
@@ -1695,6 +1789,18 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(BucketTagsAction.class, UPDATE, same(connection), anyString(), any(BucketTagsParamUpdate.class));
     }
 
+    private void setupSearchMetadataCheckTest(List<SearchMetadata> searchMetadataList) throws Exception {
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucket = new ObjectBucketInfo();
+        bucket.setSearchMetadataList(searchMetadataList);
+        PowerMockito.when(BucketAction.class, GET, same(connection), anyString(), anyString()).thenReturn(bucket);
+    }
+
+    private void setupDeleteSearchMetadataTest() throws Exception {
+        PowerMockito.mockStatic(SearchMetadataAction.class);
+        PowerMockito.doNothing().when(SearchMetadataAction.class, DELETE, same(connection), eq(BUCKET_NAME), eq(NAMESPACE_NAME));
+    }
+
     private List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {
         if (args.length % 2 != 0) {
             throw new IllegalArgumentException("Number of arguments should be multiple of two.");
@@ -1707,5 +1813,39 @@ public class EcsServiceTest {
             tags.add(tag);
         }
         return tags;
+    }
+
+
+    static void assertSearchMetadataSameAsParams(List<Map<String, String>> input, List<SearchMetadata> output) {
+        assertNotNull(input);
+        assertNotNull(output);
+        assertEquals(input.size(), output.size());
+
+        for (int i = 0; i < input.size(); i++) {
+            Map<String, String> metaInput = input.get(i);
+            SearchMetadata metaReturned = output.get(i);
+
+            assertEquals(metaReturned.getName(), metaInput.get(SEARCH_METADATA_NAME));
+            assertEquals(metaReturned.getType(), metaInput.get(SEARCH_METADATA_TYPE));
+            assertEquals(metaReturned.getDatatype(), metaInput.get(SEARCH_METADATA_DATATYPE));
+        }
+    }
+
+    private List<Map<String, String>> createListOfSearchMetadata(String... args) throws IllegalArgumentException {
+        if (args.length % 3 != 0) {
+            throw new IllegalArgumentException("Number of arguments should be multiple of three.");
+        }
+        List<Map<String, String>> searchMetadata = new ArrayList<>();
+        for (int i = 0; i < args.length; i += 3) {
+            Map<String, String> metadata = new HashMap<>();
+            if(args[i] != null)
+                metadata.put(SEARCH_METADATA_TYPE, args[i]);
+            if(args[i + 1] != null)
+                metadata.put(SEARCH_METADATA_NAME, args[i + 1]);
+            if(args[i + 2] != null)
+                metadata.put(SEARCH_METADATA_DATATYPE, args[i + 2]);
+            searchMetadata.add(metadata);
+        }
+        return searchMetadata;
     }
 }

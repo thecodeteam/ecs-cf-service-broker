@@ -34,6 +34,14 @@ public class Constants {
 
     public static final String TAGS = "tags";
 
+    public static final String SEARCH_METADATA = "search-metadata";
+    public static final String SEARCH_METADATA_TYPE = "type";
+    public static final String SEARCH_METADATA_NAME = "name";
+    public static final String SEARCH_METADATA_DATATYPE = "datatype";
+    public static final String SEARCH_METADATA_TYPE_SYSTEM = "System";
+    public static final String SEARCH_METADATA_TYPE_USER = "User";
+    public static final String SEARCH_METADATA_USER_PREFIX = "x-amz-meta-";
+
     public static final String VOLUME_EXPORT = "export";
     public static final String VOLUME_EXPORT_SOURCE = "source";
     public static final String VOLUME_EXPORT_UID = "uid";
