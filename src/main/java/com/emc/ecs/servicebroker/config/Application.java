@@ -1,5 +1,7 @@
 package com.emc.ecs.servicebroker.config;
 
+import com.emc.ecs.servicebroker.controller.RepositoryListController;
+import com.emc.ecs.servicebroker.controller.RestartController;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
@@ -9,6 +11,7 @@ import com.emc.ecs.servicebroker.service.EcsService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceService;
 import com.emc.ecs.management.sdk.Connection;
+import com.emc.ecs.servicebroker.service.S3Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.servicebroker.model.BrokerApiVersion;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.DependsOn;
 
 import java.net.URISyntaxException;
 
@@ -42,6 +46,16 @@ public class Application {
     public static void main() {
         Application.context.close();
         Application.context = SpringApplication.run(Application.class, getArgs());
+    }
+
+    @Bean
+    public RepositoryListController repositoryListController() {
+        return new RepositoryListController();
+    }
+
+    @Bean
+    public RestartController restartController() {
+        return new RestartController();
     }
 
     @Bean
@@ -71,6 +85,12 @@ public class Application {
     @Bean
     public EcsService ecsService() {
         return new EcsService();
+    }
+
+    @Bean
+    @DependsOn("ecsService")
+    public S3Service s3Service() {
+        return new S3Service();
     }
 
     @Bean

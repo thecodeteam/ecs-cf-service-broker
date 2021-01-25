@@ -1,63 +1,41 @@
 package com.emc.ecs.servicebroker.repository;
 
-import com.emc.ecs.servicebroker.config.BrokerConfig;
-import com.emc.object.s3.S3Config;
-import com.emc.object.s3.bean.GetObjectResult;
-import com.emc.object.s3.jersey.S3JerseyClient;
+import com.emc.ecs.servicebroker.service.S3Service;
+import com.emc.object.s3.bean.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.String.format;
 
 public class ServiceInstanceRepository {
     private static final Logger logger = LoggerFactory.getLogger(ServiceInstanceRepository.class);
 
+    public static final String FILENAME_PREFIX = "service-instance";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private String bucket;
-
-    private S3JerseyClient s3;
-
     @Autowired
-    private BrokerConfig broker;
+    private S3Service s3;
 
     private static String getFilename(String id) {
-        return "service-instance/" + id + ".json";
+        return FILENAME_PREFIX + "/" + id + ".json";
+    }
+
+    private static boolean isCorrectFilename (String filename) {
+        return filename.matches(FILENAME_PREFIX + "/.*\\.json");
     }
 
     @PostConstruct
     public void initialize() throws URISyntaxException {
-        logger.info("Initializing repository with repository endpoint {}", broker.getRepositoryEndpoint());
-
-        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
-
-        logger.info("Repository S3 config {}", s3Config);
-
-        s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
-
-        this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
-
-        logger.debug("JerseyClient S3 config {}", this.s3.getS3Config());
-
-        this.bucket = broker.getPrefixedBucketName();
-
-        logger.info("Service repository bucket: {}", this.bucket);
-
-        logger.info("Testing access to S3 endpoint {} - checking existence of {}", broker.getRepositoryEndpoint(), this.bucket);
-        if (s3.bucketExists(this.bucket)) {
-            logger.info("Test OK. Bucket {} exists", this.bucket);
-        } else {
-            logger.info("Test OK. Bucket {} doesnt exist yet", this.bucket);
-        }
+        logger.info("Service instance file prefix: {}", FILENAME_PREFIX);
     }
 
     public void save(ServiceInstance instance) throws IOException {
@@ -69,31 +47,52 @@ public class ServiceInstanceRepository {
 
         String filename = getFilename(instance.getServiceInstanceId());
 
-        logger.info("Saving repository to {}:{}", bucket, filename);
-        logger.debug("S3 config: Host: {}, Namespace: {}, Protocol: {}, Identity: {}, Port: {}",
-                this.s3.getS3Config().getHost(),
-                this.s3.getS3Config().getNamespace(),
-                this.s3.getS3Config().getProtocol(),
-                this.s3.getS3Config().getIdentity(),
-                this.s3.getS3Config().getPort());
+        logger.info("Saving instance to repository as {}", filename);
 
-        s3.putObject(bucket, filename, input, null);
+        s3.putObject(filename, input);
     }
 
     public ServiceInstance find(String id) throws IOException {
         String filename = getFilename(id);
+        return findByFilename(filename);
+    }
 
-        logger.debug("Loading repository from {}:{}", bucket, filename);
-
-        GetObjectResult<InputStream> input = s3.getObject(bucket, filename);
-
+    public ServiceInstance findByFilename(String filename) throws IOException {
+        if (!isCorrectFilename(filename)) {
+            String errorMessage = format("Invalid filename of service instance provided: %s", filename);
+            throw new IOException(errorMessage);
+        }
+        logger.debug("Loading service instance from repository file {}", filename);
+        GetObjectResult<InputStream> input = s3.getObject(filename);
         return objectMapper.readValue(input.getObject(), ServiceInstance.class);
+    }
+
+    public ListServiceInstancesResponse listServiceInstances(String marker, int pageSize) throws IOException {
+        if (pageSize < 0) {
+            throw new IOException("Page size could not be negative number");
+        }
+        List<ServiceInstance> instances = new ArrayList<>();
+        ListObjectsResult list = marker != null ?
+                s3.listObjects(FILENAME_PREFIX + "/", getFilename(marker), pageSize) :
+                s3.listObjects(FILENAME_PREFIX + "/", null, pageSize);
+
+        for (S3Object s3Object: list.getObjects()) {
+            String filename = s3Object.getKey();
+            if (isCorrectFilename(filename)) {
+                ServiceInstance instance = findByFilename(filename);
+                instances.add(instance);
+            }
+        }
+        ListServiceInstancesResponse response = new ListServiceInstancesResponse(instances);
+        response.setMarker(list.getMarker());
+        response.setPageSize(list.getMaxKeys());
+        response.setNextMarker(list.getNextMarker());
+        return response;
     }
 
     public void delete(String id) {
         String filename = getFilename(id);
-        logger.info("Deleting repository instance {}:{}", bucket, filename);
-        s3.deleteObject(bucket, filename);
+        logger.info("Deleting repository file {}", filename);
+        s3.deleteObject(filename);
     }
-
 }

@@ -30,13 +30,13 @@ public class BucketQuotaActionTest extends EcsActionTest {
     public void testApplyRemoveBucketQuota()
             throws EcsManagementClientException,
             EcsManagementResourceNotFoundException {
-        BucketQuotaAction.create(connection, bucket, namespace, 10, 8);
+        BucketQuotaAction.create(connection, namespace, bucket, 10, 8);
         BucketQuotaDetails quotaDetails = BucketQuotaAction.get(connection,
-                bucket, namespace);
+                namespace, bucket);
         assertEquals(10, quotaDetails.getBlockSize());
         assertEquals(8, quotaDetails.getNotificationSize());
-        BucketQuotaAction.delete(connection, bucket, namespace);
-        quotaDetails = BucketQuotaAction.get(connection, bucket, namespace);
+        BucketQuotaAction.delete(connection, namespace, bucket);
+        quotaDetails = BucketQuotaAction.get(connection, namespace, bucket);
         assertEquals(-1, quotaDetails.getBlockSize());
         assertEquals(-1, quotaDetails.getNotificationSize());
     }

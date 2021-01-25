@@ -128,7 +128,11 @@ Valid permissions include:
  * delete
  * none
 
-More detailed instrucitons for using the broker in Cloud Foundry can be found in the
+Service plan can be changed using `update-service` command. Only a subset of service attributes are applied:
+* Buckets: quota and default retention
+* Namespaces: bucket quota, retention policies, ADO, compliance and domain group admins 
+
+More detailed instructions for using the broker in Cloud Foundry can be found in the
 [Tanzu Network ECS broker documentation](https://docs.pivotal.io/partners/ecs-service-broker/using.html).
 
 ### Broker Catalog and Plan Configuration
@@ -136,11 +140,13 @@ More detailed instrucitons for using the broker in Cloud Foundry can be found in
 The service broker catalog can be configured through YAML based configuration.  You can create the file manually,
 via PCF or another build tool.  Just add a `catalog` section to the `src/main/resources/application.yml` file:
 
-The following feature flags are supported by the bucket & namespace.  All parameters are optional, and can be set at the service or plan level in the `service-settings` block.  Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.  While buckets don't currently support service-settings or command-line parameters for retention, this will be added soon.
+The following feature flags are supported by the bucket & namespace. All parameters are optional, and can be set at the service or plan level in the `service-settings` block. Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.
 
 | Resource          | Parameter           | Default | Type     |  Description                                   |
 | :---------------- | :-------------------| :-----: | :------- | :--------------------------------------------- |
-| bucket            | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
+| bucket            | namespace           | false   | String   | Namespace where bucket will be created         |
+| bucket            | replication-group   | false   | String   | Replication group for bucket                   |
+| bucket            | encrypted           | false   | Boolean  | Enable encryption of bucket                    |
 | bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
 | bucket            | file-accessible     | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
 | bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
@@ -148,10 +154,13 @@ The following feature flags are supported by the bucket & namespace.  All parame
 | bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
 | bucket            | remote_connection***| -       | JSON Map | Remote connection details for previously created bucket |
 | bucket            | name                | -       | String   | String to add to bucket name after the broker prefix (prefix-name-id)  |
+| bucket            | tags****            | -       | JSON List| List of tags that are key-value pairs associated with a bucket |
+| bucket            | search-metadata*****| -       | JSON List| List of search metadata that are used for bucket indexing |
 | bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
 | bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
 | bucket binding    | path-style-access   | true    | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
 | bucket binding    | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
+| namespace         | replication-group   | false   | String   | Replication group of namespace                 |
 | namespace         | domain-group-admins | -       | JSON List| List of domain admins to be added to namespace |
 | namespace         | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
 | namespace         | compliance-enabled  | false   | Boolean  | Enable compliance adhearance of retention      |
@@ -171,6 +180,11 @@ The following feature flags are supported by the bucket & namespace.  All parame
 \*\* Retention policies are defined with the following format: `{retention: {<policy name>: <seconds retained>}}` 
 
 \*\*\* Remote connection details are describe below in _remote connections_
+
+\*\*\*\* Tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`
+
+\*\*\*\*\* List of search metadata is defined with following format: `{"search_metadata": [{"type": <str>,"name": <str>,"datatype": <str>>}, ...]}` 
+Details about search metadata definition are described below in _Search metadata_ section 
 
 For more info, check the
 [default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
@@ -307,10 +321,83 @@ remote connections have been removed. Prior to that, the service instance will b
 from the Cloud Foundry database, and the remote connection will be removed from the ECS
 broker metadata for that instance.
 
-#### Chaning Plans with Remote Connections
+#### Changing Plans with Remote Connections
 
 Changing/upgrading plans with remote connections is currently disabled, as it would leave
 one of the Cloud Foundry instances out of date.
+
+### Search Metadata
+
+Search metadata is used for ECS Object Storage bucket indexing and allows to lookup objects without iterating through bucket contents.
+
+Metadata fields number is limited to 30, and must be defined when bucket is created.
+_Note:_ plan changes will disable metadata search if plans defines different metadata field sets! 
+
+Each metadata field definition consists of three fields: type, name and datatype.
+
+```yaml
+...
+search-metadata: 
+- type: <type>
+  name: <name>
+  datatype: <datatype>
+...
+```
+There are two types of search metadata provided in the ECS buckets: _System_ and _User_.
+
+#### System search metadata
+
+ECS Documentation provides following system metadata:
+
+| Name (Alias)    | Data Type | Description                                           |
+| :-------------- | :---------| :---------------------------------------------------- |
+| ObjectName      | String    |  Name of the object.                                  |
+| Owner           | String    |  Identify the owner of the object.                    |
+| Size            | Integer   |  Size of the object.                                  |
+| CreateTime      | DateTime  |  Time at which the object was created.                |
+| LastModified    | DateTime  |  Time and date at which the object was last modified. |
+| ContentType     | String    |  -                                                    |
+| Expiration      | DateTime  |  -                                                    |
+| ContentEncoding | String    |  -                                                    |
+| Expires         | DateTime  |  -                                                    |
+| Retention       | Integer   |  -                                                    |
+
+System search metadata provided in `service-settings` block should be tagged with _System_ type, existing name and corresponding datatype.
+
+#### User search metadata
+
+User defined search metadata should be tagged with _User_ type, existing datatype and name starting with prefix `x-amz-meta-`.
+Prefix will be added to field name if it is not already there. 
+
+#### Metadata Search Datatypes
+When writing metadata to objects, client should provide data in format appropriate for each fields's datatype.
+ECS supports 4 types of datatype: _String_, _Integer_, _DateTime_ and _Decimal_.
+
+| Datatype | Description |
+|:---------|:------------|
+| String    | Search comparisons are done over plaintext. |
+| Integer   | String should contain only digits, and is converted to integer in search comparisons. |
+| Decimal   | Decimal value with "." character treates as decimap point. |
+| Datetime  | Expected string format is _yyyy-MM-ddTHH:mm:ssZ_ |
+
+#### Example
+
+Example of `service-settings` block part describing Search Metadata is presented in the listing:
+
+```yaml
+...
+search-metadata:
+- type: System
+  name: Expiration
+  datatype: DateTime
+- type: System
+  name: Size
+  datatype: Integer
+- type: User
+  name: x-amz-meta-my-meta
+  datatype: Decimal
+...
+```
 
 ## Testing
 

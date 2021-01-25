@@ -1,30 +1,35 @@
 package com.emc.ecs.management.sdk.model;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 import java.util.Map;
+
+import static com.emc.ecs.servicebroker.model.Constants.*;
 
 @XmlRootElement(name = "object_bucket_create")
 public class ObjectBucketCreate {
+
     private Boolean filesystemEnabled = false;
     private Boolean isStaleAllowed = false;
-    private String headType = "s3";
+    private String headType = HEAD_TYPE_S3;
     private String name;
     private String vpool;
     private String namespace;
     private Boolean isEncryptionEnabled;
+    private List<SearchMetadata> searchMetadataList;
 
-    public ObjectBucketCreate(String name, String namespace,
-            String replicationGroup, Map<String, Object> params) {
+    public ObjectBucketCreate(String name, String namespace, String replicationGroup, Map<String, Object> params) {
         super();
         this.name = name;
         this.namespace = namespace;
         this.vpool = replicationGroup;
-        this.isEncryptionEnabled = (Boolean) params.get("encrypted");
-        this.filesystemEnabled = (Boolean) params.get("file-accessible");
-        this.isStaleAllowed = (Boolean) params.get("access-during-outage");
-        this.headType = (String) params.getOrDefault("head-type", "s3");
-
+        this.isEncryptionEnabled = (Boolean) params.get(ENCRYPTED);
+        this.filesystemEnabled = (Boolean) params.get(FILE_ACCESSIBLE);
+        this.isStaleAllowed = (Boolean) params.get(ACCESS_DURING_OUTAGE);
+        this.headType = (String) params.getOrDefault(HEAD_TYPE, HEAD_TYPE_S3);
+        this.searchMetadataList = (List<SearchMetadata>) params.get(SEARCH_METADATA);
     }
 
     public ObjectBucketCreate(String name, String namespace,
@@ -97,5 +102,15 @@ public class ObjectBucketCreate {
 
     public void setIsEncryptionEnabled(Boolean isEncryptionEnabled) {
         this.isEncryptionEnabled = isEncryptionEnabled;
+    }
+
+    @XmlElementWrapper(name = "search_metadata")
+    @XmlElement(name = "metadata")
+    public List<SearchMetadata> getSearchMetadataList() {
+        return searchMetadataList;
+    }
+
+    public void setSearchMetadataList(List<SearchMetadata> searchMetadataList) {
+        this.searchMetadataList = searchMetadataList;
     }
 }

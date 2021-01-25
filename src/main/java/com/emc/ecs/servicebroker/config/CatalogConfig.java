@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @Configuration
 @ConfigurationProperties(prefix = "catalog")
 public class CatalogConfig {
@@ -120,41 +122,30 @@ public class CatalogConfig {
         Map<String, Object> settings = selector.getSelectedOption();
 
         if (selector.getValue().equals("Bucket")) {
-            settings.put("service-type", "bucket");
+            settings.put(SERVICE_TYPE, ServiceType.BUCKET.getAlias());
         } else if (selector.getValue().equals("Namespace")) {
-            settings.put("service-type", "namespace");
+            settings.put(SERVICE_TYPE, ServiceType.NAMESPACE.getAlias());
         } else {
             throw new ServiceBrokerException("Unable to determine service-type from: " + selector.getValue());
         }
 
-        if (settings.containsKey("head_type")) {
-            settings.put("head-type", settings.get("head_type"));
-            settings.remove("head_type");
-        }
+        Map<String, String> tileReplacements = new HashMap<>();
 
-        if (settings.containsKey("access_during_outage")) {
-            settings.put("access-during-outage", settings.get("access_during_outage"));
-            settings.remove("access_during_outage");
-        }
+        // TODO use Map.of after java 9+ migration done
+        tileReplacements.put("head_type", HEAD_TYPE);
+        tileReplacements.put("access_during_outage", ACCESS_DURING_OUTAGE);
+        tileReplacements.put("file_accessible", FILE_ACCESSIBLE);
+        tileReplacements.put("default_retention", DEFAULT_RETENTION);
+        tileReplacements.put("compliance_enabled", COMPLIANCE_ENABLED);
+        tileReplacements.put("default_bucket_quota", DEFAULT_BUCKET_QUOTA);
+        tileReplacements.put("replication_group", REPLICATION_GROUP);
+        tileReplacements.put("base_url", BASE_URL);
 
-        if (settings.containsKey("file_accessible")) {
-            settings.put("file-accessible", settings.get("file_accessible"));
-            settings.remove("file_accessible");
-        }
-
-        if (settings.containsKey("default_retention")) {
-            settings.put("default-retention", settings.get("default_retention"));
-            settings.remove("default_retention");
-        }
-
-        if (settings.containsKey("compliance_enabled")) {
-            settings.put("compliance-enabled", settings.get("compliance_enabled"));
-            settings.remove("compliance_enabled");
-        }
-
-        if (settings.containsKey("default_bucket_quota")) {
-            settings.put("default-bucket-quota", settings.get("default_bucket_quota"));
-            settings.remove("default_bucket_quota");
+        for (Map.Entry<String, String> e : tileReplacements.entrySet()) {
+            if (settings.containsKey(e.getKey())) {
+                settings.put(e.getValue(), settings.get(e.getKey()));
+                settings.remove(e.getKey());
+            }
         }
 
         settings = settings.entrySet().stream()

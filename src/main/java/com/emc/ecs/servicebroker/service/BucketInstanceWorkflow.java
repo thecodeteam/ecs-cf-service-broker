@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     private static final Logger logger = LoggerFactory.getLogger(BucketInstanceWorkflow.class);
 
@@ -31,7 +33,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 throw new ServiceInstanceDoesNotExistException(instanceId);
             }
 
-            return ecs.changeBucketPlan(instance.getName(), service, plan, parameters);
+            return ecs.changeBucketPlan(instance.getName(), service, plan, parameters, instance.getServiceSettings());
         } catch (IOException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -44,19 +46,24 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 removeInstanceFromReferences(instance, id);
                 return null;
             } else {
+                // buckets created prior to ver2.1 doesnt have namespace in their settings - using old default
+                String namespace = instance.getServiceSettings() != null
+                        ? (String) instance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace())
+                        : ecs.getDefaultNamespace();
+
                 ReclaimPolicy reclaimPolicy = ReclaimPolicy.getReclaimPolicy(instance.getServiceSettings());
 
                 switch(reclaimPolicy) {
                     case Fail:
                         logger.info("Reclaim Policy for bucket '{}' is '{}', attempting to delete bucket", ecs.prefix(instance.getName()), reclaimPolicy);
-                        ecs.deleteBucket(instance.getName());
+                        ecs.deleteBucket(instance.getName(), namespace);
                         return null;
                     case Detach:
                         logger.info("Reclaim Policy for bucket '{}' is '{}', not deleting Bucket", ecs.prefix(instance.getName()), reclaimPolicy);
                         return null;
                     case Delete:
                         logger.info("Reclaim Policy for bucket '{}' is '{}', wiping and deleting bucket", ecs.prefix(instance.getName()), reclaimPolicy);
-                        return ecs.wipeAndDeleteBucket(instance.getName());
+                        return ecs.wipeAndDeleteBucket(instance.getName(), namespace);
                     default:
                         throw new ServiceBrokerException("ReclaimPolicy '" + reclaimPolicy + "' not supported");
                 }
@@ -81,9 +88,9 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     @Override
-    public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan,
-                                  Map<String, Object> parameters) {
+    public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
         ServiceInstance instance = getServiceInstance(parameters);
+
         Map<String, Object> serviceSettings = ecs.createBucket(id, instance.getName(), service, plan, parameters);
 
         instance.setServiceSettings(serviceSettings);

@@ -2,12 +2,10 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.model.*;
-import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
-import com.emc.ecs.servicebroker.model.PlanProxy;
-import com.emc.ecs.servicebroker.model.ReclaimPolicy;
-import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.model.*;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
@@ -28,20 +26,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 @Service
 public class EcsService {
-
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
-
-    private static final String UNCHECKED = "unchecked";
-    private static final String WARN = "warn";
-    private static final String LIMIT = "limit";
-    private static final String QUOTA = "quota";
-    private static final String RETENTION = "retention";
-    private static final String DEFAULT_RETENTION = "default-retention";
-    private static final String INVALID_RECLAIM_POLICY = "Invalid reclaim-policy: ";
-    private static final String INVALID_ALLOWED_RECLAIM_POLICIES = "Invalid reclaim-policies: ";
-    private static final String REJECT_RECLAIM_POLICY = "Reclaim Policy is not allowed: ";
 
     @Autowired
     private Connection connection;
@@ -57,7 +46,6 @@ public class EcsService {
 
     private BucketWipeOperations bucketWipe;
 
-    private String replicationGroupID;
     private String objectEndpoint;
 
     String getObjectEndpoint() {
@@ -84,12 +72,17 @@ public class EcsService {
         }
     }
 
-    CompletableFuture deleteBucket(String bucketName) {
+    CompletableFuture deleteBucket(String bucketName, String namespace) {
+        if (namespace == null) {
+            // buckets created prior to ver2.1 doesnt have namespace in their settings - using old default
+            namespace = broker.getNamespace();
+        }
         try {
-            if (bucketExists(bucketName)) {
-                BucketAction.delete(connection, prefix(bucketName), broker.getNamespace());
+            if (namespaceExists(namespace) && bucketExists(bucketName, namespace)) {
+                logger.info("Deleting bucket '{}' from namespace '{}'", prefix(bucketName), namespace);
+                BucketAction.delete(connection, prefix(bucketName), namespace);
             } else {
-                logger.info("Bucket {} no longer exists, assume already deleted", prefix(bucketName));
+                logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(bucketName), namespace);
             }
             return null;
         } catch (Exception e) {
@@ -97,57 +90,79 @@ public class EcsService {
         }
     }
 
-    CompletableFuture wipeAndDeleteBucket(String id) {
+    CompletableFuture wipeAndDeleteBucket(String id, String namespace) {
+        if (namespace == null) {
+            namespace = broker.getNamespace();
+        }
         try {
-            if (!bucketExists(id)) {
-                logger.info("Bucket {} no longer exists, assume already deleted", prefix(id));
+            if (!namespaceExists(namespace) || !bucketExists(id, namespace)) {
+                logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(id), namespace);
                 return null;
             }
 
-            addUserToBucket(id, broker.getRepositoryUser());
+            addUserToBucket(id, namespace, broker.getRepositoryUser());
 
-            logger.info("Started wipe of bucket '{}'", prefix(id));
+            logger.info("Started wipe of bucket '{}' in namespace '{}'", prefix(id), namespace);
             BucketWipeResult result = bucketWipeFactory.newBucketWipeResult();
             bucketWipe.deleteAllObjects(prefix(id), "", result);
 
-            return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id));
+            String ns = namespace;
+
+            return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id, ns));
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
-    Boolean getBucketFileEnabled(String bucketName) throws EcsManagementClientException {
-        ObjectBucketInfo b = BucketAction.get(connection, prefix(bucketName), broker.getNamespace());
+    Boolean getBucketFileEnabled(String bucketName, String namespace) throws EcsManagementClientException {
+        ObjectBucketInfo b = BucketAction.get(connection, prefix(bucketName), namespace);
         return b.getFsAccessEnabled();
     }
 
-    Map<String, Object> createBucket(String id, String bucketName, ServiceDefinitionProxy service,
+    @SuppressWarnings("unchecked")
+    Map<String, Object> createBucket(String serviceInstanceId, String bucketName, ServiceDefinitionProxy serviceDefinition,
                                      PlanProxy plan, Map<String, Object> parameters) {
         try {
-            if (bucketExists(bucketName)) {
-                throw new ServiceInstanceExistsException(id, service.getId());
-            }
-
-            parameters = mergeParameters(service, plan, parameters);
+            parameters = mergeParameters(broker, serviceDefinition, plan, parameters);
+            parameters = validateAndPrepareSearchMetadata(parameters);
 
             logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
+
+            String namespace = (String) parameters.get(NAMESPACE);
+
+            if (bucketExists(bucketName, namespace)) {
+                throw new ServiceInstanceExistsException(serviceInstanceId, serviceDefinition.getId());
+            }
 
             // Validate the reclaim-policy
             if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
                 throw new ServiceBrokerInvalidParametersException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
             }
 
-            BucketAction.create(connection, new ObjectBucketCreate(prefix(bucketName), broker.getNamespace(), replicationGroupID, parameters));
+            DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
+
+            BucketAction.create(connection, new ObjectBucketCreate(
+                    prefix(bucketName),
+                    namespace,
+                    replicationGroup.getId(),
+                    parameters
+            ));
 
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}': limit {}, warn {}", prefix(bucketName), quota.get(LIMIT), quota.get(WARN));
-                BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(), quota.get(LIMIT), quota.get(WARN));
+                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
+                BucketQuotaAction.create(connection, namespace, prefix(bucketName), quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
-                logger.info("Applying bucket retention policy on '{}': {}", bucketName, parameters.get(DEFAULT_RETENTION));
-                BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+                logger.info("Applying bucket retention policy on '{}' in '{}': {}", bucketName, namespace, parameters.get(DEFAULT_RETENTION));
+                BucketRetentionAction.update(connection, namespace, prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
+            }
+
+            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
+                List<Map<String, String>> bucketTags = (List<Map<String, String>>) parameters.get(TAGS);
+                logger.info("Applying bucket tags on '{}': {}", bucketName, bucketTags);
+                BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(namespace, bucketTags));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
@@ -157,42 +172,79 @@ public class EcsService {
         return parameters;
     }
 
-    Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        parameters = mergeParameters(service, plan, parameters);
+    Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters, Map<String, Object> instanceSettings) {
+        parameters = mergeParameters(broker, service, plan, parameters);
 
         // Validate the reclaim-policy
         validateReclaimPolicy(parameters);
 
-        @SuppressWarnings(UNCHECKED)
-        Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>());
-        int limit = (int) quota.getOrDefault(LIMIT, -1);
-        int warn = (int) quota.getOrDefault(WARN, -1);
+        String namespace = instanceSettings != null
+                ? (String) instanceSettings.getOrDefault(NAMESPACE, parameters.get(NAMESPACE))
+                : (String) parameters.get(NAMESPACE);
+
+        // keep value in service instance settings
+        parameters.put(NAMESPACE, namespace);
 
         try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>());
+            int limit = (int) quota.getOrDefault(QUOTA_LIMIT, -1);
+            int warn = (int) quota.getOrDefault(QUOTA_WARN, -1);
+
             if (limit == -1 && warn == -1) {
+                logger.info("Removing quota from '{}' in '{}'", prefix(bucketName), namespace);
+                BucketQuotaAction.delete(connection, namespace, prefix(bucketName));
+
                 parameters.remove(QUOTA);
-                BucketQuotaAction.delete(connection, prefix(bucketName), broker.getNamespace());
             } else {
-                BucketQuotaAction.create(connection, prefix(bucketName), broker.getNamespace(), limit, warn);
+                logger.info("Setting bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
+                BucketQuotaAction.create(connection, namespace, prefix(bucketName), limit, warn);
             }
+
+            DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection, broker.getNamespace(), prefix(bucketName));
+            int newRetention = (int) parameters.getOrDefault(DEFAULT_RETENTION, 0);
+
+            if (currentRetention.getPeriod() != newRetention) {
+                logger.info("Setting bucket retention policy on '{}': {} instead of {}", prefix(bucketName), newRetention, currentRetention.getPeriod());
+                BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), newRetention);
+                parameters.put(DEFAULT_RETENTION, newRetention);
+            }
+
+            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
+                changeBucketTags(bucketName, namespace, parameters);
+            }
+
+            parameters = validateAndPrepareSearchMetadata(parameters);
+            List<SearchMetadata> requestedSearchMetadataList = (List<SearchMetadata>) parameters.get(SEARCH_METADATA);
+            List<SearchMetadata> currentSearchMetadataList = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getSearchMetadataList();
+
+            if (!isEqualSearchMetadataList(requestedSearchMetadataList, currentSearchMetadataList)) {
+                logger.info("Removing search metadata from '{}' in '{}'", prefix(bucketName), namespace);
+                SearchMetadataAction.delete(connection, prefix(bucketName), broker.getNamespace());
+            }
+
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
+
         return parameters;
     }
 
-    private boolean bucketExists(String bucketName) throws EcsManagementClientException {
-        return BucketAction.exists(connection, prefix(bucketName), broker.getNamespace());
+    public boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException {
+        return BucketAction.exists(connection, prefix(bucketName), namespace);
     }
 
-    private boolean aclExists(String id) throws EcsManagementClientException {
-        return BucketAclAction.exists(connection, prefix(id),
-            broker.getNamespace());
+    private Boolean namespaceExists(String id) throws EcsManagementClientException {
+        return NamespaceAction.exists(connection, id);
     }
 
-    UserSecretKey createUser(String id) {
+    private boolean aclExists(String id, String namespace) throws EcsManagementClientException {
+        return BucketAclAction.exists(connection, id, namespace);
+    }
+
+
+    UserSecretKey createUser(String id, String namespace) {
         try {
-            String namespace = broker.getNamespace();
             String userId = prefix(id);
 
             logger.info("Creating user '{}' in namespace '{}'", userId, namespace);
@@ -200,74 +252,57 @@ public class EcsService {
 
             logger.info("Creating secret for user '{}'", userId);
             ObjectUserSecretAction.create(connection, userId);
-
             return ObjectUserSecretAction.list(connection, userId).get(0);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
-    UserSecretKey createUser(String id, String namespace) {
+    void createUserMap(String username, String namespace, int uid) throws EcsManagementClientException {
+        ObjectUserMapAction.create(connection, prefix(username), uid, namespace);
+    }
+
+    void deleteUserMap(String username, String namespace, String uid) throws EcsManagementClientException {
+        ObjectUserMapAction.delete(connection, prefix(username), uid, namespace);
+    }
+
+    Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
         try {
-            String prefixedNamespace = prefix(namespace);
-            String userId = prefix(id);
-
-            logger.info("Creating user '{}' in namespace '{}'", userId, prefixedNamespace);
-            ObjectUserAction.create(connection, userId, prefixedNamespace);
-
-            logger.info("Creating secret for user '{}'", userId);
-            ObjectUserSecretAction.create(connection, userId);
-            return ObjectUserSecretAction.list(connection, userId).get(0);
+            return ObjectUserAction.exists(connection, prefix(userId), namespace);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
-    void createUserMap(String username, int uid) throws EcsManagementClientException {
-        ObjectUserMapAction.create(connection, prefix(username), uid, broker.getNamespace());
-    }
-
-    void deleteUserMap(String username, String uid) throws EcsManagementClientException {
-        ObjectUserMapAction.delete(connection, prefix(username), uid, broker.getNamespace());
-    }
-
-    Boolean userExists(String userId) throws ServiceBrokerException {
-        try {
-            return ObjectUserAction.exists(connection, prefix(userId), broker.getNamespace());
-        } catch (Exception e) {
-            throw new ServiceBrokerException(e.getMessage(), e);
-        }
-    }
-
-    void deleteUser(String userId) throws EcsManagementClientException {
-        if (userExists(userId)) {
-            logger.info("Deleting user '{}'", userId);
+    void deleteUser(String userId, String namespace) throws EcsManagementClientException {
+        if (userExists(userId, namespace)) {
+            logger.info("Deleting user '{}' in namespace '{}'", userId, namespace);
             ObjectUserAction.delete(connection, prefix(userId));
         } else {
             logger.info("User {} no longer exists, assume already deleted", prefix(userId));
         }
     }
 
-    void addUserToBucket(String id, String username) {
-        logger.info(String.format("Adding user %s to bucket %s", username, id));
+    void addUserToBucket(String bucketId, String namespace, String username) {
         try {
-            addUserToBucket(id, username, Collections.singletonList("full_control"));
+            addUserToBucket(bucketId, namespace, username, FULL_CONTROL);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
-    void addUserToBucket(String id, String username, List<String> permissions) throws EcsManagementClientException {
-        logger.info("Adding user '{}' to bucket '{}' with {} access", prefix(username), prefix(id), permissions);
-        BucketAcl acl = BucketAclAction.get(connection, prefix(id), broker.getNamespace());
+    void addUserToBucket(String bucketId, String namespace, String username, List<String> permissions) throws EcsManagementClientException {
+        logger.info("Adding user '{}' to bucket '{}' in '{}' with {} access", prefix(username), prefix(bucketId), namespace, permissions);
+
+        BucketAcl acl = BucketAclAction.get(connection, prefix(bucketId), namespace);
 
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
         userAcl.add(new BucketUserAcl(prefix(username), permissions));
         acl.getAcl().setUserAccessList(userAcl);
 
-        BucketAclAction.update(connection, prefix(id), acl);
+        BucketAclAction.update(connection, prefix(bucketId), acl);
 
-        if (!getBucketFileEnabled(id)) {
+        if (!getBucketFileEnabled(bucketId, namespace)) {
             BucketPolicy bucketPolicy = new BucketPolicy(
                     "2012-10-17",
                     "DefaultPCFBucketPolicy",
@@ -275,23 +310,24 @@ public class EcsService {
                             new BucketPolicyEffect("Allow"),
                             new BucketPolicyPrincipal(prefix(username)),
                             new BucketPolicyActions(Collections.singletonList("s3:*")),
-                            new BucketPolicyResource(Collections.singletonList(prefix(id)))
+                            new BucketPolicyResource(Collections.singletonList(prefix(bucketId)))
                     )
             );
-            BucketPolicyAction.update(connection, prefix(id), bucketPolicy, broker.getNamespace());
+            BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
         }
     }
 
-    void removeUserFromBucket(String bucket, String username) throws EcsManagementClientException {
-        if (!aclExists(bucket)) {
+    void removeUserFromBucket(String bucket, String namespace, String username) throws EcsManagementClientException {
+        if (!aclExists(prefix(bucket), namespace)) {
             logger.info("ACL {} no longer exists when removing user {}", prefix(bucket), prefix(username));
             return;
         }
-        BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), broker.getNamespace());
+        BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), namespace);
         List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
                 .stream().filter(a -> !a.getUser().equals(prefix(username)))
                 .collect(Collectors.toList());
         acl.getAcl().setUserAccessList(newUserAcl);
+
         BucketAclAction.update(connection, prefix(bucket), acl);
     }
 
@@ -347,29 +383,26 @@ public class EcsService {
         }
     }
 
-    String getNamespaceURL(String namespace, Map<String, Object> parametersAbstract, Map<String, Object> serviceSettings) {
-        HashMap<String, Object> parameters =
-                (parametersAbstract instanceof HashMap)
-                        ? (HashMap) parametersAbstract
-                        : new HashMap<>(parametersAbstract);
-        // TODO refactor settings merge - see mergeParameters
+    String getNamespaceURL(String namespace, Map<String, Object> requestParameters, Map<String, Object> serviceSettings) {
+        Map<String, Object> parameters = broker.getSettings();
+        if (requestParameters != null) {
+            parameters.putAll(requestParameters);
+        }
         if (serviceSettings != null) {
             // merge serviceSettings into parameters, overwriting parameter values
             // with serviceSettings, since serviceSettings are forced by administrator
             // through the catalog.
             parameters.putAll(serviceSettings);
         }
+
         try {
-            return getNamespaceURL(namespace, parameters);
+            String baseUrl = (String) parameters.getOrDefault(BASE_URL, broker.getBaseUrl());
+            Boolean useSSL = (Boolean) parameters.getOrDefault(USE_SSL, broker.getUseSsl());
+
+            return getNamespaceURL(namespace, useSSL, baseUrl);
         } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
-    }
-
-    private String getNamespaceURL(String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
-        String baseUrl = (String) parameters.getOrDefault("base-url", broker.getBaseUrl());
-        Boolean useSSL = (Boolean) parameters.getOrDefault("use-ssl", broker.getUseSsl());
-        return getNamespaceURL(namespace, useSSL, baseUrl);
     }
 
     private String getNamespaceURL(String namespace, Boolean useSSL, String baseUrl) throws EcsManagementClientException {
@@ -388,21 +421,16 @@ public class EcsService {
     }
 
     private void lookupReplicationGroupID() throws EcsManagementClientException {
-        DataServiceReplicationGroup replicationGroup = ReplicationGroupAction.list(connection).stream()
-                .filter(r -> broker.getReplicationGroup() != null && r != null
-                        && (broker.getReplicationGroup().equals(r.getName()) || broker.getReplicationGroup().equals(r.getId()))
-                )
-                .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("Configured ECS replication group not found: " + broker.getReplicationGroup()));
-        logger.info("Replication group found: {} ({})", replicationGroup.getName(), replicationGroup.getId());
-        replicationGroupID = replicationGroup.getId();
+        DataServiceReplicationGroup rg = lookupReplicationGroup(broker.getReplicationGroup());
+        logger.info("Replication group found: {} ({})", rg.getName(), rg.getId());
     }
 
     private void prepareRepository() throws EcsManagementClientException {
         String bucketName = broker.getRepositoryBucket();
+        String namespace = broker.getNamespace();
         String userName = broker.getRepositoryUser();
 
-        if (!bucketExists(bucketName)) {
+        if (!bucketExists(bucketName, namespace)) {
             logger.info("Preparing repository bucket '{}'", prefix(bucketName));
 
             ServiceDefinitionProxy service;
@@ -418,14 +446,17 @@ public class EcsService {
             } else {
                 plan = service.findPlan(broker.getRepositoryPlanId());
             }
+
             Map<String, Object> parameters = new HashMap<>();
+            parameters.put(NAMESPACE, namespace);
+
             createBucket("repository", bucketName, service, plan, parameters);
         }
 
-        if (!userExists(userName)) {
+        if (!userExists(userName, namespace)) {
             logger.info("Creating user to access repository: '{}'", userName);
-            UserSecretKey secretKey = createUser(userName);
-            addUserToBucket(bucketName, userName);
+            UserSecretKey secretKey = createUser(userName, namespace);
+            addUserToBucket(bucketName, namespace, userName);
             broker.setRepositorySecret(secretKey.getSecretKey());
         } else {
             broker.setRepositorySecret(getUserSecret(userName));
@@ -459,28 +490,84 @@ public class EcsService {
         return baseUrlList.get(0).getId();
     }
 
-    private Boolean namespaceExists(String id) throws EcsManagementClientException {
-        return NamespaceAction.exists(connection, id);
-    }
-
     private void validateReclaimPolicy(Map<String, Object> parameters) {
         // Ensure Reclaim-Policy can be parsed
         try {
             ReclaimPolicy.getReclaimPolicy(parameters);
         } catch (IllegalArgumentException e) {
-            throw new ServiceBrokerInvalidParametersException(INVALID_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException("Invalid reclaim-policy: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
 
         // Ensure Allowed-Reclaim-Policies can be parsed
         try {
             ReclaimPolicy.getAllowedReclaimPolicies(parameters);
         } catch (IllegalArgumentException e) {
-            throw new ServiceBrokerInvalidParametersException(INVALID_ALLOWED_RECLAIM_POLICIES + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException("Invalid reclaim-policies: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
 
         if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
-            throw new ServiceBrokerInvalidParametersException(REJECT_RECLAIM_POLICY + ReclaimPolicy.getReclaimPolicy(parameters));
+            throw new ServiceBrokerInvalidParametersException("Reclaim Policy is not allowed: " + ReclaimPolicy.getReclaimPolicy(parameters));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> validateAndPrepareSearchMetadata(Map<String, Object> parameters) {
+        if (parameters.containsKey(SEARCH_METADATA)) {
+            parameters = new HashMap<>(parameters);  // don't modify original map
+
+            List<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
+            List<SearchMetadata> validatedMetadataList = new ArrayList<>();
+
+            for (Map<String, String> metadata : metadataList) {
+                String name = metadata.get(SEARCH_METADATA_NAME);
+                if (name == null) {
+                    throw new ServiceBrokerInvalidParametersException("Invalid search metadata: name is not provided");
+                }
+
+                String dataType = metadata.get(SEARCH_METADATA_DATATYPE);   // could be empty for system metadata
+                if (dataType != null && !SearchMetadataDataType.isMetaDataType(dataType)) {
+                    throw new ServiceBrokerInvalidParametersException("Invalid search metadata datatype: '" + dataType + "'");
+                }
+
+                String type = metadata.computeIfAbsent(SEARCH_METADATA_TYPE, s ->
+                    SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
+                );
+
+                switch (type) {
+                    case SEARCH_METADATA_TYPE_SYSTEM:
+                        SystemMetadataName systemMetadataName = SystemMetadataName.getSystemMetadataName(name);
+                        if (systemMetadataName == null) {
+                            throw new ServiceBrokerInvalidParametersException("Invalid system search metadata name: " + name);
+                        } else {
+                            String expectedDataType = systemMetadataName.getDataType().name();
+                            if (dataType != null) {
+                                if (!expectedDataType.equals(dataType)) {
+                                    throw new ServiceBrokerInvalidParametersException(
+                                            String.format("Invalid system search metadata '%s' datatype: '%s' provided instead of '%s'", name, dataType, expectedDataType)
+                                    );
+                                }
+                            } else {
+                                metadata.put(SEARCH_METADATA_DATATYPE, expectedDataType);
+                            }
+                        }
+                        break;
+
+                    case SEARCH_METADATA_TYPE_USER:
+                        if (!name.startsWith(SEARCH_METADATA_USER_PREFIX)) {
+                            metadata.put(SEARCH_METADATA_NAME, SEARCH_METADATA_USER_PREFIX + name);
+                        }
+                        break;
+
+                    default:
+                        throw new ServiceBrokerInvalidParametersException("Invalid type specified for search metadata: " + type);
+                }
+                SearchMetadata updatedMetadata = new SearchMetadata(metadata);
+                validatedMetadataList.add(updatedMetadata);
+            }
+            parameters.put(SEARCH_METADATA, validatedMetadataList);
+        }
+
+        return parameters;
     }
 
     Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
@@ -489,24 +576,28 @@ public class EcsService {
             throw new ServiceInstanceExistsException(namespace, service.getId());
         }
 
-        parameters = mergeParameters(service, plan, parameters);
+        parameters = mergeParameters(broker, service, plan, parameters);
 
         logger.info("Creating namespace '{}' with plan '{}'({}) and params {}", prefix(namespace), plan.getName(), plan.getId(), parameters);
 
-        NamespaceAction.create(connection, new NamespaceCreate(prefix(namespace), replicationGroupID, parameters));
+        DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
+
+        NamespaceAction.create(connection, new NamespaceCreate(
+                prefix(namespace),
+                replicationGroup.getId(),
+                parameters
+        ));
 
         if (parameters.containsKey(QUOTA)) {
-            @SuppressWarnings(UNCHECKED)
-            Map<String, Integer> quota = (Map<String, Integer>) parameters
-                    .get(QUOTA);
-            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace,
-                    quota.get(LIMIT), quota.get(WARN));
+            @SuppressWarnings("unchecked")
+            Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
+            NamespaceQuotaParam quotaParam = new NamespaceQuotaParam(namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
             logger.info("Applying quota to namespace {}: block size {}, notification limit {}", namespace, quotaParam.getBlockSize(), quotaParam.getNotificationSize());
             NamespaceQuotaAction.create(connection, prefix(namespace), quotaParam);
         }
 
         if (parameters.containsKey(RETENTION)) {
-            @SuppressWarnings(UNCHECKED)
+            @SuppressWarnings("unchecked")
             Map<String, Integer> retention = (Map<String, Integer>) parameters.get(RETENTION);
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
                 logger.info("Adding retention class to namespace {}: {} = {}", namespace, entry.getKey(), entry.getValue());
@@ -527,10 +618,10 @@ public class EcsService {
 
     /**
      * Handle extra steps after a bucket wipe has completed.
-     *
+     * <p>
      * Throwing an exception here will throw an exception in the CompletableFuture pipeline to signify the operation failed
      */
-    private void bucketWipeCompleted(BucketWipeResult result, String id) {
+    private void bucketWipeCompleted(BucketWipeResult result, String id, String namespace) {
         // Wipe Failed, mark as error
         if (!result.getErrors().isEmpty()) {
             logger.warn("Bucket wipe FAILED, deleted {} objects. Leaving bucket {}", result.getDeletedObjects(), prefix(id));
@@ -541,7 +632,7 @@ public class EcsService {
         // Wipe Succeeded, Attempt Bucket Delete
         try {
             logger.info("Bucket wipe succeeded, deleted {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
-            deleteBucket(id);
+            deleteBucket(id, namespace);
         } catch (Exception e) {
             logger.error("Error deleting bucket " + prefix(id), e);
             throw new RuntimeException("Error Deleting Bucket " + prefix(id) + " " + e.getMessage());
@@ -549,7 +640,7 @@ public class EcsService {
     }
 
     Map<String, Object> changeNamespacePlan(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException {
-        parameters = mergeParameters(service, plan, parameters);
+        parameters = mergeParameters(broker, service, plan, parameters);
 
         logger.info("Changing namespace '{}' plan to '{}'({}) with parameters {}", namespace, plan.getName(), plan.getId(), parameters);
 
@@ -557,7 +648,7 @@ public class EcsService {
                 new NamespaceUpdate(parameters));
 
         if (parameters.containsKey(RETENTION)) {
-            @SuppressWarnings(UNCHECKED)
+            @SuppressWarnings("unchecked")
             Map<String, Integer> retention = (Map<String, Integer>) parameters.get(RETENTION);
 
             for (Map.Entry<String, Integer> entry : retention.entrySet()) {
@@ -587,27 +678,136 @@ public class EcsService {
         return service;
     }
 
-    String addExportToBucket(String instanceId, String relativeExportPath) throws EcsManagementClientException {
+    String addExportToBucket(String bucket, String namespace, String relativeExportPath) throws EcsManagementClientException {
         if (relativeExportPath == null)
             relativeExportPath = "";
-        String namespace = broker.getNamespace();
-        String absoluteExportPath = "/" + namespace + "/" + prefix(instanceId) + "/" + relativeExportPath;
+        String absoluteExportPath = "/" + namespace + "/" + prefix(bucket) + "/" + relativeExportPath;
         List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);
         if (exports == null) {
+            logger.info("Creating NFS export path '{}'", absoluteExportPath);
             NFSExportAction.create(connection, absoluteExportPath);
+        } else {
+            logger.info("Skipping NFS export create - non-empty exports list found for path '{}'", absoluteExportPath);
         }
         return absoluteExportPath;
     }
 
+
+    public DataServiceReplicationGroup lookupReplicationGroup(String replicationGroup) throws EcsManagementClientException {
+        return ReplicationGroupAction.list(connection).stream()
+                .filter(r -> replicationGroup != null && r != null
+                        && (replicationGroup.equals(r.getName()) || replicationGroup.equals(r.getId()))
+                )
+                .findFirst()
+                .orElseThrow(() -> new ServiceBrokerException("ECS replication group not found: " + replicationGroup));
+    }
+
     /**
-     * Merge additional parameters with with plan and service settings
-     *
-     * Parameter values are overwritten with plan and service settings, since service settings are forced by administrator through the catalog
+     * Merge request additional parameters with with broker, plan and service settings
+     * <p>
+     * Broker settings (replication group, namespace and base url name) are overwritten with request parameters;
+     * request parameter values are overwritten with plan and service settings,
+     * since service settings are forced by administrator through the catalog
      */
-    static Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) {
-        if (parameters == null) parameters = new HashMap<>();
-        parameters.putAll(plan.getServiceSettings());
-        parameters.putAll(service.getServiceSettings());
+    static Map<String, Object> mergeParameters(BrokerConfig brokerConfig, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
+        Map<String, Object> ret = new HashMap<>(brokerConfig.getSettings());
+
+        if (requestParameters != null) ret.putAll(requestParameters);
+
+        ret.putAll(plan.getServiceSettings());
+
+        ret.putAll(service.getServiceSettings());
+
+        return ret;
+    }
+
+    Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
+        return mergeParameters(broker, service, plan, requestParameters);
+    }
+
+    public String getDefaultNamespace() {
+        return broker.getNamespace();
+    }
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> changeBucketTags(String bucketName, String namespace, Map<String, Object> parameters) {
+        List<BucketTag> requestedTags = new BucketTagSetRootElement((List<Map<String, String>>) parameters.get(TAGS)).getTagSet();
+        List<BucketTag> currentTags = BucketAction.get(connection, prefix(bucketName), namespace).getTagSet();
+
+        List<BucketTag> createTags = new ArrayList<>();
+        List<BucketTag> updateTags = new ArrayList<>();
+        List<BucketTag> paramsTags = new ArrayList<>();
+
+        do {
+            BucketTag requestedTag = requestedTags.get(0);
+            boolean isNew = true;
+            for (BucketTag currentTag : currentTags) {
+                if (requestedTag.getKey().equals(currentTag.getKey())) {
+                    if (!requestedTag.getValue().equals(currentTag.getValue())) {
+                        updateTags.add(requestedTag);
+                    }
+                    isNew = false;
+                    currentTags.remove(currentTag);
+                    break;
+                }
+            }
+            paramsTags.add(requestedTag);
+            if (isNew) {
+                createTags.add(requestedTag);
+            }
+            requestedTags.remove(requestedTag);
+        } while (!requestedTags.isEmpty());
+
+        paramsTags.addAll(currentTags);
+
+        if (!createTags.isEmpty()) {
+            BucketTagSetRootElement createTagSet = new BucketTagSetRootElement();
+            createTagSet.setTagSet(createTags);
+            logger.info("Setting new bucket tags on '{}': {}", prefix(bucketName), createTagSet);
+            BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(namespace, createTagSet.getTagSetAsListOfTags()));
+        }
+
+        if (!updateTags.isEmpty()) {
+            BucketTagSetRootElement updateTagSet = new BucketTagSetRootElement();
+            updateTagSet.setTagSet(updateTags);
+            logger.info("Setting new values of existing bucket tags on '{}': {}", prefix(bucketName), updateTagSet);
+            BucketTagsAction.update(connection, prefix(bucketName), new BucketTagsParamUpdate(namespace, updateTagSet.getTagSetAsListOfTags()));
+        }
+
+        BucketTagSetRootElement paramsTagSet = new BucketTagSetRootElement();
+        paramsTagSet.setTagSet(paramsTags);
+
+        if (updateTags.size() + createTags.size() != 0) {
+            logger.info("Full set of bucket tags on '{}' in '{}' is {}", prefix(bucketName), namespace, paramsTagSet);
+        }
+
+        parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
+
         return parameters;
+    }
+
+    static boolean isEqualSearchMetadataList(List<SearchMetadata> list1, List<SearchMetadata> list2) {
+        if (list1 == null && list2 == null) {
+            return true;
+        } else if (list1 == null || list2 == null) {
+            return false;
+        } else {
+            if (list1.size() == list2.size()) {
+                list1.sort(SearchMetadata::compareTo);
+                list2.sort(SearchMetadata::compareTo);
+                for (int i = 0; i < list1.size(); i++) {
+                    SearchMetadata metadata1 = list1.get(i);
+                    SearchMetadata metadata2 = list2.get(i);
+                    if (!metadata1.getName().toLowerCase().equals(metadata2.getName().toLowerCase()) ||
+                        !metadata1.getType().toLowerCase().equals(metadata2.getType().toLowerCase()) ||
+                        !metadata1.getDatatype().toLowerCase().equals(metadata2.getDatatype().toLowerCase())) {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }

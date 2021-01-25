@@ -6,9 +6,6 @@
         "method": "PUT",
         "url": "/ecs-cf-broker-repository/service-instance-binding/service-inst-bind-one-id.json",
         "headers": {
-        	"Content-Type": {
-        		"equalTo": "application/octet-stream"
-        	},
         	"Authorization" : {
         		"matches": "AWS ecs-cf-broker-user:.*"
         	}

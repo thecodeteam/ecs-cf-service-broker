@@ -6,9 +6,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static com.emc.ecs.servicebroker.model.Constants.*;
 
 @SuppressWarnings("unused")
 @Configuration
@@ -47,8 +50,8 @@ public class BrokerConfig {
         if (selector.getValue().equals("No")) {
             Map<String, Object> settings = selector.getSelectedOption();
 
-            if (settings.containsKey("certificate") && settings.get("certificate") != null ) {
-                setCertificate(settings.get("certificate").toString());
+            if (settings.containsKey(CERTIFICATE) && settings.get(CERTIFICATE) != null) {
+                setCertificate(settings.get(CERTIFICATE).toString());
             }
         }
     }
@@ -101,7 +104,7 @@ public class BrokerConfig {
 
     public void setPassword(String password) {
         if (!password.equals(""))
-        this.password = password;
+            this.password = password;
     }
 
     public String getRepositoryBucket() {
@@ -232,5 +235,14 @@ public class BrokerConfig {
 
     public void setLoginSessionLength(int loginSessionLength) {
         this.loginSessionLength = loginSessionLength;
+    }
+
+    public Map<String, Object> getSettings() {
+        Map<String, Object> ret = new HashMap<>();
+        ret.put(BASE_URL, getBaseUrl());
+        ret.put(USE_SSL, getUseSsl());
+        ret.put(REPLICATION_GROUP, getReplicationGroup());
+        ret.put(NAMESPACE, getNamespace());
+        return ret;
     }
 }

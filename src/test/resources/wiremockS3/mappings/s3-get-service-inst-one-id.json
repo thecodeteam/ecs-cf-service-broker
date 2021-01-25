@@ -18,7 +18,7 @@
 			"ETag": "\"fa51be240a40853fad2493b43f3808be\"",
 			"x-emc-mtime": "1450675315169",
 			"Content-Encoding": "identity",
-			"Content-Type": "application/octet-stream"
+			"Content-Type": "application/json"
 		},
 		"body": "{\"service_instance_id\":\"service-instance-id\",\"service_id\":\"service-one-id\",\"plan_id\":\"plan-one-id\",\"organization_guid\":\"org-guid-one\",\"space_guid\":\"space-guid-one\",\"dashboard_url\":null,\"last_operation\":{\"description\":\"Provisioning\",\"operation_state\":\"in progress\",\"delete_operation\":false}}"
     }

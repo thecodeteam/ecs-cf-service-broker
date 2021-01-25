@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.emc.ecs.servicebroker.model.Constants.*;
+
 public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
     RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         super(instanceRepo, ecs);
@@ -38,12 +40,11 @@ public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters)
-            throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
-        credentials.put("accessKey", bindingId);
-        credentials.put("secretKey", secretKey);
-        credentials.put("instanceId", instanceId);
+        credentials.put(CREDENTIALS_INSTANCE_ID, instanceId);
+        credentials.put(CREDENTIALS_ACCESS_KEY, bindingId);
+        credentials.put(CREDENTIALS_SECRET_KEY, secretKey);
         return credentials;
     }
 
