@@ -4,9 +4,11 @@ import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientUnauthorizedException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
+import org.apache.juli.JdkLoggerFormatter;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.slf4j.LoggerFactory;
+import sun.net.www.protocol.http.HttpURLConnection;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -26,7 +28,9 @@ import java.security.cert.CertificateFactory;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.logging.StreamHandler;
 
 import static com.emc.ecs.management.sdk.Constants.*;
 
@@ -44,6 +48,11 @@ public class Connection {
 
     private int authRetries = 0;
     private Instant authExpiration = null;
+
+    private static final LoggingFeature loggingFeature = new LoggingFeature(
+            setupHttpLogger(),
+            Level.FINE, LoggingFeature.Verbosity.HEADERS_ONLY, 2048
+    );
 
     public Connection(String endpoint, String username, String password) {
         super();
@@ -82,6 +91,9 @@ public class Connection {
         } else {
             builder = ClientBuilder.newBuilder();
         }
+
+        builder = builder.register(loggingFeature);
+
         return builder.build();
     }
 
@@ -205,7 +217,7 @@ public class Connection {
 
             Client jerseyClient = buildJerseyClient();
             Builder request = jerseyClient.target(uri)
-                    .register(LoggingFeature.class).request()
+                    .request()
                     .header("X-EMC-Override", "true")            // enables access to ECS Flex API (pre-GA limitation)
                     .header(X_SDS_AUTH_TOKEN, authToken)
                     .header("Accept", APPLICATION_XML);
@@ -276,6 +288,35 @@ public class Connection {
         }
     }
 
+    private static Logger setupHttpLogger() {
+        Level httpLoggerLevel;
+        if (logger.isTraceEnabled()) {
+            httpLoggerLevel = Level.ALL;
+        } else if (logger.isDebugEnabled()) {
+            httpLoggerLevel = Level.FINEST;
+        } else if (logger.isInfoEnabled()) {
+            httpLoggerLevel = Level.INFO;
+        } else {
+            httpLoggerLevel = Level.WARNING;
+        }
+
+        Logger httpLogger = Logger.getLogger(Connection.class.getCanonicalName());
+        httpLogger.setUseParentHandlers(false);
+        httpLogger.addHandler(new LegacyStreamHandler(logger));
+        httpLogger.setLevel(httpLoggerLevel);
+
+        logger.info("Http logger level set to {}", httpLogger.getLevel().getName());
+
+        if (logger.isDebugEnabled()) {
+            Logger.getLogger(HttpURLConnection.class.getName()).addHandler(
+                    new LegacyStreamHandler(org.slf4j.LoggerFactory.getLogger(HttpURLConnection.class))
+            );
+            Logger.getLogger(HttpURLConnection.class.getName()).setLevel(httpLoggerLevel);
+        }
+
+        return httpLogger;
+    }
+
     public String getCertificate() {
         return certificate;
     }
@@ -310,5 +351,29 @@ public class Connection {
 
     public void setAuthExpiration(Instant authExpiration) {
         this.authExpiration = authExpiration;
+    }
+
+    private static class LegacyStreamHandler extends StreamHandler {
+        private org.slf4j.Logger log;
+
+        public LegacyStreamHandler(org.slf4j.Logger logger) {
+            super(System.err, new JdkLoggerFormatter());
+            this.log = logger;
+            this.setLevel(Level.ALL);
+        }
+
+        @Override
+        public synchronized void publish(final LogRecord record) {
+            String message = record.getMessage();
+            message = message.replaceAll("X-SDS-AUTH-TOKEN: [\\w]+=", "X-SDS-AUTH-TOKEN: *****");
+            message = message.replaceAll("Authorization: Basic [\\w]+=", "Authorization: Basic ******");
+            if (record.getLevel().intValue() < Level.INFO.intValue() && log.isDebugEnabled()) {
+                log.debug(message);
+            } else if (record.getLevel().intValue() < Level.WARNING.intValue() && log.isInfoEnabled()) {
+                log.info(message);
+            } else {
+                log.warn(message);
+            }
+        }
     }
 }
