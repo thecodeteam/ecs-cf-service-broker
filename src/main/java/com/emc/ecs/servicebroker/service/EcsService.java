@@ -798,9 +798,9 @@ public class EcsService {
                 for (int i = 0; i < list1.size(); i++) {
                     SearchMetadata metadata1 = list1.get(i);
                     SearchMetadata metadata2 = list2.get(i);
-                    if (!metadata1.getName().toLowerCase().equals(metadata2.getName().toLowerCase()) ||
-                        !metadata1.getType().toLowerCase().equals(metadata2.getType().toLowerCase()) ||
-                        !metadata1.getDatatype().toLowerCase().equals(metadata2.getDatatype().toLowerCase())) {
+                    if (!metadata1.getName().equalsIgnoreCase(metadata2.getName()) ||
+                        !metadata1.getType().equalsIgnoreCase(metadata2.getType()) ||
+                        !metadata1.getDatatype().equalsIgnoreCase(metadata2.getDatatype())) {
                         return false;
                     }
                 }

@@ -60,16 +60,21 @@ public class Application {
 
     @Bean
     public Connection ecsConnection() {
-	if (broker.getCertificate() != null) {
-	    logger.info("Instantiating ecs connection with certificate");
+        Connection c = new Connection(broker.getManagementEndpoint(), broker.getUsername(), broker.getPassword());
 
-        return new Connection(broker.getManagementEndpoint(),
-                broker.getUsername(), broker.getPassword(), broker.getCertificate());
-	} else {
-        logger.info("Instantiating unencrypted ecs connection");
-		return new Connection(broker.getManagementEndpoint(),
-                broker.getUsername(), broker.getPassword());
-	}
+        if (broker.getCertificate() != null) {
+            logger.info("Instantiating ECS connection with SSL certificate");
+            c.setCertificate(broker.getCertificate());
+        } else {
+            logger.info("Instantiating unencrypted ECS connection");
+        }
+
+        if (broker.getLoginSessionLength() > 0) {
+            logger.info("Max login session length set to {} minutes", broker.getLoginSessionLength());
+            c.setMaxLoginSessionLength(broker.getLoginSessionLength());
+        }
+
+        return c;
     }
 
     @Bean

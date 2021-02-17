@@ -36,6 +36,9 @@ public class BrokerConfig {
     private String certificate;
     private String defaultReclaimPolicy = ReclaimPolicy.Fail.name();
 
+    private boolean pathStyleAccess = true;   // Path style access for S3 URL, using host style access if false
+    private int loginSessionLength = -1;      // Max login session length, in minutes
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // TODO: Add deprecation warning for these settings
@@ -227,12 +230,29 @@ public class BrokerConfig {
         this.defaultReclaimPolicy = defaultReclaimPolicy;
     }
 
+    public boolean isPathStyleAccess() {
+        return pathStyleAccess;
+    }
+
+    public void setPathStyleAccess(boolean pathStyleAccess) {
+        this.pathStyleAccess = pathStyleAccess;
+    }
+
+    public int getLoginSessionLength() {
+        return loginSessionLength;
+    }
+
+    public void setLoginSessionLength(int loginSessionLength) {
+        this.loginSessionLength = loginSessionLength;
+    }
+
     public Map<String, Object> getSettings() {
         Map<String, Object> ret = new HashMap<>();
         ret.put(BASE_URL, getBaseUrl());
         ret.put(USE_SSL, getUseSsl());
         ret.put(REPLICATION_GROUP, getReplicationGroup());
         ret.put(NAMESPACE, getNamespace());
+        ret.put(PATH_STYLE_ACCESS, isPathStyleAccess());
         return ret;
     }
 }
