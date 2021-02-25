@@ -1,5 +1,5 @@
 # ECS Open Service Broker
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a414678d5bd473685c29b217ae1c7e4)](https://www.codacy.com/app/spiegela/ecs-cf-service-broker?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=emccode/ecs-cf-service-broker&amp;utm_campaign=Badge_Grade)
+
 ## Description
 
 This service broker enables Kubernetes & Cloud Foundry applications to create,
@@ -246,9 +246,9 @@ coming from the application operates as the correct user.
 Information provided in response of binding creation request includes s3 URL, secret credentials and user Unix ID.
 
 The application mount point defaults to `/var/vcap/data/{binding-id-guid}` so that is where the file system will appear
-within the application container.  You can find this path from within your application programmatically by parsing it from
-the VCAP_SERVICES environment variable.  If you prefer to have the volume mounted to a specific path in your application 
-container, you can use the `mount` key from within your bind configuration:
+within the application container.  You can find this path and corresponding uid from within your application programmatically 
+by parsing it from the VCAP_SERVICES environment variable.  If you prefer to have the volume mounted to a specific path 
+in your application container, you can use the `mount` key from within your bind configuration:
 
 ```bash
 cf bind-service myapp mybucket -c '{"mount":"/var/something"}'
