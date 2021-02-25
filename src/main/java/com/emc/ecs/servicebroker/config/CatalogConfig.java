@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class CatalogConfig {
         return thesePlans.stream().map(p -> {
             // TODO include cost amounts, displayname, and properties
             PlanMetadataProxy planMetadata = new PlanMetadataProxy(p.getBullets(), p.getCosts(), null, null);
-            PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
+            PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), parseBucketTags(p.getServiceSettings()));
             plan.setRepositoryPlan(p.getRepositoryPlan());
             return plan;
         }).collect(Collectors.toList());
@@ -123,6 +124,7 @@ public class CatalogConfig {
 
         if (selector.getValue().equals("Bucket")) {
             settings.put(SERVICE_TYPE, ServiceType.BUCKET.getAlias());
+            settings = parseBucketTags(settings);
         } else if (selector.getValue().equals("Namespace")) {
             settings.put(SERVICE_TYPE, ServiceType.NAMESPACE.getAlias());
         } else {
@@ -156,6 +158,37 @@ public class CatalogConfig {
                 })
                 .filter(e -> e.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return settings;
+    }
+
+    private Map<String, Object> parseBucketTags(Map<String, Object> settings) {
+        List<Map<String, String>> bucketTags = new ArrayList<>();
+
+        String bucketTagsString = (String) settings.get(BUCKET_TAGS);
+
+        if (bucketTagsString == null) {
+            return settings;
+        }
+
+        String[] tagsPairs = bucketTagsString.split(BUCKET_TAG_PAIRS_DELIMITER);
+
+        for(String tagPair: tagsPairs) {
+            String[] tag = tagPair.split(BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER);
+            if (tag.length != 2) {
+                throw new ServiceBrokerException("Invalid bucket tag passed. Enable to split '" + tagPair +
+                        "' on key and value. '" + BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER + "' as key-value delimiter expected");
+            }
+
+            Map<String, String> tagMap = new HashMap<>();
+            tagMap.put(KEY, tag[0]);
+            tagMap.put(VALUE, tag[1]);
+
+            bucketTags.add(tagMap);
+        }
+
+        settings.remove(BUCKET_TAGS);
+        settings.put(TAGS, bucketTags);
 
         return settings;
     }

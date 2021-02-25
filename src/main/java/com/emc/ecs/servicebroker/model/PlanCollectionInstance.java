@@ -70,6 +70,9 @@ public class PlanCollectionInstance {
     @JsonProperty("base_url")
     private String baseUrl;
 
+    @JsonProperty("bucket_tags")
+    private String bucketTags;
+
     public void setBullet1(String bullet1) {
         this.bullet1 = bullet1;
     }
@@ -176,6 +179,14 @@ public class PlanCollectionInstance {
         this.baseUrl = baseUrl;
     }
 
+    public String getBucketTags() {
+        return bucketTags;
+    }
+
+    public void setBucketTags(String bucketTags) {
+        this.bucketTags = bucketTags;
+    }
+
     public List<CostProxy> getCosts() {
         Map<String, Double> val = new HashMap<>();
         val.put(costCurrency != null ? costCurrency.toLowerCase() : Currency.getInstance("USD").getCurrencyCode().toLowerCase(), Double.valueOf(costValue));
@@ -222,6 +233,10 @@ public class PlanCollectionInstance {
             }
 
             serviceSettings.put(QUOTA, quota);
+        }
+
+        if (bucketTags != null) {
+            serviceSettings.put(BUCKET_TAGS, bucketTags);
         }
 
         return serviceSettings;

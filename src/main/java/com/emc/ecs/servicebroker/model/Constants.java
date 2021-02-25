@@ -33,6 +33,11 @@ public class Constants {
     public static final String S3_URL = "s3Url";
 
     public static final String TAGS = "tags";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
+    public static final String BUCKET_TAGS = "bucket_tags";
+    public static final String BUCKET_TAG_PAIRS_DELIMITER = ",";
+    public static final String BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER = "=";
 
     public static final String SEARCH_METADATA = "search-metadata";
     public static final String SEARCH_METADATA_TYPE = "type";
