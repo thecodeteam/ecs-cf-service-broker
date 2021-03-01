@@ -1,5 +1,6 @@
 package com.emc.ecs.common;
 
+import com.emc.ecs.management.sdk.model.BucketTagSetRootElement;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
@@ -69,6 +70,7 @@ public class Fixtures {
     public static final String VALUE1 = "value1";
     public static final String VALUE2 = "value2";
     public static final String VALUE3 = "value3";
+    public static final String BUCKET_TAGS_STRING = KEY1 + "=" + VALUE1 + "," + KEY2 + "=" + VALUE2 + "," + KEY3 + "=" + VALUE3;
     public static final String MARKER = "marker1";
     public static final int PAGE_SIZE = 32;
     public static final String SYSTEM_METADATA_NAME = "Size";
@@ -566,5 +568,24 @@ public class Fixtures {
                 .bindingId(BINDING_ID)
                 .planId(BUCKET_PLAN_ID1)
                 .build();
+    }
+
+    public static List<Map<String, String>> listOfBucketTagsFixture() {
+        List<Map<String, String>> tags = new ArrayList<>();
+        Map<String, String> tag1 = new HashMap<>();
+        Map<String, String> tag2 = new HashMap<>();
+        Map<String, String> tag3 = new HashMap<>();
+
+        tag1.put(BucketTagSetRootElement.KEY, KEY1);
+        tag1.put(BucketTagSetRootElement.VALUE, VALUE1);
+        tag2.put(BucketTagSetRootElement.KEY, KEY2);
+        tag2.put(BucketTagSetRootElement.VALUE, VALUE2);
+        tag3.put(BucketTagSetRootElement.KEY, KEY3);
+        tag3.put(BucketTagSetRootElement.VALUE, VALUE3);
+
+        tags.add(tag1);
+        tags.add(tag2);
+        tags.add(tag3);
+        return tags;
     }
 }

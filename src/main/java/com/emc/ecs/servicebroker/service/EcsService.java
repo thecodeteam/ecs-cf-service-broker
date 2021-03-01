@@ -703,6 +703,13 @@ public class EcsService {
                 .orElseThrow(() -> new ServiceBrokerException("ECS replication group not found: " + replicationGroup));
     }
 
+    /**
+     * Merge request bucket tags with with plan and service provided tags
+     * <p>
+     * Request bucket tags are overwritten with plan and service ones,
+     * while bucket tags provided in plan description are overwritten by service tags
+     * since service settings are forced by administrator through the catalog
+     */
     static List<Map<String, String>> mergeBucketTags(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
         List<Map<String, String>> serviceTags = (List<Map<String, String>>)service.getServiceSettings().get(TAGS);
         List<Map<String, String>> planTags = (List<Map<String, String>>)plan.getServiceSettings().get(TAGS);

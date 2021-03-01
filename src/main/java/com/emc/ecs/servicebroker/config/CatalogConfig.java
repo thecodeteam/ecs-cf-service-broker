@@ -162,7 +162,7 @@ public class CatalogConfig {
         return settings;
     }
 
-    private Map<String, Object> parseBucketTags(Map<String, Object> settings) {
+    Map<String, Object> parseBucketTags(Map<String, Object> settings) {
         List<Map<String, String>> bucketTags = new ArrayList<>();
 
         String bucketTagsString = (String) settings.get(BUCKET_TAGS);
@@ -171,12 +171,26 @@ public class CatalogConfig {
             return settings;
         }
 
+        if (!bucketTagsString.matches(BUCKET_TAGS_STRING_REGEX1)) {
+            throw new ServiceBrokerException("Bucket tags '" + bucketTagsString + "' should consist only of allowed characters: " +
+                    "letters, numbers, and spaces representable in UTF-8, and the following characters: + - . _ : / @");
+        }
+
+        if (!bucketTagsString.matches(BUCKET_TAGS_STRING_REGEX2)) {
+            throw new ServiceBrokerException("Bucket tags '" + bucketTagsString + "' have inappropriate length: " +
+                    "A tag key can be up to 128 Unicode characters in length, and tag values can be up to 256 Unicode characters in length");
+        }
+
+        if (!bucketTagsString.matches(BUCKET_TAGS_STRING_REGEX3)) {
+            throw new ServiceBrokerException("Bucket tags '" + bucketTagsString + "' do not match format 'key1:value1,key2:value2'");
+        }
+
         String[] tagsPairs = bucketTagsString.split(BUCKET_TAG_PAIRS_DELIMITER);
 
         for(String tagPair: tagsPairs) {
             String[] tag = tagPair.split(BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER);
             if (tag.length != 2) {
-                throw new ServiceBrokerException("Invalid bucket tag passed. Enable to split '" + tagPair +
+                throw new ServiceBrokerException("Invalid bucket tag passed. Unable to split '" + tagPair +
                         "' on key and value. '" + BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER + "' as key-value delimiter expected");
             }
 
