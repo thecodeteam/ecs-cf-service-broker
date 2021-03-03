@@ -64,6 +64,10 @@ public class Fixtures {
     public static final String VOLUME_MOUNT_VALUE = "/mount/dir";
     public static final String SECRET_KEY_VALUE = "testKEY@ключ:/-s#cr#T";
     public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
+    public static final String BUCKET_TAGS_INVALID_CHARS = "key?=value!";
+    public static final String BUCKET_TAGS_INVALID_FORMAT = "key1:value1;key2:value2";
+    public static final String BUCKET_TAGS_LONG_KEY = "very very very very very very very very very very very very very very very very very very very very long key of exactly 129 chars=value";
+    public static final String BUCKET_TAGS_LONG_VALUE = "key=very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very great value accurately 257 chars long";
     public static final String KEY1 = "tag1";
     public static final String KEY2 = "tag2";
     public static final String KEY3 = "tag3";

@@ -17,6 +17,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
 
+import static com.emc.ecs.common.Fixtures.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 import static org.junit.Assert.*;
 
@@ -28,14 +29,6 @@ public class CatalogConfigTest {
 
     @Autowired
     private Catalog catalog;
-
-    @Autowired
-    private CatalogConfig catalogConfig;
-
-    public static final String BUCKET_TAGS_INVALID_CHARS = "key?=value!";
-    public static final String BUCKET_TAGS_LONG_KEY = "very very very very very very very very very very very very very very very very very very very very long key of exactly 129 chars=value";
-    public static final String BUCKET_TAGS_LONG_VALUE = "key=very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very great value accurately 257 chars long";
-    public static final String BUCKET_TAGS_INVALID_FORMAT = "key1:value1;key2:value2";
 
     @Test
     public void testEcsBucket() {
@@ -77,9 +70,12 @@ public class CatalogConfigTest {
     }
 
     @Test
-    public void parseBucketTagsTest() {
+    public void testBucketTagsValidation() {
         Map<String, Object> settingsWithInvalidCharacters = new HashMap<>();
         settingsWithInvalidCharacters.put(BUCKET_TAGS, BUCKET_TAGS_INVALID_CHARS);
+
+        Map<String, Object> settingsWithInvalidFormat = new HashMap<>();
+        settingsWithInvalidFormat.put(BUCKET_TAGS, BUCKET_TAGS_INVALID_FORMAT);
 
         Map<String, Object> settingsWithLongKey = new HashMap<>();
         settingsWithLongKey.put(BUCKET_TAGS, BUCKET_TAGS_LONG_KEY);
@@ -87,17 +83,17 @@ public class CatalogConfigTest {
         Map<String, Object> settingsWithLongValue = new HashMap<>();
         settingsWithLongValue.put(BUCKET_TAGS, BUCKET_TAGS_LONG_VALUE);
 
-        Map<String, Object> settingsWithInvalidFormat = new HashMap<>();
-        settingsWithInvalidFormat.put(BUCKET_TAGS, BUCKET_TAGS_INVALID_FORMAT);
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithInvalidCharacters));
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithInvalidFormat));
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithLongKey));
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithLongValue));
+    }
 
-        assertThrows(ServiceBrokerException.class, () -> catalogConfig.parseBucketTags(settingsWithInvalidCharacters));
-        assertThrows(ServiceBrokerException.class, () -> catalogConfig.parseBucketTags(settingsWithLongKey));
-        assertThrows(ServiceBrokerException.class, () -> catalogConfig.parseBucketTags(settingsWithLongValue));
-        assertThrows(ServiceBrokerException.class, () -> catalogConfig.parseBucketTags(settingsWithInvalidFormat));
-
+    @Test
+    public void parseBucketTagsTest() {
         Map<String, Object> settings = new HashMap<>();
         settings.put(BUCKET_TAGS, Fixtures.BUCKET_TAGS_STRING);
-        settings = catalogConfig.parseBucketTags(settings);
+        settings = CatalogConfig.parseBucketTags(settings);
 
         List<Map<String, String>> resultTags = (List<Map<String, String>>)settings.get(TAGS);
         List<Map<String, String>> expectedTags = Fixtures.listOfBucketTagsFixture();
