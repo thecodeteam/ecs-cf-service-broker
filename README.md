@@ -243,6 +243,8 @@ Buckets created in this manner will have file system access enabled, and file sh
 are created, new bucket users will be created to correspond to those bindings, and uid mappings will ensure that traffic
 coming from the application operates as the correct user.
 
+Information provided in response of binding creation request includes s3 URL, secret credentials and user Unix ID.
+
 The application mount point defaults to `/var/vcap/data/{binding-id-guid}` so that is where the file system will appear
 within the application container.  You can find this path and corresponding uid from within your application programmatically 
 by parsing it from the VCAP_SERVICES environment variable.  If you prefer to have the volume mounted to a specific path 

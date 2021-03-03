@@ -1,9 +1,13 @@
 package com.emc.ecs.servicebroker.config;
 
+import com.emc.ecs.common.Fixtures;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
+import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.model.catalog.Catalog;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
@@ -11,12 +15,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static com.emc.ecs.common.Fixtures.*;
+import static com.emc.ecs.servicebroker.model.Constants.*;
+import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
@@ -64,6 +67,38 @@ public class CatalogConfigTest {
                 "Pay per GB for Month", 0.03, "PER GB PER MONTH",
                 Arrays.asList("Shared object storage", "Unlimited Storage",
                         "S3 protocol access"));
+    }
+
+    @Test
+    public void testBucketTagsValidation() {
+        Map<String, Object> settingsWithInvalidCharacters = new HashMap<>();
+        settingsWithInvalidCharacters.put(BUCKET_TAGS, BUCKET_TAGS_INVALID_CHARS);
+
+        Map<String, Object> settingsWithInvalidFormat = new HashMap<>();
+        settingsWithInvalidFormat.put(BUCKET_TAGS, BUCKET_TAGS_INVALID_FORMAT);
+
+        Map<String, Object> settingsWithLongKey = new HashMap<>();
+        settingsWithLongKey.put(BUCKET_TAGS, BUCKET_TAGS_LONG_KEY);
+
+        Map<String, Object> settingsWithLongValue = new HashMap<>();
+        settingsWithLongValue.put(BUCKET_TAGS, BUCKET_TAGS_LONG_VALUE);
+
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithInvalidCharacters));
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithInvalidFormat));
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithLongKey));
+        assertThrows(ServiceBrokerException.class, () -> CatalogConfig.parseBucketTags(settingsWithLongValue));
+    }
+
+    @Test
+    public void parseBucketTagsTest() {
+        Map<String, Object> settings = new HashMap<>();
+        settings.put(BUCKET_TAGS, Fixtures.BUCKET_TAGS_STRING);
+        settings = CatalogConfig.parseBucketTags(settings);
+
+        List<Map<String, String>> resultTags = (List<Map<String, String>>)settings.get(TAGS);
+        List<Map<String, String>> expectedTags = Fixtures.listOfBucketTagsFixture();
+
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
     }
 
     private void testServiceDefinition(ServiceDefinition service, String id,

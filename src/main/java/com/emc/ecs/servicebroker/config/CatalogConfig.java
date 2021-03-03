@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class CatalogConfig {
         return thesePlans.stream().map(p -> {
             // TODO include cost amounts, displayname, and properties
             PlanMetadataProxy planMetadata = new PlanMetadataProxy(p.getBullets(), p.getCosts(), null, null);
-            PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), p.getServiceSettings());
+            PlanProxy plan = new PlanProxy(p.getGuid(), p.getName(), p.getDescription(), planMetadata, p.getFree(), parseBucketTags(p.getServiceSettings()));
             plan.setRepositoryPlan(p.getRepositoryPlan());
             return plan;
         }).collect(Collectors.toList());
@@ -123,6 +124,7 @@ public class CatalogConfig {
 
         if (selector.getValue().equals("Bucket")) {
             settings.put(SERVICE_TYPE, ServiceType.BUCKET.getAlias());
+            settings = parseBucketTags(settings);
         } else if (selector.getValue().equals("Namespace")) {
             settings.put(SERVICE_TYPE, ServiceType.NAMESPACE.getAlias());
         } else {
@@ -156,6 +158,49 @@ public class CatalogConfig {
                 })
                 .filter(e -> e.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return settings;
+    }
+
+    static Map<String, Object> parseBucketTags(Map<String, Object> settings) {
+        List<Map<String, String>> bucketTags = new ArrayList<>();
+
+        String bucketTagsString = (String) settings.get(BUCKET_TAGS);
+
+        if (bucketTagsString == null) {
+            return settings;
+        }
+
+        if (!bucketTagsString.matches(BUCKET_TAGS_STRING_REGEX1)) {
+            throw new ServiceBrokerException("Bucket tags should consist only of allowed characters: letters, numbers, and spaces representable in UTF-8, and the following characters: + - . _ : / @");
+        }
+
+        if (!bucketTagsString.matches(BUCKET_TAGS_STRING_REGEX2)) {
+            throw new ServiceBrokerException("Bucket tags have inappropriate length: A tag key can be up to 128 Unicode characters in length, and tag values can be up to 256 Unicode characters in length");
+        }
+
+        if (!bucketTagsString.matches(BUCKET_TAGS_STRING_REGEX3)) {
+            throw new ServiceBrokerException("Bucket tags do not match format 'key1:value1,key2:value2'");
+        }
+
+        String[] tagsPairs = bucketTagsString.split(BUCKET_TAG_PAIRS_DELIMITER);
+
+        for(String tagPair: tagsPairs) {
+            String[] tag = tagPair.split(BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER);
+            if (tag.length != 2) {
+                throw new ServiceBrokerException("Invalid bucket tag passed. Unable to split '" + tagPair +
+                        "' on key and value. '" + BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER + "' as key-value delimiter expected");
+            }
+
+            Map<String, String> tagMap = new HashMap<>();
+            tagMap.put(KEY, tag[0]);
+            tagMap.put(VALUE, tag[1]);
+
+            bucketTags.add(tagMap);
+        }
+
+        settings.remove(BUCKET_TAGS);
+        settings.put(TAGS, bucketTags);
 
         return settings;
     }

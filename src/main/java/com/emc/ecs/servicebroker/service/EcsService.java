@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
@@ -703,6 +704,55 @@ public class EcsService {
     }
 
     /**
+     * Merge request bucket tags with with plan and service provided tags
+     * <p>
+     * Request bucket tags are overwritten with plan and service ones,
+     * while bucket tags provided in plan description are overwritten by service tags
+     * since service settings are forced by administrator through the catalog
+     */
+    static List<Map<String, String>> mergeBucketTags(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
+        List<Map<String, String>> serviceTags = (List<Map<String, String>>)service.getServiceSettings().get(TAGS);
+        List<Map<String, String>> planTags = (List<Map<String, String>>)plan.getServiceSettings().get(TAGS);
+        List<Map<String, String>> requestedTags = (List<Map<String, String>>)requestParameters.get(TAGS);
+        List<Map<String, String>> unmatchedTags;
+
+        if (planTags != null && serviceTags != null) {
+            unmatchedTags = new ArrayList<>(planTags);
+
+            for (Map<String, String> planTag: planTags) {
+                for (Map<String, String> serviceTag: serviceTags) {
+                    if (planTag.get(KEY).equals(serviceTag.get(KEY))) {
+                        unmatchedTags.remove(planTag);
+                    }
+                }
+            }
+
+            serviceTags = Stream.concat(serviceTags.stream(), unmatchedTags.stream()).collect(Collectors.toList());
+        } else if (serviceTags == null && planTags != null) {
+            serviceTags = new ArrayList<>(planTags);
+        }
+
+        if (requestedTags != null && serviceTags != null) {
+            unmatchedTags = new ArrayList<>(requestedTags);
+
+            for (Map<String, String> requestedTag: requestedTags) {
+                for (Map<String, String> serviceTag: serviceTags) {
+                    if (requestedTag.get(KEY).equals(serviceTag.get(KEY))) {
+                        unmatchedTags.remove(requestedTag);
+                        break;
+                    }
+                }
+            }
+
+            serviceTags = Stream.concat(serviceTags.stream(), unmatchedTags.stream()).collect(Collectors.toList());
+        } else if (serviceTags == null && requestedTags != null) {
+            serviceTags = new ArrayList<>(requestedTags);
+        }
+
+        return serviceTags;
+    }
+
+    /**
      * Merge request additional parameters with with broker, plan and service settings
      * <p>
      * Broker settings (replication group, namespace and base url name) are overwritten with request parameters;
@@ -717,6 +767,12 @@ public class EcsService {
         ret.putAll(plan.getServiceSettings());
 
         ret.putAll(service.getServiceSettings());
+
+        List<Map<String, String>> tags = mergeBucketTags(service, plan, requestParameters);
+
+        if (tags != null) {
+            ret.put(TAGS, tags);
+        }
 
         return ret;
     }

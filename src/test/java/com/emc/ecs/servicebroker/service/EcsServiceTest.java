@@ -1593,6 +1593,104 @@ public class EcsServiceTest {
         assertEquals(NAMESPACE_NAME, tagsParam.getNamespace());
     }
 
+    /**
+     * A service can merge lists of bucket tags presented in service and plan descriptions and provided
+     * in request on bucket creation.
+     * <p>
+     * Bucket tags obey following priority:
+     * <ul>
+     * <li> Plan bucket tags has lower priority than service tags and therefore would be overwritten by last ones</li>
+     * <li> Requested bucket tags has lower priority than plan tags and therefore would be overwritten by last ones</li>
+     * </ul>
+     * </p>
+     */
+    @Test
+    public void mergeBucketTagsTest() {
+        Map<String, Object> serviceParams = new HashMap<>();
+        Map<String, Object> planParams = new HashMap<>();
+        Map<String, Object> requestedParams = new HashMap<>();
+
+        serviceParams.put(TAGS, createListOfTags(KEY1, VALUE1));
+        planParams.put(TAGS, createListOfTags(KEY1, VALUE2, KEY2, VALUE2));
+        requestedParams.put(TAGS, createListOfTags(KEY1, VALUE3, KEY2, VALUE3, KEY3, VALUE3));
+
+        ServiceDefinitionProxy service = new ServiceDefinitionProxy();
+        service.setServiceSettings(serviceParams);
+
+        PlanProxy plan = new PlanProxy();
+        plan.setServiceSettings(planParams);
+
+        List<Map<String, String>> resultTags = EcsService.mergeBucketTags(service, plan, requestedParams);
+        List<Map<String, String>> expectedTags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2, KEY3, VALUE3);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+    }
+
+    /**
+     * A service can merge lists of bucket tags presented in service and plan descriptions and provided
+     * in request on bucket creation when one or more lists are null.
+     */
+    @Test
+    public void mergeBucketTagsWithNullValueTest() {
+        Map<String, Object> serviceParams = new HashMap<>();
+        Map<String, Object> planParams = new HashMap<>();
+        Map<String, Object> requestedParams = new HashMap<>();
+
+        serviceParams.put(TAGS, createListOfTags(KEY1, VALUE1));
+        planParams.put(TAGS, createListOfTags(KEY2, VALUE2));
+        requestedParams.put(TAGS, createListOfTags(KEY3, VALUE3));
+
+        ServiceDefinitionProxy service = new ServiceDefinitionProxy();
+        service.setServiceSettings(serviceParams);
+
+        PlanProxy plan = new PlanProxy();
+        plan.setServiceSettings(planParams);
+
+        Map<String, Object> serviceParamsNull = new HashMap<>();
+        Map<String, Object> planParamsNull = new HashMap<>();
+        Map<String, Object> requestedParamsNull = new HashMap<>();
+
+        serviceParamsNull.put(TAGS, null);
+        planParamsNull.put(TAGS, null);
+        requestedParamsNull.put(TAGS, null);
+
+        ServiceDefinitionProxy serviceNull = new ServiceDefinitionProxy();
+        serviceNull.setServiceSettings(serviceParamsNull);
+
+        PlanProxy planNull = new PlanProxy();
+        planNull.setServiceSettings(planParamsNull);
+
+        List<Map<String, String>> resultTags = EcsService.mergeBucketTags(serviceNull, planNull, requestedParamsNull);
+        assertNull(resultTags);
+
+        resultTags = EcsService.mergeBucketTags(serviceNull, planNull, requestedParams);
+        List<Map<String, String>> expectedTags = createListOfTags(KEY3, VALUE3);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+
+        resultTags = EcsService.mergeBucketTags(serviceNull, plan, requestedParamsNull);
+        expectedTags = createListOfTags(KEY2, VALUE2);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+
+        resultTags = EcsService.mergeBucketTags(service, planNull, requestedParamsNull);
+        expectedTags = createListOfTags(KEY1, VALUE1);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+
+        resultTags = EcsService.mergeBucketTags(service, plan, requestedParamsNull);
+        expectedTags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+
+        resultTags = EcsService.mergeBucketTags(service, planNull, requestedParams);
+        expectedTags = createListOfTags(KEY1, VALUE1, KEY3, VALUE3);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+
+        resultTags = EcsService.mergeBucketTags(serviceNull, plan, requestedParams);
+        expectedTags = createListOfTags(KEY2, VALUE2, KEY3, VALUE3);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+
+        resultTags = EcsService.mergeBucketTags(service, plan, requestedParams);
+        expectedTags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2, KEY3, VALUE3);
+        assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+    }
+
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
