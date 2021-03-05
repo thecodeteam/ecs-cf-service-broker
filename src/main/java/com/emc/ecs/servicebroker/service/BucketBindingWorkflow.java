@@ -101,9 +101,10 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
 
         // S3 path style access is taken from broker level configuration (when no value passed through parameters)
-        boolean pathStyleAccess = (boolean) ecs.getBrokerConfig().get(PATH_STYLE_ACCESS);
+        Map<String, Object> brokerConfig = ecs.getBrokerConfig();
+        boolean pathStyleAccess = brokerConfig == null || (boolean) brokerConfig.getOrDefault(PATH_STYLE_ACCESS, true);
         if (parameters != null && parameters.containsKey(PATH_STYLE_ACCESS)) {
-            pathStyleAccess = Boolean.parseBoolean((String) parameters.get(PATH_STYLE_ACCESS));
+            pathStyleAccess = (Boolean) parameters.get(PATH_STYLE_ACCESS);
         }
 
         String endpoint = ecs.getObjectEndpoint();
