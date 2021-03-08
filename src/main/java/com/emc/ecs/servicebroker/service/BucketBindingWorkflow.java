@@ -25,6 +25,9 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
+    private static final Long TWO_THOUSAND = 2000L;
+    private static final Long EIGHT_THOUSAND = 8000L;
+
     private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
 
     BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
@@ -173,7 +176,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     private int createUserMap(String namespace) throws EcsManagementClientException {
-        int unixUid = (int) (2000 + System.currentTimeMillis() % 8000);
+        int unixUid = (int) (TWO_THOUSAND + System.currentTimeMillis() % EIGHT_THOUSAND);
         while (true) {
             try {
                 ecs.createUserMap(binding.getName(), namespace, unixUid);

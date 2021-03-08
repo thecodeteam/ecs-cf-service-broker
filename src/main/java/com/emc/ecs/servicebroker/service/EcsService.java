@@ -515,8 +515,8 @@ public class EcsService {
         if (parameters.containsKey(SEARCH_METADATA)) {
             parameters = new HashMap<>(parameters);  // don't modify original map
 
-            List<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
-            List<SearchMetadata> validatedMetadataList = new ArrayList<>();
+            Iterable<Map<String, String>> metadataList = (List<Map<String, String>>) parameters.get(SEARCH_METADATA);
+            Collection<SearchMetadata> validatedMetadataList = new ArrayList<>();
 
             for (Map<String, String> metadata : metadataList) {
                 String name = metadata.get(SEARCH_METADATA_NAME);
