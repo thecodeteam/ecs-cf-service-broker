@@ -35,7 +35,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        ServiceInstance serviceInstance = this.instanceRepository.find(this.instanceId);
+        ServiceInstance serviceInstance = instanceRepository.find(instanceId);
         String namespace = (String) serviceInstance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
         if (ecs.userExists(binding.getName(), namespace))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
@@ -79,7 +79,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         List<VolumeMount> volumes = binding.getVolumeMounts();
 
-        if (volumes != null && volumes.size() > 0) {
+        if (volumes != null && !volumes.isEmpty()) {
             Map<String, Object> mountConfig = ((SharedVolumeDevice) volumes.get(0).getDevice()).getMountConfig();
             String unixId = (String) mountConfig.get("uid");
 
@@ -104,7 +104,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
         String bucket = instance.getName();
 
-        Map<String, Object> credentials = super.getCredentials(secretKey);
+        Map<String, Object> credentials = getCredentials(secretKey);
 
         // Add default broker endpoint
         String endpoint = ecs.getObjectEndpoint();
@@ -158,7 +158,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     private String getS3Url(URL baseUrl, String secretKey, Map<String, Object> parameters) throws IOException {
-        String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
+        String encodedBinding = URLEncoder.encode(bindingId, "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
         String userInfo = encodedBinding + ":" + encodedSecret;
         String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@";

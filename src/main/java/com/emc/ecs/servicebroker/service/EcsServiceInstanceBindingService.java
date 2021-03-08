@@ -39,9 +39,6 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
     @Autowired
     private ServiceInstanceRepository instanceRepo;
 
-    public EcsServiceInstanceBindingService() {
-        super();
-    }
 
     @Override
     public Mono<CreateServiceInstanceBindingResponse> createServiceInstanceBinding(CreateServiceInstanceBindingRequest request) throws ServiceBrokerException {

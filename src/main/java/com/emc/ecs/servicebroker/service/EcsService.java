@@ -786,7 +786,7 @@ public class EcsService {
         return parameters;
     }
 
-    static boolean isEqualSearchMetadataList(List<SearchMetadata> list1, List<SearchMetadata> list2) {
+    static boolean isEqualSearchMetadataList(List<? extends SearchMetadata> list1, List<? extends SearchMetadata> list2) {
         if (list1 == null && list2 == null) {
             return true;
         } else if (list1 == null || list2 == null) {

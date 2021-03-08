@@ -45,10 +45,10 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         super();
     }
 
-    EcsServiceInstanceService(EcsService ecs, ServiceInstanceRepository repo) {
+    EcsServiceInstanceService(EcsService ecs, ServiceInstanceRepository repository) {
         super();
         this.ecs = ecs;
-        this.repository = repo;
+        this.repository = repository;
     }
 
     @Override
