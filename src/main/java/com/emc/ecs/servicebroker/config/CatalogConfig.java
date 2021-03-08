@@ -1,6 +1,8 @@
 package com.emc.ecs.servicebroker.config;
 
 import com.emc.ecs.servicebroker.model.*;
+import com.emc.ecs.servicebroker.service.EcsService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ public class CatalogConfig {
     private List<ServiceDefinitionProxy> services;
     private Map<Integer, List<PlanProxy>> plans = new HashMap<>();
     private Map<Integer, Map<String, Object>> settings = new HashMap<>();
+    private Map<Integer, List<Map<String, String>>> searchMetadata = new HashMap<>();
 
     public CatalogConfig() {
         super();
@@ -55,6 +58,9 @@ public class CatalogConfig {
                 s.setPlans(plans.get(index));
             }
             if (settings.containsKey(index)) {
+                if (searchMetadata.containsKey(index)) {
+                    verifyAndPrepareSearchMetadata(index);
+                }
                 s.setServiceSettings(settings.get(index));
             }
             return s;
@@ -203,6 +209,37 @@ public class CatalogConfig {
         settings.put(TAGS, bucketTags);
 
         return settings;
+    }
+
+    public void setSearchMetadataCollection0(String searchMetadataCollectionJson) throws IOException {
+        this.searchMetadata.put(0, parseSearchMetadata(searchMetadataCollectionJson));
+    }
+
+    public void setSearchMetadataCollection1(String searchMetadataCollectionJson) throws IOException {
+        this.searchMetadata.put(1, parseSearchMetadata(searchMetadataCollectionJson));
+    }
+
+    public void setSearchMetadataCollection2(String searchMetadataCollectionJson) throws IOException {
+        this.searchMetadata.put(2, parseSearchMetadata(searchMetadataCollectionJson));
+    }
+
+    public void setSearchMetadataCollection3(String searchMetadataCollectionJson) throws IOException {
+        this.searchMetadata.put(3, parseSearchMetadata(searchMetadataCollectionJson));
+    }
+
+    public void setSearchMetadataCollection4(String searchMetadataCollectionJson) throws IOException {
+        this.searchMetadata.put(4, parseSearchMetadata(searchMetadataCollectionJson));
+    }
+
+    List<Map<String, String>> parseSearchMetadata(String searchMetadataJson) throws JsonProcessingException {
+        return objectMapper.readValue(searchMetadataJson, new TypeReference<List<Map<String, String>>>() {});
+    }
+
+    private void verifyAndPrepareSearchMetadata(int index) {
+        Map<String, Object> pars = settings.get(index);
+        pars.put(SEARCH_METADATA, searchMetadata.get(index));
+        EcsService.validateAndPrepareSearchMetadata(pars);
+        settings.put(index, pars);
     }
 
     public void setServices(List<ServiceDefinitionProxy> services) {
