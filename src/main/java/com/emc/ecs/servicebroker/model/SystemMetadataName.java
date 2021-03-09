@@ -8,7 +8,7 @@ public enum SystemMetadataName {
     Size(SearchMetadataDataType.Integer),
     ContentType(SearchMetadataDataType.String),
     Expiration(SearchMetadataDataType.DateTime),
-    ContentEnding(SearchMetadataDataType.String),
+    ContentEncoding(SearchMetadataDataType.String),
     Expires(SearchMetadataDataType.DateTime),
     Retention(SearchMetadataDataType.Integer);
 
