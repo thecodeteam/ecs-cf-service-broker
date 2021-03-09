@@ -13,7 +13,6 @@ import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstan
 import org.springframework.cloud.servicebroker.model.binding.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -23,7 +22,7 @@ import java.util.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class BucketBindingWorkflow extends BindingWorkflowImpl {
-    private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BucketBindingWorkflow.class);
 
     private static final Long TWO_THOUSAND = 2000L;
     private static final Long EIGHT_THOUSAND = 8000L;
