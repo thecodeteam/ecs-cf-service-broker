@@ -5,12 +5,7 @@ public enum SystemMetadataName {
     LastModified(SearchMetadataDataType.DateTime),
     ObjectName(SearchMetadataDataType.String),
     Owner(SearchMetadataDataType.String),
-    Size(SearchMetadataDataType.Integer),
-    ContentType(SearchMetadataDataType.String),
-    Expiration(SearchMetadataDataType.DateTime),
-    ContentEncoding(SearchMetadataDataType.String),
-    Expires(SearchMetadataDataType.DateTime),
-    Retention(SearchMetadataDataType.Integer);
+    Size(SearchMetadataDataType.Integer);
 
     private SearchMetadataDataType dataType;
 

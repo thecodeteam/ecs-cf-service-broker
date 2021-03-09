@@ -761,13 +761,13 @@ public class EcsService {
     static List<Map<String, String>> mergeSearchMetadata(ServiceDefinitionProxy service, Map<String, Object> requestParameters) {
         List<Map<String, String>> serviceMetadata = (List<Map<String, String>>) service.getServiceSettings().get(SEARCH_METADATA);
         List<Map<String, String>> requestedMetadata = (List<Map<String, String>>)requestParameters.get(SEARCH_METADATA);
-        List<Map<String, String>> unmatchedMetadata = new ArrayList<>(requestedMetadata);
 
         if (serviceMetadata == null) {
             return requestedMetadata;
         } else if (requestedMetadata == null) {
             return null;
         } else {
+            List<Map<String, String>> unmatchedMetadata = new ArrayList<>(requestedMetadata);
             for (Map<String, String> requestedMetadatum: requestedMetadata) {
                 for (Map<String, String> serviceMetadatum: serviceMetadata) {
                     if (requestedMetadatum.get(SEARCH_METADATA_NAME).equals(serviceMetadatum.get(SEARCH_METADATA_NAME))) {

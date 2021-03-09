@@ -358,11 +358,6 @@ ECS Documentation provides following system metadata:
 | Size            | Integer   |  Size of the object.                                  |
 | CreateTime      | DateTime  |  Time at which the object was created.                |
 | LastModified    | DateTime  |  Time and date at which the object was last modified. |
-| ContentType     | String    |  -                                                    |
-| Expiration      | DateTime  |  -                                                    |
-| ContentEncoding | String    |  -                                                    |
-| Expires         | DateTime  |  -                                                    |
-| Retention       | Integer   |  -                                                    |
 
 System search metadata provided in `service-settings` block should be tagged with _System_ type, existing name and corresponding datatype.
 
@@ -372,7 +367,7 @@ User defined search metadata should be tagged with _User_ type, existing datatyp
 Prefix will be added to field name if it is not already there. 
 
 #### Metadata Search Datatypes
-When writing metadata to objects, client should provide data in format appropriate for each fields's datatype.
+When writing metadata to objects, client should provide data in format appropriate for each fields' datatype.
 ECS supports 4 types of datatype: _String_, _Integer_, _DateTime_ and _Decimal_.
 
 | Datatype | Description |
