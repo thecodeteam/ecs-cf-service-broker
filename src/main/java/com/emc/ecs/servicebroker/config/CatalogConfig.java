@@ -231,7 +231,7 @@ public class CatalogConfig {
         this.searchMetadata.put(4, parseSearchMetadata(searchMetadataCollectionJson));
     }
 
-    List<Map<String, String>> parseSearchMetadata(String searchMetadataJson) throws JsonProcessingException {
+    public List<Map<String, String>> parseSearchMetadata(String searchMetadataJson) throws JsonProcessingException {
         return objectMapper.readValue(searchMetadataJson, new TypeReference<List<Map<String, String>>>() {});
     }
 

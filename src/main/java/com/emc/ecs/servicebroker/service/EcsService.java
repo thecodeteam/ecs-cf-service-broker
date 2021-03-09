@@ -765,7 +765,7 @@ public class EcsService {
         if (serviceMetadata == null) {
             return requestedMetadata;
         } else if (requestedMetadata == null) {
-            return null;
+            return serviceMetadata;
         } else {
             List<Map<String, String>> unmatchedMetadata = new ArrayList<>(requestedMetadata);
             for (Map<String, String> requestedMetadatum: requestedMetadata) {
