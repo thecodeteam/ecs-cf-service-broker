@@ -99,26 +99,24 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         ServiceInstance instance = getInstance();
         String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
-        String bucket = instance.getName();
 
-        Map<String, Object> credentials = super.getCredentials(secretKey);
-
-        // Add default broker endpoint
-        String endpoint = ecs.getObjectEndpoint();
-        credentials.put(ENDPOINT, endpoint);
-
-        // Add s3 URL
-        URL baseUrl = new URL(endpoint);
-        credentials.put(S3_URL, getS3Url(baseUrl, secretKey, parameters));
-
-        if (parameters != null && parameters.containsKey(PATH_STYLE_ACCESS) && !(Boolean) parameters.get(PATH_STYLE_ACCESS)) {
-            credentials.put(PATH_STYLE_ACCESS, false);
-        } else {
-            credentials.put(PATH_STYLE_ACCESS, true);
+        // S3 path style access is taken from broker level configuration (when no value passed through parameters)
+        Map<String, Object> brokerConfig = ecs.getBrokerConfig();
+        boolean pathStyleAccess = brokerConfig == null || (boolean) brokerConfig.getOrDefault(PATH_STYLE_ACCESS, true);
+        if (parameters != null && parameters.containsKey(PATH_STYLE_ACCESS)) {
+            pathStyleAccess = (Boolean) parameters.get(PATH_STYLE_ACCESS);
         }
 
-        // Add bucket name from repository
-        credentials.put(BUCKET, ecs.prefix(bucket));
+        String endpoint = ecs.getObjectEndpoint();
+
+        LOG.info("Generating {}-style S3 path for instance '{}'", (pathStyleAccess ? "path" : "domain"), instance.getServiceInstanceId());
+        String s3Url = buildS3Url(endpoint, secretKey, pathStyleAccess);
+
+        Map<String, Object> credentials = super.getCredentials(secretKey);
+        credentials.put(ENDPOINT, endpoint);                        // Add default broker endpoint
+        credentials.put(PATH_STYLE_ACCESS, pathStyleAccess);
+        credentials.put(S3_URL, s3Url);                             // Add S3 URL
+        credentials.put(BUCKET, ecs.prefix(instance.getName()));    // Add bucket name from repository
         credentials.put(NAMESPACE, namespace);
 
         if(!volumeMounts.isEmpty()) {
@@ -154,22 +152,25 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return builder.build();
     }
 
-    private String getS3Url(URL baseUrl, String secretKey, Map<String, Object> parameters) throws IOException {
+    private String buildS3Url(String endpoint, String secretKey, boolean usePathStyleS3) throws IOException {
         String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
-        String userInfo = encodedBinding + ":" + encodedSecret;
-        String s3Url = baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@";
 
-        String portString = "";
-        if (baseUrl.getPort() != -1)
-            portString = ":" + baseUrl.getPort();
+        String prefixedUserInfo = ecs.prefix(encodedBinding + ":" + encodedSecret);
+        String prefixedInstanceId = ecs.prefix(this.instanceId);
 
-        if (parameters != null && parameters.containsKey(PATH_STYLE_ACCESS) && !(Boolean) parameters.get(PATH_STYLE_ACCESS)) {
-            s3Url = s3Url + ecs.prefix(instanceId) + "." + baseUrl.getHost() + portString;
-        } else {
-            s3Url = s3Url + baseUrl.getHost() + portString + "/" + ecs.prefix(instanceId);
+        URL baseUrl = new URL(endpoint);
+
+        String port = "";
+        if (baseUrl.getPort() != -1) {
+            port = ":" + baseUrl.getPort();
         }
-        return s3Url;
+
+        if (usePathStyleS3) {
+            return baseUrl.getProtocol() + "://" + prefixedUserInfo + "@" + baseUrl.getHost() + port + "/" + prefixedInstanceId;
+        } else {
+            return baseUrl.getProtocol() + "://" + prefixedUserInfo + "@" + prefixedInstanceId + "." + baseUrl.getHost() + port;
+        }
     }
 
     private int createUserMap(String namespace) throws EcsManagementClientException {

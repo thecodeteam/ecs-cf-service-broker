@@ -203,6 +203,46 @@ public class BucketBindingWorkflowTest {
                             });
                         });
 
+                        Context( "When path_style_access for broker set to false", () -> {
+                            BeforeEach(() -> {
+                                Map<String, Object> cfg = new HashMap<>();
+                                cfg.put(PATH_STYLE_ACCESS, false);
+
+                                when(ecs.getBrokerConfig()).thenReturn(cfg);
+                            });
+
+                            It("should create S3 domain-based URL when no user parameter is provided", () -> {
+                                Map<String, Object> ret = workflow.getCredentials("abcd", new HashMap<>());
+                                assertEquals(false, ret.get(PATH_STYLE_ACCESS));
+                                assertEquals("Bucket binding workflow should generate domain-style url",
+                                        "http://cf2f8326-3465-4810-9da1-54d328935b81:abcd@service-instance-id.127.0.0.1:9020",
+                                        ret.get(S3_URL)
+                                );
+                            });
+
+                            It("should create S3 path-based URL when user set path_style_access=true", () -> {
+                                HashMap<String, Object> requestParam = new HashMap<>();
+                                requestParam.put(PATH_STYLE_ACCESS, true);
+                                Map<String, Object> ret = workflow.getCredentials("abcd", requestParam);
+                                assertEquals(true, ret.get(PATH_STYLE_ACCESS));
+                                assertEquals("Bucket binding workflow should generate path-style url",
+                                        "http://cf2f8326-3465-4810-9da1-54d328935b81:abcd@127.0.0.1:9020/service-instance-id",
+                                        ret.get(S3_URL)
+                                );
+                            });
+
+                            It("should create S3 domain-based URL when user set path_style_access=false", () -> {
+                                HashMap<String, Object> requestParam = new HashMap<>();
+                                requestParam.put(PATH_STYLE_ACCESS, false);
+                                Map<String, Object> ret = workflow.getCredentials("abcd", requestParam);
+                                assertEquals(false, ret.get(PATH_STYLE_ACCESS));
+                                assertEquals("Bucket binding workflow should generate domain-style url",
+                                        "http://cf2f8326-3465-4810-9da1-54d328935b81:abcd@service-instance-id.127.0.0.1:9020",
+                                        ret.get(S3_URL)
+                                );
+                            });
+                        });
+
                         Context("delete binding with custom name", () -> {
                             It("should delete named user", () -> {
                                 workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceWithNameFixture(BUCKET_NAME));
@@ -309,7 +349,7 @@ public class BucketBindingWorkflowTest {
 
                     Context("without path style access in binding", () -> {
                         BeforeEach(() -> {
-                            parameters.put("path-style-access", false);
+                            parameters.put(PATH_STYLE_ACCESS, false);
 
                             CreateServiceInstanceBindingRequest req = bucketBindingRequestFixture(parameters);
                             workflow = workflow.withCreateRequest(req);

@@ -900,4 +900,8 @@ public class EcsService {
             }
         }
     }
+
+    public Map<String, Object> getBrokerConfig() {
+        return broker.getSettings();
+    }
 }
