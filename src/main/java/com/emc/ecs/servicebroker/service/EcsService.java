@@ -704,7 +704,7 @@ public class EcsService {
     }
 
     /**
-     * Merge request bucket tags with with plan and service provided tags
+     * Merge request bucket tags with plan and service provided tags
      * <p>
      * Request bucket tags are overwritten with plan and service ones,
      * while bucket tags provided in plan description are overwritten by service tags
@@ -753,6 +753,34 @@ public class EcsService {
     }
 
     /**
+     * Merge request search metadata with service provided metadata
+     * <p>
+     * Request bucket tags are overwritten with service ones
+     * since service settings are forced by administrator through the catalog
+     */
+    static List<Map<String, String>> mergeSearchMetadata(ServiceDefinitionProxy service, Map<String, Object> requestParameters) {
+        List<Map<String, String>> serviceMetadata = (List<Map<String, String>>) service.getServiceSettings().get(SEARCH_METADATA);
+        List<Map<String, String>> requestedMetadata = (List<Map<String, String>>)requestParameters.get(SEARCH_METADATA);
+        List<Map<String, String>> unmatchedMetadata = new ArrayList<>(requestedMetadata);
+
+        if (serviceMetadata == null) {
+            return requestedMetadata;
+        } else if (requestedMetadata == null) {
+            return null;
+        } else {
+            for (Map<String, String> requestedMetadatum: requestedMetadata) {
+                for (Map<String, String> serviceMetadatum: serviceMetadata) {
+                    if (requestedMetadatum.get(SEARCH_METADATA_NAME).equals(serviceMetadatum.get(SEARCH_METADATA_NAME))) {
+                        unmatchedMetadata.remove(requestedMetadatum);
+                        break;
+                    }
+                }
+            }
+            return Stream.concat(serviceMetadata.stream(), unmatchedMetadata.stream()).collect(Collectors.toList());
+        }
+    }
+
+    /**
      * Merge request additional parameters with with broker, plan and service settings
      * <p>
      * Broker settings (replication group, namespace and base url name) are overwritten with request parameters;
@@ -772,6 +800,12 @@ public class EcsService {
 
         if (tags != null) {
             ret.put(TAGS, tags);
+        }
+
+        List<Map<String, String>> searchMetadata = mergeSearchMetadata(service, requestParameters);
+
+        if (searchMetadata != null) {
+            ret.put(SEARCH_METADATA, searchMetadata);
         }
 
         return ret;
