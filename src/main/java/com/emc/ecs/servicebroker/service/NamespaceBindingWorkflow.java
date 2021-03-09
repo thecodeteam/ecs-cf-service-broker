@@ -50,17 +50,14 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
         String namespaceName = instance.getName();
 
-        Map<String, Object> credentials = super.getCredentials(secretKey);
-
-        // Add namespace title as part of credentials
-        credentials.put(NAMESPACE, ecs.prefix(namespaceName));
-
         // Get custom endpoint for namespace
         String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
-        credentials.put(ENDPOINT, endpoint);
 
-        // Add s3 URL
-        credentials.put(S3_URL, getS3Url(endpoint, secretKey));
+        Map<String, Object> credentials = super.getCredentials(secretKey);
+
+        credentials.put(NAMESPACE, ecs.prefix(namespaceName));          // Add namespace title as part of credentials
+        credentials.put(ENDPOINT, endpoint);
+        credentials.put(S3_URL, buildS3Url(endpoint, secretKey));       // Add s3 URL
 
         return credentials;
     }
@@ -73,7 +70,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
                 .build();
     }
 
-    private String getS3Url(String endpoint, String secretKey) throws IOException {
+    private String buildS3Url(String endpoint, String secretKey) throws IOException {
         URL baseUrl = new URL(endpoint);
         String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
