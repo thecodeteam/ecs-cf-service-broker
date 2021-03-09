@@ -180,7 +180,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         while (true) {
             try {
                 ecs.createUserMap(binding.getName(), namespace, unixUid);
-                break;
+                return unixUid;
             } catch (EcsManagementClientException e) {
                 if (e.getMessage().contains("Bad request body (1013)")) {
                     unixUid++;
@@ -189,7 +189,6 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
                 }
             }
         }
-        return unixUid;
     }
 
     private List<VolumeMount> createVolumeExport(String export, URL baseUrl, String bucketName, String namespace, Map<String, Object> parameters) throws EcsManagementClientException {
