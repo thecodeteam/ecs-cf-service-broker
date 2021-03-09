@@ -30,7 +30,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
 
-    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
+    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         super(instanceRepo, ecs);
     }
 
@@ -42,7 +42,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
+    public String createBindingUser() throws EcsManagementClientException, IOException {
         ServiceInstance instance = getInstance();
         String namespace = (String) instance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
         String bucket = instance.getName();
@@ -230,7 +230,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
 
-    public ServiceInstance getInstance() throws IOException {
+    private ServiceInstance getInstance() throws IOException {
         ServiceInstance instance = instanceRepository.find(instanceId);
         if (instance == null)
             throw new ServiceInstanceDoesNotExistException(instanceId);

@@ -230,7 +230,7 @@ public class EcsService {
         return parameters;
     }
 
-    public boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException {
+    private boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException {
         return BucketAction.exists(connection, prefix(bucketName), namespace);
     }
 
@@ -693,7 +693,7 @@ public class EcsService {
     }
 
 
-    public DataServiceReplicationGroup lookupReplicationGroup(String replicationGroup) throws EcsManagementClientException {
+    private DataServiceReplicationGroup lookupReplicationGroup(String replicationGroup) throws EcsManagementClientException {
         return ReplicationGroupAction.list(connection).stream()
                 .filter(r -> replicationGroup != null && r != null
                         && (replicationGroup.equals(r.getName()) || replicationGroup.equals(r.getId()))
