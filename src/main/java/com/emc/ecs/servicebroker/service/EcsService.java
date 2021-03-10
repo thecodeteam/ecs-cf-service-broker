@@ -19,6 +19,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsEx
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -33,6 +34,7 @@ public class EcsService {
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
 
     private static final String ERROR_DELETING_BUCKET = "Error deleting bucket ";
+    private static final String FILE_SEP = File.separator;
 
     @Autowired
     private Connection connection;
@@ -683,7 +685,7 @@ public class EcsService {
     String addExportToBucket(String bucket, String namespace, String relativeExportPath) throws EcsManagementClientException {
         if (relativeExportPath == null)
             relativeExportPath = "";
-        String absoluteExportPath = "/" + namespace + "/" + prefix(bucket) + "/" + relativeExportPath;
+        String absoluteExportPath = FILE_SEP + namespace + FILE_SEP + prefix(bucket) + FILE_SEP + relativeExportPath;
         List<NFSExport> exports = NFSExportAction.list(connection, absoluteExportPath);
         if (exports == null) {
             logger.info("Creating NFS export path '{}'", absoluteExportPath);
