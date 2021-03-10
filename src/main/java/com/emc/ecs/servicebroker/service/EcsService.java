@@ -417,7 +417,7 @@ public class EcsService {
 
         List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
         String urlId = baseUrlList.stream()
-                .filter(url -> baseUrl != null && url != null && baseUrl.equals(url.getName()))
+                .filter(url -> url != null && baseUrl.equals(url.getName()))
                 .findFirst()
                 .orElseThrow(() -> new ServiceBrokerException("Failed to configure namespace - base URL not found: " + baseUrl))
                 .getId();
