@@ -27,7 +27,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final Long TWO_THOUSAND = 2000L;
     private static final Long EIGHT_THOUSAND = 8000L;
 
-    private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
+    private List<VolumeMount> volumeMounts = new ArrayList<>();
 
     BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
         super(instanceRepo, ecs);
