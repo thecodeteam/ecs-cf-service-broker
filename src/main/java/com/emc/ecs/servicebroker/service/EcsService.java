@@ -85,7 +85,7 @@ public class EcsService {
                 logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(bucketName), namespace);
             }
             return null;
-        } catch (Exception e) {
+        } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
@@ -109,7 +109,7 @@ public class EcsService {
             String ns = namespace;
 
             return result.getCompletedFuture().thenRun(() -> bucketWipeCompleted(result, id, ns));
-        } catch (Exception e) {
+        } catch (EcsManagementClientException | InterruptedException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
@@ -253,7 +253,7 @@ public class EcsService {
             logger.info("Creating secret for user '{}'", userId);
             ObjectUserSecretAction.create(connection, userId);
             return ObjectUserSecretAction.list(connection, userId).get(0);
-        } catch (Exception e) {
+        } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
@@ -269,7 +269,7 @@ public class EcsService {
     Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
         try {
             return ObjectUserAction.exists(connection, prefix(userId), namespace);
-        } catch (Exception e) {
+        } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
@@ -286,7 +286,7 @@ public class EcsService {
     void addUserToBucket(String bucketId, String namespace, String username) {
         try {
             addUserToBucket(bucketId, namespace, username, FULL_CONTROL);
-        } catch (Exception e) {
+        } catch (EcsManagementClientException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
@@ -633,7 +633,7 @@ public class EcsService {
         try {
             logger.info("Bucket wipe succeeded, deleted {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
             deleteBucket(id, namespace);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             logger.error("Error deleting bucket " + prefix(id), e);
             throw new RuntimeException("Error Deleting Bucket " + prefix(id) + " " + e.getMessage());
         }

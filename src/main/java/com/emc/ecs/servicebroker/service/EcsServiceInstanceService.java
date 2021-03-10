@@ -92,16 +92,10 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             ServiceInstance instance;
 
-            try {
-                instance = repository.find(serviceInstanceId);
-                if (instance == null) {
-                    LOG.info("Instance '{}' not found, assuming already deleted", serviceInstanceId);
-                    return Mono.just(DeleteServiceInstanceResponse.builder().build());
-                }
-            } catch (S3Exception e) {
-                String errorMessage = format("Cannot find instance %s, S3 exception: %s", serviceInstanceId, e.getMessage());
-                LOG.warn(errorMessage);
-                throw new ServiceBrokerException(errorMessage, e);
+            instance = repository.find(serviceInstanceId);
+            if (instance == null) {
+                LOG.info("Instance '{}' not found, assuming already deleted", serviceInstanceId);
+                return Mono.just(DeleteServiceInstanceResponse.builder().build());
             }
 
             CompletableFuture future = workflow.delete(serviceInstanceId);
@@ -124,6 +118,10 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             return Mono.just(DeleteServiceInstanceResponse.builder()
                     .async(future != null)
                     .build());
+        } catch (S3Exception e) {
+            String errorMessage = format("Cannot find instance %s, S3 exception: %s", serviceInstanceId, e.getMessage());
+            LOG.warn(errorMessage);
+            throw new ServiceBrokerException(errorMessage, e);
         } catch (Exception e) {
             String errorMessage = format("Error deleting service instance %s: %s", serviceInstanceId, e.getMessage());
             LOG.error(errorMessage, e);
