@@ -27,6 +27,8 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     private static final Long TWO_THOUSAND = 2000L;
     private static final Long EIGHT_THOUSAND = 8000L;
 
+    private static final String ERROR_DELETING_USERMAP = "Error deleting user map: ";
+
     private List<VolumeMount> volumeMounts = new ArrayList<>();
 
     BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
@@ -87,7 +89,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             try {
                 ecs.deleteUserMap(binding.getName(), namespace, unixId);
             } catch (EcsManagementClientException e) {
-                LOG.error("Error deleting user map: " + e.getMessage());
+                LOG.error(ERROR_DELETING_USERMAP + e.getMessage());
             }
         }
 

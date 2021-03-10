@@ -32,6 +32,8 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 public class EcsService {
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
 
+    private static final String ERROR_DELETING_BUCKET = "Error deleting bucket ";
+
     @Autowired
     private Connection connection;
 
@@ -634,7 +636,7 @@ public class EcsService {
             logger.info("Bucket wipe succeeded, deleted {} objects, Deleting bucket {}", result.getDeletedObjects(), prefix(id));
             deleteBucket(id, namespace);
         } catch (RuntimeException e) {
-            logger.error("Error deleting bucket " + prefix(id), e);
+            logger.error(ERROR_DELETING_BUCKET + prefix(id), e);
             throw new RuntimeException("Error Deleting Bucket " + prefix(id) + " " + e.getMessage());
         }
     }
