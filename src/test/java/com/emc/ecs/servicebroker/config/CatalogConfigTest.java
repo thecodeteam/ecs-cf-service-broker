@@ -2,6 +2,8 @@ package com.emc.ecs.servicebroker.config;
 
 import com.emc.ecs.common.Fixtures;
 
+import com.emc.ecs.servicebroker.service.EcsServiceTest;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +31,9 @@ public class CatalogConfigTest {
 
     @Autowired
     private Catalog catalog;
+
+    @Autowired
+    private CatalogConfig catalogConfig;
 
     @Test
     public void testEcsBucket() {
@@ -99,6 +104,40 @@ public class CatalogConfigTest {
         List<Map<String, String>> expectedTags = Fixtures.listOfBucketTagsFixture();
 
         assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
+    }
+
+    @Test
+    public void parseSearchMetadataTest() throws JsonProcessingException {
+        String searchMetadataString = buildSearchMetadataString(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE);
+
+        List<Map<String, String>> resultMetadata = catalogConfig.parseSearchMetadata(searchMetadataString);
+        List<Map<String, String>> expectedMetadata = EcsServiceTest.createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE);
+
+        assertTrue(CollectionUtils.isEqualCollection(expectedMetadata, resultMetadata));
+    }
+
+    private String buildSearchMetadataString(String... args) {
+        if (args.length % 3 != 0) {
+            throw new IllegalArgumentException("Number of arguments should be multiple of three.");
+        }
+        if (args.length == 0) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder("[");
+        for (int i = 0; i < args.length; i += 3) {
+            if (i != 0) {
+                builder.append(',');
+            }
+            builder.append('{');
+            builder.append('\"' + SEARCH_METADATA_TYPE + "\":\"" + args[i] + "\",");
+            builder.append('\"' + SEARCH_METADATA_NAME + "\":\"" + args[i + 1] + "\",");
+            builder.append('\"' + SEARCH_METADATA_DATATYPE + "\":\"" + args[i + 2] + '\"');
+            builder.append('}');
+        }
+        builder.append(']');
+        return builder.toString();
     }
 
     private void testServiceDefinition(ServiceDefinition service, String id,

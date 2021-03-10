@@ -83,14 +83,14 @@ public class MetadataSearchValidationTests {
     @Test
     public void validationFailsOnWrongDatatypeForSystemKey() {
         Map<String, String> m = new HashMap<>();
-        m.put(SEARCH_METADATA_NAME, SystemMetadataName.Expiration.name());
+        m.put(SEARCH_METADATA_NAME, SystemMetadataName.LastModified.name());
         m.put(SEARCH_METADATA_DATATYPE, SearchMetadataDataType.Integer.name());
 
         try {
             EcsService.validateAndPrepareSearchMetadata(parameters(m));
             Assert.fail();
         } catch (ServiceBrokerInvalidParametersException e) {
-            assertTrue(e.getMessage().contains("Invalid system search metadata '" + SystemMetadataName.Expiration.name() + "' datatype"));
+            assertTrue(e.getMessage().contains("Invalid system search metadata '" + SystemMetadataName.LastModified.name() + "' datatype"));
         }
     }
 
@@ -137,7 +137,7 @@ public class MetadataSearchValidationTests {
     @Test
     public void nullAndNonemptyListsAreNotEqual() {
         List<SearchMetadata> list = Arrays.asList(
-                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name())
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name())
         );
         assertFalse("Null and non empty metadata lists are not equal", EcsService.isEqualSearchMetadataList(null, list));
         assertFalse("Non empty list and null are not equal", EcsService.isEqualSearchMetadataList(list, null));
@@ -153,7 +153,7 @@ public class MetadataSearchValidationTests {
                 new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Integer.name())
         );
         List<SearchMetadata> list2 = Arrays.asList(
-                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentEnding.name(), SearchMetadataDataType.String.name())
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ObjectName.name(), SearchMetadataDataType.String.name())
         );
         assertFalse("Lists with different entries are not equal", EcsService.isEqualSearchMetadataList(list1, list2));
     }
@@ -161,12 +161,12 @@ public class MetadataSearchValidationTests {
     @Test
     public void sameMetadataListsAreEqual() {
         List<SearchMetadata> list1 = Arrays.asList(
-                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()),
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name()),
                 new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name())
         );
 
         List<SearchMetadata> list2 = Arrays.asList(
-                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.ContentType.name(), SearchMetadataDataType.String.name()),
+                new SearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SystemMetadataName.Owner.name(), SearchMetadataDataType.String.name()),
                 new SearchMetadata(SEARCH_METADATA_TYPE_USER, SOME_USER_METADATA_NAME, SearchMetadataDataType.Decimal.name())
         );
 

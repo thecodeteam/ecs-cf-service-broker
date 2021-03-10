@@ -1691,6 +1691,73 @@ public class EcsServiceTest {
         assertTrue(CollectionUtils.isEqualCollection(expectedTags, resultTags));
     }
 
+    /**
+     * A service can merge lists of search metadata presented in service description and provided
+     * in request on bucket creation.
+     * <p>
+     * Requested search metadata has lower priority than service defined metadata and therefore would be overwritten by last ones
+     */
+    @Test
+    public void mergeSearchMetadataTest() {
+        Map<String, Object> serviceParams = new HashMap<>();
+        Map<String, Object> requestedParams = new HashMap<>();
+
+        serviceParams.put(SEARCH_METADATA, createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE));
+        requestedParams.put(SEARCH_METADATA, createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME2, SYSTEM_METADATA_TYPE2,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, SYSTEM_METADATA_TYPE));
+
+        ServiceDefinitionProxy service = new ServiceDefinitionProxy();
+        service.setServiceSettings(serviceParams);
+
+        List<Map<String, String>> resultMetadata = EcsService.mergeSearchMetadata(service, requestedParams);
+        List<Map<String, String>> expectedMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME2, SYSTEM_METADATA_TYPE2);
+        assertTrue(CollectionUtils.isEqualCollection(expectedMetadata, resultMetadata));
+    }
+
+    /**
+     * A service can merge lists of search metadata presented in service description and provided
+     * in request on bucket creation when one or both lists are null.
+     */
+    @Test
+    public void mergeSearchMetadataWithNullValueTest() {
+        Map<String, Object> serviceParams = new HashMap<>();
+        Map<String, Object> requestedParams = new HashMap<>();
+
+        serviceParams.put(SEARCH_METADATA, createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE));
+        requestedParams.put(SEARCH_METADATA, createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME2, SYSTEM_METADATA_TYPE2));
+
+        ServiceDefinitionProxy service = new ServiceDefinitionProxy();
+        service.setServiceSettings(serviceParams);
+
+        Map<String, Object> serviceParamsNull = new HashMap<>();
+        Map<String, Object> requestedParamsNull = new HashMap<>();
+
+        serviceParamsNull.put(SEARCH_METADATA, null);
+        requestedParamsNull.put(SEARCH_METADATA, null);
+
+        ServiceDefinitionProxy serviceNull = new ServiceDefinitionProxy();
+        serviceNull.setServiceSettings(serviceParamsNull);
+
+        List<Map<String, String>> resultMetadata = EcsService.mergeSearchMetadata(serviceNull, requestedParamsNull);
+        assertNull(resultMetadata);
+
+        resultMetadata = EcsService.mergeSearchMetadata(service, requestedParamsNull);
+        List<Map<String, String>> expectedMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE);
+        assertTrue(CollectionUtils.isEqualCollection(expectedMetadata, resultMetadata));
+
+        resultMetadata = EcsService.mergeSearchMetadata(serviceNull, requestedParams);
+        expectedMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME2, SYSTEM_METADATA_TYPE2);
+        assertTrue(CollectionUtils.isEqualCollection(expectedMetadata, resultMetadata));
+
+        resultMetadata = EcsService.mergeSearchMetadata(service, requestedParams);
+        expectedMetadata = createListOfSearchMetadata(SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME2, SYSTEM_METADATA_TYPE2);
+        assertTrue(CollectionUtils.isEqualCollection(expectedMetadata, resultMetadata));
+    }
+
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
@@ -1899,7 +1966,7 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(SearchMetadataAction.class, DELETE, same(connection), eq(BUCKET_NAME), eq(NAMESPACE_NAME));
     }
 
-    private List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {
+    static public List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {
         if (args.length % 2 != 0) {
             throw new IllegalArgumentException("Number of arguments should be multiple of two.");
         }
@@ -1929,7 +1996,7 @@ public class EcsServiceTest {
         }
     }
 
-    private List<Map<String, String>> createListOfSearchMetadata(String... args) throws IllegalArgumentException {
+    public static List<Map<String, String>> createListOfSearchMetadata(String... args) throws IllegalArgumentException {
         if (args.length % 3 != 0) {
             throw new IllegalArgumentException("Number of arguments should be multiple of three.");
         }
