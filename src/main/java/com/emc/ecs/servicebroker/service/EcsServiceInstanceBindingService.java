@@ -138,12 +138,12 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
         return isRemoteConnectBinding(binding.getParameters());
     }
 
-    private Boolean isRemoteConnectBinding(CreateServiceInstanceBindingRequest createRequest) {
+    private static Boolean isRemoteConnectBinding(CreateServiceInstanceBindingRequest createRequest) {
         Map<String, Object> parameters = createRequest.getParameters();
         return isRemoteConnectBinding(parameters);
     }
 
-    private boolean isRemoteConnectBinding(Map<String, Object> parameters) {
+    private static boolean isRemoteConnectBinding(Map<String, Object> parameters) {
         return (parameters != null)
                 && parameters.containsKey(REMOTE_CONNECTION)
                 && (Boolean) parameters.get(REMOTE_CONNECTION);

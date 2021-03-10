@@ -203,13 +203,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         String absoluteExportPath = ecs.addExportToBucket(bucketName, namespace, export);
         LOG.debug("Export added: '{}' for bucket '{}'", export, bucketName);
 
-        Map<String, Object> opts = new HashMap<>();
+        Map<String, Object> opts = new HashMap<>(2);
         opts.put(VOLUME_EXPORT_SOURCE, "nfs://" + host + absoluteExportPath);
         opts.put(VOLUME_EXPORT_UID, String.valueOf(unixUid));
 
         String volumeGUID = UUID.randomUUID().toString();
 
-        List<VolumeMount> mounts = new ArrayList<>();
+        List<VolumeMount> mounts = new ArrayList<>(1);
         mounts.add(new VolumeMount(VOLUME_DRIVER, getContainerDir(parameters, bindingId),
                 VolumeMount.Mode.READ_WRITE, VolumeMount.DeviceType.SHARED,
                 new SharedVolumeDevice(volumeGUID, opts)));
@@ -217,7 +217,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return mounts;
     }
 
-    private String getContainerDir(Map<String, Object> parameters, String bindingId) {
+    private static String getContainerDir(Map<String, Object> parameters, String bindingId) {
         if (parameters != null) {
             Object o = parameters.get(VOLUME_MOUNT);
             if (o instanceof String) {

@@ -209,7 +209,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         return getWorkflow(service);
     }
 
-    private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
+    private static boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
         Map<String, Object> parameters = createRequest.getParameters();
         return parameters != null && parameters.containsKey(REMOTE_CONNECTION);
     }

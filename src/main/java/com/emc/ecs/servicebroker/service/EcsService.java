@@ -191,7 +191,7 @@ public class EcsService {
 
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>());
+            Map<String, Object> quota = (Map<String, Object>) parameters.getOrDefault(QUOTA, new HashMap<>(2));
             int limit = (int) quota.getOrDefault(QUOTA_LIMIT, -1);
             int warn = (int) quota.getOrDefault(QUOTA_WARN, -1);
 
@@ -485,7 +485,7 @@ public class EcsService {
                 .getSecretKey();
     }
 
-    private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {
+    private static String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {
         Optional<BaseUrl> maybeBaseUrl = baseUrlList.stream()
                 .filter(baseUrl -> "DefaultBaseUrl".equals(baseUrl.getName())).findAny();
         if (maybeBaseUrl.isPresent()) {
@@ -494,7 +494,7 @@ public class EcsService {
         return baseUrlList.get(0).getId();
     }
 
-    private void validateReclaimPolicy(Map<String, Object> parameters) {
+    private static void validateReclaimPolicy(Map<String, Object> parameters) {
         // Ensure Reclaim-Policy can be parsed
         try {
             ReclaimPolicy.getReclaimPolicy(parameters);
