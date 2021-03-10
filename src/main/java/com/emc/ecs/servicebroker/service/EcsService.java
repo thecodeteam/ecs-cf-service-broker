@@ -80,7 +80,7 @@ public class EcsService {
             namespace = broker.getNamespace();
         }
         try {
-            if (namespaceExists(namespace) && bucketExists(bucketName, namespace)) {
+            if (doesNamespaceExist(namespace) && doesBucketExist(bucketName, namespace)) {
                 logger.info("Deleting bucket '{}' from namespace '{}'", prefix(bucketName), namespace);
                 BucketAction.delete(connection, prefix(bucketName), namespace);
             } else {
@@ -97,7 +97,7 @@ public class EcsService {
             namespace = broker.getNamespace();
         }
         try {
-            if (!namespaceExists(namespace) || !bucketExists(id, namespace)) {
+            if (!doesNamespaceExist(namespace) || !doesBucketExist(id, namespace)) {
                 logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(id), namespace);
                 return null;
             }
@@ -117,8 +117,8 @@ public class EcsService {
     }
 
     Boolean getBucketFileEnabled(String bucketName, String namespace) throws EcsManagementClientException {
-        ObjectBucketInfo b = BucketAction.get(connection, prefix(bucketName), namespace);
-        return b.getFsAccessEnabled();
+        ObjectBucketInfo info = BucketAction.get(connection, prefix(bucketName), namespace);
+        return info.getFsAccessEnabled();
     }
 
     @SuppressWarnings("unchecked")
@@ -132,7 +132,7 @@ public class EcsService {
 
             String namespace = (String) parameters.get(NAMESPACE);
 
-            if (bucketExists(bucketName, namespace)) {
+            if (doesBucketExist(bucketName, namespace)) {
                 throw new ServiceInstanceExistsException(serviceInstanceId, serviceDefinition.getId());
             }
 
@@ -232,15 +232,15 @@ public class EcsService {
         return parameters;
     }
 
-    private boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException {
+    private boolean doesBucketExist(String bucketName, String namespace) throws EcsManagementClientException {
         return BucketAction.exists(connection, prefix(bucketName), namespace);
     }
 
-    private Boolean namespaceExists(String id) throws EcsManagementClientException {
+    private Boolean doesNamespaceExist(String id) throws EcsManagementClientException {
         return NamespaceAction.exists(connection, id);
     }
 
-    private boolean aclExists(String id, String namespace) throws EcsManagementClientException {
+    private boolean doesAclExist(String id, String namespace) throws EcsManagementClientException {
         return BucketAclAction.exists(connection, id, namespace);
     }
 
@@ -268,7 +268,7 @@ public class EcsService {
         ObjectUserMapAction.delete(connection, prefix(username), uid, namespace);
     }
 
-    Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
+    Boolean doesUserExist(String userId, String namespace) throws ServiceBrokerException {
         try {
             return ObjectUserAction.exists(connection, prefix(userId), namespace);
         } catch (EcsManagementClientException e) {
@@ -277,7 +277,7 @@ public class EcsService {
     }
 
     void deleteUser(String userId, String namespace) throws EcsManagementClientException {
-        if (userExists(userId, namespace)) {
+        if (doesUserExist(userId, namespace)) {
             logger.info("Deleting user '{}' in namespace '{}'", userId, namespace);
             ObjectUserAction.delete(connection, prefix(userId));
         } else {
@@ -320,7 +320,7 @@ public class EcsService {
     }
 
     void removeUserFromBucket(String bucket, String namespace, String username) throws EcsManagementClientException {
-        if (!aclExists(prefix(bucket), namespace)) {
+        if (!doesAclExist(prefix(bucket), namespace)) {
             logger.info("ACL {} no longer exists when removing user {}", prefix(bucket), prefix(username));
             return;
         }
@@ -333,8 +333,8 @@ public class EcsService {
         BucketAclAction.update(connection, prefix(bucket), acl);
     }
 
-    String prefix(String string) {
-        return broker.getPrefix() + string;
+    String prefix(String unprefixedString) {
+        return broker.getPrefix() + unprefixedString;
     }
 
     private void lookupObjectEndpoints() throws EcsManagementClientException {
@@ -354,13 +354,13 @@ public class EcsService {
                 throw new ServiceBrokerException("Cannot determine object endpoint url: base URLs list is empty, check ECS server settings");
             } else if (broker.getBaseUrl() != null) {
                 urlId = baseUrlList.stream()
-                        .filter(b -> broker.getBaseUrl().equals(b.getName()))
+                        .filter(baseUrl -> broker.getBaseUrl().equals(baseUrl.getName()))
                         .findFirst()
                         .orElseThrow(() -> new ServiceBrokerException("Configured ECS Base URL not found: " + broker.getBaseUrl()))
                         .getId();
             } else {
                 Optional<BaseUrl> maybeBaseUrl = baseUrlList.stream()
-                        .filter(b -> "DefaultBaseUrl".equals(b.getName()))
+                        .filter(baseUrl -> "DefaultBaseUrl".equals(baseUrl.getName()))
                         .findAny();
                 if (maybeBaseUrl.isPresent()) {
                     urlId = maybeBaseUrl.get().getId();
@@ -415,7 +415,7 @@ public class EcsService {
 
         List<BaseUrl> baseUrlList = BaseUrlAction.list(connection);
         String urlId = baseUrlList.stream()
-                .filter(b -> baseUrl != null && b != null && baseUrl.equals(b.getName()))
+                .filter(url -> baseUrl != null && url != null && baseUrl.equals(url.getName()))
                 .findFirst()
                 .orElseThrow(() -> new ServiceBrokerException("Failed to configure namespace - base URL not found: " + baseUrl))
                 .getId();
@@ -432,7 +432,7 @@ public class EcsService {
         String namespace = broker.getNamespace();
         String userName = broker.getRepositoryUser();
 
-        if (!bucketExists(bucketName, namespace)) {
+        if (!doesBucketExist(bucketName, namespace)) {
             logger.info("Preparing repository bucket '{}'", prefix(bucketName));
 
             ServiceDefinitionProxy service;
@@ -455,7 +455,7 @@ public class EcsService {
             createBucket("repository", bucketName, service, plan, parameters);
         }
 
-        if (!userExists(userName, namespace)) {
+        if (!doesUserExist(userName, namespace)) {
             logger.info("Creating user to access repository: '{}'", userName);
             UserSecretKey secretKey = createUser(userName, namespace);
             addUserToBucket(bucketName, namespace, userName);
@@ -485,7 +485,7 @@ public class EcsService {
 
     private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {
         Optional<BaseUrl> maybeBaseUrl = baseUrlList.stream()
-                .filter(b -> "DefaultBaseUrl".equals(b.getName())).findAny();
+                .filter(baseUrl -> "DefaultBaseUrl".equals(baseUrl.getName())).findAny();
         if (maybeBaseUrl.isPresent()) {
             return maybeBaseUrl.get().getId();
         }
@@ -574,7 +574,7 @@ public class EcsService {
 
     Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
             throws EcsManagementClientException {
-        if (namespaceExists(prefix(namespace))) {
+        if (doesNamespaceExist(prefix(namespace))) {
             throw new ServiceInstanceExistsException(namespace, service.getId());
         }
 
@@ -611,7 +611,7 @@ public class EcsService {
     }
 
     void deleteNamespace(String namespace) throws EcsManagementClientException {
-        if (namespaceExists(prefix((namespace)))) {
+        if (doesNamespaceExist(prefix((namespace)))) {
             NamespaceAction.delete(connection, prefix(namespace));
         } else {
             logger.info("Namespace {} no longer exists, assume already deleted", prefix(namespace));

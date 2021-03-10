@@ -38,7 +38,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
         ServiceInstance serviceInstance = instanceRepository.find(instanceId);
         String namespace = (String) serviceInstance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
-        if (ecs.userExists(binding.getName(), namespace))
+        if (ecs.doesUserExist(binding.getName(), namespace))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 

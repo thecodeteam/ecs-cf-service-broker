@@ -23,7 +23,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        if (ecs.userExists(bindingId, ecs.prefix(instanceId)))
+        if (ecs.doesUserExist(bindingId, ecs.prefix(instanceId)))
             throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
     }
 

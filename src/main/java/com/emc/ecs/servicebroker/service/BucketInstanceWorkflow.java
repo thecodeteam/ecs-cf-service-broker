@@ -21,8 +21,8 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     private static final Logger logger = LoggerFactory.getLogger(BucketInstanceWorkflow.class);
 
-    BucketInstanceWorkflow(ServiceInstanceRepository repo, EcsService ecs) {
-        super(repo, ecs);
+    BucketInstanceWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+        super(instanceRepo, ecs);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
                 ServiceInstance ref = instanceRepository.find(refId);
                 Set<String> references = ref.getReferences()
                     .stream()
-                    .filter((String i) -> ! i.equals(id))
+                    .filter((String s) -> ! s.equals(id))
                     .collect(Collectors.toSet());
                 ref.setReferences(references);
                 instanceRepository.save(ref);

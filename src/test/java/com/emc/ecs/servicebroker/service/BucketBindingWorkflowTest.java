@@ -52,7 +52,7 @@ public class BucketBindingWorkflowTest {
 
             Context("with binding ID conflict", () -> {
                 BeforeEach(() -> {
-                            when(ecs.userExists(eq(BINDING_ID), eq(NAMESPACE_NAME))).thenReturn(true);
+                            when(ecs.doesUserExist(eq(BINDING_ID), eq(NAMESPACE_NAME))).thenReturn(true);
                             when(instanceRepo.find(eq(SERVICE_INSTANCE_ID))).thenReturn(serviceInstanceFixture());
                         }
                 );
@@ -70,7 +70,7 @@ public class BucketBindingWorkflowTest {
                 BeforeEach(() -> {
                     CreateServiceInstanceBindingRequest req = bucketBindingRequestFixture();
                     workflow = workflow.withCreateRequest(req);
-                    when(ecs.userExists(eq(BINDING_ID), eq(NAMESPACE_NAME))).thenReturn(false);
+                    when(ecs.doesUserExist(eq(BINDING_ID), eq(NAMESPACE_NAME))).thenReturn(false);
                 });
 
                 Context("when the service instance doesn't exist", () -> {

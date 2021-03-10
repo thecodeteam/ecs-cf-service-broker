@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 public interface InstanceWorkflow {
    InstanceWorkflow withCreateRequest(CreateServiceInstanceRequest request);
    InstanceWorkflow withDeleteRequest(DeleteServiceInstanceRequest request);
-   Map<String, Object> changePlan(String id, ServiceDefinitionProxy service, PlanProxy plan,
+   Map<String, Object> changePlan(String instanceId, ServiceDefinitionProxy service, PlanProxy plan,
                                   Map<String, Object> parameters) throws EcsManagementClientException, ServiceBrokerException, IOException;
 
    /**
