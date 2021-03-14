@@ -34,7 +34,7 @@ public class EcsService {
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
 
     private static final String ERROR_DELETING_BUCKET = "Error deleting bucket ";
-    private static final String FILE_SEP = File.separator;
+    private static final String FILE_SEP = "/";
 
     @Autowired
     private Connection connection;
