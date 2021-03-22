@@ -7,6 +7,7 @@ import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.*;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
+import com.emc.ecs.servicebroker.service.s3.BucketExpirationAction;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
 import org.slf4j.Logger;
@@ -164,6 +165,11 @@ public class EcsService {
                 List<Map<String, String>> bucketTags = (List<Map<String, String>>) parameters.get(TAGS);
                 logger.info("Applying bucket tags on '{}': {}", bucketName, bucketTags);
                 BucketTagsAction.create(connection, prefix(bucketName), new BucketTagsParamAdd(namespace, bucketTags));
+            }
+
+            if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
+                logger.info("Applying bucket expiration on {}:{} days", bucketName, parameters.get(EXPIRATION));
+                BucketExpirationAction.setBucketExpiration(broker, bucketName, (int) parameters.get(EXPIRATION));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());

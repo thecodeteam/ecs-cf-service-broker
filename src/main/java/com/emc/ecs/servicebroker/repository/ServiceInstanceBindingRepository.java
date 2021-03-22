@@ -1,7 +1,7 @@
 package com.emc.ecs.servicebroker.repository;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
-import com.emc.ecs.servicebroker.service.S3Service;
+import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.bean.ListObjectsResult;

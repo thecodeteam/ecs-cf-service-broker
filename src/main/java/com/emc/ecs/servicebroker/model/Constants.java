@@ -23,6 +23,7 @@ public class Constants {
     public static final String ENDPOINT = "endpoint";
     public static final String ENCRYPTED = "encrypted";
     public static final String DOMAIN_GROUP_ADMINS = "domain-group-admins";
+    public static final String EXPIRATION = "expiration";
 
     public static final String RECLAIM_POLICY = "reclaim-policy";
     public static final String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
