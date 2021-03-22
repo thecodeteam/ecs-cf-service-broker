@@ -168,8 +168,8 @@ public class EcsService {
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
-                logger.info("Applying bucket expiration on {}:{} days", bucketName, parameters.get(EXPIRATION));
-                BucketExpirationAction.setBucketExpiration(broker, bucketName, (int) parameters.get(EXPIRATION));
+                logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
+                BucketExpirationAction.setBucketExpiration(broker, prefix(bucketName), (int) parameters.get(EXPIRATION));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
