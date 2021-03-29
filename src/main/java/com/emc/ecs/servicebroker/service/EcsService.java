@@ -168,6 +168,8 @@ public class EcsService {
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
+                logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
+                grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
                 logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
                 BucketExpirationAction.setBucketExpiration(broker, prefix(bucketName), (int) parameters.get(EXPIRATION));
             }
@@ -707,6 +709,24 @@ public class EcsService {
                 )
                 .findFirst()
                 .orElseThrow(() -> new ServiceBrokerException("ECS replication group not found: " + replicationGroup));
+    }
+
+    void grantUserLifecycleManagementPolicy(String bucket, String namespace, String username) {
+        List<String> actions = new ArrayList<>();
+        actions.add("s3:PutLifecycleConfiguration");
+        actions.add("s3:GetLifecycleConfiguration");
+
+        String statementId = "Grant permission for lifecycle configuration to " + username;
+        BucketPolicy policy = new BucketPolicy(
+                "2012-10-17",
+                "LifecycleManagementBucketPolicy",
+                new BucketPolicyStatement(statementId,
+                        new BucketPolicyEffect("Allow"),
+                        new BucketPolicyPrincipal(username),
+                        new BucketPolicyActions(actions),
+                        new BucketPolicyResource(Collections.singletonList(prefix(bucket)))
+                ));
+        BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
     }
 
     /**
