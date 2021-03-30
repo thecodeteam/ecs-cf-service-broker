@@ -10,6 +10,9 @@ import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.servicebroker.service.s3.BucketExpirationAction;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
+import com.emc.object.s3.bean.LifecycleConfiguration;
+import com.emc.object.s3.bean.LifecycleRule;
+import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,10 +171,15 @@ public class EcsService {
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
+                if ((boolean) parameters.get(FILE_ACCESSIBLE) == true) {
+                    String message = "Cannot apply expiration to file accessible bucket" + bucketName;
+                    logger.error(message);
+                    throw new EcsManagementClientException(message);
+                }
                 logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
                 grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
                 logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
-                BucketExpirationAction.update(broker, prefix(bucketName), (int) parameters.get(EXPIRATION));
+                BucketExpirationAction.update(broker, prefix(bucketName), (int) parameters.get(EXPIRATION), null);
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
@@ -913,7 +921,7 @@ public class EcsService {
             logger.debug("Checking lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
             BucketPolicyStatement bucketPolicyStatement = BucketPolicyAction.get(connection, prefix(bucketName), namespace).getBucketPolicyStatement();
             actions = bucketPolicyStatement.getBucketPolicyAction();
-        } catch (EcsManagementClientException e) {
+        } catch (EcsManagementClientException | MessageBodyProviderNotFoundException e) {
             logger.debug("Object user '{}' does not have reading bucket policy permissions", prefix(broker.getRepositoryUser()));
         }
 
@@ -922,13 +930,25 @@ public class EcsService {
             grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
         }
 
-        int currentExpirationDays = BucketExpirationAction.get(broker, prefix(bucketName));
-        if (currentExpirationDays == -1) {
+        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
+
+        if (configuration == null | configuration.getRules() == null) {
             logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
-            BucketExpirationAction.update(broker, prefix(bucketName), days);
-        } else if (currentExpirationDays != days) {
-            logger.info("Changing bucket expiration on '{}': {} days instead of {} days", bucketName, days, currentExpirationDays);
-            BucketExpirationAction.update(broker, prefix(bucketName), days);
+            BucketExpirationAction.update(broker, prefix(bucketName), days, null);
+        } else {
+            List<LifecycleRule> rules = configuration.getRules();
+            for (LifecycleRule rule: rules) {
+                if (rule.getStatus() == LifecycleRule.Status.Enabled && rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX)) {
+                    if (rule.getExpirationDays() != days) {
+                        logger.info("Changing bucket expiration on '{}': {} days instead of {} days", bucketName, days, rule.getExpirationDays());
+                        rules.remove(rule);
+                        BucketExpirationAction.update(broker, prefix(bucketName), days, rules);
+                    }
+                    return;
+                }
+            }
+            logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
+            BucketExpirationAction.update(broker, prefix(bucketName), days, rules);
         }
     }
 
