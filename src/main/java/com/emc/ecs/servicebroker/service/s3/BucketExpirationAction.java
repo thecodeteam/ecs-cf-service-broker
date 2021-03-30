@@ -32,6 +32,11 @@ public final class BucketExpirationAction {
         S3Client s3Client = new S3JerseyClient(s3Config);
 
         LifecycleConfiguration lifecycle = s3Client.getBucketLifecycle(bucketName);
+
+        if (lifecycle == null) {
+            return -1;
+        }
+
         List<LifecycleRule> rules = lifecycle.getRules();
 
         for (LifecycleRule rule: rules) {
@@ -39,6 +44,6 @@ public final class BucketExpirationAction {
                 return rule.getExpirationDays();
             }
         }
-        return 0;
+        return -1;
     }
 }

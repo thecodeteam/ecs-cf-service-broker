@@ -232,7 +232,11 @@ public class EcsService {
                 SearchMetadataAction.delete(connection, prefix(bucketName), broker.getNamespace());
             }
 
-        } catch (EcsManagementClientException e) {
+            if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
+                changeBucketExpiration(bucketName, namespace, (int) parameters.get(EXPIRATION));
+            }
+
+        } catch (EcsManagementClientException | URISyntaxException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
 
@@ -713,8 +717,9 @@ public class EcsService {
 
     void grantUserLifecycleManagementPolicy(String bucket, String namespace, String username) {
         List<String> actions = new ArrayList<>();
-        actions.add("s3:PutLifecycleConfiguration");
-        actions.add("s3:GetLifecycleConfiguration");
+        actions.add(S3_ACTION_PUT_LC_CONFIG);
+        actions.add(S3_ACTION_GET_LC_CONFIG);
+        actions.add(S3_ACTION_GET_BUCKET_POLICY);
 
         String statementId = "Grant permission for lifecycle configuration to " + username;
         BucketPolicy policy = new BucketPolicy(
@@ -900,6 +905,31 @@ public class EcsService {
         parameters.put(TAGS, paramsTagSet.getTagSetAsListOfTags());
 
         return parameters;
+    }
+
+    void changeBucketExpiration(String bucketName, String namespace, int days) throws URISyntaxException {
+        List<String> actions = new ArrayList<>();
+        try {
+            logger.debug("Checking lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
+            BucketPolicyStatement bucketPolicyStatement = BucketPolicyAction.get(connection, prefix(bucketName), namespace).getBucketPolicyStatement();
+            actions = bucketPolicyStatement.getBucketPolicyAction();
+        } catch (EcsManagementClientException e) {
+            logger.debug("Object user '{}' does not have reading bucket policy permissions", prefix(broker.getRepositoryUser()));
+        }
+
+        if(!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG)) {
+            logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
+            grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+        }
+
+        int currentExpirationDays = BucketExpirationAction.get(broker, prefix(bucketName));
+        if (currentExpirationDays == -1) {
+            logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
+            BucketExpirationAction.update(broker, prefix(bucketName), days);
+        } else if (currentExpirationDays != days) {
+            logger.info("Changing bucket expiration on '{}': {} days instead of {} days", bucketName, days, currentExpirationDays);
+            BucketExpirationAction.update(broker, prefix(bucketName), days);
+        }
     }
 
     static boolean isEqualSearchMetadataList(List<SearchMetadata> list1, List<SearchMetadata> list2) {
