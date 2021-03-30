@@ -171,7 +171,7 @@ public class EcsService {
                 logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
                 grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
                 logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
-                BucketExpirationAction.setBucketExpiration(broker, prefix(bucketName), (int) parameters.get(EXPIRATION));
+                BucketExpirationAction.update(broker, prefix(bucketName), (int) parameters.get(EXPIRATION));
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());

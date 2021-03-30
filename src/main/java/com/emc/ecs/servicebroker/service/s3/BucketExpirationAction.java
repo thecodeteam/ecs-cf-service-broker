@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public final class BucketExpirationAction {
 
-    public static void setBucketExpiration(BrokerConfig broker, String bucketName, int days) throws URISyntaxException {
+    public static void update(BrokerConfig broker, String bucketName, int days) throws URISyntaxException {
         if (days < 0) {
             throw new IllegalArgumentException("Invalid expiration days set on '" + bucketName + "' bucket: Expiration days could not be less then 0");
         }
@@ -26,7 +26,7 @@ public final class BucketExpirationAction {
                 new LifecycleRule(UUID.randomUUID().toString(), broker.getPrefix(), LifecycleRule.Status.Enabled).withExpirationDays(days)));
     }
 
-    public static int getBucketExpiration(BrokerConfig broker, String bucketName) throws URISyntaxException {
+    public static int get(BrokerConfig broker, String bucketName) throws URISyntaxException {
         S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
         s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
         S3Client s3Client = new S3JerseyClient(s3Config);

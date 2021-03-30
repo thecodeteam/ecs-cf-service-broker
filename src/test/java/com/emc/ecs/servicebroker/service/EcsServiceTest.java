@@ -6,8 +6,8 @@ import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.*;
-import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
+import com.emc.ecs.servicebroker.service.s3.BucketExpirationAction;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
 import org.apache.commons.collections.CollectionUtils;
@@ -22,7 +22,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +40,8 @@ import static org.mockito.Mockito.*;
         NamespaceQuotaAction.class, NamespaceRetentionAction.class,
         BucketAclAction.class, NFSExportAction.class,
         ObjectUserMapAction.class, BucketTagsAction.class,
-        SearchMetadataAction.class})
+        SearchMetadataAction.class, BucketExpirationAction.class,
+        BucketPolicyAction.class})
 public class EcsServiceTest {
     private static final String FOO = "foo";
     private static final String ONE_YEAR = "one-year";
@@ -53,6 +53,7 @@ public class EcsServiceTest {
     private static final String DOT = ".";
     private static final String HTTPS = "https://";
     private static final int THIRTY_DAYS_IN_SEC = 2592000;
+    private static final int THIRTY = 30;
     private static final String HTTP = "http://";
     private static final String _9020 = ":9020";
     private static final String _9021 = ":9021";
@@ -266,6 +267,8 @@ public class EcsServiceTest {
         setupCreateBucketQuotaTest(5, 4);
         setupBucketRetentionUpdate(100);
         setupChangeBucketTagsTest(null);
+        setupUpdateExpirationTest(THIRTY);
+        setupUpdateBucketPolicyTest();
 
         Map<String, Object> additionalParamsQuota = new HashMap<>();
         additionalParamsQuota.put(QUOTA_WARN, 9);
@@ -277,6 +280,7 @@ public class EcsServiceTest {
         additionalParams.put(ACCESS_DURING_OUTAGE, true);
         additionalParams.put(FILE_ACCESSIBLE, true);
         additionalParams.put(DEFAULT_RETENTION, 100);
+        additionalParams.put(EXPIRATION, THIRTY);
 
         List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2);
         additionalParams.put(TAGS, tags);
@@ -298,6 +302,7 @@ public class EcsServiceTest {
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
+        assertEquals(THIRTY, serviceSettings.get(EXPIRATION));
 
         List<Map<String, String>> setTags = (List<Map<String, String>>) serviceSettings.get(TAGS);
         assertTrue(CollectionUtils.isEqualCollection(tags, setTags));
@@ -331,6 +336,9 @@ public class EcsServiceTest {
         List<Map<String, String>> invokedTags = tagsParamAdd.getTagSetAsListOfTags();
         assertTrue(CollectionUtils.isEqualCollection(tags, invokedTags));
         assertEquals(NAMESPACE_NAME, tagsParamAdd.getNamespace());
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(1));
+        BucketExpirationAction.update(same(broker), eq(PREFIX + CUSTOM_BUCKET_NAME), eq(THIRTY));
     }
 
     @Test
@@ -1594,6 +1602,33 @@ public class EcsServiceTest {
     }
 
     /**
+     * A service can grant Bucket Lifecycle Management policy to any specified Object user.
+     *
+     * @throws Exception on mocking called classes
+     */
+    @Test
+    public void grantUserLifecycleManagementPolicyTest() throws Exception {
+        setupUpdateBucketPolicyTest();
+
+        ecs.grantUserLifecycleManagementPolicy(BUCKET_NAME, NAMESPACE_NAME, USER);
+
+        ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
+        ArgumentCaptor<String> bucketIdCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> namespaceCaptor = ArgumentCaptor.forClass(String.class);
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketIdCaptor.capture(), policyCaptor.capture(), namespaceCaptor.capture());
+
+        BucketPolicy policy = policyCaptor.getValue();
+        BucketPolicyStatement statement = policy.getBucketPolicyStatement();
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketIdCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, namespaceCaptor.getValue());
+        assertEquals(PREFIX + BUCKET_NAME, statement.getBucketPolicyResource().get(0));
+        assertEquals(USER, statement.getPrincipal());
+    }
+
+    /**
      * A service can merge lists of bucket tags presented in service and plan descriptions and provided
      * in request on bucket creation.
      * <p>
@@ -1964,6 +1999,16 @@ public class EcsServiceTest {
     private void setupDeleteSearchMetadataTest() throws Exception {
         PowerMockito.mockStatic(SearchMetadataAction.class);
         PowerMockito.doNothing().when(SearchMetadataAction.class, DELETE, same(connection), eq(BUCKET_NAME), eq(NAMESPACE_NAME));
+    }
+
+    private void setupUpdateExpirationTest(int days) throws Exception {
+        PowerMockito.mockStatic(BucketExpirationAction.class);
+        PowerMockito.doNothing().when(BucketExpirationAction.class, UPDATE, any(BrokerConfig.class), anyString(), eq(days));
+    }
+
+    private void setupUpdateBucketPolicyTest() throws Exception {
+        PowerMockito.mockStatic(BucketPolicyAction.class);
+        PowerMockito.doNothing().when(BucketPolicyAction.class, UPDATE, same(connection), anyString(), any(BucketPolicy.class), anyString());
     }
 
     static public List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {
