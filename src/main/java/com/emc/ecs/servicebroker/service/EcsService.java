@@ -12,7 +12,6 @@ import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
 import com.emc.object.s3.bean.LifecycleConfiguration;
 import com.emc.object.s3.bean.LifecycleRule;
-import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -242,6 +241,8 @@ public class EcsService {
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
                 changeBucketExpiration(bucketName, namespace, (int) parameters.get(EXPIRATION));
+            } else {
+                deleteCurrentExpirationRule(bucketName, namespace);
             }
 
         } catch (EcsManagementClientException | URISyntaxException e) {
@@ -915,7 +916,7 @@ public class EcsService {
         return parameters;
     }
 
-    void changeBucketExpiration(String bucketName, String namespace, int days) throws URISyntaxException {
+    private void provideUserWithLifecycleManagementPolicy(String bucketName, String namespace, String user) {
         List<String> actions = new ArrayList<>();
         try {
             logger.debug("Checking lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
@@ -927,9 +928,12 @@ public class EcsService {
 
         if(!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG)) {
             logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
-            grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+            grantUserLifecycleManagementPolicy(bucketName, namespace, user);
         }
+    }
 
+    void changeBucketExpiration(String bucketName, String namespace, int days) throws URISyntaxException {
+        provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
         LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
 
         if (configuration == null || configuration.getRules() == null) {
@@ -949,6 +953,23 @@ public class EcsService {
             }
             logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
             BucketExpirationAction.update(broker, prefix(bucketName), days, rules);
+        }
+    }
+
+    void deleteCurrentExpirationRule(String bucketName, String namespace) throws URISyntaxException {
+        provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
+
+        if (configuration != null && configuration.getRules() != null) {
+            List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());
+            for (LifecycleRule rule: rules) {
+                if (rule.getStatus() == LifecycleRule.Status.Enabled && rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX)) {
+                    logger.info("Removing bucket expiration {} days on '{}' bucket ", rule.getExpirationDays(), bucketName);
+                    rules.remove(rule);
+                    BucketExpirationAction.delete(broker, prefix(bucketName), rule.getId(), rules);
+                    return;
+                }
+            }
         }
     }
 

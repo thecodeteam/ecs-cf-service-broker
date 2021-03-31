@@ -55,4 +55,23 @@ public final class BucketExpirationAction {
 
         return lifecycle;
     }
+
+    public static void delete(BrokerConfig broker, String bucketName, String ruleId, List<LifecycleRule> rules) throws URISyntaxException {
+        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
+        s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
+        S3Client s3Client = new S3JerseyClient(s3Config);
+
+        for (LifecycleRule rule: rules) {
+            if (rule.getId().equals(ruleId)) {
+                rules.remove(rule);
+                break;
+            }
+        }
+
+        if (rules.isEmpty()) {
+            s3Client.deleteBucketLifecycle(bucketName);
+        } else {
+            s3Client.setBucketLifecycle(bucketName, new LifecycleConfiguration().withRules(rules));
+        }
+    }
 }

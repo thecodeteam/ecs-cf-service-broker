@@ -495,6 +495,9 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(null);
         setupDeleteBucketQuotaTest();
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
+
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
 
@@ -522,6 +525,8 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(100, 80);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2);
@@ -565,6 +570,9 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(5, 4);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
+
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
@@ -607,6 +615,8 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(null);
         setupCreateBucketQuotaTest(5, 4);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -644,6 +654,8 @@ public class EcsServiceTest {
         params.put(DEFAULT_RETENTION, THIRTY_DAYS_IN_SEC);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC + 100);
         setupDeleteBucketQuotaTest();
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -674,6 +686,8 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(null);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -708,6 +722,8 @@ public class EcsServiceTest {
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
         setupChangeBucketTagsTest(currentTags);
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -743,6 +759,8 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(currentMetadataList);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -779,6 +797,8 @@ public class EcsServiceTest {
         setupSearchMetadataCheckTest(currentMetadataList);
         setupCreateBucketRetentionTest(THIRTY_DAYS_IN_SEC);
         setupDeleteBucketQuotaTest();
+        setupBucketPolicyTest(null, null);
+        setupChangeExpirationTest(0, 0, 0, null);
 
         ServiceDefinitionProxy service = bucketServiceFixture();
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
@@ -1989,6 +2009,138 @@ public class EcsServiceTest {
         assertTrue(CollectionUtils.isEqualCollection(expectedMetadata, resultMetadata));
     }
 
+    /**
+     * A service can delete Lifecycle rule managing expiration from set of rules specified to the bucket.
+     *
+     * @throws Exception on mocking called classes
+     */
+    @Test
+    public void deleteCurrentExpirationRuleTest() throws Exception {
+        setupChangeExpirationTest(0, THIRTY, RULES_NUMBER, PREFIX + BUCKET_NAME);
+        setupBucketPolicyTest(getLifecyclePolicyActions(), PREFIX + BUCKET_NAME);
+
+        ecs.deleteCurrentExpirationRule(BUCKET_NAME, NAMESPACE_NAME);
+
+        ArgumentCaptor<String> bucketCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.get(same(connection), bucketCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(1));
+        BucketExpirationAction.get(same(broker), bucketCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(1));
+        BucketExpirationAction.delete(same(broker), bucketCaptor.capture(), ruleIdCaptor.capture(), rulesCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertTrue(ruleIdCaptor.getValue().startsWith(BucketExpirationAction.RULE_PREFIX));
+
+        List<LifecycleRule> capturedRules = rulesCaptor.getValue();
+
+        assertEquals(RULES_NUMBER - 1, capturedRules.size());
+        for (LifecycleRule rule: capturedRules) {
+            assertNull(rule.getExpirationDays());
+            assertFalse(rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX));
+        }
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(0));
+        BucketExpirationAction.update(same(broker), bucketCaptor.capture(), anyInt(), rulesCaptor.capture());
+    }
+
+    /**
+     * The method will not delete expiration managing rule if there is no rules specified to the bucket.
+     *
+     * @throws Exception on mocking called classes
+     */
+    @Test
+    public void deleteCurrentExpirationRuleTestNoRules() throws Exception {
+        setupChangeExpirationTest(0, 0, 0, PREFIX + BUCKET_NAME);
+        setupBucketPolicyTest(getLifecyclePolicyActions(), PREFIX + BUCKET_NAME);
+
+        ecs.deleteCurrentExpirationRule(BUCKET_NAME, NAMESPACE_NAME);
+
+        ArgumentCaptor<String> bucketCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.get(same(connection), bucketCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(1));
+        BucketExpirationAction.get(same(broker), bucketCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(0));
+        BucketExpirationAction.delete(same(broker), bucketCaptor.capture(), ruleIdCaptor.capture(), rulesCaptor.capture());
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(0));
+        BucketExpirationAction.update(same(broker), bucketCaptor.capture(), anyInt(), rulesCaptor.capture());
+    }
+
+    /**
+     * The method will not delete expiration managing rule
+     * if there is no expiration managing rules specified to the bucket.
+     *
+     * @throws Exception on mocking called classes
+     */
+    @Test
+    public void deleteCurrentExpirationRuleTestOneRule() throws Exception {
+        setupChangeExpirationTest(0, 0, RULES_NUMBER, PREFIX + BUCKET_NAME);
+        setupBucketPolicyTest(getLifecyclePolicyActions(), PREFIX + BUCKET_NAME);
+
+        ecs.deleteCurrentExpirationRule(BUCKET_NAME, NAMESPACE_NAME);
+
+        ArgumentCaptor<String> bucketCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.get(same(connection), bucketCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(1));
+        BucketExpirationAction.get(same(broker), bucketCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(0));
+        BucketExpirationAction.delete(same(broker), bucketCaptor.capture(), ruleIdCaptor.capture(), rulesCaptor.capture());
+
+        PowerMockito.verifyStatic(BucketExpirationAction.class, times(0));
+        BucketExpirationAction.update(same(broker), bucketCaptor.capture(), anyInt(), rulesCaptor.capture());
+    }
+
     private void setupInitTest() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = new DataServiceReplicationGroup();
         rg.setName(RG_NAME);
@@ -2202,6 +2354,7 @@ public class EcsServiceTest {
         PowerMockito.when(BucketExpirationAction.class, GET, any(BrokerConfig.class), eq(bucket))
                 .thenReturn(generateLifecycleConfiguration(rulesNumber, currentDays, bucket));
         PowerMockito.doNothing().when(BucketExpirationAction.class, UPDATE, any(BrokerConfig.class), anyString(), eq(desiredDays), any());
+        PowerMockito.doNothing().when(BucketExpirationAction.class, DELETE, any(BrokerConfig.class), anyString(), anyString(), any());
     }
 
     private void setupBucketPolicyTest(List<String> actions, String bucket) throws Exception {
