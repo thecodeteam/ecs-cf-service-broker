@@ -6,6 +6,9 @@ import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
+import com.emc.ecs.servicebroker.service.s3.BucketExpirationAction;
+import com.emc.object.s3.bean.LifecycleConfiguration;
+import com.emc.object.s3.bean.LifecycleRule;
 import org.springframework.cloud.servicebroker.model.binding.*;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
@@ -84,6 +87,7 @@ public class Fixtures {
     public static final String USER_METADATA_NAME = "my_meta";
     public static final String USER_METADATA_TYPE = "String";
     public static final String INVALID_METADATA_TYPE = "invalid_data_type";
+    public static final String NON_LC_RULE_PREFIX = "non_lifecycle_rule_prefix";
 
     public static ServiceDefinitionProxy bucketServiceFixture() {
         /*
@@ -593,5 +597,39 @@ public class Fixtures {
         tags.add(tag2);
         tags.add(tag3);
         return tags;
+    }
+
+    public static LifecycleConfiguration generateLifecycleConfiguration(int rulesNumber, int expirationDays, String bucket) {
+        if (rulesNumber == 0) {
+            return null;
+        }
+        LifecycleRule expirationRule = new LifecycleRule(BucketExpirationAction.RULE_PREFIX + UUID.randomUUID().toString(), '0' + bucket, LifecycleRule.Status.Enabled)
+            .withExpirationDays(expirationDays);
+
+        if (expirationDays != 0 & rulesNumber == 1) {
+            return new LifecycleConfiguration().withRules(expirationRule);
+        }
+
+        int nonExpirationRules = expirationDays == 0 ? rulesNumber : rulesNumber - 1;
+
+        LifecycleRule[] rules = new LifecycleRule[rulesNumber];
+        for (int i = 0; i < nonExpirationRules; i++) {
+            rules[i] = new LifecycleRule(NON_LC_RULE_PREFIX + UUID.randomUUID().toString(), i + bucket,
+                    i % 2 == 0 ? LifecycleRule.Status.Disabled : LifecycleRule.Status.Enabled);
+        }
+
+        if (expirationDays != 0) {
+            rules[rulesNumber - 1] = expirationRule;
+        }
+
+        return new LifecycleConfiguration().withRules(rules);
+    }
+
+    public static List<String> getLifecyclePolicyActions() {
+        List<String> actions = new ArrayList<>();
+        actions.add(S3_ACTION_GET_BUCKET_POLICY);
+        actions.add(S3_ACTION_GET_LC_CONFIG);
+        actions.add(S3_ACTION_PUT_LC_CONFIG);
+        return actions;
     }
 }

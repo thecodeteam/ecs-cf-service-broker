@@ -731,7 +731,7 @@ public class EcsService {
 
         String statementId = "Grant permission for lifecycle configuration to " + username;
         BucketPolicy policy = new BucketPolicy(
-                "2012-10-17",
+                BUCKET_POLICY_VERSION,
                 "LifecycleManagementBucketPolicy",
                 new BucketPolicyStatement(statementId,
                         new BucketPolicyEffect("Allow"),
@@ -921,7 +921,7 @@ public class EcsService {
             logger.debug("Checking lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
             BucketPolicyStatement bucketPolicyStatement = BucketPolicyAction.get(connection, prefix(bucketName), namespace).getBucketPolicyStatement();
             actions = bucketPolicyStatement.getBucketPolicyAction();
-        } catch (EcsManagementClientException | MessageBodyProviderNotFoundException e) {
+        } catch (RuntimeException e) {
             logger.debug("Object user '{}' does not have reading bucket policy permissions", prefix(broker.getRepositoryUser()));
         }
 
@@ -932,11 +932,11 @@ public class EcsService {
 
         LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
 
-        if (configuration == null | configuration.getRules() == null) {
+        if (configuration == null || configuration.getRules() == null) {
             logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
             BucketExpirationAction.update(broker, prefix(bucketName), days, null);
         } else {
-            List<LifecycleRule> rules = configuration.getRules();
+            List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());
             for (LifecycleRule rule: rules) {
                 if (rule.getStatus() == LifecycleRule.Status.Enabled && rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX)) {
                     if (rule.getExpirationDays() != days) {

@@ -71,6 +71,7 @@ public class Constants {
 
     public static final String HEAD_TYPE_S3 = "s3";
 
+    public static final String BUCKET_POLICY_VERSION = "2012-10-17";
     public static final String S3_ACTION_PUT_LC_CONFIG = "s3:PutLifecycleConfiguration";
     public static final String S3_ACTION_GET_LC_CONFIG = "s3:GetLifecycleConfiguration";
     public static final String S3_ACTION_GET_BUCKET_POLICY = "s3:GetBucketPolicy";
