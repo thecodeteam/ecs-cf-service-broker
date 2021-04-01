@@ -823,11 +823,6 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketExpirationTestNoRules() throws Exception {
-        // no Policy -> grantPolicy & update w null rules
-//        setupGetBucketPolicyTest(null, BUCKET_NAME);
-//        setupUpdateBucketPolicyTest();
-//        setupGetExpirationTest(0, 0, PREFIX + BUCKET_NAME);
-//        setupUpdateExpirationTest(THIRTY);
         setupChangeExpirationTest(THIRTY, 0, 0, PREFIX + BUCKET_NAME);
         setupBucketPolicyTest(null, BUCKET_NAME);
 
@@ -875,7 +870,6 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketExpirationTestNoExpirationRules() throws Exception {
-        // Policy -> no grantPolicy & update w old rules
         setupChangeExpirationTest(THIRTY, 0, RULES_NUMBER, PREFIX + BUCKET_NAME);
         setupBucketPolicyTest(getLifecyclePolicyActions(), PREFIX + BUCKET_NAME);
 
@@ -925,7 +919,6 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketExpirationTestUpdateRule() throws Exception {
-        // Policy -> no grantPolicy & update w old rules - prev rule
         setupChangeExpirationTest(THIRTY, TEN, RULES_NUMBER, PREFIX + BUCKET_NAME);
         setupBucketPolicyTest(getLifecyclePolicyActions(), PREFIX + BUCKET_NAME);
 
@@ -975,7 +968,6 @@ public class EcsServiceTest {
      */
     @Test
     public void changeBucketExpirationTestSameDays() throws Exception {
-            // Policy -> no grantPolicy & no update
         setupChangeExpirationTest(THIRTY, THIRTY, RULES_NUMBER, PREFIX + BUCKET_NAME);
         setupBucketPolicyTest(getLifecyclePolicyActions(), PREFIX + BUCKET_NAME);
 
