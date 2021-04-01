@@ -41,8 +41,9 @@ public final class BucketExpirationAction {
     }
 
     public static LifecycleConfiguration get(BrokerConfig broker, String bucketName) throws URISyntaxException {
-        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
-        s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
+        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()))
+                .withIdentity(broker.getPrefixedUserName())
+                .withSecretKey(broker.getRepositorySecret());
         S3Client s3Client = new S3JerseyClient(s3Config);
 
         LifecycleConfiguration lifecycle;

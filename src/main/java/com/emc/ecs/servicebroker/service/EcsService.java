@@ -130,17 +130,24 @@ public class EcsService {
             parameters = mergeParameters(broker, serviceDefinition, plan, parameters);
             parameters = validateAndPrepareSearchMetadata(parameters);
 
+            // Validate the reclaim-policy
+            if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
+                throw new ServiceBrokerInvalidParametersException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
+            }
+
+            // Validate expiration policy
+            if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
+                if ((boolean) parameters.get(FILE_ACCESSIBLE)) {
+                    throw new ServiceBrokerInvalidParametersException("Cannot apply expiration rule to file accessible bucket");
+                }
+            }
+
             logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
 
             String namespace = (String) parameters.get(NAMESPACE);
 
             if (bucketExists(bucketName, namespace)) {
                 throw new ServiceInstanceExistsException(serviceInstanceId, serviceDefinition.getId());
-            }
-
-            // Validate the reclaim-policy
-            if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
-                throw new ServiceBrokerInvalidParametersException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
             }
 
             DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
@@ -170,12 +177,6 @@ public class EcsService {
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
-                if ((boolean) parameters.get(FILE_ACCESSIBLE) == true) {
-                    String message = "Cannot apply expiration to file accessible bucket" + bucketName;
-                    logger.error(message);
-                    throw new EcsManagementClientException(message);
-                }
-                logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
                 grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
                 logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
                 BucketExpirationAction.update(broker, prefix(bucketName), (int) parameters.get(EXPIRATION), null);
@@ -552,7 +553,7 @@ public class EcsService {
                 }
 
                 String type = metadata.computeIfAbsent(SEARCH_METADATA_TYPE, s ->
-                    SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
+                        SystemMetadataName.isSystemMetadata(name) ? SEARCH_METADATA_TYPE_SYSTEM : SEARCH_METADATA_TYPE_USER
                 );
 
                 switch (type) {
@@ -725,21 +726,24 @@ public class EcsService {
     }
 
     void grantUserLifecycleManagementPolicy(String bucket, String namespace, String username) {
-        List<String> actions = new ArrayList<>();
-        actions.add(S3_ACTION_PUT_LC_CONFIG);
-        actions.add(S3_ACTION_GET_LC_CONFIG);
-        actions.add(S3_ACTION_GET_BUCKET_POLICY);
+        logger.info("Granting lifecycle management bucket policy on bucket '{}' to user '{}'", prefix(bucket), username);
 
-        String statementId = "Grant permission for lifecycle configuration to " + username;
         BucketPolicy policy = new BucketPolicy(
                 BUCKET_POLICY_VERSION,
                 "LifecycleManagementBucketPolicy",
-                new BucketPolicyStatement(statementId,
+                new BucketPolicyStatement(
+                        "Grant permission for lifecycle configuration to " + username,
                         new BucketPolicyEffect("Allow"),
                         new BucketPolicyPrincipal(username),
-                        new BucketPolicyActions(actions),
+                        new BucketPolicyActions(Arrays.asList(
+                                S3_ACTION_PUT_LC_CONFIG,
+                                S3_ACTION_GET_LC_CONFIG,
+                                S3_ACTION_GET_BUCKET_POLICY
+                        )),
                         new BucketPolicyResource(Collections.singletonList(prefix(bucket)))
-                ));
+                )
+        );
+
         BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
     }
 
@@ -751,16 +755,16 @@ public class EcsService {
      * since service settings are forced by administrator through the catalog
      */
     static List<Map<String, String>> mergeBucketTags(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters) {
-        List<Map<String, String>> serviceTags = (List<Map<String, String>>)service.getServiceSettings().get(TAGS);
-        List<Map<String, String>> planTags = (List<Map<String, String>>)plan.getServiceSettings().get(TAGS);
-        List<Map<String, String>> requestedTags = (List<Map<String, String>>)requestParameters.get(TAGS);
+        List<Map<String, String>> serviceTags = (List<Map<String, String>>) service.getServiceSettings().get(TAGS);
+        List<Map<String, String>> planTags = (List<Map<String, String>>) plan.getServiceSettings().get(TAGS);
+        List<Map<String, String>> requestedTags = (List<Map<String, String>>) requestParameters.get(TAGS);
         List<Map<String, String>> unmatchedTags;
 
         if (planTags != null && serviceTags != null) {
             unmatchedTags = new ArrayList<>(planTags);
 
-            for (Map<String, String> planTag: planTags) {
-                for (Map<String, String> serviceTag: serviceTags) {
+            for (Map<String, String> planTag : planTags) {
+                for (Map<String, String> serviceTag : serviceTags) {
                     if (planTag.get(KEY).equals(serviceTag.get(KEY))) {
                         unmatchedTags.remove(planTag);
                     }
@@ -775,8 +779,8 @@ public class EcsService {
         if (requestedTags != null && serviceTags != null) {
             unmatchedTags = new ArrayList<>(requestedTags);
 
-            for (Map<String, String> requestedTag: requestedTags) {
-                for (Map<String, String> serviceTag: serviceTags) {
+            for (Map<String, String> requestedTag : requestedTags) {
+                for (Map<String, String> serviceTag : serviceTags) {
                     if (requestedTag.get(KEY).equals(serviceTag.get(KEY))) {
                         unmatchedTags.remove(requestedTag);
                         break;
@@ -800,7 +804,7 @@ public class EcsService {
      */
     static List<Map<String, String>> mergeSearchMetadata(ServiceDefinitionProxy service, Map<String, Object> requestParameters) {
         List<Map<String, String>> serviceMetadata = (List<Map<String, String>>) service.getServiceSettings().get(SEARCH_METADATA);
-        List<Map<String, String>> requestedMetadata = (List<Map<String, String>>)requestParameters.get(SEARCH_METADATA);
+        List<Map<String, String>> requestedMetadata = (List<Map<String, String>>) requestParameters.get(SEARCH_METADATA);
 
         if (serviceMetadata == null) {
             return requestedMetadata;
@@ -808,8 +812,8 @@ public class EcsService {
             return serviceMetadata;
         } else {
             List<Map<String, String>> unmatchedMetadata = new ArrayList<>(requestedMetadata);
-            for (Map<String, String> requestedMetadatum: requestedMetadata) {
-                for (Map<String, String> serviceMetadatum: serviceMetadata) {
+            for (Map<String, String> requestedMetadatum : requestedMetadata) {
+                for (Map<String, String> serviceMetadatum : serviceMetadata) {
                     if (requestedMetadatum.get(SEARCH_METADATA_NAME).equals(serviceMetadatum.get(SEARCH_METADATA_NAME))) {
                         unmatchedMetadata.remove(requestedMetadatum);
                         break;
@@ -919,15 +923,17 @@ public class EcsService {
     private void provideUserWithLifecycleManagementPolicy(String bucketName, String namespace, String user) {
         List<String> actions = new ArrayList<>();
         try {
-            logger.debug("Checking lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
+            logger.debug("Checking lifecycle management bucket policy on '{}'({}) with user '{}'", prefix(bucketName), namespace, prefix(broker.getRepositoryUser()));
             BucketPolicyStatement bucketPolicyStatement = BucketPolicyAction.get(connection, prefix(bucketName), namespace).getBucketPolicyStatement();
             actions = bucketPolicyStatement.getBucketPolicyAction();
         } catch (RuntimeException e) {
-            logger.debug("Object user '{}' does not have reading bucket policy permissions", prefix(broker.getRepositoryUser()));
+            logger.debug(
+                    "Object user '{}' does not have reading bucket policy permissions for bucket '{}' in namespace '{}'",
+                    prefix(broker.getRepositoryUser()), prefix(bucketName), namespace
+            );
         }
 
-        if(!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG)) {
-            logger.info("Granting lifecycle management bucket policy to object user '{}'", prefix(broker.getRepositoryUser()));
+        if (!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG)) {
             grantUserLifecycleManagementPolicy(bucketName, namespace, user);
         }
     }
@@ -941,7 +947,7 @@ public class EcsService {
             BucketExpirationAction.update(broker, prefix(bucketName), days, null);
         } else {
             List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());
-            for (LifecycleRule rule: rules) {
+            for (LifecycleRule rule : rules) {
                 if (rule.getStatus() == LifecycleRule.Status.Enabled && rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX)) {
                     if (rule.getExpirationDays() != days) {
                         logger.info("Changing bucket expiration on '{}': {} days instead of {} days", bucketName, days, rule.getExpirationDays());
@@ -958,13 +964,14 @@ public class EcsService {
 
     void deleteCurrentExpirationRule(String bucketName, String namespace) throws URISyntaxException {
         provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+
         LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
 
         if (configuration != null && configuration.getRules() != null) {
             List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());
-            for (LifecycleRule rule: rules) {
+            for (LifecycleRule rule : rules) {
                 if (rule.getStatus() == LifecycleRule.Status.Enabled && rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX)) {
-                    logger.info("Removing bucket expiration {} days on '{}' bucket ", rule.getExpirationDays(), bucketName);
+                    logger.info("Removing bucket expiration rule on bucket '{}' in '{}' ({} days)", prefix(bucketName), namespace, rule.getExpirationDays());
                     rules.remove(rule);
                     BucketExpirationAction.delete(broker, prefix(bucketName), rule.getId(), rules);
                     return;
@@ -986,8 +993,8 @@ public class EcsService {
                     SearchMetadata metadata1 = list1.get(i);
                     SearchMetadata metadata2 = list2.get(i);
                     if (!metadata1.getName().equalsIgnoreCase(metadata2.getName()) ||
-                        !metadata1.getType().equalsIgnoreCase(metadata2.getType()) ||
-                        !metadata1.getDatatype().equalsIgnoreCase(metadata2.getDatatype())) {
+                            !metadata1.getType().equalsIgnoreCase(metadata2.getType()) ||
+                            !metadata1.getDatatype().equalsIgnoreCase(metadata2.getDatatype())) {
                         return false;
                     }
                 }
