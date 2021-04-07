@@ -106,6 +106,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 
     private BindingWorkflow getWorkflow(DeleteServiceInstanceBindingRequest deleteRequest, ServiceInstanceBinding existingBinding) throws EcsManagementClientException, IOException {
         if (isRemoteConnectBinding(deleteRequest)) {
+            LOG.info("Remote-connect workflow for binding delete request");
             return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withDeleteRequest(deleteRequest, existingBinding);
         }
         ServiceDefinitionProxy service = ecs.lookupServiceDefinition(deleteRequest.getServiceDefinitionId());
@@ -114,6 +115,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 
     private BindingWorkflow getWorkflow(CreateServiceInstanceBindingRequest createRequest) throws EcsManagementClientException, IOException {
         if (isRemoteConnectBinding(createRequest)) {
+            LOG.info("Remote-connect workflow for binding create request");
             return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withCreateRequest(createRequest);
         }
         ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
