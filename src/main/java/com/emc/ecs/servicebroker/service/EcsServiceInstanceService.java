@@ -205,8 +205,10 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     }
 
     private InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest) throws EcsManagementClientException {
-        if (isRemoteConnection(createRequest))
+        if (isRemoteConnection(createRequest)) {
+            LOG.info("Remote-connect workflow for instance create request");
             return new RemoteConnectionInstanceWorkflow(repository, ecs);
+        }
         ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
         return getWorkflow(service);
     }
