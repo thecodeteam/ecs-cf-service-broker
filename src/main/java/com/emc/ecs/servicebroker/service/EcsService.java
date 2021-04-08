@@ -940,7 +940,7 @@ public class EcsService {
 
     void changeBucketExpiration(String bucketName, String namespace, int days) throws URISyntaxException {
         provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
-        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
+        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName), null);
 
         if (configuration == null || configuration.getRules() == null) {
             logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
@@ -965,7 +965,7 @@ public class EcsService {
     void deleteCurrentExpirationRule(String bucketName, String namespace) throws URISyntaxException {
         provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
 
-        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName));
+        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName), null);
 
         if (configuration != null && configuration.getRules() != null) {
             List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());

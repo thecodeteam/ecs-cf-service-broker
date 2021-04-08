@@ -40,16 +40,13 @@ public final class BucketExpirationAction {
         }
     }
 
-    public static LifecycleConfiguration get(BrokerConfig broker, String bucketName) throws URISyntaxException {
-        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()))
-                .withIdentity(broker.getPrefixedUserName())
-                .withSecretKey(broker.getRepositorySecret());
-        S3Client s3Client = new S3JerseyClient(s3Config);
+    public static LifecycleConfiguration get(BrokerConfig broker, String namespace, String bucketName) throws URISyntaxException {
+        S3Client s3Client = generateS3Config(broker, namespace, bucketName);
 
         LifecycleConfiguration lifecycle;
         try {
             lifecycle = s3Client.getBucketLifecycle(bucketName);
-        } catch (S3Exception exception) {
+        } catch (Exception exception) { //TODO: S3Exception!
             logger.debug("Object user '{}' does not have Lifecycle Management policy on bucket '{}'", broker.getPrefixedUserName(), bucketName);
             return null;
         }
@@ -74,5 +71,15 @@ public final class BucketExpirationAction {
         } else {
             s3Client.setBucketLifecycle(bucketName, new LifecycleConfiguration().withRules(rules));
         }
+    }
+
+    private static S3Client generateS3Config(BrokerConfig broker, String namespace, String bucketName) throws URISyntaxException {
+        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()))
+                .withIdentity(broker.getPrefixedUserName())
+                .withSecretKey(broker.getRepositorySecret());
+        if (namespace != null) {
+            s3Config.setNamespace(namespace);
+        }
+        return new S3JerseyClient(s3Config);
     }
 }
