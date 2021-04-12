@@ -177,9 +177,9 @@ public class EcsService {
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
-                grantUserLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+                grantUserLifecycleManagementPolicy(prefix(bucketName), namespace, prefix(broker.getRepositoryUser()));
                 logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
-                BucketExpirationAction.update(broker, prefix(bucketName), (int) parameters.get(EXPIRATION), null);
+                BucketExpirationAction.update(broker, namespace, prefix(bucketName), (int) parameters.get(EXPIRATION), null);
             }
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
@@ -218,12 +218,12 @@ public class EcsService {
                 BucketQuotaAction.create(connection, namespace, prefix(bucketName), limit, warn);
             }
 
-            DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection, broker.getNamespace(), prefix(bucketName));
+            DefaultBucketRetention currentRetention = BucketRetentionAction.get(connection, namespace, prefix(bucketName));
             int newRetention = (int) parameters.getOrDefault(DEFAULT_RETENTION, 0);
 
             if (currentRetention.getPeriod() != newRetention) {
                 logger.info("Setting bucket retention policy on '{}': {} instead of {}", prefix(bucketName), newRetention, currentRetention.getPeriod());
-                BucketRetentionAction.update(connection, broker.getNamespace(), prefix(bucketName), newRetention);
+                BucketRetentionAction.update(connection, namespace, prefix(bucketName), newRetention);
                 parameters.put(DEFAULT_RETENTION, newRetention);
             }
 
@@ -233,11 +233,11 @@ public class EcsService {
 
             parameters = validateAndPrepareSearchMetadata(parameters);
             List<SearchMetadata> requestedSearchMetadataList = (List<SearchMetadata>) parameters.get(SEARCH_METADATA);
-            List<SearchMetadata> currentSearchMetadataList = BucketAction.get(connection, prefix(bucketName), broker.getNamespace()).getSearchMetadataList();
+            List<SearchMetadata> currentSearchMetadataList = BucketAction.get(connection, prefix(bucketName), namespace).getSearchMetadataList();
 
             if (!isEqualSearchMetadataList(requestedSearchMetadataList, currentSearchMetadataList)) {
                 logger.info("Removing search metadata from '{}' in '{}'", prefix(bucketName), namespace);
-                SearchMetadataAction.delete(connection, prefix(bucketName), broker.getNamespace());
+                SearchMetadataAction.delete(connection, prefix(bucketName), namespace);
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
@@ -725,8 +725,8 @@ public class EcsService {
                 .orElseThrow(() -> new ServiceBrokerException("ECS replication group not found: " + replicationGroup));
     }
 
-    void grantUserLifecycleManagementPolicy(String bucket, String namespace, String username) {
-        logger.info("Granting lifecycle management bucket policy on bucket '{}' to user '{}'", prefix(bucket), username);
+    public void grantUserLifecycleManagementPolicy(String prefixedBucket, String namespace, String username) {
+        logger.info("Granting lifecycle management bucket policy on bucket '{}' to user '{}'", prefixedBucket, username);
 
         BucketPolicy policy = new BucketPolicy(
                 BUCKET_POLICY_VERSION,
@@ -740,11 +740,11 @@ public class EcsService {
                                 S3_ACTION_GET_LC_CONFIG,
                                 S3_ACTION_GET_BUCKET_POLICY
                         )),
-                        new BucketPolicyResource(Collections.singletonList(prefix(bucket)))
+                        new BucketPolicyResource(Collections.singletonList(prefixedBucket))
                 )
         );
 
-        BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
+        BucketPolicyAction.update(connection, prefixedBucket, policy, namespace);
     }
 
     /**
@@ -934,17 +934,17 @@ public class EcsService {
         }
 
         if (!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG)) {
-            grantUserLifecycleManagementPolicy(bucketName, namespace, user);
+            grantUserLifecycleManagementPolicy(prefix(bucketName), namespace, user);
         }
     }
 
     void changeBucketExpiration(String bucketName, String namespace, int days) throws URISyntaxException {
         provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
-        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName), null);
+        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, namespace, prefix(bucketName));
 
         if (configuration == null || configuration.getRules() == null) {
             logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
-            BucketExpirationAction.update(broker, prefix(bucketName), days, null);
+            BucketExpirationAction.update(broker, namespace, prefix(bucketName), days, null);
         } else {
             List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());
             for (LifecycleRule rule : rules) {
@@ -952,20 +952,20 @@ public class EcsService {
                     if (rule.getExpirationDays() != days) {
                         logger.info("Changing bucket expiration on '{}': {} days instead of {} days", bucketName, days, rule.getExpirationDays());
                         rules.remove(rule);
-                        BucketExpirationAction.update(broker, prefix(bucketName), days, rules);
+                        BucketExpirationAction.update(broker, namespace, prefix(bucketName), days, rules);
                     }
                     return;
                 }
             }
             logger.info("Applying bucket expiration on '{}': {} days", bucketName, days);
-            BucketExpirationAction.update(broker, prefix(bucketName), days, rules);
+            BucketExpirationAction.update(broker, namespace, prefix(bucketName), days, rules);
         }
     }
 
     void deleteCurrentExpirationRule(String bucketName, String namespace) throws URISyntaxException {
         provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
 
-        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, prefix(bucketName), null);
+        LifecycleConfiguration configuration = BucketExpirationAction.get(broker, namespace, prefix(bucketName));
 
         if (configuration != null && configuration.getRules() != null) {
             List<LifecycleRule> rules = new ArrayList<>(configuration.getRules());
@@ -973,7 +973,7 @@ public class EcsService {
                 if (rule.getStatus() == LifecycleRule.Status.Enabled && rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX)) {
                     logger.info("Removing bucket expiration rule on bucket '{}' in '{}' ({} days)", prefix(bucketName), namespace, rule.getExpirationDays());
                     rules.remove(rule);
-                    BucketExpirationAction.delete(broker, prefix(bucketName), rule.getId(), rules);
+                    BucketExpirationAction.delete(broker, namespace, prefix(bucketName), rule.getId(), rules);
                     return;
                 }
             }

@@ -20,13 +20,11 @@ public final class BucketExpirationAction {
     private static final Logger logger = LoggerFactory.getLogger(BucketExpirationAction.class);
     public static String RULE_PREFIX = "broker-lifecycle-rule-";
 
-    public static void update(BrokerConfig broker, String bucketName, int days, List<LifecycleRule> currentRules) throws URISyntaxException {
+    public static void update(BrokerConfig broker, String namespace, String bucketName, int days, List<LifecycleRule> currentRules) throws URISyntaxException {
         if (days < 0) {
             throw new IllegalArgumentException("Invalid expiration days set on '" + bucketName + "' bucket: Expiration days could not be less then 0");
         }
-        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
-        s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
-        S3Client s3Client = new S3JerseyClient(s3Config);
+        S3Client s3Client = generateS3Config(broker, namespace, bucketName);
 
         LifecycleRule newRule = new LifecycleRule(RULE_PREFIX + UUID.randomUUID().toString(), '0' + bucketName, LifecycleRule.Status.Enabled)
                 .withExpirationDays(days);
@@ -54,10 +52,8 @@ public final class BucketExpirationAction {
         return lifecycle;
     }
 
-    public static void delete(BrokerConfig broker, String bucketName, String ruleId, List<LifecycleRule> rules) throws URISyntaxException {
-        S3Config s3Config = new S3Config(new URI(broker.getRepositoryEndpoint()));
-        s3Config.withIdentity(broker.getPrefixedUserName()).withSecretKey(broker.getRepositorySecret());
-        S3Client s3Client = new S3JerseyClient(s3Config);
+    public static void delete(BrokerConfig broker, String namespace, String bucketName, String ruleId, List<LifecycleRule> rules) throws URISyntaxException {
+        S3Client s3Client = generateS3Config(broker, namespace, bucketName);
 
         for (LifecycleRule rule: rules) {
             if (rule.getId().equals(ruleId)) {
