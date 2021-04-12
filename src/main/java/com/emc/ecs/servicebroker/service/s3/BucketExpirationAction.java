@@ -44,8 +44,8 @@ public final class BucketExpirationAction {
         LifecycleConfiguration lifecycle;
         try {
             lifecycle = s3Client.getBucketLifecycle(bucketName);
-        } catch (Exception exception) { //TODO: S3Exception!
-            logger.debug("Object user '{}' does not have Lifecycle Management policy on bucket '{}'", broker.getPrefixedUserName(), bucketName);
+        } catch (S3Exception exception) {
+            logger.warn("Object user '{}' does not have Lifecycle Management policy on bucket '{}'", broker.getPrefixedUserName(), bucketName);
             return null;
         }
 
