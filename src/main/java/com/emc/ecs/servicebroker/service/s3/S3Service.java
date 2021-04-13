@@ -1,4 +1,4 @@
-package com.emc.ecs.servicebroker.service;
+package com.emc.ecs.servicebroker.service.s3;
 
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.model.Constants;

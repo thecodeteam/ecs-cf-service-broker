@@ -21,7 +21,7 @@ public class BucketPolicy {
     }
 
     @JsonProperty("Version")
-    String getVersion() {
+    public String getVersion() {
         return version;
     }
 
@@ -30,7 +30,7 @@ public class BucketPolicy {
     }
 
     @JsonProperty("Id")
-    String getId() {
+    public String getId() {
         return id;
     }
 
@@ -39,7 +39,7 @@ public class BucketPolicy {
     }
 
     @JsonProperty("Statement")
-    BucketPolicyStatement getBucketPolicyStatement() {
+    public BucketPolicyStatement getBucketPolicyStatement() {
         return bucketPolicyStatement;
     }
 

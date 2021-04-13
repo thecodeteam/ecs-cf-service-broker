@@ -1,6 +1,6 @@
 package com.emc.ecs.servicebroker.repository;
 
-import com.emc.ecs.servicebroker.service.S3Service;
+import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.object.s3.bean.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
