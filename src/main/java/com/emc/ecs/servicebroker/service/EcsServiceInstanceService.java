@@ -19,6 +19,7 @@ import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +62,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
             PlanProxy plan = service.findPlan(planId);
 
-            LOG.info("Creating instance '{}' with service definition '{}'({}) and plan '{}'({})", serviceInstanceId, service.getName(), service.getId(), plan.getName(), planId);
+            LOG.info("Creating instance '{}' with service definition '{}'({}) and plan '{}'({})",
+                    serviceInstanceId, service.getName(), service.getId(), plan.getName(), planId);
 
             InstanceWorkflow workflow = getWorkflow(request).withCreateRequest(request);
             ServiceInstance instance = workflow.create(serviceInstanceId, service, plan, request.getParameters());
@@ -72,7 +74,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             return Mono.just(CreateServiceInstanceResponse.builder()
                     .async(false)
                     .build());
-        } catch (Exception e) {
+        } catch (ServiceBrokerException | IOException | JAXBException e) {
             String errorMessage = format("Error creating service %s: %s", serviceInstanceId, e.getMessage());
             LOG.error(errorMessage, e);
             throw new ServiceBrokerException(errorMessage, e);
@@ -90,9 +92,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
             InstanceWorkflow workflow = getWorkflow(service).withDeleteRequest(request);
 
-            ServiceInstance instance;
-
-            instance = repository.find(serviceInstanceId);
+            ServiceInstance instance = repository.find(serviceInstanceId);
             if (instance == null) {
                 LOG.info("Instance '{}' not found, assuming already deleted", serviceInstanceId);
                 return Mono.just(DeleteServiceInstanceResponse.builder().build());
@@ -135,11 +135,13 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String serviceDefinitionId = request.getServiceDefinitionId();
         try {
             ServiceInstance instance = repository.find(serviceInstanceId);
-            if (instance == null)
+            if (instance == null) {
                 throw new ServiceInstanceDoesNotExistException(serviceInstanceId);
+            }
 
-            if (instance.getReferences().size() > 1)
+            if (instance.getReferences().size() > 1) {
                 throw new ServiceInstanceUpdateNotSupportedException("Cannot change plan of service instance with remote references");
+            }
 
             ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
 
@@ -152,8 +154,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             Map<String, Object> serviceSettings = workflow.changePlan(serviceInstanceId, service, plan, request.getParameters());
 
             LOG.debug("Updating settings for instance '{}'", instance.getServiceInstanceId());
-            // This shouldn't be needed. The object will be re-versioned
-            // repository.delete(serviceInstanceId);
+
             instance.update(request, serviceSettings);
             repository.save(instance);
 
@@ -175,8 +176,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         try {
             ServiceInstance instance = repository.find(request.getServiceInstanceId());
 
-            if (instance == null)
+            if (instance == null) {
                 throw new ServiceInstanceDoesNotExistException(request.getServiceInstanceId());
+            }
 
             // No stored operation, assume succeeded
             LastOperationSerializer lastOperation = instance.getLastOperation();
@@ -203,8 +205,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     }
 
     private InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest) throws EcsManagementClientException {
-        if (isRemoteConnection(createRequest))
+        if (isRemoteConnection(createRequest)) {
             return new RemoteConnectionInstanceWorkflow(repository, ecs);
+        }
         ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
         return getWorkflow(service);
     }
@@ -243,12 +246,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
                 LOG.info("Setting last operation state 'Succeeded - Delete complete' on instance '{}'", instanceId);
                 instance.setLastOperation(new LastOperationSerializer(OperationState.SUCCEEDED, "Delete Complete", true));
             } else {
-                String errorMsg;
-                if (exception instanceof CompletionException && exception.getCause() != null) {
-                    errorMsg = exception.getCause().getMessage();
-                } else {
-                    errorMsg = exception.getMessage();
-                }
+                String errorMsg = exception instanceof CompletionException && exception.getCause() != null ?
+                        exception.getCause().getMessage() :
+                        exception.getMessage();
 
                 LOG.warn("Delete operation on instance '{}' failed: {}", instanceId, errorMsg);
                 instance.setLastOperation(new LastOperationSerializer(OperationState.FAILED, errorMsg, true));
