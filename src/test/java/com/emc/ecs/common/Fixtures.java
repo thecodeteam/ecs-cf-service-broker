@@ -599,6 +599,26 @@ public class Fixtures {
         return tags;
     }
 
+    /**
+     * This method is used to generate LifecycleConfiguration (LC) sent by ECS on 'GET /?lifecycle' requests.
+     * LC could contain several Lifecycle Rules (LR), number of which is described by rulesNumber parameter.
+     * <p>
+     * If expirationDays parameter equals:
+     * <ul>
+     *     <li><i>zero</i>: All LR in LC do not contain expiration information</li>
+     *     <li><i>not zero</i>: All LR in LC except one do not contain expiration information,
+     *     while one LR contain expiration information passed with expirationDays parameter</li>
+     * </ul>
+     * <p>
+     * ECS OSB identify expiration monitoring LR by Enabled status of LR and prefix of Rule id.
+     * This prefix is presented in static field BucketExpirationAction.RULE_PREFIX.
+     * Rules with other prefix (for example, presented in field NON_LC_RULE_PREFIX) are interpreted as non-expiration.
+     * <p>
+     * @param rulesNumber       number of Lifecycle Rules presented in Configuration
+     * @param expirationDays    number of expiration Days presented in LR monitoring bucket expiration
+     * @param bucket            bucket name
+     * @return instance of LifecycleConfiguration
+     */
     public static LifecycleConfiguration generateLifecycleConfiguration(int rulesNumber, int expirationDays, String bucket) {
         if (rulesNumber == 0) {
             return null;
