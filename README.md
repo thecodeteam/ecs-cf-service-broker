@@ -299,7 +299,7 @@ Pivotal Container Service.
 service:
 
 ```bash
-pcf-2$ cf create-service mybucket 5gb mybucket -c '{"remote_connection": {"accessKey": "...", "instanceId": "...", "secretKey": "..."}}'
+pcf-2$ cf create-service ecs-bucket 5gb mybucket -c '{"remote_connection": {"accessKey": "...", "instanceId": "...", "secretKey": "..."}}'
 ```
 
 When using multiple service-brokers, ensure that the service and plan definitions
