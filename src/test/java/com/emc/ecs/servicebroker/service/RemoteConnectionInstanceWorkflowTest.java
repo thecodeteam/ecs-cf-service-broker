@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.ServiceType;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
@@ -16,8 +17,7 @@ import java.util.Map;
 import static com.emc.ecs.common.Fixtures.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(Ginkgo4jRunner.class)
@@ -32,6 +32,12 @@ public class RemoteConnectionInstanceWorkflowTest {
     private ArgumentCaptor<ServiceInstance> instCap = ArgumentCaptor.forClass(ServiceInstance.class);
     private ServiceInstance localInst;
     private Map<String, Object> settings;
+
+    {
+        serviceProxy.getServiceSettings().put(SERVICE_TYPE, ServiceType.BUCKET.name());
+        serviceProxy.getServiceSettings().put(REPLICATION_GROUP, "someRG");
+        planProxy.getServiceSettings().put(ENCRYPTED, false);
+    }
 
     {
         Describe("RemoteConnectionInstanceWorkflow", () -> {
@@ -80,9 +86,8 @@ public class RemoteConnectionInstanceWorkflowTest {
                         try {
                             workflow.create(SERVICE_INSTANCE_ID, serviceProxy, planProxy, params);
                         } catch (ServiceBrokerException e) {
-                            String message = "Remotely connected service instance not found";
                             assertEquals(ServiceBrokerException.class, e.getClass());
-                            assertEquals(message, e.getMessage());
+                            assertTrue(e.getMessage().contains("Remotely connected service instance not found"));
                         }
                     });
 
@@ -137,8 +142,10 @@ public class RemoteConnectionInstanceWorkflowTest {
                         });
 
                         It("should save the remote service settings", () ->
-                                assertEquals(settings,
-                                        instCap.getValue().getServiceSettings()));
+                        {
+                            Map<String, Object> remoteInstanceSettings = instCap.getValue().getServiceSettings();
+                            assertEquals(settings, remoteInstanceSettings);
+                        });
 
                         It("should return the local instance", () ->
                                 assertEquals(SERVICE_INSTANCE_ID,

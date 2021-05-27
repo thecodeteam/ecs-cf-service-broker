@@ -35,9 +35,9 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
     @Override
     public ServiceInstance create(String id, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException {
-        Map<String, String> remoteConnection = getRemoteConnection(parameters);
-        ServiceInstance remoteInstance = getRemoteInstance(remoteConnection);
-        validateCredentials(remoteInstance, remoteConnection);
+        Map<String, String> remoteConnectionParams = getRemoteConnectionParams(parameters);
+        ServiceInstance remoteInstance = getRemoteInstance(remoteConnectionParams);
+        validateCredentials(remoteInstance, remoteConnectionParams);
         validateSettings(remoteInstance, serviceDef, plan, parameters);
 
         remoteInstance.addReference(instanceId);
@@ -50,34 +50,51 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
         return newInstance;
     }
 
-    private Map<String,String> getRemoteConnection(Map<String, Object> parameters) {
+    private Map<String,String> getRemoteConnectionParams(Map<String, Object> parameters) {
         @SuppressWarnings({"unchecked"})
         Map<String, String> remoteConnection =  (Map<String, String>) parameters.get(REMOTE_CONNECTION);
+
+        if (remoteConnection == null) {
+            throw new ServiceBrokerException("Missing " + REMOTE_CONNECTION + " map in request parameters");
+        }
+
+        if (!remoteConnection.containsKey(CREDENTIALS_INSTANCE_ID)) {
+            throw new ServiceBrokerException("Missing " + CREDENTIALS_INSTANCE_ID + " value in " + REMOTE_CONNECTION + " map");
+        }
+
+        if (!remoteConnection.containsKey(CREDENTIALS_ACCESS_KEY)) {
+            throw new ServiceBrokerException("Missing " + CREDENTIALS_ACCESS_KEY + " value in " + REMOTE_CONNECTION + " map");
+        }
+
+        if (!remoteConnection.containsKey(CREDENTIALS_SECRET_KEY)) {
+            throw new ServiceBrokerException("Missing " + CREDENTIALS_SECRET_KEY + " value in " + REMOTE_CONNECTION + " map");
+        }
+
         return remoteConnection;
     }
 
     private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) {
         Map<String, Object> settings = ecs.mergeParameters(serviceDef, plan, parameters);
 
-        Map<String, MapDifference.ValueDifference<Object>> settingsDiff =
-                Maps.difference(settings, remoteInstance.getServiceSettings()).entriesDiffering();
-        if (! settingsDiff.isEmpty())
+        Map<String, MapDifference.ValueDifference<Object>> settingsDiff = Maps.difference(settings, remoteInstance.getServiceSettings()).entriesDiffering();
+        if (!settingsDiff.isEmpty()) {
             throw new ServiceBrokerException("service definition must match between local and remote instances");
-
+        }
     }
 
-    private ServiceInstance getRemoteInstance(Map<String, String> remoteConnection) throws IOException {
-        String remoteInstanceId = remoteConnection.get(CREDENTIALS_INSTANCE_ID);
+    private ServiceInstance getRemoteInstance(Map<String, String> remoteConnectionParams) throws IOException {
+        String remoteInstanceId = remoteConnectionParams.get(CREDENTIALS_INSTANCE_ID);
         ServiceInstance remoteInstance = instanceRepository.find(remoteInstanceId);
-        if (remoteInstance == null)
-            throw new ServiceBrokerException("Remotely connected service instance not found");
+        if (remoteInstance == null) {
+            throw new ServiceBrokerException("Remotely connected service instance not found, id: " + remoteInstanceId);
+        }
         return remoteInstance;
     }
 
-    private void validateCredentials(ServiceInstance remoteInstance, Map<String, String> remoteConnection) throws ServiceBrokerException, IOException {
-        String accessKey = remoteConnection.get(CREDENTIALS_ACCESS_KEY);
-        String secretKey = remoteConnection.get(CREDENTIALS_SECRET_KEY);
+    private void validateCredentials(ServiceInstance remoteInstance, Map<String, String> remoteConnectionParams) throws ServiceBrokerException, IOException {
+        String accessKey = remoteConnectionParams.get(CREDENTIALS_ACCESS_KEY);
+        String secretKey = remoteConnectionParams.get(CREDENTIALS_SECRET_KEY);
         if (! remoteInstance.remoteConnectionKeyValid(accessKey, secretKey))
-            throw new ServiceBrokerException("invalid accessKey / secretKey combination");
+            throw new ServiceBrokerException("invalid accessKey / secretKey combination for remote instance " + remoteConnectionParams.get(CREDENTIALS_INSTANCE_ID));
     }
 }

@@ -110,7 +110,7 @@ public class EcsServiceInstanceServiceTest {
                                 try {
                                     instSvc.createServiceInstance(createReq);
                                 } catch (ServiceBrokerException e) {
-                                    assert (e.getMessage().endsWith("invalid accessKey / secretKey combination"));
+                                    assert (e.getMessage().contains("invalid accessKey / secretKey combination"));
                                 }
                             });
 
@@ -401,7 +401,7 @@ public class EcsServiceInstanceServiceTest {
                                 try {
                                     instSvc.createServiceInstance(createReq);
                                 } catch (ServiceBrokerException e) {
-                                    assert (e.getMessage().endsWith("invalid accessKey / secretKey combination"));
+                                    assert (e.getMessage().contains("invalid accessKey / secretKey combination"));
                                 }
                             });
 
