@@ -8,7 +8,6 @@ import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
@@ -32,17 +31,17 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
-        ServiceInstance serviceInstance = this.instanceRepository.find(this.instanceId);
+        ServiceInstance serviceInstance = getInstance();
         String namespace = (String) serviceInstance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
         if (ecs.userExists(binding.getName(), namespace))
-            throw new ServiceInstanceBindingExistsException(instanceId, bindingId);
+            throw new ServiceInstanceBindingExistsException(serviceInstance.getServiceInstanceId(), bindingId);
     }
 
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
-        ServiceInstance instance = getInstance();
-        String namespace = (String) instance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
-        String bucket = instance.getName();
+        ServiceInstance serviceInstance = getInstance();
+        String namespace = (String) serviceInstance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
+        String bucket = serviceInstance.getName();
 
         UserSecretKey userSecretKey = ecs.createUser(binding.getName(), namespace);
 
@@ -110,7 +109,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         String endpoint = ecs.getObjectEndpoint();
 
         LOG.info("Generating {}-style S3 path for instance '{}'", (pathStyleAccess ? "path" : "domain"), instance.getServiceInstanceId());
-        String s3Url = buildS3Url(endpoint, secretKey, pathStyleAccess);
+        String s3Url = buildS3Url(instance.getServiceInstanceId(), endpoint, secretKey, pathStyleAccess);
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
         credentials.put(ENDPOINT, endpoint);                        // Add default broker endpoint
@@ -152,12 +151,12 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return builder.build();
     }
 
-    private String buildS3Url(String endpoint, String secretKey, boolean usePathStyleS3) throws IOException {
+    private String buildS3Url(String instanceId, String endpoint, String secretKey, boolean usePathStyleS3) throws IOException {
         String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
 
         String prefixedUserInfo = ecs.prefix(encodedBinding + ":" + encodedSecret);
-        String prefixedInstanceId = ecs.prefix(this.instanceId);
+        String prefixedInstanceId = ecs.prefix(instanceId);
 
         URL baseUrl = new URL(endpoint);
 
@@ -226,17 +225,5 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             }
         }
         return VOLUME_DEFAULT_MOUNT + File.separator + bindingId;
-    }
-
-
-    public ServiceInstance getInstance() throws IOException {
-        ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
-            throw new ServiceInstanceDoesNotExistException(instanceId);
-
-        if (instance.getName() == null)
-            instance.setName(instance.getServiceInstanceId());
-
-        return instance;
     }
 }

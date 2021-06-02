@@ -3,6 +3,7 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
+import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -119,6 +120,12 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
             return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withCreateRequest(createRequest);
         }
         ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
+//        ServiceInstance instance = instanceRepo.find(createRequest.getServiceInstanceId());
+//        if (isRemoteConnectedInstance(instance)) {
+//            LOG.info("Instance {} is remote-connected, using remote-connect workflow", instance.getServiceInstanceId());
+//            // TODO implement remote workflows for bucket and namespace
+//            return new RemoteConnectBindingWorkflow(instanceRepo, ecs).withCreateRequest(createRequest);
+//        }
         return getWorkflow(service).withCreateRequest(createRequest);
     }
 
@@ -154,4 +161,11 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
                 && (Boolean) parameters.get(REMOTE_CONNECTION);
     }
 
+    // TODO is there better way to detect remote connected instance?
+    public static boolean isRemoteConnectedInstance(ServiceInstance instance) {
+        if (instance != null && instance.getName() != null && !instance.getName().contains(instance.getServiceInstanceId()) && instance.getReferenceCount() > 0) {
+            return true;
+        }
+        return false;
+    }
 }

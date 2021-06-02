@@ -37,6 +37,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     public ServiceInstance create(String id, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException, EcsManagementResourceNotFoundException, IOException, JAXBException {
         Map<String, String> remoteConnectionParams = getRemoteConnectionParams(parameters);
         ServiceInstance remoteInstance = getRemoteInstance(remoteConnectionParams);
+
         validateCredentials(remoteInstance, remoteConnectionParams);
         validateSettings(remoteInstance, serviceDef, plan, parameters);
 
