@@ -108,14 +108,16 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         String endpoint = ecs.getObjectEndpoint();
 
+        String bucketName = ecs.prefix(instance.getName());
+
         LOG.info("Generating {}-style S3 path for instance '{}'", (pathStyleAccess ? "path" : "domain"), instance.getServiceInstanceId());
-        String s3Url = buildS3Url(instance.getServiceInstanceId(), endpoint, secretKey, pathStyleAccess);
+        String s3Url = buildS3Url(bucketName, endpoint, secretKey, pathStyleAccess);
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
         credentials.put(ENDPOINT, endpoint);                        // Add default broker endpoint
         credentials.put(PATH_STYLE_ACCESS, pathStyleAccess);
         credentials.put(S3_URL, s3Url);                             // Add S3 URL
-        credentials.put(BUCKET, ecs.prefix(instance.getName()));    // Add bucket name from repository
+        credentials.put(BUCKET, bucketName);    // Add bucket name from repository
         credentials.put(NAMESPACE, namespace);
 
         if(!volumeMounts.isEmpty()) {
@@ -151,12 +153,12 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return builder.build();
     }
 
-    private String buildS3Url(String instanceId, String endpoint, String secretKey, boolean usePathStyleS3) throws IOException {
-        String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
+    private String buildS3Url(String prefixedBucketName, String endpoint, String secretKey, boolean usePathStyleS3) throws IOException {
+        String encodedBinding = URLEncoder.encode(binding.getName(), "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
 
         String prefixedUserInfo = ecs.prefix(encodedBinding + ":" + encodedSecret);
-        String prefixedInstanceId = ecs.prefix(instanceId);
+        String prefixedInstanceId = prefixedBucketName;
 
         URL baseUrl = new URL(endpoint);
 

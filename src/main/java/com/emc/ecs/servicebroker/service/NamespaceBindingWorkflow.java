@@ -37,7 +37,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     @Override
     public String createBindingUser() throws EcsManagementClientException, IOException {
         ServiceInstance instance = getInstance();
-        UserSecretKey userSecretKey = ecs.createUser(binding.getName(), ecs.prefix(instance.getServiceInstanceId()));
+        UserSecretKey userSecretKey = ecs.createUser(binding.getName(), ecs.prefix(instance.getName()));
         return userSecretKey.getSecretKey();
     }
 
@@ -75,7 +75,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     private String buildS3Url(String endpoint, String secretKey) throws IOException {
         URL baseUrl = new URL(endpoint);
-        String encodedBinding = URLEncoder.encode(this.bindingId, "UTF-8");
+        String encodedBinding = URLEncoder.encode(binding.getName(), "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
         String userInfo = encodedBinding + ":" + encodedSecret;
         return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" + baseUrl.getHost() + ":" + baseUrl.getPort();
