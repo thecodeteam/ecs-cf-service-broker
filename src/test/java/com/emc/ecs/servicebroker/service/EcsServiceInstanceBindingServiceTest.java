@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
+import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.SharedVolumeDevice;
 import org.springframework.cloud.servicebroker.model.binding.VolumeMount;
 
@@ -323,6 +324,7 @@ public class EcsServiceInstanceBindingServiceTest {
     @Test(expected = ServiceInstanceBindingExistsException.class)
     public void testCreateExistingNamespaceUserFails() throws IOException {
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
+        when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
         when(ecs.userExists(BINDING_ID, SERVICE_INSTANCE_ID)).thenReturn(true);
 
@@ -352,12 +354,15 @@ public class EcsServiceInstanceBindingServiceTest {
         ServiceInstanceBinding bindingFixture = bindingInstanceFixture();
 
         when(ecs.lookupServiceDefinition(NAMESPACE_SERVICE_ID)).thenReturn(namespaceServiceFixture());
-        when(ecs.prefix(NAMESPACE_NAME)).thenReturn(PREFIX + NAMESPACE_NAME);
+        when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(PREFIX + SERVICE_INSTANCE_ID);
         when(repository.find(eq(BINDING_ID))).thenReturn(bindingFixture);
 
-        bindSvc.deleteServiceInstanceBinding(namespaceBindingRemoveFixture());
+        DeleteServiceInstanceBindingRequest request = namespaceBindingRemoveFixture();
+        when(instanceRepository.find(request.getServiceInstanceId())).thenReturn(serviceInstanceFixture());
 
-        verify(ecs, times(1)).deleteUser(bindingFixture.getName(), PREFIX + NAMESPACE_NAME);
+        bindSvc.deleteServiceInstanceBinding(request);
+
+        verify(ecs, times(1)).deleteUser(bindingFixture.getName(), PREFIX + SERVICE_INSTANCE_ID);
         verify(ecs, times(0)).removeUserFromBucket(NAMESPACE_NAME, NAMESPACE_NAME, bindingFixture.getName());
     }
 

@@ -17,12 +17,14 @@ import java.util.Map;
 import static com.emc.ecs.common.Fixtures.*;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.*;
-import static org.junit.Assert.*;
+import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.It;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 @RunWith(Ginkgo4jRunner.class)
-public class RemoteConnectionInstanceWorkflowTest {
-
+public class RemoteConnectBindingWorkflowTest {
     private EcsService ecs;
     private ServiceInstanceRepository instanceRepo;
     private Map<String, Object> params = new HashMap<>();
@@ -40,40 +42,22 @@ public class RemoteConnectionInstanceWorkflowTest {
     }
 
     {
-        Describe("RemoteConnectionInstanceWorkflow", () -> {
+        Describe("RemoteConnectionBindingWorkflow", () -> {
             BeforeEach(() -> {
                 ecs = mock(EcsService.class);
                 instanceRepo = mock(ServiceInstanceRepository.class);
                 workflow = new RemoteConnectionInstanceWorkflow(instanceRepo, ecs);
             });
 
-            Context("#changePlan", () ->
-                    It("should throw an exception as this operation isn't supported", () -> {
-                        try {
-                            workflow.changePlan(SERVICE_INSTANCE_ID, serviceProxy, planProxy, params);
-                        } catch (ServiceBrokerException e) {
-                            assertEquals(e.getClass(), ServiceBrokerException.class);
-                        }
-                    })
-            );
-
-            Context("#delete", () ->
-                    It("should throw an exception as this operation isn't supported", () -> {
-                        try {
-                            workflow.delete(SERVICE_INSTANCE_ID);
-                        } catch (ServiceBrokerException e) {
-                            assertEquals(e.getClass(), ServiceBrokerException.class);
-                        }
-                    })
-            );
-
-            Context("#create", () -> {
+            Context("#createBinding", () -> {
 
                 BeforeEach(() -> {
                     params.put(REMOTE_CONNECTION, remoteConnect(BUCKET_NAME, REMOTE_CONNECT_KEY));
                     CreateServiceInstanceRequest createReq = bucketCreateRequestFixture(params);
                     createReq.setServiceInstanceId(SERVICE_INSTANCE_ID);
                     workflow.withCreateRequest(createReq);
+
+                    // TODO create binding here
                 });
 
                 Context("when remote instance doesn't exist", () -> {
@@ -86,8 +70,9 @@ public class RemoteConnectionInstanceWorkflowTest {
                         try {
                             workflow.create(SERVICE_INSTANCE_ID, serviceProxy, planProxy, params);
                         } catch (ServiceBrokerException e) {
+                            String message = "Remotely connected service instance not found";
                             assertEquals(ServiceBrokerException.class, e.getClass());
-                            assertTrue(e.getMessage().contains("Remotely connected service instance not found"));
+                            assertEquals(message, e.getMessage());
                         }
                     });
 
