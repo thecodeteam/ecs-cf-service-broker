@@ -80,7 +80,12 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
             ServiceInstanceBinding binding = repository.find(bindingId);
 
             if (binding == null) {
-                throw new ServiceInstanceBindingDoesNotExistException(bindingId);
+                LOG.warn("Binding '{}' not found, assuming already deleted", bindingId);
+                return Mono.just(
+                        DeleteServiceInstanceBindingResponse.builder()
+                                .async(false)
+                                .build()
+                );
             }
 
             LOG.debug("Binding found: {}", bindingId);
