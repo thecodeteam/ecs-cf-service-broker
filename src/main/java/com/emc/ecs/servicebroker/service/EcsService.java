@@ -482,7 +482,12 @@ public class EcsService {
             addUserToBucket(bucketName, namespace, userName);
             broker.setRepositorySecret(secretKey.getSecretKey());
         } else {
-            broker.setRepositorySecret(getUserSecret(userName));
+            logger.info("Obtaining user secret key for repository bucket access: user '{}', bucket '{}', namespace '{}'", userName, bucketName, namespace);
+            String userSecret = getUserSecret(userName);
+            if (userSecret == null || userSecret.length() == 0) {
+                logger.info("User secret not found, using empty value.");
+            }
+            broker.setRepositorySecret(userSecret);
         }
     }
 
@@ -498,10 +503,15 @@ public class EcsService {
         logger.info("Default Reclaim Policy: {}", ReclaimPolicy.DEFAULT_RECLAIM_POLICY);
     }
 
-    private String getUserSecret(String userName)
-            throws EcsManagementClientException {
-        return ObjectUserSecretAction.list(connection, prefix(userName)).get(0)
-                .getSecretKey();
+    private String getUserSecret(String userName) throws EcsManagementClientException {
+        List<UserSecretKey> keys = ObjectUserSecretAction.list(connection, prefix(userName));
+        if (keys == null || keys.size() == 0) {
+            throw new EcsManagementClientException("Cannot find user '" + prefix(userName) + "' secret - empty list returned");
+        }
+        if (keys.size() > 1) {
+            logger.warn("Found " + keys.size() + " secret keys for user '" + prefix(userName) + "', returning first");
+        }
+        return keys.get(0).getSecretKey();
     }
 
     private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {

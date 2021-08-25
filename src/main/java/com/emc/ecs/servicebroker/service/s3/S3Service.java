@@ -39,17 +39,22 @@ public class S3Service {
 
         logger.info("Initializing client for S3 endpoint: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
 
-        S3Config s3Config = new S3Config(new URI(repositoryEndpoint));
+        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
+                .withIdentity(userName);
 
-        s3Config.withIdentity(userName);
+        String repositorySecret = broker.getRepositorySecret();
+
+        if (repositorySecret == null || repositorySecret.length() == 0) {
+            logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
+        }
+
+        s3Config.withSecretKey(repositorySecret);
 
         logger.info("S3 config {}", s3Config);
 
-        s3Config.withSecretKey(broker.getRepositorySecret());
-
         this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
 
-        logger.info("Testing access to S3 endpoint {}", repositoryEndpoint);
+        logger.info("Testing access to S3 endpoint {} - querying bucket '{}'", repositoryEndpoint, this.bucket);
 
         if (s3.bucketExists(this.bucket)) {
             logger.debug("Test OK. Bucket {} exists", this.bucket);
@@ -60,7 +65,7 @@ public class S3Service {
                         AccessControlList objectAcl = s3.getObjectAcl(bucket, s3Object.getKey());
                         CanonicalUser owner = objectAcl.getOwner();
                         String objectOwner = owner.getDisplayName();
-                        if (userName.equalsIgnoreCase(objectOwner)) {
+                        if (!userName.equalsIgnoreCase(objectOwner)) {
                             String errorMessage = String.format(
                                     "S3 Object owners differ in repository, check repository username in broker settings: current username is '%s', found object owner '%s' on '%s'",
                                     userName, objectOwner, s3Object.getKey());
