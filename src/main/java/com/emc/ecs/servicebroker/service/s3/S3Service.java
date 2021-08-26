@@ -1,9 +1,9 @@
 package com.emc.ecs.servicebroker.service.s3;
 
 import com.emc.ecs.servicebroker.config.BrokerConfig;
-import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
+import com.emc.object.s3.S3Exception;
 import com.emc.object.s3.bean.*;
 import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.object.s3.request.ListObjectsRequest;
@@ -37,7 +37,7 @@ public class S3Service {
 
         String userName = broker.getPrefixedUserName();
 
-        logger.info("Initializing client for S3 endpoint: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
+        logger.info("Initializing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
 
         S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
                 .withIdentity(userName);
@@ -50,31 +50,48 @@ public class S3Service {
 
         s3Config.withSecretKey(repositorySecret);
 
-        logger.info("S3 config {}", s3Config);
+        logger.info("S3 config: {}", s3Config);
 
         this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
 
-        logger.info("Testing access to S3 endpoint {} - querying bucket '{}'", repositoryEndpoint, this.bucket);
+        this.testS3EndpointAccess();
+    }
 
-        if (s3.bucketExists(this.bucket)) {
-            logger.debug("Test OK. Bucket {} exists", this.bucket);
-            ListObjectsResult listObjectsResult = s3.listObjects(new ListObjectsRequest(this.bucket).withMaxKeys(3));
-            listObjectsResult.getObjects().forEach(
-                    s3Object -> {
-                        logger.debug("Testing access to '{}'", s3Object.getKey());
-                        AccessControlList objectAcl = s3.getObjectAcl(bucket, s3Object.getKey());
-                        CanonicalUser owner = objectAcl.getOwner();
-                        String objectOwner = owner.getDisplayName();
-                        if (!userName.equalsIgnoreCase(objectOwner)) {
-                            String errorMessage = String.format(
-                                    "S3 Object owners differ in repository, check repository username in broker settings: current username is '%s', found object owner '%s' on '%s'",
-                                    userName, objectOwner, s3Object.getKey());
-                            logger.warn(errorMessage);
-                        }
-                    }
-            );
+    private void testS3EndpointAccess() {
+        String repositoryEndpoint = broker.getRepositoryEndpoint();
+        String bucket = this.bucket;
+
+        logger.info("Testing access to S3 endpoint {} - querying bucket '{}' existence", repositoryEndpoint, bucket);
+
+        if (s3.bucketExists(bucket)) {
+            logger.info("Test OK. Bucket {} exists", bucket);
+            try {
+                ListObjectsRequest listRequest = new ListObjectsRequest(bucket).withMaxKeys(5);
+                ListObjectsResult listResult = s3.listObjects(listRequest);
+                listResult.getObjects().forEach(this::testObjectAccess);
+            } catch (S3Exception e) {
+                logger.error("Failed to list objects in bucket '{}' - check S3 credentials and bucket ACL!: {}", bucket, e);
+            }
         } else {
-            logger.info("Test OK. Bucket {} doesnt exist yet", this.bucket);
+            logger.info("Test OK. Bucket {} doesnt exist yet", bucket);
+        }
+    }
+
+    private void testObjectAccess(S3Object s3Object) {
+        logger.debug("Testing access to '{}'", s3Object.getKey());
+        try {
+            AccessControlList objectAcl = s3.getObjectAcl(this.bucket, s3Object.getKey());
+            CanonicalUser owner = objectAcl.getOwner();
+            String objectOwner = owner.getDisplayName();
+            String userName = broker.getPrefixedUserName();
+            if (!userName.equalsIgnoreCase(objectOwner)) {
+                String errorMessage = String.format(
+                        "S3 Object owners differ in repository, check repository username in broker settings: current username is '%s', found object owner '%s' on '%s'",
+                        userName, objectOwner, s3Object.getKey());
+                logger.warn(errorMessage);
+            }
+        } catch (S3Exception e) {
+            logger.error("Failed to get object ACL: {} / {}  - check S3 credentials and bucket ACL!: {}", this.bucket, s3Object.getKey(), e);
         }
     }
 
