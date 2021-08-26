@@ -70,7 +70,7 @@ public class S3Service {
                 ListObjectsResult listResult = s3.listObjects(listRequest);
                 listResult.getObjects().forEach(this::testObjectAccess);
             } catch (S3Exception e) {
-                logger.error("Failed to list objects in bucket '{}' - check S3 credentials and bucket ACL!: {}", bucket, e);
+                logger.error("Failed to list objects in bucket '{}' - check S3 credentials and bucket ACL!:", bucket, e);
             }
         } else {
             logger.info("Test OK. Bucket {} doesnt exist yet", bucket);
@@ -91,7 +91,7 @@ public class S3Service {
                 logger.warn(errorMessage);
             }
         } catch (S3Exception e) {
-            logger.error("Failed to get object ACL: {} / {}  - check S3 credentials and bucket ACL!: {}", this.bucket, s3Object.getKey(), e);
+            logger.error("Failed to get object ACL: {}/{}  - check S3 credentials and bucket ACL!:", this.bucket, s3Object.getKey(), e);
         }
     }
 
