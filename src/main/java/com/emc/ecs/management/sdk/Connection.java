@@ -8,10 +8,12 @@ import org.apache.juli.JdkLoggerFormatter;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import sun.net.www.protocol.http.HttpURLConnection;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -23,7 +25,6 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.logging.Level;
@@ -83,45 +84,16 @@ public class Connection {
             // Disable host name verification. Should be able to configure the
             // ECS certificate with the correct host name to avoid this.
             HostnameVerifier hostnameVerifier = getHostnameVerifier();
-
-
-            try {
-                TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                }};
-
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new java.security.SecureRandom());
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-                // Create all-trusting host name verifier
-                HostnameVerifier allHostsValid = new HostnameVerifier() {
-                    public boolean verify(String hostname, SSLSession session) {
-                        return true;
-                    }
-                };
-                // Install the all-trusting host verifier
-                HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-
-//                HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
-                builder = ClientBuilder.newBuilder()
-                        .register(hostnameVerifier);
-                builder.sslContext(sc);
-            } catch (Exception e) {
-                throw new ServiceBrokerException(e);
-            }
+            HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
+            builder = ClientBuilder.newBuilder()
+                    .register(hostnameVerifier);
+            builder.sslContext(getSSLContext());
         } else {
             builder = ClientBuilder.newBuilder();
         }
+
+        builder = builder.register(loggingFeature);
+
         return builder.build();
     }
 
