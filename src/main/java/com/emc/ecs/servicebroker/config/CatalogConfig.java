@@ -45,10 +45,22 @@ public class CatalogConfig {
 
     @Bean
     public Catalog catalog() {
-        return new Catalog(mergeServices().stream()
+        Catalog catalog = new Catalog(mergeServices().stream()
                 .filter(ServiceDefinitionProxy::getActive)
                 .map(ServiceDefinitionProxy::unproxy)
                 .collect(Collectors.toList()));
+
+        logger.info("Broker configured with {} service definition(s)", catalog.getServiceDefinitions().size());
+        logger.debug("Service definitions: {}", catalog.getServiceDefinitions());
+        try {
+            ServiceDefinitionProxy repositoryServiceDefinition = this.getRepositoryServiceDefinition();
+            logger.info("Repository service: {}", repositoryServiceDefinition.getName());
+        } catch (ServiceBrokerException e) {
+            logger.error("No repository service definition found in catalog!");
+            return null;
+        }
+
+        return catalog;
     }
 
     public List<ServiceDefinitionProxy> mergeServices() {
@@ -259,6 +271,6 @@ public class CatalogConfig {
         }
         return services.stream().filter(ServiceDefinitionProxy::getRepositoryService)
                 .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("Not found service definition marked with 'repository-service' attribute - catalog misconfigured"));
+                .orElseThrow(() -> new ServiceBrokerException("Not found service definition marked with 'repository-service' attribute - broker catalog misconfiguration"));
     }
 }

@@ -142,7 +142,7 @@ public class EcsService {
                 }
             }
 
-            logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
+            logger.info("Creating bucket '{}' with service '{}' plan '{}'({}) and params {}", prefix(bucketName), serviceDefinition.getName(), plan.getName(), plan.getId(), parameters);
 
             String namespace = (String) parameters.get(NAMESPACE);
 
