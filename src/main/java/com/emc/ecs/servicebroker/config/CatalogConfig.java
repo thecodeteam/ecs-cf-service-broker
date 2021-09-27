@@ -253,9 +253,12 @@ public class CatalogConfig {
                 .orElseThrow(() -> new ServiceBrokerException("Unable to find configured service id: " + serviceId));
     }
 
-    public ServiceDefinitionProxy getRepositoryService() {
+    public ServiceDefinitionProxy getRepositoryServiceDefinition() {
+        if (services == null || services.size() == 0) {
+            throw new ServiceBrokerException("Service definitions catalog is empty");
+        }
         return services.stream().filter(ServiceDefinitionProxy::getRepositoryService)
                 .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("At least one service must be configured as a 'repository-service"));
+                .orElseThrow(() -> new ServiceBrokerException("Not found service definition marked with 'repository-service' attribute - catalog misconfigured"));
     }
 }

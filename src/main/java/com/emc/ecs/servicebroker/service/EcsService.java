@@ -457,23 +457,29 @@ public class EcsService {
             logger.info("Preparing repository bucket '{}'", prefix(bucketName));
 
             ServiceDefinitionProxy service;
-            if (broker.getRepositoryServiceId() == null) {
-                service = catalog.getRepositoryService();
-            } else {
-                service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
+            try {
+                if (broker.getRepositoryServiceId() == null) {
+                    service = catalog.getRepositoryServiceDefinition();
+                } else {
+                    service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
+                }
+
+                PlanProxy plan;
+                if (broker.getRepositoryPlanId() == null) {
+                    plan = service.getRepositoryPlan();
+                } else {
+                    plan = service.findPlan(broker.getRepositoryPlanId());
+                }
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put(NAMESPACE, namespace);
+
+                createBucket("repository", bucketName, service, plan, parameters);
+            } catch (ServiceBrokerException e) {
+                String errorMessage = "Failed to create broker repository bucket: " + e.getMessage();
+                logger.error(errorMessage);
+                throw new ServiceBrokerException(errorMessage, e);
             }
-
-            PlanProxy plan;
-            if (broker.getRepositoryPlanId() == null) {
-                plan = service.getRepositoryPlan();
-            } else {
-                plan = service.findPlan(broker.getRepositoryPlanId());
-            }
-
-            Map<String, Object> parameters = new HashMap<>();
-            parameters.put(NAMESPACE, namespace);
-
-            createBucket("repository", bucketName, service, plan, parameters);
         }
 
         if (!userExists(userName, namespace)) {
