@@ -142,7 +142,7 @@ public class EcsService {
                 }
             }
 
-            logger.info("Creating bucket '{}' with plan '{}'({}) and params {}", prefix(bucketName), plan.getName(), plan.getId(), parameters);
+            logger.info("Creating bucket '{}' with service '{}' plan '{}'({}) and params {}", prefix(bucketName), serviceDefinition.getName(), plan.getName(), plan.getId(), parameters);
 
             String namespace = (String) parameters.get(NAMESPACE);
 
@@ -457,23 +457,29 @@ public class EcsService {
             logger.info("Preparing repository bucket '{}'", prefix(bucketName));
 
             ServiceDefinitionProxy service;
-            if (broker.getRepositoryServiceId() == null) {
-                service = catalog.getRepositoryService();
-            } else {
-                service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
+            try {
+                if (broker.getRepositoryServiceId() == null) {
+                    service = catalog.getRepositoryServiceDefinition();
+                } else {
+                    service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
+                }
+
+                PlanProxy plan;
+                if (broker.getRepositoryPlanId() == null) {
+                    plan = service.getRepositoryPlan();
+                } else {
+                    plan = service.findPlan(broker.getRepositoryPlanId());
+                }
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put(NAMESPACE, namespace);
+
+                createBucket("repository", bucketName, service, plan, parameters);
+            } catch (ServiceBrokerException e) {
+                String errorMessage = "Failed to create broker repository bucket: " + e.getMessage();
+                logger.error(errorMessage);
+                throw new ServiceBrokerException(errorMessage, e);
             }
-
-            PlanProxy plan;
-            if (broker.getRepositoryPlanId() == null) {
-                plan = service.getRepositoryPlan();
-            } else {
-                plan = service.findPlan(broker.getRepositoryPlanId());
-            }
-
-            Map<String, Object> parameters = new HashMap<>();
-            parameters.put(NAMESPACE, namespace);
-
-            createBucket("repository", bucketName, service, plan, parameters);
         }
 
         if (!userExists(userName, namespace)) {
@@ -482,7 +488,12 @@ public class EcsService {
             addUserToBucket(bucketName, namespace, userName);
             broker.setRepositorySecret(secretKey.getSecretKey());
         } else {
-            broker.setRepositorySecret(getUserSecret(userName));
+            logger.info("Obtaining user secret key for repository bucket access: user '{}', bucket '{}', namespace '{}'", userName, bucketName, namespace);
+            String userSecret = getUserSecret(userName);
+            if (userSecret == null || userSecret.length() == 0) {
+                logger.info("User secret not found, using empty value.");
+            }
+            broker.setRepositorySecret(userSecret);
         }
     }
 
@@ -498,10 +509,15 @@ public class EcsService {
         logger.info("Default Reclaim Policy: {}", ReclaimPolicy.DEFAULT_RECLAIM_POLICY);
     }
 
-    private String getUserSecret(String userName)
-            throws EcsManagementClientException {
-        return ObjectUserSecretAction.list(connection, prefix(userName)).get(0)
-                .getSecretKey();
+    private String getUserSecret(String userName) throws EcsManagementClientException {
+        List<UserSecretKey> keys = ObjectUserSecretAction.list(connection, prefix(userName));
+        if (keys == null || keys.size() == 0) {
+            throw new EcsManagementClientException("Cannot find user '" + prefix(userName) + "' secret - empty list returned");
+        }
+        if (keys.size() > 1) {
+            logger.warn("Found " + keys.size() + " secret keys for user '" + prefix(userName) + "', returning first");
+        }
+        return keys.get(0).getSecretKey();
     }
 
     private String detectDefaultBaseUrlId(List<BaseUrl> baseUrlList) {

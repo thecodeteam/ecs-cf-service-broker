@@ -45,10 +45,22 @@ public class CatalogConfig {
 
     @Bean
     public Catalog catalog() {
-        return new Catalog(mergeServices().stream()
+        Catalog catalog = new Catalog(mergeServices().stream()
                 .filter(ServiceDefinitionProxy::getActive)
                 .map(ServiceDefinitionProxy::unproxy)
                 .collect(Collectors.toList()));
+
+        logger.info("Broker configured with {} service definition(s)", catalog.getServiceDefinitions().size());
+        logger.debug("Service definitions: {}", catalog.getServiceDefinitions());
+        try {
+            ServiceDefinitionProxy repositoryServiceDefinition = this.getRepositoryServiceDefinition();
+            logger.info("Repository service: {}", repositoryServiceDefinition.getName());
+        } catch (ServiceBrokerException e) {
+            logger.error("No repository service definition found in catalog!");
+            return null;
+        }
+
+        return catalog;
     }
 
     public List<ServiceDefinitionProxy> mergeServices() {
@@ -253,9 +265,12 @@ public class CatalogConfig {
                 .orElseThrow(() -> new ServiceBrokerException("Unable to find configured service id: " + serviceId));
     }
 
-    public ServiceDefinitionProxy getRepositoryService() {
+    public ServiceDefinitionProxy getRepositoryServiceDefinition() {
+        if (services == null || services.size() == 0) {
+            throw new ServiceBrokerException("Service definitions catalog is empty");
+        }
         return services.stream().filter(ServiceDefinitionProxy::getRepositoryService)
                 .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("At least one service must be configured as a 'repository-service"));
+                .orElseThrow(() -> new ServiceBrokerException("Not found service definition marked with 'repository-service' attribute - broker catalog misconfiguration"));
     }
 }
