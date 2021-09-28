@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: 2.0.0
 description: ECS Service Broker Helm chart for Kubernetes
 name: ecs-service-broker
-version: 0.2.0
+version: 0.2.1

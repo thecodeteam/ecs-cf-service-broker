@@ -28,8 +28,8 @@ ecsConnection:
 
 image:
   repository: objectscale/ecs-service-broker
-  tag: latest
-  pullPolicy: Always
+  tag: 2.1.1
+  pullPolicy: IfNotPresent
 
 imagePullSecrets: []
 nameOverride: ""
