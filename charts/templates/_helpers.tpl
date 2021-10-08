@@ -8,7 +8,7 @@ catalog:
       description: "Elastic Cloud S3 Object Storage Bucket"
       active: true
       bindable: true
-      repository-service: false
+      repository-service: true
       metadata:
         displayName: ecs-bucket
         documentationUrl: "https://community.emc.com/docs/DOC-45012"
