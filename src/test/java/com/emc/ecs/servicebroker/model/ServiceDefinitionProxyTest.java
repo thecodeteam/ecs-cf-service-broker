@@ -1,6 +1,6 @@
 package com.emc.ecs.servicebroker.model;
 
-import com.emc.ecs.servicebroker.config.Application;
+import com.emc.ecs.servicebroker.Application;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;

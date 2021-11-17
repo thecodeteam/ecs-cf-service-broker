@@ -1,8 +1,8 @@
 package com.emc.ecs.common;
 
-import com.emc.ecs.servicebroker.config.Application;
+import com.emc.ecs.management.sdk.EcsManagementAPIConnection;
+import com.emc.ecs.servicebroker.Application;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
-import com.emc.ecs.management.sdk.Connection;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
@@ -16,24 +16,24 @@ import static com.emc.ecs.common.Fixtures.RG_ID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
-    initializers = ConfigFileApplicationContextInitializer.class)
+        initializers = ConfigFileApplicationContextInitializer.class)
 @ActiveProfiles("test")
 public abstract class EcsActionTest {
-	
+
     @Autowired
     private BrokerConfig broker;
 
-    protected Connection connection;
+    protected EcsManagementAPIConnection connection;
+
     protected String namespace;
     protected String replicationGroupID = RG_ID;
 
     @SuppressWarnings("unused")
     @PostConstruct
     protected void init() {
-        String certificate = broker.getCertificate();
-    	    	
-        connection = new Connection(broker.getManagementEndpoint(),
-                broker.getUsername(), broker.getPassword(), certificate);
+        connection = new EcsManagementAPIConnection(
+                broker.getManagementEndpoint(), broker.getUsername(), broker.getPassword(), broker.getCertificate(), false
+        );
 
         namespace = broker.getNamespace();
     }

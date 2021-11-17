@@ -1,5 +1,6 @@
 package com.emc.ecs;
 
+import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.servicebroker.config.CatalogConfigTest;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepositoryTest;
@@ -22,7 +23,7 @@ import org.junit.runners.Suite.SuiteClasses;
         BucketActionTest.class,
         BucketQuotaActionTest.class,
         BucketRetentionActionTest.class,
-        ConnectionTest.class,
+        EcsManagementAPIConnectionTest.class,
         NamespaceActionTest.class,
         NamespaceQuotaActionTest.class,
         NamespaceRetentionActionTest.class,

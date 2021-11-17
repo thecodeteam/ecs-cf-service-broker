@@ -1,6 +1,6 @@
 package com.emc.ecs.servicebroker.controller;
 
-import com.emc.ecs.servicebroker.config.Application;
+import com.emc.ecs.servicebroker.Application;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 

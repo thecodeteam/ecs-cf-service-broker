@@ -57,7 +57,6 @@ public class CatalogConfig {
             logger.info("Repository service: {}", repositoryServiceDefinition.getName());
         } catch (ServiceBrokerException e) {
             logger.error("No repository service definition found in catalog!");
-            return null;
         }
 
         return catalog;

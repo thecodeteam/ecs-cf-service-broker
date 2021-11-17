@@ -17,6 +17,8 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 @Configuration
 @ConfigurationProperties(prefix = "broker")
 public class BrokerConfig {
+    private String apiType;
+
     private String managementEndpoint;
     private String namespace;
     private String replicationGroup;
@@ -25,6 +27,7 @@ public class BrokerConfig {
     private String nfsMountHost;
     private String repositoryEndpoint;
     private boolean useSsl;
+    private boolean ignoreSslValidation;
 
     private String repositorySecret;
     private String repositoryUser = "user";
@@ -55,6 +58,14 @@ public class BrokerConfig {
                 setCertificate(settings.get(CERTIFICATE).toString());
             }
         }
+    }
+
+    public String getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(String apiType) {
+        this.apiType = apiType;
     }
 
     public String getManagementEndpoint() {
@@ -137,7 +148,7 @@ public class BrokerConfig {
             this.prefix = prefix;
     }
 
-    String getBrokerApiVersion() {
+    public String getBrokerApiVersion() {
         return brokerApiVersion;
     }
 
@@ -220,6 +231,14 @@ public class BrokerConfig {
 
     public void setUseSsl(boolean useSsl) {
         this.useSsl = useSsl;
+    }
+
+    public boolean getIgnoreSslValidation() {
+        return ignoreSslValidation;
+    }
+
+    public void setIgnoreSslValidation(boolean ignoreSslValidation) {
+        this.ignoreSslValidation = ignoreSslValidation;
     }
 
     public String getDefaultReclaimPolicy() {

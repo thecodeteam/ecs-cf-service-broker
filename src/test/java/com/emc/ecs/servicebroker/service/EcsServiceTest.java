@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
@@ -70,7 +71,7 @@ public class EcsServiceTest {
     private static final int RULES_NUMBER = 3;
 
     @Mock
-    private Connection connection;
+    private EcsManagementAPIConnection connection;
 
     @Mock
     private BrokerConfig broker;
@@ -260,10 +261,10 @@ public class EcsServiceTest {
         assertEquals(HEAD_TYPE_S3, create.getHeadType());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(0));
-        BucketQuotaAction.create(any(Connection.class), anyString(), anyString(), anyInt(), anyInt());
+        BucketQuotaAction.create(any(EcsManagementAPIConnection.class), anyString(), anyString(), anyInt(), anyInt());
 
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(0));
-        BucketRetentionAction.update(any(Connection.class), anyString(), anyString(), anyInt());
+        BucketRetentionAction.update(any(EcsManagementAPIConnection.class), anyString(), anyString(), anyInt());
     }
 
     @Test
@@ -2167,6 +2168,9 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(ObjectUserSecretAction.class);
         when(ObjectUserSecretAction.list(connection, REPO_USER))
                 .thenReturn(Collections.singletonList(secretKey));
+
+        PowerMockito.mockStatic(NamespaceAction.class);
+        when(NamespaceAction.exists(connection, NAMESPACE_NAME)).thenReturn(true);
     }
 
     private void setupBaseUrlTest(String name, boolean namespaceInHost) throws EcsManagementClientException {

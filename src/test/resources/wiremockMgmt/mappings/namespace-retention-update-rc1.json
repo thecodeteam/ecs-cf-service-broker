@@ -1,6 +1,7 @@
 {
 	"scenarioName": "rc1",
-	"requiredScenarioState": "Updated",
+	"requiredScenarioState": "Created",
+	"newScenarioState": "Updated",
     "request": {
         "method": "PUT",
         "url": "/object/namespaces/namespace/ns1/retention/rc1",

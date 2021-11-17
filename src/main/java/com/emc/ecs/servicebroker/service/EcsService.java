@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.emc.ecs.management.sdk.ManagementAPIConstants.OBJECTSCALE;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 @Service
@@ -37,7 +39,7 @@ public class EcsService {
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
 
     @Autowired
-    private Connection connection;
+    private ManagementAPIConnection connection;
 
     @Autowired
     private BrokerConfig broker;
@@ -62,17 +64,23 @@ public class EcsService {
 
     @PostConstruct
     void initialize() {
-        logger.info("Initializing ECS service with management endpoint {}, base url {}", broker.getManagementEndpoint(), broker.getBaseUrl());
+        if (!OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            // API type is ECS, initializing service
 
-        try {
-            lookupObjectEndpoints();
-            lookupReplicationGroupID();
-            prepareDefaultReclaimPolicy();
-            prepareRepository();
-            prepareBucketWipe();
-        } catch (EcsManagementClientException | URISyntaxException e) {
-            logger.error("Failed to initialize ECS service: {}", e.getMessage());
-            throw new ServiceBrokerException(e.getMessage(), e);
+            logger.info("Initializing ECS service with management endpoint {}, base url {}", broker.getManagementEndpoint(), broker.getBaseUrl());
+
+            try {
+                lookupObjectEndpoints();
+                lookupRepositoryNamespace();
+                lookupReplicationGroupID();
+                prepareDefaultReclaimPolicy();
+                prepareRepository();
+                getS3RepositorySecret();
+                prepareBucketWipe();
+            } catch (EcsManagementClientException | URISyntaxException e) {
+                logger.error("Failed to initialize ECS service: {}", e.getMessage());
+                throw new ServiceBrokerException(e.getMessage(), e);
+            }
         }
     }
 
@@ -443,6 +451,19 @@ public class EcsService {
         return BaseUrlAction.get(connection, urlId).getNamespaceUrl(namespace, useSSL);
     }
 
+    private void lookupRepositoryNamespace() throws EcsManagementClientException {
+        String namespace = broker.getNamespace();
+        if (namespace != null) {
+            logger.info("Repository namespace '{}'", broker.getNamespace());
+            if (!NamespaceAction.exists(this.connection, namespace)) {
+                logger.warn("Repository namespace not found: {}", namespace);
+                //throw new ServiceBrokerException("Namespace not found: " + namespace);
+            }
+        } else {
+            logger.warn("Repository namespace not configured");
+        }
+    }
+
     private void lookupReplicationGroupID() throws EcsManagementClientException {
         DataServiceReplicationGroup rg = lookupReplicationGroup(broker.getReplicationGroup());
         logger.info("Replication group found: {} ({})", rg.getName(), rg.getId());
@@ -484,17 +505,24 @@ public class EcsService {
 
         if (!userExists(userName, namespace)) {
             logger.info("Creating user to access repository: '{}'", userName);
-            UserSecretKey secretKey = createUser(userName, namespace);
+            createUser(userName, namespace);
             addUserToBucket(bucketName, namespace, userName);
-            broker.setRepositorySecret(secretKey.getSecretKey());
-        } else {
-            logger.info("Obtaining user secret key for repository bucket access: user '{}', bucket '{}', namespace '{}'", userName, bucketName, namespace);
-            String userSecret = getUserSecret(userName);
-            if (userSecret == null || userSecret.length() == 0) {
-                logger.info("User secret not found, using empty value.");
-            }
-            broker.setRepositorySecret(userSecret);
         }
+    }
+
+    private void getS3RepositorySecret() {
+        String bucketName = broker.getRepositoryBucket();
+        String namespace = broker.getNamespace();
+        String userName = broker.getRepositoryUser();
+
+        logger.info("Obtaining user secret key for repository bucket access: user '{}', bucket '{}', namespace '{}'", userName, bucketName, namespace);
+
+        String userSecret = getUserSecret(userName);
+        if (userSecret == null || userSecret.length() == 0) {
+            logger.info("User secret not found, using empty value.");
+        }
+
+        broker.setRepositorySecret(userSecret);
     }
 
     private void prepareBucketWipe() throws URISyntaxException {

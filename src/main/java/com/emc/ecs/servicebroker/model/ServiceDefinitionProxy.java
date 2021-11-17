@@ -20,8 +20,8 @@ public class ServiceDefinitionProxy {
     private String description;
     private Boolean active;
     private Boolean bindable;
-    private Boolean repositoryService;
     private List<String> tags;
+    private Boolean repositoryService = false;
 
     private Map<String, Object> metadata = new HashMap<>();
     private Map<String, Object> serviceSettings = new HashMap<>();

@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.config;
 
 import com.emc.ecs.common.Fixtures;
 
+import com.emc.ecs.servicebroker.Application;
 import com.emc.ecs.servicebroker.service.EcsServiceTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.collections.CollectionUtils;
