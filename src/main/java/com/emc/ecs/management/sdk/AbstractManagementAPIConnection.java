@@ -20,7 +20,7 @@ import static com.emc.ecs.management.sdk.ManagementAPIConstants.X_SDS_AUTH_TOKEN
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 
-public abstract class AbstractManagementAPIConnection implements ManagementAPIConnection {
+public abstract class AbstractManagementAPIConnection implements ManagementAPIConnection, LoginHandler {
     public static final int AUTH_RETRIES_MAX = 3;
 
     private final org.slf4j.Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -48,7 +48,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
     }
 
     abstract public void login() throws EcsManagementClientException;
-    abstract void logout() throws EcsManagementClientException;
+    abstract public void logout() throws EcsManagementClientException;
 
     public Response remoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
         return remoteCall(method, uri, arg, APPLICATION_XML);
@@ -173,10 +173,6 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
         return UriBuilder.fromPath(endpoint);
     }
 
-    String getAuthToken() {
-        return authToken;
-    }
-
     public String getCertificate() {
         return certificate;
     }
@@ -185,12 +181,8 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
         this.certificate = certificate;
     }
 
-    public int getMaxLoginSessionLength() {
-        return maxLoginSessionLength;
-    }
-
-    public void setMaxLoginSessionLength(int maxLoginSessionLength) {
-        this.maxLoginSessionLength = maxLoginSessionLength;
+    public String getAuthToken() {
+        return authToken;
     }
 
     public void setAuthToken(String authToken) {
@@ -211,5 +203,13 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
 
     public void setAuthExpiration(Instant authExpiration) {
         this.authExpiration = authExpiration;
+    }
+
+    public int getMaxLoginSessionLength() {
+        return maxLoginSessionLength;
+    }
+
+    public void setMaxLoginSessionLength(int maxLoginSessionLength) {
+        this.maxLoginSessionLength = maxLoginSessionLength;
     }
 }

@@ -39,6 +39,13 @@ public class BrokerConfig {
     private String certificate;
     private String defaultReclaimPolicy = ReclaimPolicy.Fail.name();
 
+    private String objectscaleGatewayEndpoint;
+    private String objectstoreManagementEndpoint;
+    private String objectstoreS3Endpoint;
+    private String accountId;
+    private String accessKey;
+    private String secretKey;
+
     private boolean pathStyleAccess = true;   // Path style access for S3 URL, using host style access if false
     private int loginSessionLength = -1;      // Max login session length, in minutes
 
@@ -263,6 +270,54 @@ public class BrokerConfig {
 
     public void setLoginSessionLength(int loginSessionLength) {
         this.loginSessionLength = loginSessionLength;
+    }
+
+    public String getObjectscaleGatewayEndpoint() {
+        return objectscaleGatewayEndpoint;
+    }
+
+    public void setObjectscaleGatewayEndpoint(String objectscaleGatewayEndpoint) {
+        this.objectscaleGatewayEndpoint = objectscaleGatewayEndpoint;
+    }
+
+    public String getObjectstoreManagementEndpoint() {
+        return objectstoreManagementEndpoint;
+    }
+
+    public void setObjectstoreManagementEndpoint(String objectstoreManagementEndpoint) {
+        this.objectstoreManagementEndpoint = objectstoreManagementEndpoint;
+    }
+
+    public String getObjectstoreS3Endpoint() {
+        return objectstoreS3Endpoint;
+    }
+
+    public void setObjectstoreS3Endpoint(String objectstoreS3Endpoint) {
+        this.objectstoreS3Endpoint = objectstoreS3Endpoint;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
     }
 
     public Map<String, Object> getSettings() {

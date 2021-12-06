@@ -16,6 +16,7 @@ import com.emc.object.s3.bean.LifecycleRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
@@ -39,6 +40,7 @@ public class EcsService {
     private static final Logger logger = LoggerFactory.getLogger(EcsService.class);
 
     @Autowired
+    @Qualifier("managementAPI")
     private ManagementAPIConnection connection;
 
     @Autowired

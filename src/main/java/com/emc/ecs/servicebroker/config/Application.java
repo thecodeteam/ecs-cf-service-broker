@@ -1,12 +1,12 @@
-package com.emc.ecs.servicebroker;
+package com.emc.ecs.servicebroker.config;
 
 import com.emc.ecs.management.sdk.EcsManagementAPIConnection;
 import com.emc.ecs.management.sdk.ManagementAPIConnection;
-import com.emc.ecs.servicebroker.config.BrokerConfig;
+import com.emc.ecs.management.sdk.ObjectscaleGatewayConnection;
+import com.emc.ecs.management.sdk.ObjectstoreManagementAPIConnection;
 import com.emc.ecs.servicebroker.controller.RepositoryListController;
 import com.emc.ecs.servicebroker.controller.RestartController;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
-import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -14,6 +14,10 @@ import com.emc.ecs.servicebroker.service.EcsService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceService;
 import com.emc.ecs.servicebroker.service.s3.S3Service;
+import com.emc.object.s3.S3Client;
+import com.emc.object.s3.S3Config;
+import com.emc.object.s3.jersey.S3JerseyClient;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import static com.emc.ecs.management.sdk.ManagementAPIConstants.OBJECTSCALE;
@@ -64,18 +69,15 @@ public class Application {
         return new RestartController();
     }
 
-    @Bean
-    public ManagementAPIConnection managementAPIConnection() {
+    @Bean(name = "managementAPI")
+    @DependsOn("objectscaleGateway")
+    public ManagementAPIConnection managementAPIConnection(ObjectscaleGatewayConnection gatewayConnection) {
         // TODO create objectscale profile after workflows implementation
         if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            return createObjectscaleConnection();
+            return createObjectstoreConnection(gatewayConnection);
         } else {
             return createEcsConnection();
         }
-    }
-
-    private ManagementAPIConnection createObjectscaleConnection() {
-        return null;
     }
 
     private EcsManagementAPIConnection createEcsConnection() {
@@ -98,7 +100,9 @@ public class Application {
             c.setMaxLoginSessionLength(broker.getLoginSessionLength());
         }
 
-        c.login();
+        if (!OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            c.login();
+        }
 
         return c;
     }
@@ -119,14 +123,112 @@ public class Application {
         return new S3Service();
     }
 
+    @Bean(name = "objectscaleGateway")
+    public ObjectscaleGatewayConnection objectscaleGatewayConnection() {
+        ObjectscaleGatewayConnection c = new ObjectscaleGatewayConnection(
+                broker.getObjectscaleGatewayEndpoint(),
+                broker.getUsername(),
+                broker.getPassword(),
+                broker.getCertificate(),
+                broker.getIgnoreSslValidation()
+        );
+
+        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            if (broker.getCertificate() != null) {
+                logger.info("Instantiating Objectscale gateway connection with SSL certificate");
+            } else {
+                logger.info("Instantiating unencrypted Objectscale gateway connection");
+            }
+
+            c.login();
+        }
+
+        return c;
+    }
+
+    private ManagementAPIConnection createObjectstoreConnection(ObjectscaleGatewayConnection gatewayConnection) {
+        ObjectstoreManagementAPIConnection c = new ObjectstoreManagementAPIConnection(
+                broker.getObjectstoreManagementEndpoint(),
+                broker.getCertificate(),
+                broker.getIgnoreSslValidation(),
+                gatewayConnection
+        );
+
+        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            if (broker.getCertificate() != null) {
+                logger.info("Instantiating Objectstore management API connection with SSL certificate");
+            } else {
+                logger.info("Instantiating unencrypted Objectstore management API connection");
+            }
+
+            c.login();
+        }
+
+        return c;
+    }
+
+    @Bean
+    public S3Client s3Client(BrokerConfig config) throws URISyntaxException {
+        if (OBJECTSCALE.equalsIgnoreCase(config.getApiType())) {
+            // TODO return objectscale instance binding service
+            return objectstoreS3Client(config);
+        } else {
+            return ecsS3Client(config);
+        }
+    }
+
+    private S3Client objectstoreS3Client(BrokerConfig config) throws URISyntaxException {
+        String bucket = config.getPrefixedBucketName();
+        String repositoryEndpoint = config.getObjectstoreS3Endpoint();
+        String userName = config.getAccessKey();
+        String repositorySecret = config.getSecretKey();
+        String accountId = config.getAccountId();
+
+        if (repositorySecret == null || repositorySecret.length() == 0) {
+            logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
+        }
+
+        logger.info("Preparing S3 endpoint client: '{}', bucket '{}', account '{}', access key '{}'", repositoryEndpoint, bucket, accountId, userName);
+
+        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
+                .withNamespace(accountId)
+                .withIdentity(userName)
+                .withSecretKey(repositorySecret);
+
+        logger.info("S3 config: {}", s3Config);
+
+        return new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+    }
+
+    private S3Client ecsS3Client(BrokerConfig config) throws URISyntaxException {
+        String bucket = config.getPrefixedBucketName();
+        String repositoryEndpoint = config.getRepositoryEndpoint();
+        String userName = config.getPrefixedUserName();
+        String repositorySecret = config.getRepositorySecret();
+
+        if (repositorySecret == null || repositorySecret.length() == 0) {
+            logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
+        }
+
+        logger.info("Preparing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
+
+        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
+                .withIdentity(userName)
+                .withSecretKey(repositorySecret);
+
+        logger.info("S3 config: {}", s3Config);
+
+        return new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+    }
+
     @Bean
     public ServiceInstanceBindingService ecsServiceInstanceBindingService() throws EcsManagementClientException {
         if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            // TODO return objectscale instance binding service
             return new EcsServiceInstanceBindingService();
         } else {
             return new EcsServiceInstanceBindingService();
         }
-
     }
 
     @Bean

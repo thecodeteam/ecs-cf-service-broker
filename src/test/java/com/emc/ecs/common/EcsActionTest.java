@@ -1,7 +1,7 @@
 package com.emc.ecs.common;
 
 import com.emc.ecs.management.sdk.EcsManagementAPIConnection;
-import com.emc.ecs.servicebroker.Application;
+import com.emc.ecs.servicebroker.config.Application;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

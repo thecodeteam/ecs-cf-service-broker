@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.ManagementAPIConnection;
+import com.emc.ecs.management.sdk.ObjectscaleGatewayConnection;
 import com.emc.ecs.management.sdk.actions.BaseUrlAction;
 import com.emc.ecs.management.sdk.model.BaseUrl;
 import com.emc.ecs.management.sdk.model.BaseUrlInfo;
@@ -16,9 +17,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +30,9 @@ public class ObjectscaleService {
 
     @Autowired
     private ManagementAPIConnection connection;
+
+    @Autowired
+    private ObjectscaleGatewayConnection objectscaleGateway;
 
     @Autowired
     private BrokerConfig broker;
@@ -51,7 +53,7 @@ public class ObjectscaleService {
             logger.info("Initializing Objectscale service with management endpoint {}", broker.getManagementEndpoint());
 
             try {
-                lookupObjectEndpoint();
+  //              lookupObjectEndpoint();
 /*
                 prepareRepository();
                 getS3RepositorySecret();

@@ -25,22 +25,20 @@ public class S3Service {
     @Autowired
     private BrokerConfig broker;
 
+    @Autowired
     private S3Client s3;
 
     private String bucket;
 
     @PostConstruct
     public void initialize() throws URISyntaxException {
+        this.bucket = broker.getPrefixedBucketName();
+
+        /*
         String repositoryEndpoint = broker.getRepositoryEndpoint();
 
-        bucket = broker.getPrefixedBucketName();
 
         String userName = broker.getPrefixedUserName();
-
-        logger.info("Initializing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
-
-        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
-                .withIdentity(userName);
 
         String repositorySecret = broker.getRepositorySecret();
 
@@ -48,12 +46,16 @@ public class S3Service {
             logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
         }
 
-        s3Config.withSecretKey(repositorySecret);
+        logger.info("Initializing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
+
+        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
+                .withIdentity(userName)
+                .withSecretKey(repositorySecret);
 
         logger.info("S3 config: {}", s3Config);
 
         this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
-
+*/
         this.testS3EndpointAccess();
     }
 

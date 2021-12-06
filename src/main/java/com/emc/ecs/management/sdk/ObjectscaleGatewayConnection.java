@@ -6,33 +6,32 @@ import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundExceptio
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-import static com.emc.ecs.management.sdk.ManagementAPIConstants.LOGIN;
 import static com.emc.ecs.management.sdk.ManagementAPIConstants.X_SDS_AUTH_TOKEN;
 
-public class EcsManagementAPIConnection extends AbstractManagementAPIConnection {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EcsManagementAPIConnection.class);
+public class ObjectscaleGatewayConnection extends AbstractManagementAPIConnection {
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ObjectscaleGatewayConnection.class);
 
-    public EcsManagementAPIConnection(String endpoint, String username, String password, String certificate, boolean ignoreSslErrors) {
+    public ObjectscaleGatewayConnection(String endpoint, String username, String password, String certificate, boolean ignoreSslErrors) {
         super(endpoint, username, password, certificate, ignoreSslErrors);
     }
 
     public void login() throws EcsManagementClientException {
         logger.info("Logging into {} as {}", endpoint, username);
 
-        UriBuilder loginURI = uriBuilder().segment(LOGIN);
+        UriBuilder loginURI = uriBuilder().segment("mgmt", "login");
 
         HttpAuthenticationFeature authFeature = HttpAuthenticationFeature
                 .basicBuilder()
                 .credentials(username, password)
                 .build();
 
-        Builder request = clientBuilder.newClient()
+        Invocation.Builder request = clientBuilder.newClient()
                 .register(authFeature)
                 .target(loginURI)
                 .request();
@@ -71,6 +70,8 @@ public class EcsManagementAPIConnection extends AbstractManagementAPIConnection 
     public void logout() throws EcsManagementClientException {
         this.authToken = null;
         this.authExpiration = null;
-        //handleRemoteCall(GET, UriBuilder.fromPath(endpoint).segment(LOGOUT).queryParam("force", true), null);
+        // UriBuilder uri = UriBuilder.fromPath(endpoint).segment(LOGOUT)
+        //         .queryParam("force", true);
+        // handleRemoteCall(GET, uri, null);
     }
 }
