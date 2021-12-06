@@ -1,4 +1,4 @@
-FROM gradle:6.8.0-jdk8 as GradleBuilder
+FROM gradle:6.9.1-jdk8 as GradleBuilder
 
 COPY --chown=gradle:gradle build.gradle /home/gradle/src/ecs-cf-service-broker/build.gradle
 COPY --chown=gradle:gradle src /home/gradle/src/ecs-cf-service-broker/src
