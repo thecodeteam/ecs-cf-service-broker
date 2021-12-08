@@ -473,7 +473,7 @@ public class EcsService {
 
     private void prepareRepository() throws EcsManagementClientException {
         String bucketName = broker.getRepositoryBucket();
-        String namespace = broker.getNamespace();
+        String namespace = broker.getAccountId();
         String userName = broker.getRepositoryUser();
 
         if (!bucketExists(bucketName, namespace)) {

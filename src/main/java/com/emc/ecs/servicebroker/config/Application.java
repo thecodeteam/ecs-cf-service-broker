@@ -13,6 +13,7 @@ import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.emc.ecs.servicebroker.service.EcsService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
 import com.emc.ecs.servicebroker.service.EcsServiceInstanceService;
+import com.emc.ecs.servicebroker.service.ObjectscaleService;
 import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
@@ -115,6 +116,11 @@ public class Application {
     @Bean
     public EcsService ecsService() {
         return new EcsService();
+    }
+
+    @Bean
+    public ObjectscaleService objectscaleService() {
+        return new ObjectscaleService();
     }
 
     @Bean
