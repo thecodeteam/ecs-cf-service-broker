@@ -26,7 +26,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
 
-    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) throws IOException {
+    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) throws IOException {
         super(instanceRepo, ecs);
     }
 

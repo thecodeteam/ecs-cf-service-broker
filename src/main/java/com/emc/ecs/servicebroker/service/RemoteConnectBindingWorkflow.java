@@ -15,7 +15,7 @@ import java.util.Map;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
-    RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
     }
 

@@ -15,7 +15,7 @@ public class ObjectscaleBindingService implements ServiceInstanceService, Servic
     private static final Logger LOG = LoggerFactory.getLogger(ObjectscaleBindingService.class);
 
     @Autowired
-    private ObjectscaleService storage;
+    private ObjectstoreService storage;
 
     @Autowired
     private ServiceInstanceRepository instanceRepository;

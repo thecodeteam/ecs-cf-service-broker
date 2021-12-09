@@ -23,7 +23,7 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 import static com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService.isRemoteConnectedInstance;
 
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
-    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs, ServiceDefinitionProxy service) {
+    NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs, ServiceDefinitionProxy service) {
         super(instanceRepo, ecs);
     }
 

@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
+import com.emc.ecs.servicebroker.service.BindingWorkflow;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;

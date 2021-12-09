@@ -8,12 +8,12 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import java.util.Map;
 
 abstract public class InstanceWorkflowImpl implements InstanceWorkflow {
-    protected final EcsService ecs;
+    protected final StorageService ecs;
     final ServiceInstanceRepository instanceRepository;
     String instanceId;
     CreateServiceInstanceRequest createRequest;
 
-    InstanceWorkflowImpl(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    InstanceWorkflowImpl(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         this.instanceRepository = instanceRepo;
         this.ecs = ecs;
     }

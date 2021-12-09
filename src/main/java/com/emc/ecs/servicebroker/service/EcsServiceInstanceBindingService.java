@@ -32,13 +32,13 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
     @Autowired
-    private EcsService ecs;
+    protected StorageService ecs;
 
     @Autowired
-    private ServiceInstanceBindingRepository repository;
+    protected ServiceInstanceBindingRepository repository;
 
     @Autowired
-    private ServiceInstanceRepository instanceRepo;
+    protected ServiceInstanceRepository instanceRepo;
 
     public EcsServiceInstanceBindingService() {
         super();
@@ -134,7 +134,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
         return getWorkflow(service).withCreateRequest(createRequest);
     }
 
-    private BindingWorkflow getWorkflow(ServiceDefinitionProxy service) throws IOException {
+    protected BindingWorkflow getWorkflow(ServiceDefinitionProxy service) throws IOException {
         ServiceType serviceType = ServiceType.fromSettings(service.getServiceSettings());
         switch (serviceType) {
             case NAMESPACE:

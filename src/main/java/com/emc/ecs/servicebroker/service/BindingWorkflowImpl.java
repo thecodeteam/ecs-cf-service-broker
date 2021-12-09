@@ -27,7 +27,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     ServiceInstanceRepository instanceRepository;
-    protected final EcsService ecs;
+    protected final StorageService ecs;
     protected ServiceDefinitionProxy service;
     protected PlanProxy plan;
     String instanceId;
@@ -35,7 +35,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     CreateServiceInstanceBindingRequest createRequest;
     ServiceInstanceBinding binding;
 
-    BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         this.instanceRepository = instanceRepo;
         this.ecs = ecs;
     }

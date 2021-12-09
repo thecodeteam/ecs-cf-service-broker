@@ -10,10 +10,10 @@ import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepository;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
-import com.emc.ecs.servicebroker.service.EcsService;
-import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
-import com.emc.ecs.servicebroker.service.EcsServiceInstanceService;
-import com.emc.ecs.servicebroker.service.ObjectscaleService;
+import com.emc.ecs.servicebroker.service.*;
+import com.emc.ecs.servicebroker.service.ObjectstoreService;
+import com.emc.ecs.servicebroker.service.ObjectscaleServiceInstanceBindingService;
+import com.emc.ecs.servicebroker.service.ObjectscaleServiceInstanceService;
 import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
@@ -114,13 +114,13 @@ public class Application {
     }
 
     @Bean
-    public EcsService ecsService() {
+    public StorageService ecsService() {
         return new EcsService();
     }
 
     @Bean
-    public ObjectscaleService objectscaleService() {
-        return new ObjectscaleService();
+    public ObjectstoreService objectscaleService() {
+        return new ObjectstoreService();
     }
 
     @Bean
@@ -230,8 +230,7 @@ public class Application {
     @Bean
     public ServiceInstanceBindingService ecsServiceInstanceBindingService() throws EcsManagementClientException {
         if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            // TODO return objectscale instance binding service
-            return new EcsServiceInstanceBindingService();
+            return new ObjectscaleServiceInstanceBindingService();
         } else {
             return new EcsServiceInstanceBindingService();
         }
@@ -244,7 +243,13 @@ public class Application {
 
     @Bean
     public ServiceInstanceService ecsServiceInstanceService() throws EcsManagementClientException {
-        return new EcsServiceInstanceService();
+        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            // TODO return objectscale instance binding service
+            return new ObjectscaleServiceInstanceService();
+        } else {
+            return new EcsServiceInstanceService();
+        }
+
     }
 
     @Bean
