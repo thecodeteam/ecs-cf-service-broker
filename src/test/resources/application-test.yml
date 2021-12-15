@@ -41,6 +41,7 @@ catalog:
       description: Elastic Cloud Namespace
       bindable: true
       plan-updatable: true
+      repository-service: false
       tags:
         - s3
         - namespace
@@ -76,6 +77,7 @@ catalog:
       description: Elastic Cloud S3 Object Storage Bucket
       bindable: true
       plan-updatable: true
+      repository-service: true
       tags:
         - s3
         - bucket
@@ -126,6 +128,7 @@ catalog:
       description: Elastic Cloud S3 Object Storage File Accessible Bucket
       bindable: true
       plan-updatable: true
+      repository-service: false
       tags:
         - s3
         - bucket
