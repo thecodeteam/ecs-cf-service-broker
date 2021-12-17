@@ -1,60 +1,38 @@
 package com.emc.ecs.servicebroker.service;
 
-import com.emc.ecs.management.sdk.ManagementAPIConnection;
 import com.emc.ecs.management.sdk.ObjectscaleGatewayConnection;
-import com.emc.ecs.management.sdk.actions.*;
-import com.emc.ecs.management.sdk.model.*;
-import com.emc.ecs.servicebroker.config.BrokerConfig;
-import com.emc.ecs.servicebroker.config.CatalogConfig;
+import com.emc.ecs.management.sdk.actions.iam.IAMAccessKeyAction;
+import com.emc.ecs.management.sdk.actions.iam.IAMPolicyAction;
+import com.emc.ecs.management.sdk.actions.iam.IAMUserAction;
+import com.emc.ecs.management.sdk.actions.iam.IAMUserPolicyAction;
+import com.emc.ecs.management.sdk.model.UserSecretKey;
+import com.emc.ecs.management.sdk.model.iam.policy.IamPolicy;
+import com.emc.ecs.management.sdk.model.iam.policy.document.IAMPolicyDocument;
+import com.emc.ecs.management.sdk.model.iam.policy.document.IAMPolicyStatement;
+import com.emc.ecs.management.sdk.model.iam.user.IamAccessKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
-import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
-import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
-import com.emc.ecs.tool.BucketWipeOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerInvalidParametersException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceExistsException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.net.URISyntaxException;
+import java.util.*;
 
 import static com.emc.ecs.management.sdk.ManagementAPIConstants.OBJECTSCALE;
-import static com.emc.ecs.servicebroker.model.Constants.*;
+import static com.emc.ecs.servicebroker.model.Constants.FULL_CONTROL;
+import static org.apache.commons.collections.ListUtils.isEqualList;
 
 @Service
-public class ObjectstoreService {
+public class ObjectstoreService extends EcsService {
     private static final Logger logger = LoggerFactory.getLogger(ObjectstoreService.class);
 
     @Autowired
-    @Qualifier("managementAPI")
-    private ManagementAPIConnection managementAPI;
-
-    @Autowired
     private ObjectscaleGatewayConnection objectscaleGateway;
-
-    @Autowired
-    private BrokerConfig broker;
-
-    @Autowired
-    private CatalogConfig catalog;
-
-    private String objectEndpoint;
-
-    @Autowired
-    private BucketWipeFactory bucketWipeFactory;
-
-    private BucketWipeOperations bucketWipe;
 
     @PostConstruct
     void initialize() {
@@ -63,136 +41,168 @@ public class ObjectstoreService {
 
             try {
                 prepareRepository();
-/*
                 prepareBucketWipe();
-*/
-            } catch (EcsManagementClientException e) {
+            } catch (EcsManagementClientException | URISyntaxException e) {
                 logger.error("Failed to initialize Objectscale service: {}", e.getMessage());
                 throw new ServiceBrokerException(e.getMessage(), e);
             }
-
         }
-    }
-
-    String prefix(String string) {
-        return broker.getPrefix() + string;
     }
 
     private void prepareRepository() throws EcsManagementClientException {
         String bucketName = broker.getRepositoryBucket();
-        String namespace = broker.getAccountId();
+        String account = broker.getAccountId();
 
-        if (!bucketExists(bucketName, namespace)) {
-            logger.info("Preparing repository bucket '{}'", prefix(bucketName));
+        prepareRepositoryBucket(bucketName, account);
 
-            ServiceDefinitionProxy service;
-            try {
-                if (broker.getRepositoryServiceId() == null) {
-                    service = catalog.getRepositoryServiceDefinition();
-                } else {
-                    service = catalog.findServiceDefinition(broker.getRepositoryServiceId());
-                }
-
-                PlanProxy plan;
-                if (broker.getRepositoryPlanId() == null) {
-                    plan = service.getRepositoryPlan();
-                } else {
-                    plan = service.findPlan(broker.getRepositoryPlanId());
-                }
-
-                Map<String, Object> parameters = new HashMap<>();
-                parameters.put(NAMESPACE, namespace);
-
-                createBucket("repository", bucketName, service, plan, parameters);
-            } catch (ServiceBrokerException e) {
-                String errorMessage = "Failed to create broker repository bucket: " + e.getMessage();
-                logger.error(errorMessage);
-                throw new ServiceBrokerException(errorMessage, e);
-            }
+        // TODO remove this after dev
+        long t = System.currentTimeMillis();
+        for (int i = 1; i <= 10240; i++) {
+            String userName = "test-user-limit-" + t + "-" + i;
+            createUser(userName, account);
+//            addUserToBucket(bucketName, account, userName);
         }
     }
 
-    public boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException {
-        return BucketAction.exists(managementAPI, prefix(bucketName), namespace);
+    @Override
+    public String getDefaultNamespace() {
+        return broker.getAccountId();
     }
 
-    Map<String, Object> createBucket(String serviceInstanceId, String bucketName, ServiceDefinitionProxy serviceDefinition,
-                                     PlanProxy plan, Map<String, Object> parameters) {
+    @Override
+    public String getObjectEndpoint() {
+        return broker.getObjectstoreS3Endpoint();
+    }
+
+    @Override
+    public UserSecretKey createUser(String id, String accountId) {
         try {
-            parameters = EcsService.mergeParameters(broker, serviceDefinition, plan, parameters);
-            //parameters = validateAndPrepareSearchMetadata(parameters);
+            String userId = prefix(id);
 
-            // Validate the reclaim-policy
-            if (!ReclaimPolicy.isPolicyAllowed(parameters)) {
-                throw new ServiceBrokerInvalidParametersException("Reclaim Policy " + ReclaimPolicy.getReclaimPolicy(parameters) + " is not one of the allowed polices " + ReclaimPolicy.getAllowedReclaimPolicies(parameters));
-            }
+            logger.info("Creating user '{}' in account '{}'", userId, accountId);
+            IAMUserAction.create(objectscaleGateway, userId, accountId);
 
-            // Validate expiration policy
-            if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
-                if ((boolean) parameters.get(FILE_ACCESSIBLE)) {
-                    throw new ServiceBrokerInvalidParametersException("Cannot apply expiration rule to file accessible bucket");
-                }
-            }
+            logger.info("Creating secret for user '{}'", userId);
+            IamAccessKey iamKey = IAMAccessKeyAction.create(objectscaleGateway, userId, accountId);
 
-            logger.info("Creating bucket '{}' with service '{}' plan '{}'({}) and params {}", prefix(bucketName), serviceDefinition.getName(), plan.getName(), plan.getId(), parameters);
-
-            String namespace = (String) parameters.get(NAMESPACE);
-
-            if (bucketExists(bucketName, namespace)) {
-                throw new ServiceInstanceExistsException(serviceInstanceId, serviceDefinition.getId());
-            }
-
-            DataServiceReplicationGroup replicationGroup = lookupReplicationGroup((String) parameters.get(REPLICATION_GROUP));
-
-            if (replicationGroup == null) {
-                throw new ServiceBrokerException("Cannot create bucket - replication group '" + parameters.get(REPLICATION_GROUP) + "' not found");
-            }
-
-            BucketAction.create(managementAPI, new ObjectBucketCreate(
-                    prefix(bucketName),
-                    namespace,
-                    replicationGroup.getId(),
-                    parameters
-            ));
-
-            if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
-                Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
-                logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", prefix(bucketName), namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
-                BucketQuotaAction.create(managementAPI, namespace, prefix(bucketName), quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
-            }
-
-            if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
-                logger.info("Applying bucket retention policy on '{}' in '{}': {}", bucketName, namespace, parameters.get(DEFAULT_RETENTION));
-                BucketRetentionAction.update(managementAPI, namespace, prefix(bucketName), (int) parameters.get(DEFAULT_RETENTION));
-            }
-
-            if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
-                List<Map<String, String>> bucketTags = (List<Map<String, String>>) parameters.get(TAGS);
-                logger.info("Applying bucket tags on '{}': {}", bucketName, bucketTags);
-                BucketTagsAction.create(managementAPI, prefix(bucketName), new BucketTagsParamAdd(namespace, bucketTags));
-            }
-
-            /* TODO
-            if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
-                grantUserLifecycleManagementPolicy(prefix(bucketName), namespace, prefix(broker.getRepositoryUser()));
-                logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
-                BucketExpirationAction.update(broker, namespace, prefix(bucketName), (int) parameters.get(EXPIRATION), null);
-            }
-             */
+            UserSecretKey key = new UserSecretKey();
+            key.setSecretKey(iamKey.getSecretAccessKey());
+            key.setKeyTimestamp(iamKey.getCreateDate());
+            return key;
         } catch (Exception e) {
-            String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
-            logger.error(errorMessage, e);
-            throw new ServiceBrokerException(errorMessage, e);
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
-        return parameters;
     }
 
-    public DataServiceReplicationGroup lookupReplicationGroup(String replicationGroup) throws EcsManagementClientException {
-        return ReplicationGroupAction.list(managementAPI).stream()
-                .filter(r -> replicationGroup != null && r != null
-                        && (replicationGroup.equals(r.getName()) || replicationGroup.equals(r.getId()))
+    @Override
+    public void deleteUser(String userId, String accountId) throws EcsManagementClientException {
+        try {
+            if (userExists(userId, accountId)) {
+                logger.info("Deleting user '{}' in account '{}'", userId, accountId);
+                IAMUserAction.delete(objectscaleGateway, prefix(userId), accountId);
+            } else {
+                logger.info("User {} no longer exists, assume already deleted", prefix(userId));
+            }
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Boolean userExists(String userId, String accountId) throws ServiceBrokerException {
+        try {
+            return IAMUserAction.exists(objectscaleGateway, prefix(userId), accountId);
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void addUserToBucket(String bucketId, String accountId, String username) {
+        logger.info("Adding user '{}' default access to bucket '{}' in '{}'", prefix(username), prefix(bucketId), accountId);
+
+        // 1. Create policy
+        String bucketARN = "arn:aws:s3::" + accountId + ":" + bucketId;
+        String objectsARN = bucketARN + "/*";
+
+        IAMPolicyDocument policy = new IAMPolicyDocument(
+                "2021-10-17", null,
+                Arrays.asList(
+                        new IAMPolicyStatement()
+                                .resource(bucketARN)
+                                .effect("Allow")
+                                .action("s3:ListBucket"),
+                        new IAMPolicyStatement()
+                                .resource(objectsARN)
+                                .effect("Allow")
+                                .action(Arrays.asList(
+                                        "s3:PutObject",
+                                        "s3:PutObjectAcl",
+                                        "s3:GetObject",
+                                        "s3:GetObjectAcl",
+                                        "s3:DeleteObject"
+                                ))
                 )
-                .findFirst()
-                .orElseThrow(() -> new ServiceBrokerException("ECS replication group not found: " + replicationGroup));
+        );
+
+        String policyDocument = policy.toString(); // TODO implement convert to json
+
+        String policyName = policyName(bucketId, FULL_CONTROL);
+        IamPolicy iamPolicy = IAMPolicyAction.create(objectscaleGateway, policyName, policyDocument, accountId);
+
+        // 2. add policy to user
+        IAMUserPolicyAction.attach(objectscaleGateway, username, iamPolicy.getArn(), accountId);
+    }
+
+    private String policyName(String bucketId, List<String> permissions) {
+        if (permissions == null || isEqualList(FULL_CONTROL, permissions)) {
+            return prefix(bucketId) + "-policy";
+        } else {
+            List<String> copy = new ArrayList<>(permissions);
+            Collections.sort(copy);
+            String join = String.join("-", copy);
+            return prefix(bucketId) + "-policy-" + join;
+        }
+    }
+
+    @Override
+    public void removeUserFromBucket(String bucketId, String accountId, String username) throws EcsManagementClientException {
+        String policyName = policyName(bucketId, FULL_CONTROL);     // TODO restore policy name or ARN from binding instance - what happens when we have custom permissions?
+        String policyARN = "urn:osc:iam::" + accountId + ":policy/" + policyName;
+        IAMUserPolicyAction.detach(objectscaleGateway, username, policyARN, accountId);
+    }
+
+    @Override
+    public void addUserToBucket(String bucketId, String namespace, String username, List<String> permissions) throws EcsManagementClientException {
+        if (permissions == null || isEqualList(FULL_CONTROL, permissions)) {
+            addUserToBucket(bucketId, namespace, username);
+        } else {
+            throw new UnsupportedOperationException("Not supported for Objectscale - user permissions");
+        }
+    }
+
+    @Override
+    public String getNamespaceURL(String namespace, Map<String, Object> requestParameters, Map<String, Object> serviceSettings) {
+        throw new UnsupportedOperationException("Not supported for Objectscale");
+    }
+
+    @Override
+    public String getNamespaceURL(String namespace, Boolean useSSL, String baseUrl) throws EcsManagementClientException {
+        throw new UnsupportedOperationException("Not supported for Objectscale");
+    }
+
+    @Override
+    public Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException {
+        throw new UnsupportedOperationException("Not supported for Objectscale");
+    }
+
+    @Override
+    public void deleteNamespace(String namespace) throws EcsManagementClientException {
+        throw new UnsupportedOperationException("Not supported for Objectscale");
+    }
+
+    @Override
+    public Map<String, Object> changeNamespacePlan(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException {
+        throw new UnsupportedOperationException("Not supported for Objectscale");
     }
 }

@@ -29,6 +29,8 @@ public final class ManagementAPIConstants {
     public static final String LOGIN = "login";
     public static final String OBJECTSCALE = "Objectscale";
 
+    public static final String IAM = "iam";
+
     private ManagementAPIConstants() {
     }
 }

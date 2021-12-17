@@ -1,0 +1,24 @@
+{
+  "scenarioName": "iam-testuser1-access-key",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "Created",
+  "request": {
+    "method": "POST",
+    "url": "/iam?Action=CreateAccessKey&UserName=testuser1",
+    "headers": {
+      "Accept": {
+        "equalTo": "application/xml"
+      },
+      "X-SDS-AUTH-TOKEN": {
+        "equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+      }
+    }
+  },
+  "response": {
+    "status": "200",
+    "headers": {
+      "Content-Type": "application/xml"
+    },
+    "body": "<ns2:CreateAccessKeyResponse xmlns:ns2=\"none\"> <ResponseMetadata><RequestId>0afe0331:17d4d6ba1a8:128e:1fe7-w5drz</RequestId></ResponseMetadata> <CreateAccessKeyResult><AccessKey><AccessKeyId>OKIAE696F9FFF90D1015</AccessKeyId><CreateDate>2021-11-29T22:04:01Z</CreateDate><SecretAccessKey>qGtNCpQ4fDpRTF4LZKTOv6GL81UzecVJETpmGJGD</SecretAccessKey><Status>Active</Status><UserName>testuser1</UserName></AccessKey></CreateAccessKeyResult></ns2:CreateAccessKeyResponse>"
+  }
+}

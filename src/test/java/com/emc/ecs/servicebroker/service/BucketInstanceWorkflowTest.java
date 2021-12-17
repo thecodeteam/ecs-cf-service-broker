@@ -183,7 +183,6 @@ public class BucketInstanceWorkflowTest {
                         bucketInstance.setReferences(refs);
                         when(instanceRepo.find(SERVICE_INSTANCE_ID))
                                 .thenReturn(bucketInstance);
-                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID, NAMESPACE_NAME)).thenReturn(null);
                     });
 
                     It("should delete the bucket", () -> {
@@ -197,7 +196,6 @@ public class BucketInstanceWorkflowTest {
                     BeforeEach(() -> {
                         when(instanceRepo.find(SERVICE_INSTANCE_ID))
                             .thenReturn(namedBucketInstance);
-                        when(ecs.deleteBucket(SERVICE_INSTANCE_ID, NAMESPACE_NAME)).thenReturn(CompletableFuture.completedFuture(true));
                     });
 
                     It("should delete the named bucket", () -> {

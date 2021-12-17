@@ -4,15 +4,16 @@ import com.emc.ecs.management.sdk.model.EcsManagementClientError;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientUnauthorizedException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
-import org.apache.http.HttpHeaders;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.time.Instant;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,11 +52,23 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
     abstract public void logout() throws EcsManagementClientException;
 
     public Response remoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
-        return remoteCall(method, uri, arg, APPLICATION_XML);
+        return remoteCall(method, uri, arg, APPLICATION_XML, null);
+    }
+
+    public Response remoteCall(String method, UriBuilder uri, Object arg, Map<String, String> headers) throws EcsManagementClientException {
+        String contentType = APPLICATION_XML;
+        if (headers != null) {
+            contentType = headers.getOrDefault(javax.ws.rs.core.HttpHeaders.CONTENT_TYPE, APPLICATION_XML);
+        }
+        return remoteCall(method, uri, arg, contentType, headers);
     }
 
     public Response remoteCall(String method, UriBuilder uri, Object arg, String contentType) throws EcsManagementClientException {
-        Response response = makeRemoteCall(method, uri, arg, contentType);
+        return remoteCall(method, uri, arg, contentType, null);
+    }
+
+    public Response remoteCall(String method, UriBuilder uri, Object arg, String contentType, Map<String, String> headers) throws EcsManagementClientException {
+        Response response = makeRemoteCall(method, uri, arg, contentType, headers);
         try {
             handleResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
@@ -65,7 +78,12 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
     }
 
     public boolean existenceQuery(UriBuilder uri, Object arg) throws EcsManagementClientException {
-        Response response = makeRemoteCall(HttpMethod.GET, uri, arg, APPLICATION_XML);
+        return existenceQuery(uri, arg, null);
+    }
+
+    @Override
+    public boolean existenceQuery(UriBuilder uri, Object arg, Map<String, String> headers) throws EcsManagementClientException {
+        Response response = makeRemoteCall(HttpMethod.GET, uri, arg, APPLICATION_XML, headers);
         try {
             handleResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
@@ -75,7 +93,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
         return true;
     }
 
-    protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType) throws EcsManagementClientException {
+    protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType, Map<String, String> headers) throws EcsManagementClientException {
         if (sessionExpired()) {
             logger.info("Session token expired after {} minutes", maxLoginSessionLength);
             logout();
@@ -94,6 +112,12 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
                     .header("X-EMC-Override", "true")            // enables access to ECS Flex API (pre-GA limitation)
                     .header(X_SDS_AUTH_TOKEN, authToken)
                     .header(HttpHeaders.ACCEPT, APPLICATION_XML);
+
+            if (headers != null && headers.size() > 0) {
+                for (Map.Entry<String, String> header : headers.entrySet()) {
+                    request.header(header.getKey(), header.getValue());
+                }
+            }
 
             Response response = null;
 
@@ -116,7 +140,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
                 authRetries += 1;
                 this.authToken = null;
                 this.authExpiration = null;
-                response = makeRemoteCall(method, uri, arg, APPLICATION_XML);
+                response = makeRemoteCall(method, uri, arg, APPLICATION_XML, headers);
             }
 
             return response;

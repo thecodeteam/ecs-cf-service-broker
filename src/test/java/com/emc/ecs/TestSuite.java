@@ -1,6 +1,7 @@
 package com.emc.ecs;
 
 import com.emc.ecs.management.sdk.actions.*;
+import com.emc.ecs.management.sdk.actions.iam.IamUserActionTest;
 import com.emc.ecs.servicebroker.config.CatalogConfigTest;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepositoryTest;
@@ -18,30 +19,31 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-        BaseUrlActionTest.class,
-        BucketAclActionTest.class,
-        BucketActionTest.class,
-        BucketQuotaActionTest.class,
-        BucketRetentionActionTest.class,
-        EcsManagementAPIConnectionTest.class,
-        NamespaceActionTest.class,
-        NamespaceQuotaActionTest.class,
-        NamespaceRetentionActionTest.class,
-        NFSExportActionTest.class,
-        ObjectUserActionTest.class,
-        ObjectUserSecretActionTest.class,
-        ReplicationGroupActionTest.class,
-        MergeParametersTest.class,
-        MetadataSearchValidationTests.class,
-        EcsServiceTest.class,
-        CatalogConfigTest.class,
-        ServiceDefinitionProxyTest.class,
-        ServiceInstanceBindingRepositoryTest.class,
-        ServiceInstanceRepositoryTest.class,
-        EcsServiceInstanceBindingServiceTest.class,
-        EcsServiceInstanceServiceTest.class,
-        BucketBindingWorkflowTest.class,
-        BucketInstanceWorkflowTest.class,
+//        BaseUrlActionTest.class,
+//        BucketAclActionTest.class,
+//        BucketActionTest.class,
+//        BucketQuotaActionTest.class,
+//        BucketRetentionActionTest.class,
+//        EcsManagementAPIConnectionTest.class,
+//        NamespaceActionTest.class,
+//        NamespaceQuotaActionTest.class,
+//        NamespaceRetentionActionTest.class,
+//        NFSExportActionTest.class,
+//        ObjectUserActionTest.class,
+//        ObjectUserSecretActionTest.class,
+//        ReplicationGroupActionTest.class,
+//        MergeParametersTest.class,
+//        MetadataSearchValidationTests.class,
+//        EcsServiceTest.class,
+//        CatalogConfigTest.class,
+//        ServiceDefinitionProxyTest.class,
+//        ServiceInstanceBindingRepositoryTest.class,
+//        ServiceInstanceRepositoryTest.class,
+//        EcsServiceInstanceBindingServiceTest.class,
+//        EcsServiceInstanceServiceTest.class,
+//        BucketBindingWorkflowTest.class,
+//        BucketInstanceWorkflowTest.class,
+        IamUserActionTest.class,
         RemoteConnectionInstanceWorkflowTest.class
     })
 public class TestSuite {

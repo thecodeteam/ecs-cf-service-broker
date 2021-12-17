@@ -32,7 +32,7 @@ public interface StorageService {
 
     Map<String, Object> changeBucketPlan(String bucketName, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters, Map<String, Object> instanceSettings);
 
-    CompletableFuture deleteBucket(String bucketName, String namespace);
+    void deleteBucket(String bucketName, String namespace);
 
     CompletableFuture wipeAndDeleteBucket(String id, String namespace);
 

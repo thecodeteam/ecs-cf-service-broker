@@ -114,17 +114,16 @@ public class Application {
     }
 
     @Bean
-    public StorageService ecsService() {
-        return new EcsService();
+    public StorageService storageService(BrokerConfig config) {
+        if (OBJECTSCALE.equalsIgnoreCase(config.getApiType())) {
+            return new ObjectstoreService();
+        } else {
+            return new EcsService();
+        }
     }
 
     @Bean
-    public ObjectstoreService objectscaleService() {
-        return new ObjectstoreService();
-    }
-
-    @Bean
-    @DependsOn("ecsService")
+    @DependsOn("storageService")
     public S3Service s3Service() {
         return new S3Service();
     }

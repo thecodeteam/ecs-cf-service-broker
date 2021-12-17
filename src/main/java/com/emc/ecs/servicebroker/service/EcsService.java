@@ -2,6 +2,7 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
 import com.emc.ecs.management.sdk.actions.*;
+import com.emc.ecs.management.sdk.actions.iam.IAMUserAction;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
@@ -41,18 +42,18 @@ public class EcsService implements StorageService {
 
     @Autowired
     @Qualifier("managementAPI")
-    private ManagementAPIConnection connection;
+    protected ManagementAPIConnection connection;
 
     @Autowired
-    private BrokerConfig broker;
+    protected BrokerConfig broker;
 
     @Autowired
-    private CatalogConfig catalog;
+    protected CatalogConfig catalog;
 
     @Autowired
-    private BucketWipeFactory bucketWipeFactory;
+    protected BucketWipeFactory bucketWipeFactory;
 
-    private BucketWipeOperations bucketWipe;
+    protected BucketWipeOperations bucketWipe;
 
     private String objectEndpoint;
 
@@ -99,7 +100,7 @@ public class EcsService implements StorageService {
     }
 
     @Override
-    public CompletableFuture deleteBucket(String bucketName, String namespace) {
+    public void deleteBucket(String bucketName, String namespace) {
         if (namespace == null) {
             // buckets created prior to ver2.1 doesnt have namespace in their settings - using old default
             namespace = broker.getNamespace();
@@ -111,7 +112,6 @@ public class EcsService implements StorageService {
             } else {
                 logger.info("Bucket '{}' no longer exists in '{}', assume already deleted", prefix(bucketName), namespace);
             }
-            return null;
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -330,11 +330,15 @@ public class EcsService implements StorageService {
 
     @Override
     public void deleteUser(String userId, String namespace) throws EcsManagementClientException {
-        if (userExists(userId, namespace)) {
-            logger.info("Deleting user '{}' in namespace '{}'", userId, namespace);
-            ObjectUserAction.delete(connection, prefix(userId));
-        } else {
-            logger.info("User {} no longer exists, assume already deleted", prefix(userId));
+        try {
+            if (userExists(userId, namespace)) {
+                logger.info("Deleting user '{}' in namespace '{}'", userId, namespace);
+                ObjectUserAction.delete(connection, prefix(userId));
+            } else {
+                logger.info("User {} no longer exists, assume already deleted", prefix(userId));
+            }
+        } catch (Exception e) {
+            throw new ServiceBrokerException(e.getMessage(), e);
         }
     }
 
@@ -380,7 +384,9 @@ public class EcsService implements StorageService {
             logger.info("ACL {} no longer exists when removing user {}", prefix(bucket), prefix(username));
             return;
         }
+
         BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), namespace);
+
         List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
                 .stream().filter(a -> !a.getUser().equals(prefix(username)))
                 .collect(Collectors.toList());
@@ -504,6 +510,11 @@ public class EcsService implements StorageService {
         String namespace = broker.getNamespace();
         String userName = broker.getRepositoryUser();
 
+        prepareRepositoryBucket(bucketName, namespace);
+        prepareRepositoryUser(bucketName, namespace, userName);
+    }
+
+    protected void prepareRepositoryBucket(String bucketName, String namespace) {
         if (!bucketExists(bucketName, namespace)) {
             logger.info("Preparing repository bucket '{}'", prefix(bucketName));
 
@@ -532,7 +543,9 @@ public class EcsService implements StorageService {
                 throw new ServiceBrokerException(errorMessage, e);
             }
         }
+    }
 
+    protected void prepareRepositoryUser(String bucketName, String namespace, String userName) {
         if (!userExists(userName, namespace)) {
             logger.info("Creating user to access repository: '{}'", userName);
             createUser(userName, namespace);
@@ -555,7 +568,7 @@ public class EcsService implements StorageService {
         broker.setRepositorySecret(userSecret);
     }
 
-    private void prepareBucketWipe() throws URISyntaxException {
+    protected void prepareBucketWipe() throws URISyntaxException {
         bucketWipe = bucketWipeFactory.getBucketWipe(broker);
     }
 
@@ -720,7 +733,7 @@ public class EcsService implements StorageService {
      * <p>
      * Throwing an exception here will throw an exception in the CompletableFuture pipeline to signify the operation failed
      */
-    private void bucketWipeCompleted(BucketWipeResult result, String id, String namespace) {
+    protected void bucketWipeCompleted(BucketWipeResult result, String id, String namespace) {
         // Wipe Failed, mark as error
         if (!result.getErrors().isEmpty()) {
             logger.warn("Bucket wipe FAILED, deleted {} objects. Leaving bucket {}", result.getDeletedObjects(), prefix(id));
