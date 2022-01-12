@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.servicebroker.model.BrokerApiVersion;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceBindingService;
 import org.springframework.cloud.servicebroker.service.ServiceInstanceService;
@@ -70,18 +71,58 @@ public class Application {
         return new RestartController();
     }
 
-    @Bean(name = "managementAPI")
-    @DependsOn("objectscaleGateway")
-    public ManagementAPIConnection managementAPIConnection(ObjectscaleGatewayConnection gatewayConnection) {
-        // TODO create objectscale profile after workflows implementation
-        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            return createObjectstoreConnection(gatewayConnection);
-        } else {
-            return createEcsConnection();
-        }
+    @Bean
+    public BrokerApiVersion brokerApiVersion() {
+        return new BrokerApiVersion(broker.getBrokerApiVersion());
     }
 
-    private EcsManagementAPIConnection createEcsConnection() {
+    @Bean(name = "objectscaleGateway")
+    @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
+    public ObjectscaleGatewayConnection objectscaleGatewayConnection() {
+        ObjectscaleGatewayConnection c = new ObjectscaleGatewayConnection(
+                broker.getObjectscaleGatewayEndpoint(),
+                broker.getUsername(),
+                broker.getPassword(),
+                broker.getCertificate(),
+                broker.getIgnoreSslValidation()
+        );
+
+        if (broker.getCertificate() != null) {
+            logger.info("Instantiating Objectscale gateway connection with SSL certificate");
+        } else {
+            logger.info("Instantiating unencrypted Objectscale gateway connection");
+        }
+
+        c.login();
+
+        return c;
+    }
+
+    @Bean(name = "managementAPI")
+    @DependsOn("objectscaleGateway")
+    @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
+    public ManagementAPIConnection createObjectstoreConnection(ObjectscaleGatewayConnection gatewayConnection) {
+        ObjectstoreManagementAPIConnection c = new ObjectstoreManagementAPIConnection(
+                broker.getObjectstoreManagementEndpoint(),
+                broker.getCertificate(),
+                broker.getIgnoreSslValidation(),
+                gatewayConnection
+        );
+
+        if (broker.getCertificate() != null) {
+            logger.info("Instantiating Objectstore management API connection with SSL certificate");
+        } else {
+            logger.info("Instantiating unencrypted Objectstore management API connection");
+        }
+
+        c.login();
+
+        return c;
+    }
+
+    @Bean(name = "managementAPI")
+    @ConditionalOnProperty(name = "broker.api.type", havingValue = "ecs", matchIfMissing = true)
+    public EcsManagementAPIConnection createEcsConnection() {
         if (broker.getCertificate() != null) {
             logger.info("Instantiating ECS connection with SSL certificate");
         } else {
@@ -101,88 +142,14 @@ public class Application {
             c.setMaxLoginSessionLength(broker.getLoginSessionLength());
         }
 
-        if (!OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            c.login();
-        }
+        c.login();
 
         return c;
     }
 
-    @Bean
-    public BrokerApiVersion brokerApiVersion() {
-        return new BrokerApiVersion(broker.getBrokerApiVersion());
-    }
-
-    @Bean
-    public StorageService storageService(BrokerConfig config) {
-        if (OBJECTSCALE.equalsIgnoreCase(config.getApiType())) {
-            return new ObjectstoreService();
-        } else {
-            return new EcsService();
-        }
-    }
-
-    @Bean
-    @DependsOn("storageService")
-    public S3Service s3Service() {
-        return new S3Service();
-    }
-
-    @Bean(name = "objectscaleGateway")
-    public ObjectscaleGatewayConnection objectscaleGatewayConnection() {
-        ObjectscaleGatewayConnection c = new ObjectscaleGatewayConnection(
-                broker.getObjectscaleGatewayEndpoint(),
-                broker.getUsername(),
-                broker.getPassword(),
-                broker.getCertificate(),
-                broker.getIgnoreSslValidation()
-        );
-
-        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            if (broker.getCertificate() != null) {
-                logger.info("Instantiating Objectscale gateway connection with SSL certificate");
-            } else {
-                logger.info("Instantiating unencrypted Objectscale gateway connection");
-            }
-
-            c.login();
-        }
-
-        return c;
-    }
-
-    private ManagementAPIConnection createObjectstoreConnection(ObjectscaleGatewayConnection gatewayConnection) {
-        ObjectstoreManagementAPIConnection c = new ObjectstoreManagementAPIConnection(
-                broker.getObjectstoreManagementEndpoint(),
-                broker.getCertificate(),
-                broker.getIgnoreSslValidation(),
-                gatewayConnection
-        );
-
-        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            if (broker.getCertificate() != null) {
-                logger.info("Instantiating Objectstore management API connection with SSL certificate");
-            } else {
-                logger.info("Instantiating unencrypted Objectstore management API connection");
-            }
-
-            c.login();
-        }
-
-        return c;
-    }
-
-    @Bean
-    public S3Client s3Client(BrokerConfig config) throws URISyntaxException {
-        if (OBJECTSCALE.equalsIgnoreCase(config.getApiType())) {
-            // TODO return objectscale instance binding service
-            return objectstoreS3Client(config);
-        } else {
-            return ecsS3Client(config);
-        }
-    }
-
-    private S3Client objectstoreS3Client(BrokerConfig config) throws URISyntaxException {
+    @Bean(name = "s3Client")
+    @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
+    public S3Client objectstoreS3Client(BrokerConfig config) throws URISyntaxException {
         String bucket = config.getPrefixedBucketName();
         String repositoryEndpoint = config.getObjectstoreS3Endpoint();
         String userName = config.getAccessKey();
@@ -205,7 +172,9 @@ public class Application {
         return new S3JerseyClient(s3Config, new URLConnectionClientHandler());
     }
 
-    private S3Client ecsS3Client(BrokerConfig config) throws URISyntaxException {
+    @Bean(name = "s3Client")
+    @ConditionalOnProperty(name = "broker.api.type", havingValue = "ecs", matchIfMissing = true)
+    public S3Client ecsS3Client(BrokerConfig config) throws URISyntaxException {
         String bucket = config.getPrefixedBucketName();
         String repositoryEndpoint = config.getRepositoryEndpoint();
         String userName = config.getPrefixedUserName();
@@ -227,6 +196,30 @@ public class Application {
     }
 
     @Bean
+    public StorageService storageService(BrokerConfig config) {
+        if (OBJECTSCALE.equalsIgnoreCase(config.getApiType())) {
+            return new ObjectstoreService();
+        } else {
+            return new EcsService();
+        }
+    }
+
+    @Bean
+    @DependsOn("storageService")
+    public S3Service s3Service() {
+        return new S3Service();
+    }
+
+    @Bean
+    public ServiceInstanceService ecsServiceInstanceService() throws EcsManagementClientException {
+        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
+            return new ObjectscaleServiceInstanceService();
+        } else {
+            return new EcsServiceInstanceService();
+        }
+    }
+
+    @Bean
     public ServiceInstanceBindingService ecsServiceInstanceBindingService() throws EcsManagementClientException {
         if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
             return new ObjectscaleServiceInstanceBindingService();
@@ -238,17 +231,6 @@ public class Application {
     @Bean
     public ServiceInstanceRepository serviceInstanceRepository() {
         return new ServiceInstanceRepository();
-    }
-
-    @Bean
-    public ServiceInstanceService ecsServiceInstanceService() throws EcsManagementClientException {
-        if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
-            // TODO return objectscale instance binding service
-            return new ObjectscaleServiceInstanceService();
-        } else {
-            return new EcsServiceInstanceService();
-        }
-
     }
 
     @Bean
