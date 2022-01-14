@@ -41,7 +41,7 @@ public class ObjectscaleGatewayConnection extends AbstractManagementAPIConnectio
         try {
             response = request.get();
 
-            handleResponse(response);
+            handleErrorResponse(response);
 
             logger.info("Successful login!");
 

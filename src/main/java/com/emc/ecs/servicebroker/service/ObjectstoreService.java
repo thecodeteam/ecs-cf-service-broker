@@ -13,6 +13,7 @@ import com.emc.ecs.management.sdk.model.iam.user.IamAccessKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.object.s3.S3Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class ObjectstoreService extends EcsService {
 
     @Autowired
     private ObjectscaleGatewayConnection objectscaleGateway;
+
+    @Autowired
+    private S3Client s3Client;
 
     @PostConstruct
     void initialize() {
@@ -55,13 +59,21 @@ public class ObjectstoreService extends EcsService {
 
         prepareRepositoryBucket(bucketName, account);
 
+        /*
         // TODO remove this after dev
         long t = System.currentTimeMillis();
-        for (int i = 1; i <= 10240; i++) {
-            String userName = "test-user-limit-" + t + "-" + i;
-            createUser(userName, account);
+        for (int i = 1; i <= 20; i++) {
+            String userName = "test-user-limit-1639473560712-" + i;
+//            String userName = "test-user-limit-" + t + "-" + i;
+            //createUser(userName, account);
+            deleteUser(userName, account);
 //            addUserToBucket(bucketName, account, userName);
         }
+         */
+    }
+
+    protected void prepareBucketWipe() throws URISyntaxException {
+        bucketWipe = bucketWipeFactory.getBucketWipe(s3Client);
     }
 
     @Override
@@ -120,11 +132,15 @@ public class ObjectstoreService extends EcsService {
     @Override
     public void addUserToBucket(String bucketId, String accountId, String username) {
         logger.info("Adding user '{}' default access to bucket '{}' in '{}'", prefix(username), prefix(bucketId), accountId);
+        // TODO get them from broker config?
+        String objectscaleId = "oscib74ceaf797714e7e";
+        String objectstoreId = "osti8fd659aa22ea84d6";
 
         // 1. Create policy
-        String bucketARN = "arn:aws:s3::" + accountId + ":" + bucketId;
+        String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + bucketId;
         String objectsARN = bucketARN + "/*";
 
+        /*
         IAMPolicyDocument policy = new IAMPolicyDocument(
                 "2021-10-17", null,
                 Arrays.asList(
@@ -146,9 +162,37 @@ public class ObjectstoreService extends EcsService {
         );
 
         String policyDocument = policy.toString(); // TODO implement convert to json
+*/
+        String policyDocument = "{\n" +
+                "   \"Version\":\"2012-10-17\",\n" +
+                "   \"Statement\":[\n" +
+                "      {\n" +
+                "         \"Effect\":\"Allow\",\n" +
+                "         \"Action\":[\"s3:ListBucket\"],\n" +
+                "         \"Resource\":\"" + bucketARN + "\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "         \"Effect\":\"Allow\",\n" +
+                "         \"Action\":[\n" +
+                "            \"s3:PutObject\",\n" +
+                "            \"s3:PutObjectAcl\",\n" +
+                "            \"s3:GetObject\",\n" +
+                "            \"s3:GetObjectAcl\",\n" +
+                "            \"s3:DeleteObject\"\n" +
+                "         ],\n" +
+                "         \"Resource\":\"" + objectsARN + "\"\n" +
+                "      }\n" +
+                "   ]\n" +
+                "}";
 
         String policyName = policyName(bucketId, FULL_CONTROL);
-        IamPolicy iamPolicy = IAMPolicyAction.create(objectscaleGateway, policyName, policyDocument, accountId);
+
+        String policyArn = "urn:osc:iam::" + accountId + ":policy/ecs-cf-broker-1-policy";
+
+        IamPolicy iamPolicy = IAMPolicyAction.get(objectscaleGateway, policyArn, accountId);
+        if (iamPolicy == null) {
+            iamPolicy = IAMPolicyAction.create(objectscaleGateway, policyName, policyDocument, accountId);
+        }
 
         // 2. add policy to user
         IAMUserPolicyAction.attach(objectscaleGateway, username, iamPolicy.getArn(), accountId);

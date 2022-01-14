@@ -17,7 +17,7 @@ public class IAMUserPolicyAction {
                 .queryParam("UserName", userName)
                 .queryParam("PolicyArn", policyArn);
 
-        connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
     }
 
     public static void detach(ManagementAPIConnection connection, String userName, String policyArn, String accountId) throws EcsManagementClientException {
@@ -27,6 +27,6 @@ public class IAMUserPolicyAction {
                 .queryParam("UserName", userName)
                 .queryParam("PolicyArn", policyArn);
 
-        connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
     }
 }

@@ -70,7 +70,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
     public Response remoteCall(String method, UriBuilder uri, Object arg, String contentType, Map<String, String> headers) throws EcsManagementClientException {
         Response response = makeRemoteCall(method, uri, arg, contentType, headers);
         try {
-            handleResponse(response);
+            handleErrorResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
             throw new EcsManagementClientException(e);
         }
@@ -85,7 +85,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
     public boolean existenceQuery(UriBuilder uri, Object arg, Map<String, String> headers) throws EcsManagementClientException {
         Response response = makeRemoteCall(HttpMethod.GET, uri, arg, APPLICATION_XML, headers);
         try {
-            handleResponse(response);
+            handleErrorResponse(response);
         } catch (EcsManagementResourceNotFoundException e) {
             Logger.getAnonymousLogger().log(Level.FINE, "info", e);
             return false;
@@ -93,7 +93,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
         return true;
     }
 
-    protected Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType, Map<String, String> headers) throws EcsManagementClientException {
+    public Response makeRemoteCall(String method, UriBuilder uri, Object arg, String contentType, Map<String, String> headers) throws EcsManagementClientException {
         if (sessionExpired()) {
             logger.info("Session token expired after {} minutes", maxLoginSessionLength);
             logout();
@@ -170,16 +170,14 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
         return isLoggedIn() && authExpiration != null && authExpiration.isBefore(Instant.now());
     }
 
-    protected void handleResponse(Response response) throws EcsManagementClientException, EcsManagementResourceNotFoundException {
+    protected static void handleErrorResponse(Response response) throws EcsManagementClientException {
         if (response.getStatus() > 399) {
             if (response.getStatus() == 404) {
                 throw new EcsManagementResourceNotFoundException(response.getStatusInfo().toString());
             }
 
             EcsManagementClientError error = response.readEntity(EcsManagementClientError.class);
-            if (response.getStatus() == 404) {
-                throw new EcsManagementResourceNotFoundException(response.getStatusInfo().toString());
-            } else if (response.getStatus() == 401) {
+            if (response.getStatus() == 401) {
                 throw new EcsManagementClientUnauthorizedException(error.toString());
             } else if (error.getCode() == 1004) {
                 // API_PARAMETER_NOT_FOUND

@@ -42,7 +42,7 @@ public class EcsManagementAPIConnection extends AbstractManagementAPIConnection 
         try {
             response = request.get();
 
-            handleResponse(response);
+            handleErrorResponse(response);
 
             logger.info("Successful login!");
 

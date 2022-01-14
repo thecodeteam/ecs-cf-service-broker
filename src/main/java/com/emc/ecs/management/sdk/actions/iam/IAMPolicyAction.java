@@ -9,19 +9,30 @@ import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+
 import static com.emc.ecs.management.sdk.ManagementAPIConstants.IAM;
 import static com.emc.ecs.management.sdk.actions.iam.IAMActionUtils.accountHeader;
 import static javax.ws.rs.HttpMethod.POST;
 
 public class IAMPolicyAction {
     public static IamPolicy create(ManagementAPIConnection connection, String policyName, String policyDocument, String accountId) throws EcsManagementClientException {
+        String encodedDocument = null;
+        try {
+            encodedDocument = URLEncoder.encode(policyDocument, "UTF-8").replaceAll("\\+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
                 .queryParam("Action", "CreatePolicy")
-                .queryParam("PolicyDocument", policyDocument)
+                .queryParam("PolicyDocument", encodedDocument)
                 .queryParam("PolicyName", policyName);
 
-        Response response = connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
 
         CreatePolicyResponse ret = response.readEntity(CreatePolicyResponse.class);
         return ret.getCreatePolicyResult().getPolicy();
@@ -33,7 +44,7 @@ public class IAMPolicyAction {
                 .queryParam("Action", "GetPolicy")
                 .queryParam("PolicyArn", policyARN);
 
-        Response response = connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
 
         GetPolicyResponse ret = response.readEntity(GetPolicyResponse.class);
         return ret.getGetPolicyResult().getPolicy();
@@ -45,6 +56,6 @@ public class IAMPolicyAction {
                 .queryParam("Action", "DeletePolicy")
                 .queryParam("PolicyArn", policyARN);
 
-        connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
     }
 }
