@@ -23,10 +23,11 @@ public final class IAMUserAction {
     public static IamUser create(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "CreateUser")
                 .queryParam("UserName", userName);
 
-        Response response = connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
         CreateUserResponse ret = response.readEntity(CreateUserResponse.class);
         return ret.getCreateUserResult().getUser();
     }
@@ -34,10 +35,11 @@ public final class IAMUserAction {
     public static IamUser get(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "GetUser")
                 .queryParam("UserName", userName);
 
-        Response response = connection.remoteCall(POST, uri, null, accountHeader(accountId));
+        Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
         GetUserResponse ret = response.readEntity(GetUserResponse.class);
 
         return ret.geUserResult().getUser();
@@ -46,6 +48,7 @@ public final class IAMUserAction {
     public static boolean exists(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "GetUser")
                 .queryParam("UserName", userName);
 
@@ -55,12 +58,13 @@ public final class IAMUserAction {
     public static void delete(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "DeleteUser")
                 .queryParam("UserName", userName);
 
         Map<String, String> headers = new HashMap<>();
         headers.put("x-emc-namespace", accountId);
 
-        connection.remoteCall(POST, uri, null, headers);
+        IAMActionUtils.remoteCall(connection, POST, uri, null, headers);
     }
 }

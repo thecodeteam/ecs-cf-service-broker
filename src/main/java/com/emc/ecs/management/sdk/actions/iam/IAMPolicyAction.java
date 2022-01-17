@@ -28,6 +28,7 @@ public class IAMPolicyAction {
 
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "CreatePolicy")
                 .queryParam("PolicyDocument", encodedDocument)
                 .queryParam("PolicyName", policyName);
@@ -41,6 +42,7 @@ public class IAMPolicyAction {
     public static IamPolicy get(ManagementAPIConnection connection, String policyARN, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "GetPolicy")
                 .queryParam("PolicyArn", policyARN);
 
@@ -53,6 +55,7 @@ public class IAMPolicyAction {
     public static void delete(ManagementAPIConnection connection, String policyARN, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
+                //.segment("local")
                 .queryParam("Action", "DeletePolicy")
                 .queryParam("PolicyArn", policyARN);
 

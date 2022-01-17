@@ -110,6 +110,12 @@ public class ObjectstoreService extends EcsService {
     public void deleteUser(String userId, String accountId) throws EcsManagementClientException {
         try {
             if (userExists(userId, accountId)) {
+                logger.info("Deleting access keys of user '{}' in account '{}'", userId, accountId);
+                List<IamAccessKey> accessKeys = IAMAccessKeyAction.list(objectscaleGateway, prefix(userId), accountId);
+                for (IamAccessKey key : accessKeys) {
+                    IAMAccessKeyAction.delete(objectscaleGateway, key.getAccessKeyId(), prefix(userId), accountId);
+                }
+
                 logger.info("Deleting user '{}' in account '{}'", userId, accountId);
                 IAMUserAction.delete(objectscaleGateway, prefix(userId), accountId);
             } else {
@@ -132,6 +138,7 @@ public class ObjectstoreService extends EcsService {
     @Override
     public void addUserToBucket(String bucketId, String accountId, String username) {
         logger.info("Adding user '{}' default access to bucket '{}' in '{}'", prefix(username), prefix(bucketId), accountId);
+
         // TODO get them from broker config?
         String objectscaleId = "oscib74ceaf797714e7e";
         String objectstoreId = "osti8fd659aa22ea84d6";
