@@ -39,9 +39,14 @@ public class BrokerConfig {
     private String certificate;
     private String defaultReclaimPolicy = ReclaimPolicy.Fail.name();
 
+    private String objectscaleId;
     private String objectscaleGatewayEndpoint;
+
     private String objectstoreManagementEndpoint;
     private String objectstoreS3Endpoint;
+    private String objectstoreId;
+    private String objectstoreName;
+
     private String accountId;
     private String accessKey;
     private String secretKey;
@@ -294,6 +299,30 @@ public class BrokerConfig {
 
     public void setObjectstoreS3Endpoint(String objectstoreS3Endpoint) {
         this.objectstoreS3Endpoint = objectstoreS3Endpoint;
+    }
+
+    public String getObjectscaleId() {
+        return objectscaleId;
+    }
+
+    public void setObjectscaleId(String objectscaleId) {
+        this.objectscaleId = objectscaleId;
+    }
+
+    public String getObjectstoreId() {
+        return objectstoreId;
+    }
+
+    public void setObjectstoreId(String objectstoreId) {
+        this.objectstoreId = objectstoreId;
+    }
+
+    public String getObjectstoreName() {
+        return objectstoreName;
+    }
+
+    public void setObjectstoreName(String objectstoreName) {
+        this.objectstoreName = objectstoreName;
     }
 
     public String getAccountId() {
