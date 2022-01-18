@@ -79,6 +79,15 @@ public class Application {
     @Bean(name = "objectscaleGateway")
     @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
     public ObjectscaleGatewayConnection objectscaleGatewayConnection() {
+        // In Objectscale, replication group default ID equals objectstore name
+        if (broker.getObjectstoreName() != null) {
+            broker.setReplicationGroup(broker.getObjectstoreName());
+        }
+        // In Objectscale, account ID is used as 'namespace' in all management API calls
+        if (broker.getAccountId() != null) {
+            broker.setNamespace(broker.getAccountId());
+        }
+
         ObjectscaleGatewayConnection c = new ObjectscaleGatewayConnection(
                 broker.getObjectscaleGatewayEndpoint(),
                 broker.getUsername(),

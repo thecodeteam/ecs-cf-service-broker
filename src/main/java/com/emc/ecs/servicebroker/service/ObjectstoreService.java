@@ -58,18 +58,6 @@ public class ObjectstoreService extends EcsService {
         String account = broker.getAccountId();
 
         prepareRepositoryBucket(bucketName, account);
-
-        /*
-        // TODO remove this after dev
-        long t = System.currentTimeMillis();
-        for (int i = 1; i <= 20; i++) {
-            String userName = "test-user-limit-1639473560712-" + i;
-//            String userName = "test-user-limit-" + t + "-" + i;
-            //createUser(userName, account);
-            deleteUser(userName, account);
-//            addUserToBucket(bucketName, account, userName);
-        }
-         */
     }
 
     protected void prepareBucketWipe() throws URISyntaxException {
@@ -140,8 +128,9 @@ public class ObjectstoreService extends EcsService {
         logger.info("Adding user '{}' default access to bucket '{}' in '{}'", prefix(username), prefix(bucketId), accountId);
 
         // TODO get them from broker config?
-        String objectscaleId = "oscib74ceaf797714e7e";
-        String objectstoreId = "osti8fd659aa22ea84d6";
+
+        String objectscaleId = broker.getObjectscaleId();
+        String objectstoreId = broker.getObjectstoreId();
 
         // 1. Create policy
         String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + bucketId;
