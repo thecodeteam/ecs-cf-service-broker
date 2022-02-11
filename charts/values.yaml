@@ -8,6 +8,9 @@ namespace: "131118670375936839"
 prefix: "kubetesting-"
 replicationGroup: "ecstestdrivegeo"
 
+# Set to true if want to skip ssl validation errors
+ignoreSslValidation: false
+
 # Management SSL Custom CA Trust Certificate
 certificate: |-
 
@@ -25,6 +28,25 @@ ecsConnection:
   endpoint: "https://portal.ecstestdrive.com"
   username: <MANAGEMENT_USER>
   password: <PASSWORD>
+
+## Objectscale
+## to use service broker with objectstore instance, fill values and uncomment:
+#brokerMode: objectscale
+#objectscale:
+#  id: "osci1234567890abcdef"
+#  gatewayEndpoint: "https://10.20.30.40:21234"
+#  managementUser:
+#    name: "user1"
+#    password: "password1"
+#  account:
+#    id: "osai1234567890abcdef"
+#    accessKey: "abc111"
+#    secretKey: "secret"
+#objectstore:
+#  id: "osti1234567890abcdef"
+#  name: "some-store-name"
+#  managementEndpoint: "https://10.20.30.41:31234"
+#  s3Endpoint: "https://10.20.30.42:41234"
 
 image:
   repository: objectscale/ecs-service-broker
@@ -76,3 +98,6 @@ defaultReclaimPolicy: Fail
 
 # Indicates this should be registered as a ServiceCatalog Broker
 serviceCatalog: false
+
+# Override default HTTP header size limit defined by Tomcat (16 kb)
+#tomcatMaxHttpHeaderSize: 64KB

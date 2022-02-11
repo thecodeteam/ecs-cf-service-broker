@@ -417,7 +417,7 @@ public class EcsServiceTest {
         BucketWipeOperations bucketWipeOperations = mock(BucketWipeOperations.class);
         doNothing().when(bucketWipeOperations).deleteAllObjects(any(), any(), any());
 
-        when(bucketWipeFactory.getBucketWipe(any())).thenReturn(bucketWipeOperations);
+        when(bucketWipeFactory.getBucketWipe(any(BrokerConfig.class))).thenReturn(bucketWipeOperations);
 
         // Setup bucket wipe with a CompletableFuture that never returns
         CompletableFuture wipeCompletableFuture = new CompletableFuture();

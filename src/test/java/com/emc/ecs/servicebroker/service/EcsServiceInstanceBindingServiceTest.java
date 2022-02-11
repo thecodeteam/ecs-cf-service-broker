@@ -73,7 +73,7 @@ public class EcsServiceInstanceBindingServiceTest {
         when(ecs.createUser(BINDING_ID, SERVICE_INSTANCE_ID)).thenReturn(userSecretKey);
 
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
+//        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
 
@@ -112,7 +112,7 @@ public class EcsServiceInstanceBindingServiceTest {
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID)).thenReturn(bucketServiceFixture());
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
+//        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
         doNothing().when(repository).save(bindingCaptor.capture());
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
@@ -163,8 +163,8 @@ public class EcsServiceInstanceBindingServiceTest {
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor
                 .forClass(ServiceInstanceBinding.class);
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY))
-                .thenReturn(BINDING_ID + COLON + TEST_KEY);
+//        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY))
+//                .thenReturn(BINDING_ID + COLON + TEST_KEY);
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
         when(instanceRepository.find(SERVICE_INSTANCE_ID))
                 .thenReturn(serviceInstanceFixture());
@@ -234,7 +234,7 @@ public class EcsServiceInstanceBindingServiceTest {
         when(ecs.lookupServiceDefinition(BUCKET_SERVICE_ID)).thenReturn(bucketServiceFixture());
         ArgumentCaptor<ServiceInstanceBinding> bindingCaptor = ArgumentCaptor.forClass(ServiceInstanceBinding.class);
         when(ecs.prefix(BINDING_ID)).thenReturn(BINDING_ID);
-        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
+//        when(ecs.prefix(BINDING_ID + COLON + TEST_KEY)).thenReturn(BINDING_ID + COLON + TEST_KEY);
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
         when(ecs.prefix(SERVICE_INSTANCE_ID)).thenReturn(SERVICE_INSTANCE_ID);
         doNothing().when(repository).save(bindingCaptor.capture());
