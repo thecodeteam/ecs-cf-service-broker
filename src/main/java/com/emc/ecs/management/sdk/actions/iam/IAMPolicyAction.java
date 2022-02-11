@@ -5,6 +5,7 @@ import com.emc.ecs.management.sdk.model.iam.policy.CreatePolicyResponse;
 import com.emc.ecs.management.sdk.model.iam.policy.GetPolicyResponse;
 import com.emc.ecs.management.sdk.model.iam.policy.IamPolicy;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
+import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -12,6 +13,8 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.emc.ecs.management.sdk.ManagementAPIConstants.IAM;
 import static com.emc.ecs.management.sdk.actions.iam.IAMActionUtils.accountHeader;
@@ -34,7 +37,6 @@ public class IAMPolicyAction {
                 .queryParam("PolicyName", policyName);
 
         Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
-
         CreatePolicyResponse ret = response.readEntity(CreatePolicyResponse.class);
         return ret.getCreatePolicyResult().getPolicy();
     }
@@ -46,10 +48,14 @@ public class IAMPolicyAction {
                 .queryParam("Action", "GetPolicy")
                 .queryParam("PolicyArn", policyARN);
 
-        Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
-
-        GetPolicyResponse ret = response.readEntity(GetPolicyResponse.class);
-        return ret.getGetPolicyResult().getPolicy();
+        try {
+            Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
+            GetPolicyResponse ret = response.readEntity(GetPolicyResponse.class);
+            return ret.getGetPolicyResult().getPolicy();
+        } catch (EcsManagementResourceNotFoundException e) {
+            Logger.getAnonymousLogger().log(Level.FINE, "IAM policy not found: " + policyARN, e);
+            return null;
+        }
     }
 
     public static void delete(ManagementAPIConnection connection, String policyARN, String accountId) throws EcsManagementClientException {

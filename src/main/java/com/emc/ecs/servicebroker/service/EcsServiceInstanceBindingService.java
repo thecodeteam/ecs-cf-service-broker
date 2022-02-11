@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
@@ -52,7 +53,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 
             workflow.checkIfUserExists();
 
-            String secretKey = workflow.createBindingUser();
+            UserSecretKey secretKey = workflow.createBindingUser();
 
             LOG.debug("Building binding response for binding {}", request.getBindingId());
             Map<String, Object> credentials = workflow.getCredentials(secretKey, request.getParameters());

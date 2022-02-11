@@ -38,7 +38,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
+    public UserSecretKey createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
         ServiceInstance serviceInstance = getInstance();
         String namespace = (String) serviceInstance.getServiceSettings().getOrDefault(NAMESPACE, ecs.getDefaultNamespace());
         String bucket = serviceInstance.getName();
@@ -64,7 +64,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucket, namespace, parameters);
         }
 
-        return userSecretKey.getSecretKey();
+        return userSecretKey;
     }
 
     @Override
@@ -88,14 +88,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             }
         }
 
-        LOG.info("Removing binding user '{}' from bucket '{}' in namespace '{}'", bindingId, bucket, namespace);
+        LOG.info("Removing binding '{}' user from bucket '{}' in namespace '{}'", bindingId, bucket, namespace);
 
         ecs.removeUserFromBucket(bucket, namespace, binding.getName());
         ecs.deleteUser(binding.getName(), namespace);
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(UserSecretKey secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         ServiceInstance instance = getInstance();
         String namespace = (String) instance.getServiceSettings().getOrDefault("namespace", ecs.getDefaultNamespace());
 
@@ -153,12 +153,14 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         return builder.build();
     }
 
-    private String buildS3Url(String prefixedBucketName, String endpoint, String secretKey, boolean usePathStyleS3) throws IOException {
-        String encodedBinding = URLEncoder.encode(binding.getName(), "UTF-8");
-        String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
+    private String buildS3Url(String prefixedBucketName, String endpoint, UserSecretKey secretKey, boolean usePathStyleS3) throws IOException {
+        String accessKey = secretKey.getAccessKey() != null ? secretKey.getAccessKey()
+                : ecs.prefix(binding.getName());
 
-        String prefixedUserInfo = ecs.prefix(encodedBinding + ":" + encodedSecret);
-        String prefixedInstanceId = prefixedBucketName;
+        String encodedAccessKey = URLEncoder.encode(accessKey, "UTF-8");
+        String encodedSecretKey = URLEncoder.encode(secretKey.getSecretKey(), "UTF-8");
+
+        String credentials = encodedAccessKey + ":" + encodedSecretKey;
 
         URL baseUrl = new URL(endpoint);
 
@@ -168,9 +170,9 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (usePathStyleS3) {
-            return baseUrl.getProtocol() + "://" + prefixedUserInfo + "@" + baseUrl.getHost() + port + "/" + prefixedInstanceId;
+            return baseUrl.getProtocol() + "://" + credentials + "@" + baseUrl.getHost() + port + "/" + prefixedBucketName;
         } else {
-            return baseUrl.getProtocol() + "://" + prefixedUserInfo + "@" + prefixedInstanceId + "." + baseUrl.getHost() + port;
+            return baseUrl.getProtocol() + "://" + credentials + "@" + prefixedBucketName + "." + baseUrl.getHost() + port;
         }
     }
 

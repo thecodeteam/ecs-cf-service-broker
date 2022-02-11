@@ -1,8 +1,8 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
-import com.emc.ecs.servicebroker.service.BindingWorkflow;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceBindingRequest;
 import org.springframework.cloud.servicebroker.model.binding.DeleteServiceInstanceBindingRequest;
@@ -28,7 +28,7 @@ public class ObjectscaleBucketBindingWorkflow implements BindingWorkflow {
     }
 
     @Override
-    public String createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
+    public UserSecretKey createBindingUser() throws EcsManagementClientException, IOException, JAXBException {
         return null;
     }
 
@@ -38,7 +38,7 @@ public class ObjectscaleBucketBindingWorkflow implements BindingWorkflow {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(UserSecretKey secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         return null;
     }
 

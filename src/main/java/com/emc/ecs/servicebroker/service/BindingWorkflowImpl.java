@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
@@ -68,11 +69,17 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
                 .build();
     }
 
-    public Map<String, Object> getCredentials(String secretKey) throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(UserSecretKey secretKey) throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
 
-        credentials.put(CREDENTIALS_ACCESS_KEY, ecs.prefix(binding.getName()));
-        credentials.put(CREDENTIALS_SECRET_KEY, secretKey);
+        if (secretKey != null) {
+            String accessKey = secretKey.getAccessKey() != null
+                    ? secretKey.getAccessKey()
+                    : ecs.prefix(binding.getName());
+
+            credentials.put(CREDENTIALS_ACCESS_KEY, accessKey);
+            credentials.put(CREDENTIALS_SECRET_KEY, secretKey.getSecretKey());
+        }
 
         return credentials;
     }

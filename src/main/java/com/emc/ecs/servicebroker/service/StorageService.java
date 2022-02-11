@@ -27,6 +27,8 @@ public interface StorageService {
 
     Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters); // TODO refactor usages or rename
 
+    boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException;
+
     @SuppressWarnings("unchecked")
     Map<String, Object> createBucket(String serviceInstanceId, String bucketName, ServiceDefinitionProxy serviceDefinition, PlanProxy plan, Map<String, Object> parameters);
 
@@ -56,6 +58,8 @@ public interface StorageService {
 
     String getNamespaceURL(String namespace, Boolean useSSL, String baseUrl) throws EcsManagementClientException;
 
+    boolean namespaceExists(String namespace) throws EcsManagementClientException;
+
     Map<String, Object> createNamespace(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException;
 
     void deleteNamespace(String namespace) throws EcsManagementClientException;
@@ -63,4 +67,6 @@ public interface StorageService {
     Map<String, Object> changeNamespacePlan(String namespace, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters) throws EcsManagementClientException;
 
     String addExportToBucket(String bucket, String namespace, String relativeExportPath) throws EcsManagementClientException;
+
+    boolean aclExists(String bucketName, String namespace) throws EcsManagementClientException;
 }

@@ -24,12 +24,7 @@ public class IAMActionUtils {
 
     public static Response remoteCall(ManagementAPIConnection connection, String method, UriBuilder uri, Object arg, Map<String, String> headers) throws EcsManagementClientException {
         Response response = connection.makeRemoteCall(method, uri, arg, APPLICATION_XML, headers);
-        try {
-            handleErrorResponse(response);
-        } catch (EcsManagementResourceNotFoundException e) {
-            Logger.getAnonymousLogger().log(Level.FINE, "info", e);
-            return response;
-        }
+        handleErrorResponse(response);
         return response;
     }
 

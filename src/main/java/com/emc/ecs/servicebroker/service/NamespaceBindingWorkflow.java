@@ -5,22 +5,15 @@ import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
-import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 import org.springframework.cloud.servicebroker.model.binding.CreateServiceInstanceAppBindingResponse;
 
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import static com.emc.ecs.servicebroker.model.Constants.*;
-import static com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService.isRemoteConnectedInstance;
 
 public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     NamespaceBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs, ServiceDefinitionProxy service) {
@@ -35,10 +28,10 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public String createBindingUser() throws EcsManagementClientException, IOException {
+    public UserSecretKey createBindingUser() throws EcsManagementClientException, IOException {
         ServiceInstance instance = getInstance();
         UserSecretKey userSecretKey = ecs.createUser(binding.getName(), ecs.prefix(instance.getName()));
-        return userSecretKey.getSecretKey();
+        return userSecretKey;
     }
 
     @Override
@@ -48,7 +41,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(UserSecretKey secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         ServiceInstance instance = getInstance();
 
         String namespaceName = instance.getName();
@@ -60,7 +53,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
         credentials.put(NAMESPACE, ecs.prefix(namespaceName));          // Add namespace title as part of credentials
         credentials.put(ENDPOINT, endpoint);
-        credentials.put(S3_URL, buildS3Url(endpoint, secretKey));       // Add s3 URL
+        credentials.put(S3_URL, buildS3Url(endpoint, secretKey.getSecretKey()));       // Add s3 URL
 
         return credentials;
     }
@@ -75,9 +68,10 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     private String buildS3Url(String endpoint, String secretKey) throws IOException {
         URL baseUrl = new URL(endpoint);
-        String encodedBinding = URLEncoder.encode(binding.getName(), "UTF-8");
+        String accessKey = ecs.prefix(binding.getName());
+        String encodedBinding = URLEncoder.encode(accessKey, "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
         String userInfo = encodedBinding + ":" + encodedSecret;
-        return baseUrl.getProtocol() + "://" + ecs.prefix(userInfo) + "@" + baseUrl.getHost() + ":" + baseUrl.getPort();
+        return baseUrl.getProtocol() + "://" + userInfo + "@" + baseUrl.getHost() + ":" + baseUrl.getPort();
     }
 }

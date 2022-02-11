@@ -86,6 +86,7 @@ public class ObjectstoreService extends EcsService {
             IamAccessKey iamKey = IAMAccessKeyAction.create(objectscaleGateway, userId, accountId);
 
             UserSecretKey key = new UserSecretKey();
+            key.setAccessKey(iamKey.getAccessKeyId());
             key.setSecretKey(iamKey.getSecretAccessKey());
             key.setKeyTimestamp(iamKey.getCreateDate());
             return key;
@@ -133,7 +134,7 @@ public class ObjectstoreService extends EcsService {
         String objectstoreId = broker.getObjectstoreId();
 
         // 1. Create policy
-        String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + bucketId;
+        String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + prefix(bucketId);
         String objectsARN = bucketARN + "/*";
 
         /*
@@ -181,17 +182,15 @@ public class ObjectstoreService extends EcsService {
                 "   ]\n" +
                 "}";
 
-        String policyName = policyName(bucketId, FULL_CONTROL);
+        String policyName = policyName(prefix(bucketId), FULL_CONTROL);
 
-        String policyArn = "urn:osc:iam::" + accountId + ":policy/ecs-cf-broker-1-policy";
-
-        IamPolicy iamPolicy = IAMPolicyAction.get(objectscaleGateway, policyArn, accountId);
+        IamPolicy iamPolicy = IAMPolicyAction.get(objectscaleGateway, policyName, accountId);
         if (iamPolicy == null) {
             iamPolicy = IAMPolicyAction.create(objectscaleGateway, policyName, policyDocument, accountId);
         }
 
         // 2. add policy to user
-        IAMUserPolicyAction.attach(objectscaleGateway, username, iamPolicy.getArn(), accountId);
+        IAMUserPolicyAction.attach(objectscaleGateway, prefix(username), iamPolicy.getArn(), accountId);
     }
 
     private String policyName(String bucketId, List<String> permissions) {
@@ -206,10 +205,15 @@ public class ObjectstoreService extends EcsService {
     }
 
     @Override
-    public void removeUserFromBucket(String bucketId, String accountId, String username) throws EcsManagementClientException {
-        String policyName = policyName(bucketId, FULL_CONTROL);     // TODO restore policy name or ARN from binding instance - what happens when we have custom permissions?
-        String policyARN = "urn:osc:iam::" + accountId + ":policy/" + policyName;
-        IAMUserPolicyAction.detach(objectscaleGateway, username, policyARN, accountId);
+    public void removeUserFromBucket(String bucketId, String accountId, String userId) throws EcsManagementClientException {
+        String policyName = policyName(prefix(bucketId), FULL_CONTROL);
+        IamPolicy iamPolicy = IAMPolicyAction.get(objectscaleGateway, policyName, accountId);
+        if (iamPolicy != null) {
+            IAMUserPolicyAction.detach(objectscaleGateway, prefix(userId), iamPolicy.getArn(), accountId);
+        } else {
+            logger.warn("Cannot find iamPolicy to remove from user: " + policyName);
+        }
+
     }
 
     @Override
@@ -219,6 +223,13 @@ public class ObjectstoreService extends EcsService {
         } else {
             throw new UnsupportedOperationException("Not supported for Objectscale - user permissions");
         }
+    }
+
+    @Override
+    public boolean namespaceExists(String namespace) throws EcsManagementClientException {
+        // namespace operations are not supported for Objectscale
+        // TODO check account existence
+        return true;
     }
 
     @Override
