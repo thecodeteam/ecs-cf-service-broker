@@ -3,7 +3,6 @@ package com.emc.ecs.management.sdk;
 import org.apache.juli.JdkLoggerFormatter;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.slf4j.LoggerFactory;
-import sun.net.www.protocol.http.HttpURLConnection;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.util.logging.Level;
@@ -40,12 +39,15 @@ public class LoggingDebugFeature {
         javaUtilLogger.setUseParentHandlers(false);
 
         if (logger.isDebugEnabled()) {
-            Logger.getLogger(HttpURLConnection.class.getName()).addHandler(
-                    new LegacyStreamHandler(org.slf4j.LoggerFactory.getLogger(HttpURLConnection.class))
-            );
-            Logger.getLogger(HttpURLConnection.class.getName()).setLevel(slf4jLoggerLevel);
+            // using FQDN class name as sun.net classes are not visible anymore
+            Logger javaLogger = Logger.getLogger("sun.net.www.protocol.http.HttpURLConnection");
+            if (javaLogger.getHandlers() == null || javaLogger.getHandlers().length == 0) {
+                javaLogger.addHandler(
+                        new LegacyStreamHandler(LoggerFactory.getLogger("sun.net.www.protocol.http.HttpURLConnection"))
+                );
+            }
+            javaLogger.setLevel(slf4jLoggerLevel);
         }
-
         logger.info("Http logger level set to {}", javaUtilLogger.getLevel().getName());
 
         javaUtilLogger.addHandler(new LegacyStreamHandler(logger));
