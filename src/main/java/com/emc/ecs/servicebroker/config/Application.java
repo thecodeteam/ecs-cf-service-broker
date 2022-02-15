@@ -77,7 +77,7 @@ public class Application {
     }
 
     @Bean(name = "objectscaleGateway")
-    @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
+    @ConditionalOnProperty(name = "broker.apiType", havingValue = "objectscale")
     public ObjectscaleGatewayConnection objectscaleGatewayConnection() {
         // In Objectscale, replication group default ID equals objectstore name
         if (broker.getObjectstoreName() != null) {
@@ -109,7 +109,7 @@ public class Application {
 
     @Bean(name = "managementAPI")
     @DependsOn("objectscaleGateway")
-    @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
+    @ConditionalOnProperty(name = "broker.apiType", havingValue = "objectscale")
     public ManagementAPIConnection createObjectstoreConnection(ObjectscaleGatewayConnection gatewayConnection) {
         ObjectstoreManagementAPIConnection c = new ObjectstoreManagementAPIConnection(
                 broker.getObjectstoreManagementEndpoint(),
@@ -130,7 +130,7 @@ public class Application {
     }
 
     @Bean(name = "managementAPI")
-    @ConditionalOnProperty(name = "broker.api.type", havingValue = "ecs", matchIfMissing = true)
+    @ConditionalOnProperty(name = "broker.apiType", havingValue = "ecs", matchIfMissing = true)
     public EcsManagementAPIConnection createEcsConnection() {
         if (broker.getCertificate() != null) {
             logger.info("Instantiating ECS connection with SSL certificate");
@@ -157,7 +157,7 @@ public class Application {
     }
 
     @Bean(name = "s3Client")
-    @ConditionalOnProperty(name = "broker.api.type", havingValue = "objectscale")
+    @ConditionalOnProperty(name = "broker.apiType", havingValue = "objectscale")
     public S3Client objectstoreS3Client(BrokerConfig config) throws URISyntaxException {
         String bucket = config.getPrefixedBucketName();
         String repositoryEndpoint = config.getObjectstoreS3Endpoint();
@@ -182,7 +182,7 @@ public class Application {
     }
 
     @Bean(name = "s3Client")
-    @ConditionalOnProperty(name = "broker.api.type", havingValue = "ecs", matchIfMissing = true)
+    @ConditionalOnProperty(name = "broker.apiType", havingValue = "ecs", matchIfMissing = true)
     public S3Client ecsS3Client(BrokerConfig config) throws URISyntaxException {
         String bucket = config.getPrefixedBucketName();
         String repositoryEndpoint = config.getRepositoryEndpoint();
