@@ -1,7 +1,6 @@
 ---
 spring:
-  profiles:
-    active: test
+  profiles: test
 security:
   user:
     password: password
