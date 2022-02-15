@@ -35,7 +35,7 @@ public class JerseyClientBuilder {
             builder = builder.register(allHostsValid);
 
             if (ignoreSslVerification) {
-                LoggerFactory.getLogger(this.getClass()).info("Building JerseyClient with allCertsTrust enabled");
+                LoggerFactory.getLogger(this.getClass()).debug("Building JerseyClient with allCertsTrust enabled");
                 SSLContext sslContext = trustAllCertsContext();
                 HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
                 builder.sslContext(sslContext);
