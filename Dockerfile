@@ -12,4 +12,4 @@ RUN gradle clean assemble
 # =====================================================================================
 FROM openjdk:11-jre-slim
 VOLUME /tmp
-COPY --from=GradleBuilder /home/gradle/src/ecs-cf-service-broker/build/libs/ecs-cf-service-broker*.jar app.jar
+COPY --from=GradleBuilder /home/gradle/src/ecs-cf-service-broker/build/libs/ecs-cf-service-broker.jar app.jar
