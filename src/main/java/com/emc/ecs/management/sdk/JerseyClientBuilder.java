@@ -2,6 +2,7 @@ package com.emc.ecs.management.sdk;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import org.glassfish.jersey.logging.LoggingFeature;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
 import javax.ws.rs.client.Client;
@@ -26,22 +27,19 @@ public class JerseyClientBuilder {
     public Client newClient() throws EcsManagementClientException {
         ClientBuilder builder = ClientBuilder.newBuilder();
 
-        if (certificate != null) {
+        if (ignoreSslVerification) {
+            LoggerFactory.getLogger(this.getClass()).info("Building JerseyClient with allCertsTrust enabled");
+            SSLContext sslContext = trustAllCertsContext();
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            builder.sslContext(sslContext);
+        } else if (this.certificate != null) {
             // Disable host name verification. Should be able to configure the
             // ECS certificate with the correct host name to avoid this.
             HostnameVerifier allHostsValid = (hostname, session) -> true;
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
             builder = builder.register(allHostsValid);
 
-            SSLContext sslContext;
-
-            if (!ignoreSslVerification) {
-                sslContext = getSSLContext();
-            } else {
-                sslContext = trustAllCertsContext();
-                HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-            }
-
+            SSLContext sslContext = getSSLContext(this.certificate);
             builder.sslContext(sslContext);
         }
 
@@ -52,7 +50,7 @@ public class JerseyClientBuilder {
         return builder.build();
     }
 
-    private SSLContext getSSLContext() throws EcsManagementClientException {
+    private SSLContext getSSLContext(String certificate) throws EcsManagementClientException {
         try {
             Certificate caCert = CertificateFactory.getInstance("X.509")
                     .generateCertificate(
