@@ -27,20 +27,22 @@ public class JerseyClientBuilder {
     public Client newClient() throws EcsManagementClientException {
         ClientBuilder builder = ClientBuilder.newBuilder();
 
-        if (ignoreSslVerification) {
-            LoggerFactory.getLogger(this.getClass()).info("Building JerseyClient with allCertsTrust enabled");
-            SSLContext sslContext = trustAllCertsContext();
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-            builder.sslContext(sslContext);
-        } else if (this.certificate != null) {
+        if (this.certificate != null || ignoreSslVerification) {
             // Disable host name verification. Should be able to configure the
             // ECS certificate with the correct host name to avoid this.
             HostnameVerifier allHostsValid = (hostname, session) -> true;
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
             builder = builder.register(allHostsValid);
 
-            SSLContext sslContext = getSSLContext(this.certificate);
-            builder.sslContext(sslContext);
+            if (ignoreSslVerification) {
+                LoggerFactory.getLogger(this.getClass()).info("Building JerseyClient with allCertsTrust enabled");
+                SSLContext sslContext = trustAllCertsContext();
+                HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+                builder.sslContext(sslContext);
+            } else if (this.certificate != null) {
+                SSLContext sslContext = getSSLContext(this.certificate);
+                builder.sslContext(sslContext);
+            }
         }
 
         if (loggingFeature != null) {
