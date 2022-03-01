@@ -196,13 +196,13 @@ public class EcsService implements StorageService {
             }
 
             if (parameters.containsKey(DEFAULT_RETENTION) && parameters.get(DEFAULT_RETENTION) != null) {
-                logger.info("Applying bucket retention policy on '{}' in '{}': {}", bucketName, namespace, parameters.get(DEFAULT_RETENTION));
+                logger.info("Applying bucket retention policy on '{}' in '{}': {}", prefixedBucketName, namespace, parameters.get(DEFAULT_RETENTION));
                 BucketRetentionAction.update(connection, namespace, prefixedBucketName, (int) parameters.get(DEFAULT_RETENTION));
             }
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
                 List<Map<String, String>> bucketTags = (List<Map<String, String>>) parameters.get(TAGS);
-                logger.info("Applying bucket tags on '{}': {}", bucketName, bucketTags);
+                logger.info("Applying bucket tags on '{}': {}", prefixedBucketName, bucketTags);
                 BucketTagsAction.create(connection, prefixedBucketName, new BucketTagsParamAdd(namespace, bucketTags));
             }
 
@@ -884,7 +884,9 @@ public class EcsService implements StorageService {
 
             for (Map<String, String> requestedTag : requestedTags) {
                 for (Map<String, String> serviceTag : serviceTags) {
-                    if (requestedTag.get(KEY).equals(serviceTag.get(KEY))) {
+                    String r = requestedTag.get(KEY);
+                    String s = serviceTag.get(KEY);
+                    if (r != null && r.equals(s)) {
                         unmatchedTags.remove(requestedTag);
                         break;
                     }
