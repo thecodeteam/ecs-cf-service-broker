@@ -21,7 +21,7 @@ public class ObjectstoreManagementAPIConnection extends AbstractManagementAPICon
         try {
             objectscaleConnection.login();
 
-            logger.info("Successful login!");
+            logger.debug("Successful login!");
 
             this.authToken = objectscaleConnection.getAuthToken();
             this.authRetries = 0;
