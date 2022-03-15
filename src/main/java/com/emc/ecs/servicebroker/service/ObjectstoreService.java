@@ -7,8 +7,6 @@ import com.emc.ecs.management.sdk.actions.iam.IAMUserAction;
 import com.emc.ecs.management.sdk.actions.iam.IAMUserPolicyAction;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.management.sdk.model.iam.policy.IamPolicy;
-import com.emc.ecs.management.sdk.model.iam.policy.document.IAMPolicyDocument;
-import com.emc.ecs.management.sdk.model.iam.policy.document.IAMPolicyStatement;
 import com.emc.ecs.management.sdk.model.iam.user.IamAccessKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.PlanProxy;
@@ -22,7 +20,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.emc.ecs.management.sdk.ManagementAPIConstants.OBJECTSCALE;
 import static com.emc.ecs.servicebroker.model.Constants.FULL_CONTROL;
@@ -137,29 +138,6 @@ public class ObjectstoreService extends EcsService {
         String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + prefix(bucketId);
         String objectsARN = bucketARN + "/*";
 
-        /*
-        IAMPolicyDocument policy = new IAMPolicyDocument(
-                "2021-10-17", null,
-                Arrays.asList(
-                        new IAMPolicyStatement()
-                                .resource(bucketARN)
-                                .effect("Allow")
-                                .action("s3:ListBucket"),
-                        new IAMPolicyStatement()
-                                .resource(objectsARN)
-                                .effect("Allow")
-                                .action(Arrays.asList(
-                                        "s3:PutObject",
-                                        "s3:PutObjectAcl",
-                                        "s3:GetObject",
-                                        "s3:GetObjectAcl",
-                                        "s3:DeleteObject"
-                                ))
-                )
-        );
-
-        String policyDocument = policy.toString(); // TODO implement convert to json
-*/
         String policyDocument = "{\n" +
                 "   \"Version\":\"2012-10-17\",\n" +
                 "   \"Statement\":[\n" +
