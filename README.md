@@ -3,8 +3,9 @@
 ## Description
 
 This service broker enables Kubernetes & Cloud Foundry applications to create,
-delete and modify Dell EMC [ECS](https://www.delltechnologies.com/en-us/storage/ecs/index.htm) (Elastic Cloud Storage) object
-storage buckets & namespaces; and bind multiple applications to the same resources.
+delete and modify Dell EMC [ECS](https://www.delltechnologies.com/en-us/storage/ecs/index.htm) (Elastic Cloud Storage) 
+and Dell [Objectscale](https://www.dell.com/en-us/dt/storage/objectscale.htm) object storage buckets & namespaces; 
+and bind multiple applications to the same resources.
 
 ## Features
 
@@ -26,7 +27,7 @@ including:
 
 ## Build
 
-To build, make sure you have a Java 8 runtime environment, and use Gradle.
+To build, make sure you have a Java 11 runtime environment, and use Gradle.
 
 ```
 # The ecs-simulator starts automatically when the test-suite is run
@@ -61,8 +62,33 @@ bundled ECS simulator.  For more info, check the
 | prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users         |
 | brokerApiVersion   | *              | false    | Version of the CF broker API to advertise          |
 | certificate        | -              | false    | ECS SSL public key cert file                       |
+| ignoreSslValidation | -             | false    | Allows to ignore SSL validation errors             |
 
-If running within Eclipse, you can also set the environment variables using "Run Configuration" and "Environment" tabs.
+If running within IDE, you can set the environment variables within "Run Configuration".
+
+### Objectscale Configuration
+
+When connecting to Objectscale, Service Broker requires different set of parameters:  
+
+| Parameter          | Default Value  | Required | Description                                        |
+| ------------------ |:--------------:| -------- | -------------------------------------------------- |
+| apiType            | objectscale    | true     | Storage API type (ECS or Objectscale)              |
+| username           | root           | true     | Objectscale management user name                   |
+| password           | ChangeMe       | true     | Objectscale management user password               |
+| objectscaleId      | -              | true     | Objectscale ID                                     |
+| objectscaleGatewayEndpoint  | -     | true     | Objectscale Gateway endpoint url                   |
+| objectstoreId      | -              | true     | Objectstore ID                                     |
+| objectstoreName    | -              | true     | Objectstore name                                   |
+| objectstoreManagementEndpoint | -   | true     | Objectstore management endpoint url                |
+| objectstoreS3Endpoint   | -         | true     | Objectstore S3 endpoint url                        |
+| accountId          | -              | true     | Account ID                                         |
+| accessKey          | -              | true     | Access key of a pre-created IAM user with S3 access |
+| secretKey          | -              | true     | Secret key of a pre-created IAM user with S3 access |
+| repositoryBucket   | repository     | false    | Internal bucket name for metadata storage          |
+| prefix             | ecs-cf-broker- | false    | Prefix to prepend to ECS buckets and users         |
+| brokerApiVersion   | *              | false    | Version of the CF broker API to advertise          |
+| certificate        | -              | false    | ECS SSL public key cert file                       |
+| ignoreSslValidation | -             | false    | Allows to ignore SSL validation errors             |   
 
 ### The ECS Simulator
 
@@ -174,6 +200,8 @@ The following feature flags are supported by the bucket & namespace. All paramet
 | namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
 | namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
 | namespace binding | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
+
+NOTE: When working with Objectstore, Service Broker does not support Namespace services!
 
 \* Quotas are defined with the following format: `{quota: {limit: <int>, warn: <int>}}`
 
