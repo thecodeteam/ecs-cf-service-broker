@@ -153,6 +153,8 @@ public class EcsService implements StorageService {
     @SuppressWarnings("unchecked")
     public Map<String, Object> createBucket(String serviceInstanceId, String bucketName, ServiceDefinitionProxy serviceDefinition,
                                             PlanProxy plan, Map<String, Object> parameters) {
+
+        boolean bucketCreated = false;
         try {
             parameters = mergeParameters(broker, serviceDefinition, plan, parameters);
             parameters = validateAndPrepareSearchMetadata(parameters);
@@ -189,6 +191,8 @@ public class EcsService implements StorageService {
                     parameters
             ));
 
+            bucketCreated = true;
+
             if (parameters.containsKey(QUOTA) && parameters.get(QUOTA) != null) {
                 Map<String, Integer> quota = (Map<String, Integer>) parameters.get(QUOTA);
                 logger.info("Applying bucket quota on '{}' in '{}': limit {}, warn {}", prefixedBucketName, namespace, quota.get(QUOTA_LIMIT), quota.get(QUOTA_WARN));
@@ -214,6 +218,12 @@ public class EcsService implements StorageService {
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
             logger.error(errorMessage, e);
+
+            if(bucketCreated) {
+                logger.info("Deleting bucket '{}' with service '{}' plan '{}'({}) and params {}", prefix(bucketName), serviceDefinition.getName(), plan.getName(), plan.getId(), parameters);
+                BucketAction.delete(connection, prefix(bucketName), (String) parameters.get(NAMESPACE));
+            }
+
             throw new ServiceBrokerException(errorMessage, e);
         }
         return parameters;
