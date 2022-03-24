@@ -2,12 +2,9 @@ package com.emc.ecs.servicebroker.service.s3;
 
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.object.s3.S3Client;
-import com.emc.object.s3.S3Config;
 import com.emc.object.s3.S3Exception;
 import com.emc.object.s3.bean.*;
-import com.emc.object.s3.jersey.S3JerseyClient;
 import com.emc.object.s3.request.ListObjectsRequest;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 @Service
@@ -25,43 +21,22 @@ public class S3Service {
     @Autowired
     private BrokerConfig broker;
 
+    @Autowired
     private S3Client s3;
 
     private String bucket;
 
     @PostConstruct
     public void initialize() throws URISyntaxException {
-        String repositoryEndpoint = broker.getRepositoryEndpoint();
-
-        bucket = broker.getPrefixedBucketName();
-
-        String userName = broker.getPrefixedUserName();
-
-        logger.info("Initializing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
-
-        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
-                .withIdentity(userName);
-
-        String repositorySecret = broker.getRepositorySecret();
-
-        if (repositorySecret == null || repositorySecret.length() == 0) {
-            logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
-        }
-
-        s3Config.withSecretKey(repositorySecret);
-
-        logger.info("S3 config: {}", s3Config);
-
-        this.s3 = new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+        this.bucket = broker.getPrefixedBucketName();
 
         this.testS3EndpointAccess();
     }
 
     private void testS3EndpointAccess() {
-        String repositoryEndpoint = broker.getRepositoryEndpoint();
         String bucket = this.bucket;
 
-        logger.info("Testing access to S3 endpoint {} - querying bucket '{}' existence", repositoryEndpoint, bucket);
+        logger.info("Testing access to S3 endpoint - querying bucket '{}' existence", bucket);
 
         if (s3.bucketExists(bucket)) {
             logger.info("Test OK. Bucket {} exists", bucket);

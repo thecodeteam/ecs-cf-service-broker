@@ -1,0 +1,24 @@
+{
+  "scenarioName": "iam-testuser1",
+  "requiredScenarioState": "Started",
+  "newScenarioState": "Created",
+  "request": {
+    "method": "POST",
+    "url": "/iam?Action=CreateUser&UserName=testuser1",
+    "headers": {
+      "Accept": {
+        "equalTo": "application/xml"
+      },
+      "X-SDS-AUTH-TOKEN": {
+        "equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+      }
+    }
+  },
+  "response": {
+    "status": "200",
+    "headers": {
+      "Content-Type": "application/xml"
+    },
+    "body": "<ns2:CreateUserResponse xmlns:ns2=\"none\"> <ResponseMetadata><RequestId>0afe0578:17d4d6b8556:165a:542a-szzhv</RequestId></ResponseMetadata> <CreateUserResult><User><Arn>urn:osc:iam::osai69e1f15e9bfeeb43:user/testuser1</Arn><CreateDate>2021-11-29T22:00:42Z</CreateDate><Path>/</Path><UserId>OIDAD6D9444E1846CF3C</UserId><UserName>testuser1</UserName>    </User></CreateUserResult> </ns2:CreateUserResponse>"
+  }
+}

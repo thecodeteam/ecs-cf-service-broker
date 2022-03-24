@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
@@ -32,13 +33,13 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
     private static final Logger LOG = LoggerFactory.getLogger(EcsServiceInstanceBindingService.class);
 
     @Autowired
-    private EcsService ecs;
+    protected StorageService ecs;
 
     @Autowired
-    private ServiceInstanceBindingRepository repository;
+    protected ServiceInstanceBindingRepository repository;
 
     @Autowired
-    private ServiceInstanceRepository instanceRepo;
+    protected ServiceInstanceRepository instanceRepo;
 
     public EcsServiceInstanceBindingService() {
         super();
@@ -52,7 +53,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
 
             workflow.checkIfUserExists();
 
-            String secretKey = workflow.createBindingUser();
+            UserSecretKey secretKey = workflow.createBindingUser();
 
             LOG.debug("Building binding response for binding {}", request.getBindingId());
             Map<String, Object> credentials = workflow.getCredentials(secretKey, request.getParameters());
@@ -134,7 +135,7 @@ public class EcsServiceInstanceBindingService implements ServiceInstanceBindingS
         return getWorkflow(service).withCreateRequest(createRequest);
     }
 
-    private BindingWorkflow getWorkflow(ServiceDefinitionProxy service) throws IOException {
+    protected BindingWorkflow getWorkflow(ServiceDefinitionProxy service) throws IOException {
         ServiceType serviceType = ServiceType.fromSettings(service.getServiceSettings());
         switch (serviceType) {
             case NAMESPACE:
