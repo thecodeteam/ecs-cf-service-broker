@@ -220,7 +220,7 @@ public class EcsService implements StorageService {
             logger.error(errorMessage, e);
 
             if(bucketCreated) {
-                logger.info("Deleting bucket '{}' with service '{}' plan '{}'({}) and params {}", prefix(bucketName), serviceDefinition.getName(), plan.getName(), plan.getId(), parameters);
+                logger.info("Rolling back operation: deleting bucket '{}'", prefix(bucketName));
                 BucketAction.delete(connection, prefix(bucketName), (String) parameters.get(NAMESPACE));
             }
 
