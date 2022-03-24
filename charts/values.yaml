@@ -50,7 +50,7 @@ ecsConnection:
 
 image:
   repository: objectscale/ecs-service-broker
-  tag: 2.1.1
+  tag: 2.2.0
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
