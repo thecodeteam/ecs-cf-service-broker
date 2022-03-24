@@ -1,5 +1,7 @@
 package com.emc.ecs;
 
+import com.emc.ecs.servicebroker.config.BrokerConfig;
+import com.emc.ecs.servicebroker.config.BrokerConfigTest;
 import com.emc.ecs.servicebroker.config.CatalogConfigTest;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxyTest;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBindingRepositoryTest;
@@ -41,7 +43,8 @@ import org.junit.runners.Suite.SuiteClasses;
         EcsServiceInstanceServiceTest.class,
         BucketBindingWorkflowTest.class,
         BucketInstanceWorkflowTest.class,
-        RemoteConnectionInstanceWorkflowTest.class
+        RemoteConnectionInstanceWorkflowTest.class,
+        BrokerConfigTest.class
     })
 public class TestSuite {
 

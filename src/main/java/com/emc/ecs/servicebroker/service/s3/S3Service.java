@@ -30,7 +30,7 @@ public class S3Service {
     private String bucket;
 
     @PostConstruct
-    public void initialize() throws URISyntaxException {
+   public void initialize() throws URISyntaxException {
         String repositoryEndpoint = broker.getRepositoryEndpoint();
 
         bucket = broker.getPrefixedBucketName();
@@ -49,6 +49,7 @@ public class S3Service {
         }
 
         s3Config.withSecretKey(repositorySecret);
+        s3Config.setUseV2Signer(!broker.isUseV4Signer());
 
         logger.info("S3 config: {}", s3Config);
 

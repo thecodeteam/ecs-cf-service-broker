@@ -25,6 +25,7 @@ public class BrokerConfig {
     private String nfsMountHost;
     private String repositoryEndpoint;
     private boolean useSsl;
+    private boolean useV4Signer = false;
 
     private String repositorySecret;
     private String repositoryUser = "user";
@@ -230,9 +231,11 @@ public class BrokerConfig {
         this.defaultReclaimPolicy = defaultReclaimPolicy;
     }
 
-    public boolean isPathStyleAccess() {
-        return pathStyleAccess;
-    }
+    public boolean isPathStyleAccess() { return pathStyleAccess; }
+
+    public boolean isUseV4Signer() { return useV4Signer; }
+
+    public void setUseV4Signer(boolean useV4Signer) { this.useV4Signer = useV4Signer; }
 
     public void setPathStyleAccess(boolean pathStyleAccess) {
         this.pathStyleAccess = pathStyleAccess;
