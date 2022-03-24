@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.stubbing.OngoingStubbing;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -264,6 +265,40 @@ public class EcsServiceTest {
 
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(0));
         BucketRetentionAction.update(any(Connection.class), anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    public void createBucketWithInvalidParamsTest() throws Exception {
+
+        setupCreateBucketTest();
+        Map<String, Object> additionalParamsQuota = new HashMap<>();
+        additionalParamsQuota.put(QUOTA_WARN, 9);
+        additionalParamsQuota.put(QUOTA_LIMIT, 10);
+
+        Map<String, Object> additionalParams = new HashMap<>();
+        additionalParams.put(QUOTA, additionalParamsQuota);
+
+
+        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE
+        );
+        additionalParams.put(SEARCH_METADATA, searchMetadata);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+        PowerMockito.mockStatic(BucketQuotaAction.class);
+        PowerMockito.doThrow(new EcsManagementClientException("error")).when(BucketQuotaAction.class, "create",
+                same(connection), anyString(), anyString(),
+                anyInt(), anyInt());
+
+        assertThrows(ServiceBrokerException.class, () -> {
+            ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
+        });
+
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        BucketAction.delete(same(connection), anyString(), anyString());
     }
 
     @Test
@@ -909,7 +944,7 @@ public class EcsServiceTest {
         List<LifecycleRule> capturedRules = rulesCaptor.getValue();
 
         assertEquals(RULES_NUMBER, capturedRules.size());
-        for (LifecycleRule rule: capturedRules) {
+        for (LifecycleRule rule : capturedRules) {
             assertNull(rule.getExpirationDays());
             assertFalse(rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX));
         }
@@ -960,7 +995,7 @@ public class EcsServiceTest {
         List<LifecycleRule> capturedRules = rulesCaptor.getValue();
 
         assertEquals(RULES_NUMBER - 1, capturedRules.size());
-        for (LifecycleRule rule: capturedRules) {
+        for (LifecycleRule rule : capturedRules) {
             assertNull(rule.getExpirationDays());
             assertFalse(rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX));
         }
@@ -2052,7 +2087,7 @@ public class EcsServiceTest {
         List<LifecycleRule> capturedRules = rulesCaptor.getValue();
 
         assertEquals(RULES_NUMBER - 1, capturedRules.size());
-        for (LifecycleRule rule: capturedRules) {
+        for (LifecycleRule rule : capturedRules) {
             assertNull(rule.getExpirationDays());
             assertFalse(rule.getId().startsWith(BucketExpirationAction.RULE_PREFIX));
         }
@@ -2281,7 +2316,7 @@ public class EcsServiceTest {
     private void setupCreateNamespaceRetentionTest(boolean exists) throws Exception {
         PowerMockito.mockStatic(NamespaceRetentionAction.class);
         PowerMockito.when(NamespaceRetentionAction.class, EXISTS, same(connection),
-                anyString(), anyString())
+                        anyString(), anyString())
                 .thenReturn(exists);
         PowerMockito.doNothing().when(NamespaceRetentionAction.class, CREATE,
                 same(connection), anyString(), any(RetentionClassCreate.class));
@@ -2299,7 +2334,7 @@ public class EcsServiceTest {
         PowerMockito.doNothing().when(BucketRetentionAction.class, UPDATE,
                 same(connection), anyString(), anyString(), anyInt());
         PowerMockito.when(BucketRetentionAction.class, GET,
-                same(connection), anyString(), anyString())
+                        same(connection), anyString(), anyString())
                 .thenReturn(retention);
     }
 
@@ -2416,11 +2451,11 @@ public class EcsServiceTest {
         List<Map<String, String>> searchMetadata = new ArrayList<>();
         for (int i = 0; i < args.length; i += 3) {
             Map<String, String> metadata = new HashMap<>();
-            if(args[i] != null)
+            if (args[i] != null)
                 metadata.put(SEARCH_METADATA_TYPE, args[i]);
-            if(args[i + 1] != null)
+            if (args[i + 1] != null)
                 metadata.put(SEARCH_METADATA_NAME, args[i + 1]);
-            if(args[i + 2] != null)
+            if (args[i + 2] != null)
                 metadata.put(SEARCH_METADATA_DATATYPE, args[i + 2]);
             searchMetadata.add(metadata);
         }
