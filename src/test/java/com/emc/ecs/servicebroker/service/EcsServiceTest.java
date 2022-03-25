@@ -303,40 +303,6 @@ public class EcsServiceTest {
     }
 
     @Test
-    public void createBucketWithInvalidParamsTest() throws Exception {
-
-        setupCreateBucketTest();
-        Map<String, Object> additionalParamsQuota = new HashMap<>();
-        additionalParamsQuota.put(QUOTA_WARN, 9);
-        additionalParamsQuota.put(QUOTA_LIMIT, 10);
-
-        Map<String, Object> additionalParams = new HashMap<>();
-        additionalParams.put(QUOTA, additionalParamsQuota);
-
-
-        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(
-                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
-                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE
-        );
-        additionalParams.put(SEARCH_METADATA, searchMetadata);
-
-        ServiceDefinitionProxy service = bucketServiceFixture();
-        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
-
-        PowerMockito.mockStatic(BucketQuotaAction.class);
-        PowerMockito.doThrow(new EcsManagementClientException("error")).when(BucketQuotaAction.class, "create",
-                same(connection), anyString(), anyString(),
-                anyInt(), anyInt());
-
-        assertThrows(ServiceBrokerException.class, () -> {
-            ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
-        });
-
-        PowerMockito.verifyStatic(BucketAction.class, times(1));
-        BucketAction.delete(same(connection), anyString(), anyString());
-    }
-
-    @Test
     public void createBucketWithParamsTest() throws Exception {
         setupCreateBucketTest();
         setupCreateBucketQuotaTest(5, 4);
