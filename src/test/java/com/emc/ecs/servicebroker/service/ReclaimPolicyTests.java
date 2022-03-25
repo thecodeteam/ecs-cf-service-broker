@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.management.sdk.model.BaseUrl;
 import com.emc.ecs.management.sdk.model.BaseUrlInfo;
 import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
@@ -54,16 +55,10 @@ public class ReclaimPolicyTests {
     private static final String DELETE = "delete";
 
     @Mock
-    private Connection connection;
+    private ManagementAPIConnection connection;
 
     @Mock
     private BrokerConfig broker;
-
-    @Mock
-    private CatalogConfig catalog;
-
-    @Mock
-    private BucketWipeFactory bucketWipeFactory;
 
     @Autowired
     @InjectMocks

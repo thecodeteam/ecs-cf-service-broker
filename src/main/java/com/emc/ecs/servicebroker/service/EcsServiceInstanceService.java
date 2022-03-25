@@ -36,19 +36,51 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
     private static final LastOperationSerializer SUCCEEDED_OPERATION = new LastOperationSerializer(OperationState.SUCCEEDED, "", false);
 
     @Autowired
-    private EcsService ecs;
+    protected StorageService ecs;
 
     @Autowired
-    private ServiceInstanceRepository repository;
+    protected ServiceInstanceRepository repository;
 
     public EcsServiceInstanceService() {
         super();
     }
 
-    EcsServiceInstanceService(EcsService ecs, ServiceInstanceRepository repo) {
+    EcsServiceInstanceService(StorageService ecs, ServiceInstanceRepository repo) {
         super();
         this.ecs = ecs;
         this.repository = repo;
+    }
+
+    protected InstanceWorkflow getWorkflow(ServiceDefinitionProxy service) throws EcsManagementClientException {
+        ServiceType serviceType = fromSettings(service.getServiceSettings());
+        LOG.debug("Service '{}'({}) type is {}", service.getName(), service.getId(), serviceType);
+
+        switch (serviceType) {
+            case NAMESPACE:
+                return new NamespaceInstanceWorkflow(repository, ecs);
+            case BUCKET:
+                return new BucketInstanceWorkflow(repository, ecs);
+            default:
+                throw new ServiceBrokerException("Unknown service type: " + serviceType);
+        }
+    }
+
+    protected InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest) throws EcsManagementClientException {
+        if (isRemoteConnection(createRequest)) {
+            LOG.info("Remote-connect workflow for instance create request");
+            return new RemoteConnectionInstanceWorkflow(repository, ecs);
+        }
+        ServiceDefinitionProxy service = findServiceDefinition(createRequest.getServiceDefinitionId());
+        return getWorkflow(service);
+    }
+
+    protected boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
+        Map<String, Object> parameters = createRequest.getParameters();
+        return parameters != null && parameters.containsKey(REMOTE_CONNECTION);
+    }
+
+    public ServiceDefinitionProxy findServiceDefinition(String serviceDefinitionId) {
+        return ecs.lookupServiceDefinition(serviceDefinitionId);
     }
 
     @Override
@@ -58,7 +90,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String planId = request.getPlanId();
 
         try {
-            ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
+            ServiceDefinitionProxy service = findServiceDefinition(serviceDefinitionId);
             PlanProxy plan = service.findPlan(planId);
 
             LOG.info("Creating instance '{}' with service definition '{}'({}) and plan '{}'({})", serviceInstanceId, service.getName(), service.getId(), plan.getName(), planId);
@@ -87,7 +119,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         LOG.info("Deleting service instance '{}'", serviceInstanceId);
 
         try {
-            ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
+            ServiceDefinitionProxy service = findServiceDefinition(serviceDefinitionId);
             InstanceWorkflow workflow = getWorkflow(service).withDeleteRequest(request);
 
             ServiceInstance instance;
@@ -143,7 +175,7 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             if (instance.getReferences().size() > 1)
                 throw new ServiceInstanceUpdateNotSupportedException("Cannot change plan of service instance with remote references");
 
-            ServiceDefinitionProxy service = ecs.lookupServiceDefinition(serviceDefinitionId);
+            ServiceDefinitionProxy service = findServiceDefinition(serviceDefinitionId);
 
             InstanceWorkflow workflow = getWorkflow(service);
 
@@ -201,34 +233,6 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
             String errorMessage = format("Error getting last operation for service %s: %s", request.getServiceInstanceId(), e.getMessage());
             LOG.error(errorMessage, e);
             throw new ServiceBrokerException(errorMessage, e);
-        }
-    }
-
-    private InstanceWorkflow getWorkflow(CreateServiceInstanceRequest createRequest) throws EcsManagementClientException {
-        if (isRemoteConnection(createRequest)) {
-            LOG.info("Remote-connect workflow for instance create request");
-            return new RemoteConnectionInstanceWorkflow(repository, ecs);
-        }
-        ServiceDefinitionProxy service = ecs.lookupServiceDefinition(createRequest.getServiceDefinitionId());
-        return getWorkflow(service);
-    }
-
-    private boolean isRemoteConnection(CreateServiceInstanceRequest createRequest) {
-        Map<String, Object> parameters = createRequest.getParameters();
-        return parameters != null && parameters.containsKey(REMOTE_CONNECTION);
-    }
-
-    private InstanceWorkflow getWorkflow(ServiceDefinitionProxy service) throws EcsManagementClientException {
-        ServiceType serviceType = fromSettings(service.getServiceSettings());
-        LOG.debug("Service '{}'({}) type is {}", service.getName(), service.getId(), serviceType);
-
-        switch (serviceType) {
-            case NAMESPACE:
-                return new NamespaceInstanceWorkflow(repository, ecs);
-            case BUCKET:
-                return new BucketInstanceWorkflow(repository, ecs);
-            default:
-                throw new ServiceBrokerException("Unknown service type: " + serviceType);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
@@ -71,7 +72,7 @@ public class EcsServiceTest {
     private static final int RULES_NUMBER = 3;
 
     @Mock
-    private Connection connection;
+    private EcsManagementAPIConnection connection;
 
     @Mock
     private BrokerConfig broker;
@@ -261,10 +262,44 @@ public class EcsServiceTest {
         assertEquals(HEAD_TYPE_S3, create.getHeadType());
 
         PowerMockito.verifyStatic(BucketQuotaAction.class, times(0));
-        BucketQuotaAction.create(any(Connection.class), anyString(), anyString(), anyInt(), anyInt());
+        BucketQuotaAction.create(any(EcsManagementAPIConnection.class), anyString(), anyString(), anyInt(), anyInt());
 
         PowerMockito.verifyStatic(BucketRetentionAction.class, times(0));
-        BucketRetentionAction.update(any(Connection.class), anyString(), anyString(), anyInt());
+        BucketRetentionAction.update(any(EcsManagementAPIConnection.class), anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    public void createBucketWithInvalidParamsTest() throws Exception {
+
+        setupCreateBucketTest();
+        Map<String, Object> additionalParamsQuota = new HashMap<>();
+        additionalParamsQuota.put(QUOTA_WARN, 9);
+        additionalParamsQuota.put(QUOTA_LIMIT, 10);
+
+        Map<String, Object> additionalParams = new HashMap<>();
+        additionalParams.put(QUOTA, additionalParamsQuota);
+
+
+        List<Map<String, String>> searchMetadata = createListOfSearchMetadata(
+                SEARCH_METADATA_TYPE_SYSTEM, SYSTEM_METADATA_NAME, SYSTEM_METADATA_TYPE,
+                SEARCH_METADATA_TYPE_USER, USER_METADATA_NAME, USER_METADATA_TYPE
+        );
+        additionalParams.put(SEARCH_METADATA, searchMetadata);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
+
+        PowerMockito.mockStatic(BucketQuotaAction.class);
+        PowerMockito.doThrow(new EcsManagementClientException("error")).when(BucketQuotaAction.class, "create",
+                same(connection), anyString(), anyString(),
+                anyInt(), anyInt());
+
+        assertThrows(ServiceBrokerException.class, () -> {
+            ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
+        });
+
+        PowerMockito.verifyStatic(BucketAction.class, times(1));
+        BucketAction.delete(same(connection), anyString(), anyString());
     }
 
     @Test
@@ -451,7 +486,7 @@ public class EcsServiceTest {
         BucketWipeOperations bucketWipeOperations = mock(BucketWipeOperations.class);
         doNothing().when(bucketWipeOperations).deleteAllObjects(any(), any(), any());
 
-        when(bucketWipeFactory.getBucketWipe(any())).thenReturn(bucketWipeOperations);
+        when(bucketWipeFactory.getBucketWipe(any(BrokerConfig.class))).thenReturn(bucketWipeOperations);
 
         // Setup bucket wipe with a CompletableFuture that never returns
         CompletableFuture wipeCompletableFuture = new CompletableFuture();
@@ -2202,6 +2237,9 @@ public class EcsServiceTest {
         PowerMockito.mockStatic(ObjectUserSecretAction.class);
         when(ObjectUserSecretAction.list(connection, REPO_USER))
                 .thenReturn(Collections.singletonList(secretKey));
+
+        PowerMockito.mockStatic(NamespaceAction.class);
+        when(NamespaceAction.exists(connection, NAMESPACE_NAME)).thenReturn(true);
     }
 
     private void setupBaseUrlTest(String name, boolean namespaceInHost) throws EcsManagementClientException {

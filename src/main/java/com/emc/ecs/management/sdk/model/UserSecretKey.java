@@ -7,9 +7,25 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class UserSecretKey {
 
     private String keyExpiryTimestamp;
+    private String accessKey;
     private String secretKey;
     private String keyTimestamp;
     private Link link;
+
+    public UserSecretKey() {
+    }
+
+    public UserSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+
+    public String getAccessKey() {
+        return accessKey;
+    }
 
     @XmlElement(name = "secret_key")
     public String getSecretKey() {
@@ -45,5 +61,4 @@ public class UserSecretKey {
     public void setLink(Link link) {
         this.link = link;
     }
-
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
-    NamespaceInstanceWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    NamespaceInstanceWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
     }
 

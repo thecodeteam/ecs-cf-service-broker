@@ -1,7 +1,6 @@
 ---
 spring:
-  profiles:
-    active: test
+  profiles: test
 security:
   user:
     password: password
@@ -34,6 +33,7 @@ broker:
   object-endpoint: http://127.0.0.1:9020
   repository-service-id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
   repository-plan-id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
+  ignore-ssl-validation: false
 catalog:
   services:
     - id: 09cac1c6-1b0a-11e6-b6ba-3e1d05defe78

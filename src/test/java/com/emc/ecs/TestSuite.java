@@ -1,5 +1,7 @@
 package com.emc.ecs;
 
+import com.emc.ecs.management.sdk.actions.*;
+import com.emc.ecs.management.sdk.actions.iam.IamUserActionTest;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.BrokerConfigTest;
 import com.emc.ecs.servicebroker.config.CatalogConfigTest;
@@ -24,7 +26,7 @@ import org.junit.runners.Suite.SuiteClasses;
         BucketActionTest.class,
         BucketQuotaActionTest.class,
         BucketRetentionActionTest.class,
-        ConnectionTest.class,
+        EcsManagementAPIConnectionTest.class,
         NamespaceActionTest.class,
         NamespaceQuotaActionTest.class,
         NamespaceRetentionActionTest.class,
@@ -43,6 +45,8 @@ import org.junit.runners.Suite.SuiteClasses;
         EcsServiceInstanceServiceTest.class,
         BucketBindingWorkflowTest.class,
         BucketInstanceWorkflowTest.class,
+        IamUserActionTest.class,
+        RemoteConnectionInstanceWorkflowTest.class
         RemoteConnectionInstanceWorkflowTest.class,
         BrokerConfigTest.class
     })

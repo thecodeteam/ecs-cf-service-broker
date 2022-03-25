@@ -17,6 +17,8 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 @Configuration
 @ConfigurationProperties(prefix = "broker")
 public class BrokerConfig {
+    private String apiType;
+
     private String managementEndpoint;
     private String namespace;
     private String replicationGroup;
@@ -26,6 +28,7 @@ public class BrokerConfig {
     private String repositoryEndpoint;
     private boolean useSsl;
     private boolean useV4Signer = false;
+    private boolean ignoreSslValidation;
 
     private String repositorySecret;
     private String repositoryUser = "user";
@@ -36,6 +39,18 @@ public class BrokerConfig {
     private String brokerApiVersion = "*";
     private String certificate;
     private String defaultReclaimPolicy = ReclaimPolicy.Fail.name();
+
+    private String objectscaleId;
+    private String objectscaleGatewayEndpoint;
+
+    private String objectstoreManagementEndpoint;
+    private String objectstoreS3Endpoint;
+    private String objectstoreId;
+    private String objectstoreName;
+
+    private String accountId;
+    private String accessKey;
+    private String secretKey;
 
     private boolean pathStyleAccess = true;   // Path style access for S3 URL, using host style access if false
     private int loginSessionLength = -1;      // Max login session length, in minutes
@@ -56,6 +71,14 @@ public class BrokerConfig {
                 setCertificate(settings.get(CERTIFICATE).toString());
             }
         }
+    }
+
+    public String getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(String apiType) {
+        this.apiType = apiType;
     }
 
     public String getManagementEndpoint() {
@@ -138,7 +161,7 @@ public class BrokerConfig {
             this.prefix = prefix;
     }
 
-    String getBrokerApiVersion() {
+    public String getBrokerApiVersion() {
         return brokerApiVersion;
     }
 
@@ -223,6 +246,14 @@ public class BrokerConfig {
         this.useSsl = useSsl;
     }
 
+    public boolean getIgnoreSslValidation() {
+        return ignoreSslValidation;
+    }
+
+    public void setIgnoreSslValidation(boolean ignoreSslValidation) {
+        this.ignoreSslValidation = ignoreSslValidation;
+    }
+
     public String getDefaultReclaimPolicy() {
         return defaultReclaimPolicy;
     }
@@ -247,6 +278,78 @@ public class BrokerConfig {
 
     public void setLoginSessionLength(int loginSessionLength) {
         this.loginSessionLength = loginSessionLength;
+    }
+
+    public String getObjectscaleGatewayEndpoint() {
+        return objectscaleGatewayEndpoint;
+    }
+
+    public void setObjectscaleGatewayEndpoint(String objectscaleGatewayEndpoint) {
+        this.objectscaleGatewayEndpoint = objectscaleGatewayEndpoint;
+    }
+
+    public String getObjectstoreManagementEndpoint() {
+        return objectstoreManagementEndpoint;
+    }
+
+    public void setObjectstoreManagementEndpoint(String objectstoreManagementEndpoint) {
+        this.objectstoreManagementEndpoint = objectstoreManagementEndpoint;
+    }
+
+    public String getObjectstoreS3Endpoint() {
+        return objectstoreS3Endpoint;
+    }
+
+    public void setObjectstoreS3Endpoint(String objectstoreS3Endpoint) {
+        this.objectstoreS3Endpoint = objectstoreS3Endpoint;
+    }
+
+    public String getObjectscaleId() {
+        return objectscaleId;
+    }
+
+    public void setObjectscaleId(String objectscaleId) {
+        this.objectscaleId = objectscaleId;
+    }
+
+    public String getObjectstoreId() {
+        return objectstoreId;
+    }
+
+    public void setObjectstoreId(String objectstoreId) {
+        this.objectstoreId = objectstoreId;
+    }
+
+    public String getObjectstoreName() {
+        return objectstoreName;
+    }
+
+    public void setObjectstoreName(String objectstoreName) {
+        this.objectstoreName = objectstoreName;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public String getAccessKey() {
+        return accessKey;
+    }
+
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
+
+    public String getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
     }
 
     public Map<String, Object> getSettings() {

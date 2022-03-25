@@ -5,7 +5,7 @@ import com.emc.ecs.servicebroker.config.CatalogConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.cloud.servicebroker.model.catalog.Plan;
 import org.springframework.cloud.servicebroker.model.catalog.ServiceDefinition;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = Application.class,
-        initializers = ConfigFileApplicationContextInitializer.class)
+        initializers = ConfigDataApplicationContextInitializer.class)
 @ActiveProfiles("test")
 public class ServiceDefinitionProxyTest {
 

@@ -57,7 +57,6 @@ public class CatalogConfig {
             logger.info("Repository service: {}", repositoryServiceDefinition.getName());
         } catch (ServiceBrokerException e) {
             logger.error("No repository service definition found in catalog!");
-            return null;
         }
 
         return catalog;
@@ -151,15 +150,16 @@ public class CatalogConfig {
 
         Map<String, String> tileReplacements = new HashMap<>();
 
-        // TODO use Map.of after java 9+ migration done
-        tileReplacements.put("head_type", HEAD_TYPE);
-        tileReplacements.put("access_during_outage", ACCESS_DURING_OUTAGE);
-        tileReplacements.put("file_accessible", FILE_ACCESSIBLE);
-        tileReplacements.put("default_retention", DEFAULT_RETENTION);
-        tileReplacements.put("compliance_enabled", COMPLIANCE_ENABLED);
-        tileReplacements.put("default_bucket_quota", DEFAULT_BUCKET_QUOTA);
-        tileReplacements.put("replication_group", REPLICATION_GROUP);
-        tileReplacements.put("base_url", BASE_URL);
+        Map.of(
+                "head_type", HEAD_TYPE,
+                "access_during_outage", ACCESS_DURING_OUTAGE,
+                "file_accessible", FILE_ACCESSIBLE,
+                "default_retention", DEFAULT_RETENTION,
+                "compliance_enabled", COMPLIANCE_ENABLED,
+                "default_bucket_quota", DEFAULT_BUCKET_QUOTA,
+                "replication_group", REPLICATION_GROUP,
+                "base_url", BASE_URL
+        );
 
         for (Map.Entry<String, String> e : tileReplacements.entrySet()) {
             if (settings.containsKey(e.getKey())) {
@@ -203,7 +203,7 @@ public class CatalogConfig {
 
         String[] tagsPairs = bucketTagsString.split(BUCKET_TAG_PAIRS_DELIMITER);
 
-        for(String tagPair: tagsPairs) {
+        for (String tagPair : tagsPairs) {
             String[] tag = tagPair.split(BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER);
             if (tag.length != 2) {
                 throw new ServiceBrokerException("Invalid bucket tag passed. Unable to split '" + tagPair +
