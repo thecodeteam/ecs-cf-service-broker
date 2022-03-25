@@ -19,7 +19,7 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
 
-    RemoteConnectionInstanceWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    public RemoteConnectionInstanceWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
     }
 

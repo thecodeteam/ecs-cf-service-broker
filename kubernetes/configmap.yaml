@@ -131,6 +131,8 @@ data:
         - nfs
         - hdfs
         type: bucket
+    server:
+      max-http-header-size: 32KB
     security:
       user:
         name: admin

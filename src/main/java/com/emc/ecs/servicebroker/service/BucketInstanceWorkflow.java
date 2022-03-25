@@ -21,7 +21,7 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 public class BucketInstanceWorkflow extends InstanceWorkflowImpl {
     private static final Logger logger = LoggerFactory.getLogger(BucketInstanceWorkflow.class);
 
-    BucketInstanceWorkflow(ServiceInstanceRepository repo, EcsService ecs) {
+    public BucketInstanceWorkflow(ServiceInstanceRepository repo, StorageService ecs) {
         super(repo, ecs);
     }
 

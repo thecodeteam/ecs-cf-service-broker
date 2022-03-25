@@ -1,6 +1,7 @@
 package com.emc.ecs.common;
 
 import com.emc.ecs.management.sdk.model.BucketTagSetRootElement;
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
@@ -65,7 +66,7 @@ public class Fixtures {
     public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
     public static final String EXPORT_NAME_VALUE = "/export/dir";
     public static final String VOLUME_MOUNT_VALUE = "/mount/dir";
-    public static final String SECRET_KEY_VALUE = "testKEY@ключ:/-s#cr#T";
+    public static final UserSecretKey SECRET_KEY_VALUE = new UserSecretKey("testKEY@ключ:/-s#cr#T");
     public static final String SHOULD_RAISE_AN_EXCEPTION = "should raise an exception";
     public static final String BUCKET_TAGS_INVALID_CHARS = "key?=value!";
     public static final String BUCKET_TAGS_INVALID_FORMAT = "key1:value1;key2:value2";

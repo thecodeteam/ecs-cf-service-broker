@@ -119,18 +119,16 @@ public class BucketBindingWorkflowTest {
                         // Mock service instance repo lookups
                         when(instanceRepo.find(eq(SERVICE_INSTANCE_ID))).thenReturn(serviceInstanceFixture());
 
-                        UserSecretKey userSecretKey = new UserSecretKey();
-                        userSecretKey.setSecretKey(SECRET_KEY_VALUE);
-                        when(ecs.createUser(eq(BINDING_ID), anyString())).thenReturn(userSecretKey);
-                        when(ecs.createUser(eq(BUCKET_NAME+"-"+BINDING_ID), anyString())).thenReturn(userSecretKey);
+                        when(ecs.createUser(eq(BINDING_ID), anyString())).thenReturn(SECRET_KEY_VALUE);
+                        when(ecs.createUser(eq(BUCKET_NAME+"-"+BINDING_ID), anyString())).thenReturn(SECRET_KEY_VALUE);
 
                         // Create credentials fixture
                         String s3Url = "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
-                                + ":" + URLEncoder.encode(SECRET_KEY_VALUE, "UTF-8")
+                                + ":" + URLEncoder.encode(SECRET_KEY_VALUE.getSecretKey(), "UTF-8")
                                 + "@127.0.0.1:9020/" + SERVICE_INSTANCE_ID;
 
                         credentials.put(CREDENTIALS_ACCESS_KEY, BINDING_ID);
-                        credentials.put(CREDENTIALS_SECRET_KEY, SECRET_KEY_VALUE);
+                        credentials.put(CREDENTIALS_SECRET_KEY, SECRET_KEY_VALUE.getSecretKey());
                         credentials.put(ENDPOINT, OBJ_ENDPOINT);
                         credentials.put(BUCKET, SERVICE_INSTANCE_ID);
                         credentials.put(S3_URL, s3Url);
@@ -212,7 +210,7 @@ public class BucketBindingWorkflowTest {
                             });
 
                             It("should create S3 domain-based URL when no user parameter is provided", () -> {
-                                Map<String, Object> ret = workflow.getCredentials("abcd", new HashMap<>());
+                                Map<String, Object> ret = workflow.getCredentials(new UserSecretKey("abcd"), new HashMap<>());
                                 assertEquals(false, ret.get(PATH_STYLE_ACCESS));
                                 assertEquals("Bucket binding workflow should generate domain-style url",
                                         "http://cf2f8326-3465-4810-9da1-54d328935b81:abcd@service-instance-id.127.0.0.1:9020",
@@ -223,7 +221,7 @@ public class BucketBindingWorkflowTest {
                             It("should create S3 path-based URL when user set path_style_access=true", () -> {
                                 HashMap<String, Object> requestParam = new HashMap<>();
                                 requestParam.put(PATH_STYLE_ACCESS, true);
-                                Map<String, Object> ret = workflow.getCredentials("abcd", requestParam);
+                                Map<String, Object> ret = workflow.getCredentials(new UserSecretKey("abcd"), requestParam);
                                 assertEquals(true, ret.get(PATH_STYLE_ACCESS));
                                 assertEquals("Bucket binding workflow should generate path-style url",
                                         "http://cf2f8326-3465-4810-9da1-54d328935b81:abcd@127.0.0.1:9020/service-instance-id",
@@ -234,7 +232,7 @@ public class BucketBindingWorkflowTest {
                             It("should create S3 domain-based URL when user set path_style_access=false", () -> {
                                 HashMap<String, Object> requestParam = new HashMap<>();
                                 requestParam.put(PATH_STYLE_ACCESS, false);
-                                Map<String, Object> ret = workflow.getCredentials("abcd", requestParam);
+                                Map<String, Object> ret = workflow.getCredentials(new UserSecretKey("abcd"), requestParam);
                                 assertEquals(false, ret.get(PATH_STYLE_ACCESS));
                                 assertEquals("Bucket binding workflow should generate domain-style url",
                                         "http://cf2f8326-3465-4810-9da1-54d328935b81:abcd@service-instance-id.127.0.0.1:9020",
@@ -296,7 +294,7 @@ public class BucketBindingWorkflowTest {
                                 when(ecs.getObjectEndpoint()).thenReturn(expectedEndpoint);
                                 String expectedUrl =
                                         "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
-                                        + ":" + URLEncoder.encode(SECRET_KEY_VALUE, "UTF-8")
+                                        + ":" + URLEncoder.encode(SECRET_KEY_VALUE.getSecretKey(), "UTF-8")
                                         + "@" + host + "/" + SERVICE_INSTANCE_ID;
                                 credentials.put(S3_URL, expectedUrl);
                                 credentials.put(ENDPOINT, expectedEndpoint);
@@ -355,7 +353,7 @@ public class BucketBindingWorkflowTest {
                             workflow = workflow.withCreateRequest(req);
 
                             String s3Url = "http://" + URLEncoder.encode(BINDING_ID, "UTF-8")
-                                    + ":" + URLEncoder.encode(SECRET_KEY_VALUE, "UTF-8")
+                                    + ":" + URLEncoder.encode(SECRET_KEY_VALUE.getSecretKey(), "UTF-8")
                                     + "@" + SERVICE_INSTANCE_ID + ".127.0.0.1:9020";
                             credentials.put(S3_URL, s3Url);
                             credentials.put(PATH_STYLE_ACCESS, false);
@@ -429,7 +427,7 @@ public class BucketBindingWorkflowTest {
                             });
 
                             It("should provide UID in credentials", () -> {
-                                String secretKey = workflow.createBindingUser();
+                                UserSecretKey secretKey = workflow.createBindingUser();
                                 Map<String, Object> binding_credentials =
                                         workflow.getCredentials(secretKey, parameters);
                                 assertTrue(binding_credentials.containsKey(VOLUME_EXPORT_UID));

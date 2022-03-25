@@ -1,5 +1,6 @@
 package com.emc.ecs.servicebroker.service;
 
+import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
@@ -15,7 +16,7 @@ import java.util.Map;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
-    RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, EcsService ecs) {
+    RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
     }
 
@@ -29,22 +30,25 @@ public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
     }
 
     @Override
-    public String createBindingUser() throws ServiceBrokerException, IOException, JAXBException {
+    public UserSecretKey createBindingUser() throws ServiceBrokerException, IOException, JAXBException {
         ServiceInstance instance = instanceRepository.find(instanceId);
-        if (instance == null)
+        if (instance == null) {
             throw new ServiceInstanceDoesNotExistException(instanceId);
+        }
 
         String secretKey = instance.addRemoteConnectionKey(bindingId);
+
         instanceRepository.save(instance);
-        return secretKey;
+
+        return new UserSecretKey(secretKey);
     }
 
     @Override
-    public Map<String, Object> getCredentials(String secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
+    public Map<String, Object> getCredentials(UserSecretKey secretKey, Map<String, Object> parameters) throws IOException, EcsManagementClientException {
         Map<String, Object> credentials = new HashMap<>();
         credentials.put(CREDENTIALS_INSTANCE_ID, instanceId);
         credentials.put(CREDENTIALS_ACCESS_KEY, bindingId);
-        credentials.put(CREDENTIALS_SECRET_KEY, secretKey);
+        credentials.put(CREDENTIALS_SECRET_KEY, secretKey.getSecretKey());
         return credentials;
     }
 
