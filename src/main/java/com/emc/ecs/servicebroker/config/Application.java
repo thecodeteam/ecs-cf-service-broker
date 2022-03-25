@@ -172,6 +172,7 @@ public class Application {
         logger.info("Preparing S3 endpoint client: '{}', bucket '{}', account '{}', access key '{}'", repositoryEndpoint, bucket, accountId, userName);
 
         S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
+                .withUseV2Signer(!config.isUseV4Signer())
                 .withNamespace(accountId)
                 .withIdentity(userName)
                 .withSecretKey(repositorySecret);
@@ -196,6 +197,7 @@ public class Application {
         logger.info("Preparing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
 
         S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
+                .withUseV2Signer(!config.isUseV4Signer())
                 .withIdentity(userName)
                 .withSecretKey(repositorySecret);
 

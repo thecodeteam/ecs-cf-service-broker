@@ -1,8 +1,7 @@
 package com.emc.ecs.servicebroker.service;
 
-import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.ManagementAPIConnection;
 import com.emc.ecs.management.sdk.actions.*;
-import com.emc.ecs.management.sdk.actions.iam.IAMUserAction;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
