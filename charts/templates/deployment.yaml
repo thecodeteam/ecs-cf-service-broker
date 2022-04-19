@@ -29,46 +29,22 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: username
-                  name: {{ .Values.api.name }}-auth
+                  name: {{ .Values.api.secretName }}
             - name: "SECURITY_USER_PASSWORD"
               valueFrom:
                 secretKeyRef:
                   key: password
-                  name: {{ .Values.api.name }}-auth
-{{- if eq (default "ECS" .Values.brokerMode) "ECS" }}
+                  name: {{ .Values.api.secretName }}
             - name: "BROKER_USERNAME"
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.ecsConnection.name }}-auth
+                  name: {{ .Values.ecsConnection.secretName }}
                   key: username
             - name: "BROKER_PASSWORD"
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.ecsConnection.name }}-auth
+                  name: {{ .Values.ecsConnection.secretName }}
                   key: password
-{{- end }}
-{{- if eq (default "ECS" .Values.brokerMode) "objectscale" }}
-            - name: "BROKER_USERNAME"
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.objectscale.id }}-auth
-                  key: username
-            - name: "BROKER_PASSWORD"
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.objectscale.id }}-auth
-                  key: password
-            - name: "BROKER_ACCESS_KEY"
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.objectscale.id }}-account-key
-                  key: accessKey
-            - name: "BROKER_SECRET_KEY"
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.objectscale.id }}-account-key
-                  key: secretKey
-{{- end }}
       volumes:
         - name: config-volume
           configMap:
