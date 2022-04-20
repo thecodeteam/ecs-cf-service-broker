@@ -13,7 +13,6 @@ public class IAMUserPolicyAction {
     public static void attach(ManagementAPIConnection connection, String userName, String policyArn, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "AttachUserPolicy")
                 .queryParam("UserName", userName)
                 .queryParam("PolicyArn", policyArn);
@@ -24,7 +23,6 @@ public class IAMUserPolicyAction {
     public static void detach(ManagementAPIConnection connection, String userName, String policyArn, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "DetachUserPolicy")
                 .queryParam("UserName", userName)
                 .queryParam("PolicyArn", policyArn);

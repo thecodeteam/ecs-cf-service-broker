@@ -23,7 +23,6 @@ public final class IAMUserAction {
     public static IamUser create(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "CreateUser")
                 .queryParam("UserName", userName);
 
@@ -35,7 +34,6 @@ public final class IAMUserAction {
     public static IamUser get(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "GetUser")
                 .queryParam("UserName", userName);
 
@@ -48,7 +46,6 @@ public final class IAMUserAction {
     public static boolean exists(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "GetUser")
                 .queryParam("UserName", userName);
 
@@ -58,7 +55,6 @@ public final class IAMUserAction {
     public static void delete(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "DeleteUser")
                 .queryParam("UserName", userName);
 

@@ -22,7 +22,6 @@ public class IAMAccessKeyAction {
     public static IamAccessKey create(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "CreateAccessKey")
                 .queryParam("UserName", userName);
 
@@ -34,7 +33,6 @@ public class IAMAccessKeyAction {
     public static List<IamAccessKey> list(ManagementAPIConnection connection, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "ListAccessKeys")
                 .queryParam("UserName", userName);
 
@@ -49,7 +47,6 @@ public class IAMAccessKeyAction {
     public static void delete(ManagementAPIConnection connection, String accessKeyId, String userName, String accountId) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(IAM)
-                //.segment("local")
                 .queryParam("Action", "DeleteAccessKey")
                 .queryParam("UserName", userName)
                 .queryParam("AccessKeyId", accessKeyId);
