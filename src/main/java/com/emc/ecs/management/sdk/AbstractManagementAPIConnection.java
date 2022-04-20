@@ -109,7 +109,6 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
             Builder request = clientBuilder.newClient()
                     .target(uri)
                     .request()
-                    .header("X-EMC-Override", "true")            // enables access to ECS Flex API (pre-GA limitation)
                     .header(X_SDS_AUTH_TOKEN, authToken)
                     .header(HttpHeaders.ACCEPT, APPLICATION_XML);
 
