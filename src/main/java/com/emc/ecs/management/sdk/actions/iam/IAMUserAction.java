@@ -39,7 +39,6 @@ public final class IAMUserAction {
 
         Response response = IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
         GetUserResponse ret = response.readEntity(GetUserResponse.class);
-
         return ret.geUserResult().getUser();
     }
 
@@ -58,9 +57,6 @@ public final class IAMUserAction {
                 .queryParam("Action", "DeleteUser")
                 .queryParam("UserName", userName);
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("x-emc-namespace", accountId);
-
-        IAMActionUtils.remoteCall(connection, POST, uri, null, headers);
+        IAMActionUtils.remoteCall(connection, POST, uri, null, accountHeader(accountId));
     }
 }
