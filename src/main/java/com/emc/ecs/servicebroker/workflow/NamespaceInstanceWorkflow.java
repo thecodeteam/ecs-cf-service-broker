@@ -1,4 +1,4 @@
-package com.emc.ecs.servicebroker.service;
+package com.emc.ecs.servicebroker.workflow;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
@@ -6,6 +6,7 @@ import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.service.StorageService;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
-    NamespaceInstanceWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
+    public NamespaceInstanceWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
     }
 

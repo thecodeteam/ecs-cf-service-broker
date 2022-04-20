@@ -1,7 +1,8 @@
-package com.emc.ecs.servicebroker.service;
+package com.emc.ecs.servicebroker.workflow;
 
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.service.StorageService;
 import org.springframework.cloud.servicebroker.model.instance.CreateServiceInstanceRequest;
 import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInstanceRequest;
 

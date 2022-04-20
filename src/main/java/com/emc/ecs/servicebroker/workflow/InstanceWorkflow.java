@@ -1,4 +1,4 @@
-package com.emc.ecs.servicebroker.service;
+package com.emc.ecs.servicebroker.workflow;
 
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;

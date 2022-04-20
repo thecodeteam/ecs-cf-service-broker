@@ -2,6 +2,8 @@ package com.emc.ecs.servicebroker.service;
 
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.model.ServiceType;
+import com.emc.ecs.servicebroker.workflow.BindingWorkflow;
+import com.emc.ecs.servicebroker.workflow.BucketBindingWorkflow;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import java.io.IOException;

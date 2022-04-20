@@ -1,9 +1,10 @@
-package com.emc.ecs.servicebroker.service;
+package com.emc.ecs.servicebroker.workflow;
 
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.service.StorageService;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceDoesNotExistException;
@@ -16,7 +17,7 @@ import java.util.Map;
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class RemoteConnectBindingWorkflow extends BindingWorkflowImpl {
-    RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
+    public RemoteConnectBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
     }
 

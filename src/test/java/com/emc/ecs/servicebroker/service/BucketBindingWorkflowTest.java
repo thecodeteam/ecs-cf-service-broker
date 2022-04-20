@@ -4,6 +4,8 @@ import com.emc.ecs.common.Fixtures;
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.workflow.BindingWorkflow;
+import com.emc.ecs.servicebroker.workflow.BucketBindingWorkflow;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
 import org.assertj.core.util.Lists;
 import org.junit.runner.RunWith;

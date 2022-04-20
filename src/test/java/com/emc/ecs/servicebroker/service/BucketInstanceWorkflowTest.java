@@ -5,6 +5,8 @@ import com.emc.ecs.servicebroker.model.ReclaimPolicy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.workflow.BucketInstanceWorkflow;
+import com.emc.ecs.servicebroker.workflow.InstanceWorkflow;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jRunner;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;

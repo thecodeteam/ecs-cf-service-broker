@@ -1,10 +1,12 @@
-package com.emc.ecs.servicebroker.service;
+package com.emc.ecs.servicebroker.workflow;
 
 import com.emc.ecs.management.sdk.model.UserSecretKey;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceBinding;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
+import com.emc.ecs.servicebroker.service.EcsServiceInstanceBindingService;
+import com.emc.ecs.servicebroker.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceInstanceBindingExistsException;
@@ -26,7 +28,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
     private List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>();
 
-    BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) throws IOException {
+    public BucketBindingWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) throws IOException {
         super(instanceRepo, ecs);
     }
 

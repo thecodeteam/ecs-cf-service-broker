@@ -82,10 +82,6 @@ public class S3Service {
         s3.deleteObject(bucket, filename);
     }
 
-    public ListObjectsResult listObjects() {
-        return s3.listObjects(bucket);
-    }
-
     public ListObjectsResult listObjects(String prefix, String marker, int pageSize) {
         ListObjectsRequest request = new ListObjectsRequest(bucket);
         if (marker != null) {
