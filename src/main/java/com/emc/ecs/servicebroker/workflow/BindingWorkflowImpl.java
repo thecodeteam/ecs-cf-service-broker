@@ -29,7 +29,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     ServiceInstanceRepository instanceRepository;
-    protected final StorageService ecs;
+    protected final StorageService storage;
     protected ServiceDefinitionProxy service;
     protected PlanProxy plan;
     String instanceId;
@@ -37,9 +37,9 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
     CreateServiceInstanceBindingRequest createRequest;
     ServiceInstanceBinding binding;
 
-    BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, StorageService ecs) {
+    BindingWorkflowImpl(ServiceInstanceRepository instanceRepo, StorageService storage) {
         this.instanceRepository = instanceRepo;
-        this.ecs = ecs;
+        this.storage = storage;
     }
 
     public BindingWorkflow withCreateRequest(CreateServiceInstanceBindingRequest request) {
@@ -76,7 +76,7 @@ abstract public class BindingWorkflowImpl implements BindingWorkflow {
         if (secretKey != null) {
             String accessKey = secretKey.getAccessKey() != null
                     ? secretKey.getAccessKey()
-                    : ecs.prefix(binding.getName());
+                    : storage.prefix(binding.getName());
 
             credentials.put(CREDENTIALS_ACCESS_KEY, accessKey);
             credentials.put(CREDENTIALS_SECRET_KEY, secretKey.getSecretKey());

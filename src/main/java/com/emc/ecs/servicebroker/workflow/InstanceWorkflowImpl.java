@@ -9,14 +9,14 @@ import org.springframework.cloud.servicebroker.model.instance.DeleteServiceInsta
 import java.util.Map;
 
 abstract public class InstanceWorkflowImpl implements InstanceWorkflow {
-    protected final StorageService ecs;
+    protected final StorageService storage;
     final ServiceInstanceRepository instanceRepository;
     String instanceId;
     CreateServiceInstanceRequest createRequest;
 
-    InstanceWorkflowImpl(ServiceInstanceRepository instanceRepo, StorageService ecs) {
+    InstanceWorkflowImpl(ServiceInstanceRepository instanceRepo, StorageService storage) {
         this.instanceRepository = instanceRepo;
-        this.ecs = ecs;
+        this.storage = storage;
     }
 
     public InstanceWorkflow withCreateRequest(CreateServiceInstanceRequest request) {

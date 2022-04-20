@@ -76,7 +76,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) {
-        Map<String, Object> settings = ecs.mergeParameters(serviceDef, plan, parameters);
+        Map<String, Object> settings = storage.mergeParameters(serviceDef, plan, parameters);
 
         Map<String, MapDifference.ValueDifference<Object>> settingsDiff = Maps.difference(settings, remoteInstance.getServiceSettings()).entriesDiffering();
         if (!settingsDiff.isEmpty()) {

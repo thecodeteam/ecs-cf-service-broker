@@ -30,7 +30,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
                 throw new ServiceInstanceDoesNotExistException(id);
             }
 
-            return ecs.changeNamespacePlan(instance.getName(), service, plan, parameters);
+            return storage.changeNamespacePlan(instance.getName(), service, plan, parameters);
         } catch (IOException e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -43,7 +43,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
             if (instance.getReferences().size() > 1) {
                 removeInstanceFromReferences(instance, id);
             } else {
-                ecs.deleteNamespace(instance.getName());
+                storage.deleteNamespace(instance.getName());
             }
 
             return null;
@@ -70,7 +70,7 @@ public class NamespaceInstanceWorkflow extends InstanceWorkflowImpl {
     public ServiceInstance create(String id, ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> parameters)
         throws EcsManagementClientException, EcsManagementResourceNotFoundException {
         ServiceInstance instance = getServiceInstance(parameters);
-        Map<String, Object> serviceSettings = ecs.createNamespace(instance.getName(), service, plan, parameters);
+        Map<String, Object> serviceSettings = storage.createNamespace(instance.getName(), service, plan, parameters);
 
         instance.setServiceSettings(serviceSettings);
 

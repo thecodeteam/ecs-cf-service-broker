@@ -23,7 +23,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     public void checkIfUserExists() throws EcsManagementClientException, IOException {
         ServiceInstance instance = getInstance();
-        if (ecs.userExists(bindingId, ecs.prefix(instance.getServiceInstanceId()))) {
+        if (storage.userExists(bindingId, storage.prefix(instance.getServiceInstanceId()))) {
             throw new ServiceInstanceBindingExistsException(instance.getServiceInstanceId(), bindingId);
         }
     }
@@ -31,14 +31,14 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
     @Override
     public UserSecretKey createBindingUser() throws EcsManagementClientException, IOException {
         ServiceInstance instance = getInstance();
-        UserSecretKey userSecretKey = ecs.createUser(binding.getName(), ecs.prefix(instance.getName()));
+        UserSecretKey userSecretKey = storage.createUser(binding.getName(), storage.prefix(instance.getName()));
         return userSecretKey;
     }
 
     @Override
     public void removeBinding() throws EcsManagementClientException, IOException {
         ServiceInstance instance = getInstance();
-        ecs.deleteUser(binding.getName(), ecs.prefix(instance.getServiceInstanceId()));
+        storage.deleteUser(binding.getName(), storage.prefix(instance.getServiceInstanceId()));
     }
 
     @Override
@@ -48,11 +48,11 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
         String namespaceName = instance.getName();
 
         // Get custom endpoint for namespace
-        String endpoint = ecs.getNamespaceURL(ecs.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
+        String endpoint = storage.getNamespaceURL(storage.prefix(namespaceName), createRequest.getParameters(), instance.getServiceSettings());
 
         Map<String, Object> credentials = super.getCredentials(secretKey);
 
-        credentials.put(NAMESPACE, ecs.prefix(namespaceName));          // Add namespace title as part of credentials
+        credentials.put(NAMESPACE, storage.prefix(namespaceName));          // Add namespace title as part of credentials
         credentials.put(ENDPOINT, endpoint);
         credentials.put(S3_URL, buildS3Url(endpoint, secretKey.getSecretKey()));       // Add s3 URL
 
@@ -69,7 +69,7 @@ public class NamespaceBindingWorkflow extends BindingWorkflowImpl {
 
     private String buildS3Url(String endpoint, String secretKey) throws IOException {
         URL baseUrl = new URL(endpoint);
-        String accessKey = ecs.prefix(binding.getName());
+        String accessKey = storage.prefix(binding.getName());
         String encodedBinding = URLEncoder.encode(accessKey, "UTF-8");
         String encodedSecret = URLEncoder.encode(secretKey, "UTF-8");
         String userInfo = encodedBinding + ":" + encodedSecret;
