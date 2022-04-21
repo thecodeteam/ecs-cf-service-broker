@@ -32,10 +32,12 @@ public final class BucketExpirationAction {
         S3Client s3Client = createS3Client(brokerConfig, namespace);
 
         if (currentRules == null) {
+            logger.debug("Adding bucket lifecycle rule {}: expiration days = {}", newRule.getPrefix(), newRule.getExpirationDays());
             s3Client.setBucketLifecycle(bucketName, new LifecycleConfiguration().withRules(newRule));
         } else {
             newRule.setPrefix(currentRules.size() + bucketName);
             currentRules.add(newRule);
+            logger.debug("Adding bucket lifecycle rule {}: expiration days = {}", newRule.getPrefix(), newRule.getExpirationDays());
             s3Client.setBucketLifecycle(bucketName, new LifecycleConfiguration().withRules(currentRules));
         }
     }
