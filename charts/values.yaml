@@ -4,49 +4,33 @@
 
 replicaCount: 1
 
-namespace: "131118670375936839"
-prefix: "kubetesting-"
+# ECS replication group and namespace to use as default for broker repository and new services
 replicationGroup: "ecstestdrivegeo"
+namespace: "131118670375936839"
 
-# Set to true if want to skip ssl validation errors
-ignoreSslValidation: false
+# Prefix all broker created buckets and users. Defaults to 'ecs-cf-broker-'
+prefix: "kubetesting-"
 
 # Management SSL Custom CA Trust Certificate
 certificate: |-
 
-# ECS Object API
-api:
-  name: ecs-broker
-  namespace: default
-  endpoint: "https://object.ecstestdrive.com"
-  username: admin
-  password: ChangeMe
+# Set to true if want to skip ssl validation errors
+ignoreSslValidation: true
 
-# ECS Management Endpoint
+# ECS Management and Object Endpoints connection details
 ecsConnection:
-  name: ecs-broker-connection
-  endpoint: "https://portal.ecstestdrive.com"
+  secretName: ecs-broker-connection    # k8s secret name, used to store management API auth credentials
+  managementEndpoint: "https://portal.ecstestdrive.com"
   username: <MANAGEMENT_USER>
   password: <PASSWORD>
+  s3endpoint: "https://object.ecstestdrive.com"
+  awsSignatureV4: false  # Use AWS signature V4 to authenticate S3 requests (use V2 if false)
 
-## Objectscale
-## to use service broker with objectstore instance, fill values and uncomment:
-#brokerMode: objectscale
-#objectscale:
-#  id: "osci1234567890abcdef"
-#  gatewayEndpoint: "https://10.20.30.40:21234"
-#  managementUser:
-#    name: "user1"
-#    password: "password1"
-#  account:
-#    id: "osai1234567890abcdef"
-#    accessKey: "abc111"
-#    secretKey: "secret"
-#objectstore:
-#  id: "osti1234567890abcdef"
-#  name: "some-store-name"
-#  managementEndpoint: "https://10.20.30.41:31234"
-#  s3Endpoint: "https://10.20.30.42:41234"
+# Broker API security
+api:
+  secretName: ecs-broker-auth     # k8s secret name, used to store broker API auth credentials
+  username: admin
+  password: ChangeMe
 
 image:
   repository: objectscale/ecs-service-broker

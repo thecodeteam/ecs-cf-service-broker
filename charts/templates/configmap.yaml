@@ -7,24 +7,11 @@ data:
     ---
     broker:
       prefix: {{ .Values.prefix }}
-  {{- if eq (default "ECS" .Values.brokerMode) "ECS" }}
-      object-endpoint: {{ .Values.api.endpoint }}
-      management-endpoint: {{ .Values.ecsConnection.endpoint }}
+      management-endpoint: {{ .Values.ecsConnection.managementEndpoint }}
+      object-endpoint: {{ .Values.ecsConnection.s3endpoint }}
       namespace: {{ .Values.namespace }}
       replication-group: {{ .Values.replicationGroup }}
-  {{- end}}
-  {{- if eq (default "ECS" .Values.brokerMode) "objectscale" }}
-      apiType: "objectscale"
-      accountId: {{ .Values.objectscale.account.id }}
-      objectscale:
-        id: {{ .Values.objectscale.id }}
-        gatewayEndpoint: {{ .Values.objectscale.gatewayEndpoint }}
-      objectstore:
-        id: {{ .Values.objectstore.id }}
-        name: {{ .Values.objectstore.name }}
-        managementEndpoint: {{ .Values.objectstore.managementEndpoint }}
-        s3Endpoint: {{ .Values.objectstore.s3Endpoint }}
-  {{- end}}
+      awsSignatureV4: {{ default false .Values.ecsConnection.awsSignatureV4 }}
   {{- if .Values.certificate }}
       certificate: {{ toYaml .Values.certificate | indent 6 }}
   {{- end }}

@@ -27,6 +27,7 @@ public class BrokerConfig {
     private String nfsMountHost;
     private String repositoryEndpoint;
     private boolean useSsl;
+    private boolean awsSignatureV4 = false;
     private boolean ignoreSslValidation;
 
     private String repositorySecret;
@@ -261,9 +262,11 @@ public class BrokerConfig {
         this.defaultReclaimPolicy = defaultReclaimPolicy;
     }
 
-    public boolean isPathStyleAccess() {
-        return pathStyleAccess;
-    }
+    public boolean isPathStyleAccess() { return pathStyleAccess; }
+
+    public boolean isAwsSignatureV4() { return awsSignatureV4; }
+
+    public void setAwsSignatureV4(boolean awsSignatureV4) { this.awsSignatureV4 = awsSignatureV4; }
 
     public void setPathStyleAccess(boolean pathStyleAccess) {
         this.pathStyleAccess = pathStyleAccess;

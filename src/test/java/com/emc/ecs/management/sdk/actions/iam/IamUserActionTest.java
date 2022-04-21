@@ -13,22 +13,10 @@ import static org.junit.Assert.assertTrue;
 public class IamUserActionTest extends EcsActionTest {
     private String user = "testuser1";
 
-    /*
-    @Test
-    public void testUserDoesNotExist() throws EcsManagementClientException {
-        assertFalse(ObjectUserAction.exists(connection, user, namespace));
-    }
-     */
-
     @Test
     public void createUser() throws EcsManagementClientException {
         IAMUserAction.create(connection, user, namespace);
-//        assertTrue(ObjectUserAction.exists(connection, user, namespace));
-
         IAMAccessKeyAction.create(connection, user, namespace);
-
-//        ObjectUserAction.delete(connection, user);
-//        assertFalse(ObjectUserAction.exists(connection, user, namespace));
     }
 
 }
