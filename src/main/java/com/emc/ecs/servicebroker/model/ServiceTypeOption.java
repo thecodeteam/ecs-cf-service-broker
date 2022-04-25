@@ -1,6 +1,7 @@
 package com.emc.ecs.servicebroker.model;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ServiceTypeOption {
     @JsonProperty("repository_service")

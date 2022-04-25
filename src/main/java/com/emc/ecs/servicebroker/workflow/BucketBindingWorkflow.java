@@ -49,11 +49,9 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         Map<String, Object> parameters = createRequest.getParameters();
 
-        String export = "";
         List<String> permissions = null;
         if (parameters != null) {
             permissions = (List<String>) parameters.get(USER_PERMISSIONS);
-            export = (String) parameters.getOrDefault(VOLUME_EXPORT, null);
         }
 
         if (permissions == null) {
@@ -63,6 +61,10 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         }
 
         if (storage.getBucketFileEnabled(bucket, namespace)) {
+            String export = "";
+            if (parameters != null) {
+                export = (String) parameters.getOrDefault(VOLUME_EXPORT, null);
+            }
             volumeMounts = createVolumeExport(export, new URL(storage.getObjectEndpoint()), bucket, namespace, parameters);
         }
 
