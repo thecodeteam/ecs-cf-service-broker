@@ -14,6 +14,7 @@ import com.emc.ecs.servicebroker.service.*;
 import com.emc.ecs.servicebroker.service.ObjectstoreService;
 import com.emc.ecs.servicebroker.service.ObjectscaleServiceInstanceBindingService;
 import com.emc.ecs.servicebroker.service.ObjectscaleServiceInstanceService;
+import com.emc.ecs.servicebroker.service.s3.S3ConfigUtils;
 import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
@@ -159,23 +160,16 @@ public class Application {
     @Bean(name = "s3Client")
     @ConditionalOnProperty(name = "broker.apiType", havingValue = "objectscale")
     public S3Client objectstoreS3Client(BrokerConfig config) throws URISyntaxException {
-        String bucket = config.getPrefixedBucketName();
-        String repositoryEndpoint = config.getObjectstoreS3Endpoint();
-        String userName = config.getAccessKey();
         String repositorySecret = config.getSecretKey();
-        String accountId = config.getAccountId();
 
         if (repositorySecret == null || repositorySecret.length() == 0) {
             logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
         }
 
-        logger.info("Preparing S3 endpoint client: '{}', bucket '{}', account '{}', access key '{}'", repositoryEndpoint, bucket, accountId, userName);
+        logger.info("Preparing S3 endpoint client: '{}', bucket '{}', account '{}', access key '{}'",
+                config.getObjectstoreS3Endpoint(), config.getPrefixedBucketName(), config.getAccountId(), config.getAccessKey());
 
-        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
-                .withUseV2Signer(!config.isAwsSignatureV4())
-                .withNamespace(accountId)
-                .withIdentity(userName)
-                .withSecretKey(repositorySecret);
+        S3Config s3Config = S3ConfigUtils.objectstoreConfig(config);
 
         logger.info("S3 config: {}", s3Config);
 
@@ -185,21 +179,16 @@ public class Application {
     @Bean(name = "s3Client")
     @ConditionalOnProperty(name = "broker.apiType", havingValue = "ecs", matchIfMissing = true)
     public S3Client ecsS3Client(BrokerConfig config) throws URISyntaxException {
-        String bucket = config.getPrefixedBucketName();
-        String repositoryEndpoint = config.getRepositoryEndpoint();
-        String userName = config.getPrefixedUserName();
         String repositorySecret = config.getRepositorySecret();
 
         if (repositorySecret == null || repositorySecret.length() == 0) {
             logger.warn("S3 secret key is empty, S3 repository test is likely to fail!");
         }
 
-        logger.info("Preparing S3 endpoint client: '{}', bucket '{}', repository username '{}'", repositoryEndpoint, bucket, userName);
+        logger.info("Preparing S3 endpoint client: '{}', bucket '{}', repository username '{}'",
+                config.getRepositoryEndpoint(), config.getPrefixedBucketName(), config.getPrefixedUserName());
 
-        S3Config s3Config = new S3Config(new URI(repositoryEndpoint))
-                .withUseV2Signer(!config.isAwsSignatureV4())
-                .withIdentity(userName)
-                .withSecretKey(repositorySecret);
+        S3Config s3Config = S3ConfigUtils.ecsConfig(config);
 
         logger.info("S3 config: {}", s3Config);
 

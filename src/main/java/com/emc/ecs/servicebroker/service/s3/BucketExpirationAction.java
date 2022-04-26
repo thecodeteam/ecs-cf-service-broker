@@ -74,12 +74,7 @@ public final class BucketExpirationAction {
     }
 
     private static S3Client createS3Client(BrokerConfig brokerConfig, String namespace) throws URISyntaxException {
-        // TODO check objectscale config support here
-
-        S3Config s3Config = new S3Config(new URI(brokerConfig.getRepositoryEndpoint()))
-                .withUseV2Signer(!brokerConfig.isAwsSignatureV4())
-                .withIdentity(brokerConfig.getPrefixedUserName())
-                .withSecretKey(brokerConfig.getRepositorySecret());
+        S3Config s3Config = S3ConfigUtils.s3Config(brokerConfig);
 
         if (namespace != null) {
             s3Config.setNamespace(namespace);
