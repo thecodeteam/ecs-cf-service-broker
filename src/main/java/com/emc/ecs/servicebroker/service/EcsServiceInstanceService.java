@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import static com.emc.ecs.servicebroker.model.Constants.REMOTE_CONNECTION;
+import static com.emc.ecs.servicebroker.model.Constants.*;
 import static com.emc.ecs.servicebroker.model.ServiceType.*;
 import static java.lang.String.format;
 
@@ -90,13 +90,20 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         String planId = request.getPlanId();
 
         try {
+
+            Map<String, Object> parameters = request.getParameters();
+
+            if(HasContextProperties(request)) {
+                parameters.put(Properties, request.getContext().getProperties());
+            }
+
             ServiceDefinitionProxy service = findServiceDefinition(serviceDefinitionId);
             PlanProxy plan = service.findPlan(planId);
 
             LOG.info("Creating instance '{}' with service definition '{}'({}) and plan '{}'({})", serviceInstanceId, service.getName(), service.getId(), plan.getName(), planId);
 
             InstanceWorkflow workflow = getWorkflow(request).withCreateRequest(request);
-            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan, request.getParameters());
+            ServiceInstance instance = workflow.create(serviceInstanceId, service, plan, parameters);
 
             LOG.debug("Saving instance '{}'", serviceInstanceId);
             repository.save(instance);
@@ -266,5 +273,9 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         } catch (IOException e) {
             LOG.error("Unable to find instance '{}' when delete completed async", instanceId);
         }
+    }
+
+    private boolean HasContextProperties(CreateServiceInstanceRequest request) {
+        return request.getContext() != null;
     }
 }

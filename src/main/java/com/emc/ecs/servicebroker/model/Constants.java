@@ -75,4 +75,20 @@ public class Constants {
     public static final String S3_ACTION_PUT_LC_CONFIG = "s3:PutLifecycleConfiguration";
     public static final String S3_ACTION_GET_LC_CONFIG = "s3:GetLifecycleConfiguration";
     public static final String S3_ACTION_GET_BUCKET_POLICY = "s3:GetBucketPolicy";
+
+    public static final String Properties = "properties";
+    public static final String CTX_NAMESPACE_PLACEHOLDER = "$CTX_NAMESPACE";
+    public static final String CTX_CLUSTER_ID_PLACEHOLDER = "$CTX_CLUSTER_ID";
+    public static final String CTX_INSTANCE_NAME_PLACEHOLDER = "$CTX_INSTANCE_NAME";
+    public static final String CF_ORG_GUID_PLACEHOLDER = "$CF_ORG_GUID";
+    public static final String CF_ORG_NAME_PLACEHOLDER = "$CF_ORG_NAME";
+    public static final String CF_SPACE_GUID_PLACEHOLDER = "$CF_SPACE_GUID";
+    public static final String CF_SPACE_NAME_PLACEHOLDER = "$CF_SPACE_NAME";
+    public static final String CF_INSTANCE_NAME_PLACEHOLDER = "$CF_INSTANCE_NAME";
+    public static final String CLUSTER_ID = "clusterid";
+    public static final String INSTANCE_NAME = "instance_name";
+    public static final String ORGANIZATION_GUIDE = "organization_guid";
+    public static final String ORGANIZATION_NAME = "organization_name";
+    public static final String SPACE_GUID = "space_guid";
+    public static final String SPACE_NAME = "space_name";
 }
