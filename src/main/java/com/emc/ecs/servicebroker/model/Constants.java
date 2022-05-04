@@ -39,9 +39,9 @@ public class Constants {
     public static final String BUCKET_TAGS = "bucket_tags";
     public static final String BUCKET_TAG_PAIRS_DELIMITER = ",";
     public static final String BUCKET_TAG_PAIR_KEY_VALUE_DELIMITER = "=";
-    public static final String BUCKET_TAGS_STRING_REGEX1 = "^[\\w\\d\\+\\-\\.\\_\\:\\/\\@\\s\\=\\,]*$";
+    public static final String BUCKET_TAGS_STRING_REGEX1 = "^[\\w\\d\\+\\-\\.\\_\\$\\:\\/\\@\\s\\=\\,]*$";
     public static final String BUCKET_TAGS_STRING_REGEX2 = "^(.{0,128}\\s?=\\s?.{0,256}\\s?,\\s?)*.{0,128}\\s?=\\s?.{0,256}$|^$";
-    public static final String BUCKET_TAGS_STRING_REGEX3 = "^([\\w\\d\\+\\-\\.\\_\\:\\/\\@\\s]{0,128}\\s?=\\s?[\\w\\d\\+\\-\\.\\_\\:\\/\\@\\s]{0,256}\\s?,\\s?)*[\\w\\d\\+\\-\\.\\_\\:\\/\\@\\s]{0,128}\\s?=\\s?[\\w\\d\\+\\-\\.\\_\\:\\/\\@\\s]{0,256}$|^$";
+    public static final String BUCKET_TAGS_STRING_REGEX3 = "^([\\w\\d\\+\\-\\.\\_\\$\\:\\/\\@\\s]{0,128}\\s?=\\s?[\\w\\d\\+\\-\\.\\_\\$\\:\\/\\@\\s]{0,256}\\s?,\\s?)*[\\w\\d\\+\\-\\.\\_\\$\\:\\/\\@\\s]{0,128}\\s?=\\s?[\\w\\d\\+\\-\\.\\_\\$\\:\\/\\@\\s]{0,256}$|^$";
 
     public static final String SEARCH_METADATA = "search-metadata";
     public static final String SEARCH_METADATA_TYPE = "type";
