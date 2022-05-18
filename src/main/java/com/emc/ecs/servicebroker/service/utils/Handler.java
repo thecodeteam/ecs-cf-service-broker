@@ -24,6 +24,10 @@ public class Handler {
     @SuppressWarnings("unchecked")
     public static void execute(List<Map<String, String>> tags, Map<String, Object> parameters)  {
 
+        if(!hasProperties(parameters)) {
+            return;
+        }
+
         Map<String, String> properties = (Map<String, String>) parameters.get(Constants.Properties);
 
         for (Map<String, String> tag : tags) {
@@ -40,6 +44,10 @@ public class Handler {
 
     private static boolean shouldSubstitute(String value) {
         return value.startsWith("$");
+    }
+
+    private static boolean hasProperties(Map<String, Object> parameters) {
+        return parameters.containsKey(Constants.Properties);
     }
 
     private static String getSubstitutedValue(String tagValue, Map<String, String> properties) {
