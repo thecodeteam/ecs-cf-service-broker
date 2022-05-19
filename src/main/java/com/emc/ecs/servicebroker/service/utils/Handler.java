@@ -1,6 +1,9 @@
 package com.emc.ecs.servicebroker.service.utils;
 
 import com.emc.ecs.servicebroker.model.Constants;
+import com.emc.ecs.servicebroker.service.EcsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -8,6 +11,7 @@ import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class Handler {
 
+    private static final Logger logger = LoggerFactory.getLogger(Handler.class);
     private static final Map<String, String> substitutedTags = new HashMap<>() {
         {
             put(CTX_NAMESPACE_PLACEHOLDER, NAMESPACE);
@@ -22,21 +26,22 @@ public class Handler {
     };
 
     @SuppressWarnings("unchecked")
-    public static void execute(List<Map<String, String>> tags, Map<String, Object> parameters)  {
-
-        if(!hasProperties(parameters)) {
-            return;
-        }
+    public static void execute(List<Map<String, String>> tags, Map<String, Object> parameters) {
 
         Map<String, String> properties = (Map<String, String>) parameters.get(Constants.Properties);
 
         for (Map<String, String> tag : tags) {
-            Map.Entry<String, String> entry = tag.entrySet().iterator().next();
-            String value = entry.getValue();
-            String key = entry.getKey();
+            String value = tag.get(VALUE);
+            String key = tag.get(KEY);
 
             if (shouldSubstitute(value)) {
-                tag.put(key, getSubstitutedValue(value, properties));
+                if (hasProperties(parameters)) {
+                    tag.put(VALUE, getSubstitutedValue(value, properties));
+                }
+                else {
+                    logger.info("There was no value for tag substitution for tag value:" + value);
+                    tag.put(key, "");
+                }
             }
         }
 
@@ -47,16 +52,17 @@ public class Handler {
     }
 
     private static boolean hasProperties(Map<String, Object> parameters) {
-        return parameters.containsKey(Constants.Properties);
+        return parameters.get(Constants.Properties) != null;
     }
 
     private static String getSubstitutedValue(String tagValue, Map<String, String> properties) {
-            String substitutedTag = substitutedTags.get(tagValue);
+        String substitutedTag = substitutedTags.get(tagValue);
 
-            if(properties.get(substitutedTag) == null) {
-                throw new IllegalArgumentException("Unexpected placeholder : " + tagValue);
-            }
+        if (properties.get(substitutedTag) == null) {
+            logger.info("There was no value for tag substitution for tag value:" + tagValue);
+            return "";
+        }
 
-            return properties.get(substitutedTag);
+        return properties.get(substitutedTag);
     }
 }

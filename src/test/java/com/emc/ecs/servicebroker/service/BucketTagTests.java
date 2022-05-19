@@ -83,6 +83,7 @@ public class BucketTagTests {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void createBucketWithInvalidPlaceholderTags() throws Exception {
         setupEsc();
         ServiceDefinitionProxy service = bucketServiceFixture();
@@ -92,14 +93,12 @@ public class BucketTagTests {
 
         setupParameters(additionalParams);
 
-        List<Map<String, String>> tags = createListOfTags(KEY1, INVALID_VALUE, KEY2, VALUE2, KEY3, VALUE3);
+        List<Map<String, String>> tags = createListOfTags(KEY1, INVALID_VALUE, KEY2, VALUE2, KEY3, INVALID_VALUE);
         additionalParams.put(TAGS, tags);
+        ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
 
-        Throwable exception = assertThrows(ServiceBrokerException.class, () -> {
-            ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
-        });
-
-        assertEquals(exception.getMessage(), "Failed to create bucket '" + CUSTOM_BUCKET_NAME + "': Unexpected placeholder : " + INVALID_VALUE);
+        List<Map<String, String>> substitutedTags = createListOfTags(KEY1, "", KEY2, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b", KEY3, "");
+        assertTrue(CollectionUtils.isEqualCollection((List<Map<String, String>>) additionalParams.get(TAGS), substitutedTags));
     }
 
     private void setupEsc() throws Exception {
