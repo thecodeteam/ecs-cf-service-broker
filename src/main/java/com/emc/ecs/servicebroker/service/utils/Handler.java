@@ -32,7 +32,6 @@ public class Handler {
 
         for (Map<String, String> tag : tags) {
             String value = tag.get(VALUE);
-            String key = tag.get(KEY);
 
             if (shouldSubstitute(value)) {
                 if (hasProperties(parameters)) {
@@ -40,7 +39,7 @@ public class Handler {
                 }
                 else {
                     logger.info("There was no value for tag substitution for tag value:" + value);
-                    tag.put(key, "");
+                    tag.put(VALUE, "");
                 }
             }
         }
