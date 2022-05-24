@@ -86,9 +86,10 @@ public class Constants {
     public static final String CF_SPACE_NAME_PLACEHOLDER = "$CF_SPACE_NAME";
     public static final String CF_INSTANCE_NAME_PLACEHOLDER = "$CF_INSTANCE_NAME";
     public static final String CLUSTER_ID = "clusterid";
-    public static final String INSTANCE_NAME = "instance_name";
-    public static final String ORGANIZATION_GUIDE = "organization_guid";
-    public static final String ORGANIZATION_NAME = "organization_name";
-    public static final String SPACE_GUID = "space_guid";
-    public static final String SPACE_NAME = "space_name";
+    public static final String INSTANCE_NAME = "instanceName";
+    public static final String ORGANIZATION_GUIDE = "organizationGuid";
+    public static final String ORGANIZATION_NAME = "organizationName";
+    public static final String SPACE_GUID = "spaceGuid";
+    public static final String SPACE_NAME = "spaceName";
 }
+
