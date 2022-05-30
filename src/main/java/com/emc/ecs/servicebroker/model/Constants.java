@@ -76,7 +76,7 @@ public class Constants {
     public static final String S3_ACTION_GET_LC_CONFIG = "s3:GetLifecycleConfiguration";
     public static final String S3_ACTION_GET_BUCKET_POLICY = "s3:GetBucketPolicy";
 
-    public static final String Properties = "properties";
+    public static final String REQUEST_CONTEXT_VALUES = "properties";
     public static final String CTX_NAMESPACE_PLACEHOLDER = "$CTX_NAMESPACE";
     public static final String CTX_CLUSTER_ID_PLACEHOLDER = "$CTX_CLUSTER_ID";
     public static final String CTX_INSTANCE_NAME_PLACEHOLDER = "$CTX_INSTANCE_NAME";
@@ -85,11 +85,12 @@ public class Constants {
     public static final String CF_SPACE_GUID_PLACEHOLDER = "$CF_SPACE_GUID";
     public static final String CF_SPACE_NAME_PLACEHOLDER = "$CF_SPACE_NAME";
     public static final String CF_INSTANCE_NAME_PLACEHOLDER = "$CF_INSTANCE_NAME";
-    public static final String CLUSTER_ID = "clusterid";
-    public static final String INSTANCE_NAME = "instanceName";
-    public static final String ORGANIZATION_GUIDE = "organizationGuid";
-    public static final String ORGANIZATION_NAME = "organizationName";
-    public static final String SPACE_GUID = "spaceGuid";
-    public static final String SPACE_NAME = "spaceName";
+    public static final String CTX_NAMESPACE = "namespace";
+    public static final String CTX_CLUSTER_ID = "clusterid";
+    public static final String CTX_INSTANCE_NAME = "instanceName";
+    public static final String CTX_ORGANIZATION_GUIDE = "organizationGuid";
+    public static final String CTX_ORGANIZATION_NAME = "organizationName";
+    public static final String CTX_SPACE_GUID = "spaceGuid";
+    public static final String CTX_SPACE_NAME = "spaceName";
 }
 

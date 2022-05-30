@@ -3,11 +3,9 @@ package com.emc.ecs.servicebroker.service;
 import com.emc.ecs.management.sdk.EcsManagementAPIConnection;
 import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.management.sdk.model.BucketTagsParamAdd;
-import com.emc.ecs.management.sdk.model.BucketTagsParamUpdate;
 import com.emc.ecs.management.sdk.model.DataServiceReplicationGroup;
 import com.emc.ecs.management.sdk.model.ObjectBucketCreate;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
-import com.emc.ecs.servicebroker.model.Constants;
 import com.emc.ecs.servicebroker.model.PlanProxy;
 import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
 import org.apache.commons.collections.CollectionUtils;
@@ -20,7 +18,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import java.util.*;
 
@@ -41,10 +38,7 @@ import static org.mockito.Mockito.when;
         BucketTagsAction.class
 })
 public class BucketTagTests {
-    public static final String VALUE1 = "$CTX_NAMESPACE";
-    public static final String VALUE2 = "$CTX_CLUSTER_ID";
-    public static final String VALUE3 = "$CTX_INSTANCE_NAME";
-    public static final String INVALID_VALUE = "$CTX_NAME";
+    public static final String INVALID_PLACEHOLDER_VALUE = "$CTX_NAME";
 
     @Mock
     private BrokerConfig broker;
@@ -74,8 +68,12 @@ public class BucketTagTests {
 
         Map<String, Object> additionalParams = new HashMap<>();
         setupParameters(additionalParams);
-        List<Map<String, String>> tags = createListOfTags(KEY1, VALUE1, KEY2, VALUE2, KEY3, VALUE3);
-        additionalParams.put(TAGS, tags);
+        additionalParams.put(TAGS, createListOfTags(
+                KEY1, CTX_NAMESPACE_PLACEHOLDER,
+                KEY2, CTX_CLUSTER_ID_PLACEHOLDER,
+                KEY3, CTX_INSTANCE_NAME_PLACEHOLDER
+        ));
+
         ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
 
         List<Map<String, String>> substitutedTags = createListOfTags(KEY1, "testing", KEY2, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b", KEY3, "my-db");
@@ -90,11 +88,13 @@ public class BucketTagTests {
         PlanProxy plan = service.findPlan(BUCKET_PLAN_ID1);
 
         Map<String, Object> additionalParams = new HashMap<>();
-
         setupParameters(additionalParams);
+        additionalParams.put(TAGS, createListOfTags(
+                KEY1, INVALID_PLACEHOLDER_VALUE,
+                KEY2, CTX_CLUSTER_ID_PLACEHOLDER,
+                KEY3, INVALID_PLACEHOLDER_VALUE
+        ));
 
-        List<Map<String, String>> tags = createListOfTags(KEY1, INVALID_VALUE, KEY2, VALUE2, KEY3, INVALID_VALUE);
-        additionalParams.put(TAGS, tags);
         ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
 
         List<Map<String, String>> substitutedTags = createListOfTags(KEY1, "", KEY2, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b", KEY3, "");
@@ -130,10 +130,10 @@ public class BucketTagTests {
     private void setupParameters(Map<String, Object> additionalParams) {
         additionalParams.put(REPLICATION_GROUP, RG_NAME);
 
-        additionalParams.put(Properties, new HashMap<>() {{
-            put("namespace", "testing");
-            put("clusterid", "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b");
-            put("instance_name", "my-db");
+        additionalParams.put(REQUEST_CONTEXT_VALUES, new HashMap<>() {{
+            put(CTX_NAMESPACE, "testing");
+            put(CTX_CLUSTER_ID, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b");
+            put(CTX_INSTANCE_NAME, "my-db");
         }});
     }
 }

@@ -93,8 +93,8 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
 
             Map<String, Object> parameters = request.getParameters();
 
-            if(HasContextProperties(request)) {
-                parameters.put(Properties, request.getContext().getProperties());
+            if(request.getContext() != null && request.getContext().getProperties() != null) {
+                parameters.put(REQUEST_CONTEXT_VALUES, request.getContext().getProperties());
             }
 
             ServiceDefinitionProxy service = findServiceDefinition(serviceDefinitionId);
@@ -273,9 +273,5 @@ public class EcsServiceInstanceService implements ServiceInstanceService {
         } catch (IOException e) {
             LOG.error("Unable to find instance '{}' when delete completed async", instanceId);
         }
-    }
-
-    private boolean HasContextProperties(CreateServiceInstanceRequest request) {
-        return request.getContext() != null;
     }
 }
