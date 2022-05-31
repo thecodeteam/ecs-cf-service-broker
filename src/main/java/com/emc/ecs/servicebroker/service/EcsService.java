@@ -9,6 +9,7 @@ import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.model.*;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.servicebroker.service.s3.BucketExpirationAction;
+import com.emc.ecs.servicebroker.service.utils.TagValuesHandler;
 import com.emc.ecs.tool.BucketWipeOperations;
 import com.emc.ecs.tool.BucketWipeResult;
 import com.emc.object.s3.bean.LifecycleConfiguration;
@@ -205,6 +206,7 @@ public class EcsService implements StorageService {
 
             if (parameters.containsKey(TAGS) && parameters.get(TAGS) != null) {
                 List<Map<String, String>> bucketTags = (List<Map<String, String>>) parameters.get(TAGS);
+                TagValuesHandler.substituteContextValues(bucketTags, parameters);
                 logger.info("Applying bucket tags on '{}': {}", prefixedBucketName, bucketTags);
                 BucketTagsAction.create(connection, prefixedBucketName, new BucketTagsParamAdd(namespace, bucketTags));
             }
@@ -218,7 +220,7 @@ public class EcsService implements StorageService {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
             logger.error(errorMessage, e);
 
-            if(bucketCreated) {
+            if (bucketCreated) {
                 logger.info("Rolling back operation: deleting bucket '{}'", prefix(bucketName));
                 BucketAction.delete(connection, prefix(bucketName), (String) parameters.get(NAMESPACE));
             }

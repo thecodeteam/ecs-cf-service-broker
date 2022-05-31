@@ -47,7 +47,8 @@ import org.junit.runners.Suite.SuiteClasses;
         BucketInstanceWorkflowTest.class,
         IamUserActionTest.class,
         RemoteConnectionInstanceWorkflowTest.class,
-        BrokerConfigTest.class
+        BrokerConfigTest.class,
+        BucketTagTests.class
     })
 public class TestSuite {
 
