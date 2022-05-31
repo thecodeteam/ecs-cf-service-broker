@@ -35,16 +35,16 @@ public class TagValuesHandler {
      */
     @SuppressWarnings("unchecked")
     public static void substituteContextValues(List<Map<String, String>> tags, Map<String, Object> parameters) {
-        Map<String, String> properties = (Map<String, String>) parameters.get(Constants.REQUEST_CONTEXT_VALUES);
+        Map<String, String> requestContextValues = (Map<String, String>) parameters.get(Constants.REQUEST_CONTEXT_VALUES);
 
         for (Map<String, String> tag : tags) {
             String value = tag.get(VALUE);
 
             if (shouldSubstitute(value)) {
                 if (hasProperties(parameters)) {
-                    tag.put(VALUE, getSubstitutedValue(value, properties));
+                    tag.put(VALUE, getSubstitutedValue(value, requestContextValues));
                 } else {
-                    logger.info("There was no value for tag substitution for tag value:" + value);
+                    logger.info("Empty context values map, cannot substitute tag value: " + value);
                     tag.put(VALUE, "");
                 }
             }
@@ -59,14 +59,14 @@ public class TagValuesHandler {
         return parameters.get(Constants.REQUEST_CONTEXT_VALUES) != null;
     }
 
-    private static String getSubstitutedValue(String tagValue, Map<String, String> properties) {
+    private static String getSubstitutedValue(String tagValue, Map<String, String> requestContextValues) {
         String substitutedTag = substitutedTags.get(tagValue);
 
-        if (properties.get(substitutedTag) == null) {
-            logger.info("There was no value for tag substitution for tag value:" + tagValue);
+        if (requestContextValues.get(substitutedTag) == null) {
+            logger.info("No value found in context to substitute tag value: " + tagValue);
             return "";
         }
 
-        return properties.get(substitutedTag);
+        return requestContextValues.get(substitutedTag);
     }
 }

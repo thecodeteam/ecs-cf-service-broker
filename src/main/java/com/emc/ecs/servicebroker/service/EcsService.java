@@ -220,7 +220,7 @@ public class EcsService implements StorageService {
             String errorMessage = String.format("Failed to create bucket '%s': %s", bucketName, e.getMessage());
             logger.error(errorMessage, e);
 
-            if(bucketCreated) {
+            if (bucketCreated) {
                 logger.info("Rolling back operation: deleting bucket '{}'", prefix(bucketName));
                 BucketAction.delete(connection, prefix(bucketName), (String) parameters.get(NAMESPACE));
             }
