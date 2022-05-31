@@ -39,6 +39,9 @@ import static org.mockito.Mockito.when;
 })
 public class BucketTagTests {
     public static final String INVALID_PLACEHOLDER_VALUE = "$CTX_NAME";
+    public static final String SOME_CLUSTER_ID = "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b";
+    public static final String SOME_NAMESPACE = "testing";
+    public static final String SOME_INSTANCE_NAME = "my-db";
 
     @Mock
     private BrokerConfig broker;
@@ -76,8 +79,10 @@ public class BucketTagTests {
 
         ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
 
-        List<Map<String, String>> substitutedTags = createListOfTags(KEY1, "testing", KEY2, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b", KEY3, "my-db");
-        assertTrue(CollectionUtils.isEqualCollection((List<Map<String, String>>) additionalParams.get(TAGS), substitutedTags));
+        List<Map<String, String>> expectedSubstitutedTags = createListOfTags(KEY1, SOME_NAMESPACE, KEY2, SOME_CLUSTER_ID, KEY3, SOME_INSTANCE_NAME);
+        assertTrue("Placeholders should be substituted with context values",
+                CollectionUtils.isEqualCollection((List<Map<String, String>>) additionalParams.get(TAGS), expectedSubstitutedTags)
+        );
     }
 
     @Test
@@ -97,8 +102,10 @@ public class BucketTagTests {
 
         ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, additionalParams);
 
-        List<Map<String, String>> substitutedTags = createListOfTags(KEY1, "", KEY2, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b", KEY3, "");
-        assertTrue(CollectionUtils.isEqualCollection((List<Map<String, String>>) additionalParams.get(TAGS), substitutedTags));
+        List<Map<String, String>> expectedSubstitutedTags = createListOfTags(KEY1, "", KEY2, SOME_CLUSTER_ID, KEY3, "");
+        assertTrue("Invalid placeholders should be substituted with empty strings",
+                CollectionUtils.isEqualCollection((List<Map<String, String>>) additionalParams.get(TAGS), expectedSubstitutedTags)
+        );
     }
 
     private void setupEsc() throws Exception {
@@ -131,9 +138,9 @@ public class BucketTagTests {
         additionalParams.put(REPLICATION_GROUP, RG_NAME);
 
         additionalParams.put(REQUEST_CONTEXT_VALUES, new HashMap<>() {{
-            put(CTX_NAMESPACE, "testing");
-            put(CTX_CLUSTER_ID, "644e1dd7-2a7f-18fb-b8ed-ed78c3f92c2b");
-            put(CTX_INSTANCE_NAME, "my-db");
+            put(CTX_NAMESPACE, SOME_NAMESPACE);
+            put(CTX_CLUSTER_ID, SOME_CLUSTER_ID);
+            put(CTX_INSTANCE_NAME, SOME_INSTANCE_NAME);
         }});
     }
 }
