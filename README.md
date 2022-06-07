@@ -209,7 +209,8 @@ NOTE: When working with Objectstore, Service Broker does not support Namespace s
 
 \*\*\* Remote connection details are describe below in _remote connections_
 
-\*\*\*\* Tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`
+\*\*\*\* Tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}` 
+Supported to use special placeholders as key values. Details about placeholders are described below in _Placeholders_ section 
 
 \*\*\*\*\* List of search metadata is defined with following format: `{"search_metadata": [{"type": <str>,"name": <str>,"datatype": <str>>}, ...]}` 
 Details about search metadata definition are described below in _Search metadata_ section 
