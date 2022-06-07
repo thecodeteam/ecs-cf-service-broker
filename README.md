@@ -425,6 +425,42 @@ search-metadata:
 ...
 ```
 
+#### Placeholders
+
+Since version 2.15, Open Service Broker API specifies 'context object' with some platform-specific data to be available as part of create and update requests.
+On Cloud Foundry: https://github.com/openservicebrokerapi/servicebroker/blob/master/profile.md#cloud-foundry-context-object
+On Kubernetes: https://github.com/openservicebrokerapi/servicebroker/blob/master/profile.md#kubernetes-context-object
+  
+Supported placeholders for Cloud Foundry:
+  
+| Property | Placeholder | 
+|:---------|:------------|
+| organization_guid | $CF_ORG_GUID |
+| organization_name | $CF_ORG_NAME |
+| space_guid | $CF_SPACE_GUID | 
+| space_name | $CF_SPACE_NAME |
+| instance_name | $CF_INSTANCE_NAME |
+
+Supported placeholders for Kubernetes:
+
+| Property | Placeholder | 
+|:---------|:------------|
+| namespace | $CTX_NAMESPACE |
+| clusterid | $CTX_CLUSTER_ID |
+| instance_name | $CTX_INSTANCE_NAME | 
+
+####  Example
+  
+`{"tags":
+    [
+        {"key":"org_guid","value":"$CF_ORG_GUID"},
+        {"key":"org_name","value":"$CF_ORG_NAME"},
+        {"key":"org_space","value":"$CF_SPACE_GUID"},
+        {"key":"space_name","value":"$CF_SPACE_NAME"},
+        {"key":"instance_name","value":"$CF_INSTANCE_NAME"}
+    ]
+}`
+
 ## Testing
 
 Local test suite can be run with either a live ECS platform, or using the included simulator.  Configuration variables
