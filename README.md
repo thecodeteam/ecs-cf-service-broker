@@ -428,7 +428,9 @@ search-metadata:
 #### Placeholders
 
 Since version 2.15, Open Service Broker API specifies 'context object' with some platform-specific data to be available as part of create and update requests.
+
 On Cloud Foundry: https://github.com/openservicebrokerapi/servicebroker/blob/master/profile.md#cloud-foundry-context-object
+
 On Kubernetes: https://github.com/openservicebrokerapi/servicebroker/blob/master/profile.md#kubernetes-context-object
   
 Supported placeholders for Cloud Foundry:
