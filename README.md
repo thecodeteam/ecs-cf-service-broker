@@ -425,7 +425,7 @@ search-metadata:
 ...
 ```
 
-#### Bucket Tags
+### Bucket Tags
 
 When specified in service definition or in request parameters, tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`
 
