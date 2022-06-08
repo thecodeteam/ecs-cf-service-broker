@@ -41,6 +41,11 @@ public class ObjectstoreService extends EcsService {
 
     @PostConstruct
     void initialize() {
+        if (broker.isConfigValidationMode()) {
+            logger.info("Skipping ObjectStore service initialization - working in validation mode");
+            return;
+        }
+
         if (OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
             logger.info("Initializing Objectstore service with management endpoint {}", broker.getObjectstoreManagementEndpoint());
 

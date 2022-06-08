@@ -11,12 +11,23 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.annotation.PostConstruct;
+
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 @SuppressWarnings("unused")
 @Configuration
 @ConfigurationProperties(prefix = "broker")
 public class BrokerConfig {
+    @PostConstruct
+    public void checkConfig() {
+        // Special value is enable config validation mode and skip network connection
+        // Needed for tile validation pipeline in Tanzu cloud when no storage is available online
+        if ("__validate_config__".equals(this.getPrefix())) {
+            this.setConfigValidationMode(true);
+        }
+    }
+
     private String apiType;
 
     private String managementEndpoint;
@@ -54,6 +65,8 @@ public class BrokerConfig {
 
     private boolean pathStyleAccess = true;   // Path style access for S3 URL, using host style access if false
     private int loginSessionLength = -1;      // Max login session length, in minutes
+
+    private boolean configValidationMode = false;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -350,6 +363,14 @@ public class BrokerConfig {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
+    }
+
+    public boolean isConfigValidationMode() {
+        return configValidationMode;
+    }
+
+    public void setConfigValidationMode(boolean configValidationMode) {
+        this.configValidationMode = configValidationMode;
     }
 
     public Map<String, Object> getSettings() {
