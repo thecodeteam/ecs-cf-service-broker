@@ -168,38 +168,38 @@ via PCF or another build tool.  Just add a `catalog` section to the `src/main/re
 
 The following feature flags are supported by the bucket & namespace. All parameters are optional, and can be set at the service or plan level in the `service-settings` block. Parameters are observed with the following precedence:  service-definition (in the catalog), plan and then in command-line parameters.
 
-| Resource          | Parameter           | Default | Type     |  Description                                   |
-| :---------------- | :-------------------| :-----: | :------- | :--------------------------------------------- |
-| bucket            | namespace           | false   | String   | Namespace where bucket will be created         |
-| bucket            | replication-group   | false   | String   | Replication group for bucket                   |
-| bucket            | encrypted           | false   | Boolean  | Enable encryption of bucket                    |
-| bucket            | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
-| bucket            | file-accessible     | false   | Boolean  | Enable file-access (NFS, HDFS) for bucket      |
-| bucket            | head-type           | s3      | String   | Specify object type (s3, swift) for bucket     |
-| bucket            | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
-| bucket            | quota*              | -       | JSON Map | Quota applied to bucket                        |            
-| bucket            | remote_connection***| -       | JSON Map | Remote connection details for previously created bucket |
-| bucket            | name                | -       | String   | String to add to bucket name after the broker prefix (prefix-name-id)  |
-| bucket            | tags****            | -       | JSON List| List of tags that are key-value pairs associated with a bucket |
-| bucket            | search-metadata*****| -       | JSON List| List of search metadata that are used for bucket indexing |
-| bucket binding    | base-url            | -       | String   | Base URL name for object URI                   |
-| bucket binding    | permissions         | -       | JSON List| List of permissions for user in bucket ACL     |
-| bucket binding    | path-style-access   | true    | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
-| bucket binding    | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
-| namespace         | replication-group   | false   | String   | Replication group of namespace                 |
-| namespace         | domain-group-admins | -       | JSON List| List of domain admins to be added to namespace |
-| namespace         | encrypted           | false   | Boolean  | Enable encryption of namespace                 |
-| namespace         | compliance-enabled  | false   | Boolean  | Enable compliance adhearance of retention      |
-| namespace         | access-during-outage| false   | Boolean  | Enable potentially stale data during outage    |
-| namespace         | default-bucket-quota| -1      | Integer  | Default quota applied to bucket (-1 for none)  |            
-| namespace         | quota*              | -       | JSON Map | Quota applied to namespace                     |            
-| namespace         | retention**         | -       | JSON Map | Retention policies applied to namespace        |
-| namespace         | default-retention   | -       | Int      | Number of seconds to prevent object deletion/modification |
-| namespace         | remote_connection***| -       | JSON Map | Remote connection details for previously created namespace |
-| namespace         | name                | -       | String   | String to add to namespace name after the broker prefix (prefix-name-id)  |
-| namespace binding | base-url            | -       | String   | Base URL name for object URI                   |
-| namespace binding | use-ssl             | false   | Boolean  | Use SSL for object endpoint                    |
-| namespace binding | name                | -       | String   | String to add to binding name after the broker prefix (prefix-name-id)  |
+| Resource          | Parameter            | Default | Type     | Description                                                                   |
+|:------------------|:---------------------|:-------:| :------- |:------------------------------------------------------------------------------|
+| bucket            | namespace            |  false  | String   | Namespace where bucket will be created                                        |
+| bucket            | replication-group    |  false  | String   | Replication group for bucket                                                  |
+| bucket            | encrypted            |  false  | Boolean  | Enable encryption of bucket                                                   |
+| bucket            | access-during-outage |  false  | Boolean  | Enable potentially stale data during outage                                   |
+| bucket            | file-accessible      |  false  | Boolean  | Enable file-access (NFS, HDFS) for bucket                                     |
+| bucket            | head-type            |   s3    | String   | Specify object type (s3, swift) for bucket                                    |
+| bucket            | default-retention    |    -    | Int      | Number of seconds to prevent object deletion/modification                     |
+| bucket            | quota*               |   -     | JSON Map | Quota applied to bucket                                                       |
+| bucket            | remote_connection*** |    -    | JSON Map | Remote connection details for previously created bucket                       |
+| bucket            | name                 |    -    | String   | String to add to bucket name after the broker prefix (prefix-name-id)         |
+| bucket            | tags****             |    -    | JSON List| List of tags that are key-value pairs associated with a bucket                |
+| bucket            | search-metadata***** |    -    | JSON List| List of search metadata that are used for bucket indexing                     |
+| bucket binding    | base-url             |    -    | String   | Base URL name for object URI                                                  |
+| bucket binding    | permissions          |    -    | JSON List| List of permissions for user in bucket ACL                                    |
+| bucket binding    | path-style-access    |  true   | Boolean  | Use path style access for S3 URL, the alternative is to use host style access |
+| bucket binding    | name                 |    -    | String   | String to add to binding name after the broker prefix (prefix-name-id)        |
+| namespace         | replication-group    |  false  | String   | Replication group of namespace                                                |
+| namespace         | domain-group-admins  |    -    | JSON List| List of domain admins to be added to namespace                                |
+| namespace         | encrypted            |  false  | Boolean  | Enable encryption of namespace                                                |
+| namespace         | compliance-enabled   |  false  | Boolean  | Enable compliance adhearance of retention                                     |
+| namespace         | access-during-outage |  false  | Boolean  | Enable potentially stale data during outage                                   |
+| namespace         | default-bucket-quota |   -1    | Integer  | Default quota applied to bucket (-1 for none)                                 |            
+| namespace         | quota*               |    -    | JSON Map | Quota applied to namespace                                                    |            
+| namespace         | retention**          |    -    | JSON Map | Retention policies applied to namespace                                       |
+| namespace         | default-retention    |    -    | Int      | Number of seconds to prevent object deletion/modification                     |
+| namespace         | remote_connection*** |    -    | JSON Map | Remote connection details for previously created namespace                    |
+| namespace         | name                 |    -    | String   | String to add to namespace name after the broker prefix (prefix-name-id)      |
+| namespace binding | base-url             |    -    | String   | Base URL name for object URI                                                  |
+| namespace binding | use-ssl              |  false  | Boolean  | Use SSL for object endpoint                                                   |
+| namespace binding | name                 |    -    | String   | String to add to binding name after the broker prefix (prefix-name-id)        |
 
 NOTE: When working with Objectstore, Service Broker does not support Namespace services!
 
@@ -209,7 +209,8 @@ NOTE: When working with Objectstore, Service Broker does not support Namespace s
 
 \*\*\* Remote connection details are describe below in _remote connections_
 
-\*\*\*\* Tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`
+\*\*\*\* Tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`.
+Details about bucket tagging could be found below in _Bucket Tags_ section 
 
 \*\*\*\*\* List of search metadata is defined with following format: `{"search_metadata": [{"type": <str>,"name": <str>,"datatype": <str>>}, ...]}` 
 Details about search metadata definition are described below in _Search metadata_ section 
@@ -424,6 +425,40 @@ search-metadata:
 ...
 ```
 
+### Bucket Tags
+
+When specified in service definition or in request parameters, tags are defined with the following format: `{tags:[{"key": <str>,"value": <str>}, ...]}`
+
+Tag value could contain a special placeholder, which will be replaced by request context value.
+Supported placeholder values are listed below:
+  
+| Placeholder       | Platform                  | Property          | Comment |
+|:------------------|---------------------------|:------------------|---------|
+| $CF_ORG_GUID      | Cloud Foundry             | organization_guid | The GUID of the organization that a Service Instance is associated with        |
+| $CF_ORG_NAME      | Cloud Foundry             | organization_name | The name of the organization that a Service Instance is associated with.         |
+| $CF_SPACE_GUID    | Cloud Foundry             | space_guid        | The GUID of the space that a Service Instance is associated with.        |
+| $CF_SPACE_NAME    | Cloud Foundry             | space_name        | The name of the space that a Service Instance is associated with.        |
+| $CF_INSTANCE_NAME | Cloud Foundry, Kubernetes | instance_name     | The name of the Service Instance.        |
+| $CTX_NAMESPACE    | Kubernetes                | namespace         | The name of the Kubernetes namespace in which the Service Instance will be visible.        |
+| $CTX_CLUSTER_ID   | Kubernetes                | clusterid         | The unique identifier for the Kubernetes cluster from which the request was sent.        | 
+
+For additional details, see Open Service Broker API documentation for request context object: 
+https://github.com/openservicebrokerapi/servicebroker/blob/master/profile.md#context-object
+
+####  Example
+Tag Placeholders usage example:
+
+```json
+{ "tags":
+    [
+        {"key":"org_guid","value":"$CF_ORG_GUID"},
+        {"key":"org_name","value":"$CF_ORG_NAME"},
+        {"key":"org_space","value":"$CF_SPACE_GUID"},
+        {"key":"space_name","value":"$CF_SPACE_NAME"},
+        {"key":"instance_name","value":"$CF_INSTANCE_NAME"}
+    ]
+}
+```
 ## Testing
 
 Local test suite can be run with either a live ECS platform, or using the included simulator.  Configuration variables
