@@ -102,7 +102,9 @@ public class Application {
             logger.info("Instantiating unencrypted Objectscale gateway connection");
         }
 
-        c.login();
+        if (!broker.isConfigValidationMode()) {
+            c.login();
+        }
 
         return c;
     }
@@ -124,7 +126,9 @@ public class Application {
             logger.info("Instantiating unencrypted Objectstore management API connection");
         }
 
-        c.login();
+        if (!broker.isConfigValidationMode()) {
+            c.login();
+        }
 
         return c;
     }
@@ -151,7 +155,9 @@ public class Application {
             c.setMaxLoginSessionLength(broker.getLoginSessionLength());
         }
 
-        c.login();
+        if (!broker.isConfigValidationMode()) {
+            c.login();
+        }
 
         return c;
     }

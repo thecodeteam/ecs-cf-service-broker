@@ -79,6 +79,11 @@ public class EcsService implements StorageService {
 
     @PostConstruct
     void initialize() {
+        if (broker.isConfigValidationMode()) {
+            logger.info("Skipping ECS service initialization - working in validation mode");
+            return;
+        }
+
         if (!OBJECTSCALE.equalsIgnoreCase(broker.getApiType())) {
             // API type is ECS, initializing service
 

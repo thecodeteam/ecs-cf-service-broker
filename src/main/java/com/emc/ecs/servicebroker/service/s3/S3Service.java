@@ -30,6 +30,11 @@ public class S3Service {
     public void initialize() throws URISyntaxException {
         this.bucket = broker.getPrefixedBucketName();
 
+        if (broker.isConfigValidationMode()) {
+            logger.info("Skipping S3 service initialization - working in validation mode");
+            return;
+        }
+
         this.testS3EndpointAccess();
     }
 
