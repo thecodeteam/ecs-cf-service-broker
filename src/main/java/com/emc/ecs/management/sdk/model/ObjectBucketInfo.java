@@ -18,6 +18,7 @@ public class ObjectBucketInfo extends BucketTagSetRootElement{
     private String namespace;
     private String owner;
     private Boolean isStaleAllowed;
+    private Boolean isTsoReadOnly;
     private long defaultRetention;
     private long blockSize;
     private long notificationSize;
@@ -95,6 +96,15 @@ public class ObjectBucketInfo extends BucketTagSetRootElement{
 
     public void setIsStaleAllowed(Boolean isStaleAllowed) {
         this.isStaleAllowed = isStaleAllowed;
+    }
+
+    @XmlElement(name = "is_tso_read_only")
+    public Boolean getIsTsoReadOnly() {
+        return isTsoReadOnly;
+    }
+
+    public void setIsTsoReadOnly(Boolean isTsoReadOnly) {
+        this.isTsoReadOnly = isTsoReadOnly;
     }
 
     @XmlElement(name = "default_retention")

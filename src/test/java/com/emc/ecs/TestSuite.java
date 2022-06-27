@@ -24,6 +24,7 @@ import org.junit.runners.Suite.SuiteClasses;
         BaseUrlActionTest.class,
         BucketAclActionTest.class,
         BucketActionTest.class,
+        BucketAdoActionTest.class,
         BucketQuotaActionTest.class,
         BucketRetentionActionTest.class,
         EcsManagementAPIConnectionTest.class,

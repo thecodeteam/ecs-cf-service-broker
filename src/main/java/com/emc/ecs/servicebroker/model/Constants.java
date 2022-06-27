@@ -19,6 +19,7 @@ public class Constants {
     public static final String COMPLIANCE_ENABLED = "compliance-enabled";
     public static final String FILE_ACCESSIBLE = "file-accessible";
     public static final String ACCESS_DURING_OUTAGE = "access-during-outage";
+    public static final String ADO_READ_ONLY = "ado-read-only";
     public static final String HEAD_TYPE = "head-type";
     public static final String ENDPOINT = "endpoint";
     public static final String ENCRYPTED = "encrypted";

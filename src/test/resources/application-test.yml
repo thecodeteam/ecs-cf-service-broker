@@ -140,6 +140,7 @@ catalog:
         service-type: bucket
         head-type: s3
         access-during-outage: true
+        ado-read-only: true
         file-accessible: true
       metadata:
         displayName: ecs-bucket

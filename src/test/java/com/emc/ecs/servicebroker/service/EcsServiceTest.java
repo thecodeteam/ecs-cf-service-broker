@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.stubbing.OngoingStubbing;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -245,6 +244,7 @@ public class EcsServiceTest {
 
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertTrue((Boolean) serviceSettings.get(ADO_READ_ONLY));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
         assertNull(serviceSettings.get(QUOTA));
 
@@ -319,6 +319,7 @@ public class EcsServiceTest {
         additionalParams.put(QUOTA, additionalParamsQuota);
         additionalParams.put(ENCRYPTED, true);
         additionalParams.put(ACCESS_DURING_OUTAGE, true);
+        additionalParams.put(ADO_READ_ONLY, true);
         additionalParams.put(FILE_ACCESSIBLE, false);
         additionalParams.put(DEFAULT_RETENTION, 100);
         additionalParams.put(EXPIRATION, THIRTY);
@@ -342,6 +343,7 @@ public class EcsServiceTest {
         assertEquals(5, returnQuota.get(QUOTA_LIMIT).longValue());
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertTrue((Boolean) serviceSettings.get(ADO_READ_ONLY));
         assertFalse((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
         assertEquals(THIRTY, serviceSettings.get(EXPIRATION));
 
@@ -359,6 +361,7 @@ public class EcsServiceTest {
         assertEquals(PREFIX + CUSTOM_BUCKET_NAME, create.getName());
         assertTrue(create.getIsEncryptionEnabled());
         assertTrue(create.getIsStaleAllowed());
+        assertTrue(create.getIsTsoReadOnly());
         assertFalse(create.getFilesystemEnabled());
         assertEquals(NAMESPACE_NAME, create.getNamespace());
         assertEquals(RG_ID, create.getVpool());
@@ -390,6 +393,7 @@ public class EcsServiceTest {
         Map<String, Object> params = new HashMap<>();
         params.put(ENCRYPTED, true);
         params.put(ACCESS_DURING_OUTAGE, true);
+        params.put(ADO_READ_ONLY, true);
 
         params.put(NAMESPACE, SOME_OTHER_NAMESPACE_NAME);
         params.put(REPLICATION_GROUP, RG_NAME_2);
@@ -404,6 +408,7 @@ public class EcsServiceTest {
         assertEquals(5, returnQuota.get(QUOTA_LIMIT).longValue());
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
         assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertTrue((Boolean) serviceSettings.get(ADO_READ_ONLY));
         assertNull(serviceSettings.get(FILE_ACCESSIBLE));
 
         ArgumentCaptor<ObjectBucketCreate> createCaptor = ArgumentCaptor.forClass(ObjectBucketCreate.class);
