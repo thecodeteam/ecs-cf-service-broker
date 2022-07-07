@@ -148,9 +148,7 @@ public class CatalogConfig {
             throw new ServiceBrokerException("Unable to determine service-type from: " + selector.getValue());
         }
 
-        Map<String, String> tileReplacements = new HashMap<>();
-
-        Map.of(
+        Map<String, String> tileReplacements = Map.of(
                 "head_type", HEAD_TYPE,
                 "access_during_outage", ACCESS_DURING_OUTAGE,
                 "file_accessible", FILE_ACCESSIBLE,

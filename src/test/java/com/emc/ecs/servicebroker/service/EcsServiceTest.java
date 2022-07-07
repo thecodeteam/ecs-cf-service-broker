@@ -1,12 +1,15 @@
 package com.emc.ecs.servicebroker.service;
 
-import com.emc.ecs.management.sdk.*;
+import com.emc.ecs.management.sdk.EcsManagementAPIConnection;
 import com.emc.ecs.management.sdk.actions.*;
 import com.emc.ecs.management.sdk.model.*;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.config.CatalogConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
-import com.emc.ecs.servicebroker.model.*;
+import com.emc.ecs.servicebroker.model.PlanProxy;
+import com.emc.ecs.servicebroker.model.SearchMetadataDataType;
+import com.emc.ecs.servicebroker.model.ServiceDefinitionProxy;
+import com.emc.ecs.servicebroker.model.SystemMetadataName;
 import com.emc.ecs.servicebroker.repository.BucketWipeFactory;
 import com.emc.ecs.servicebroker.service.s3.BucketExpirationAction;
 import com.emc.ecs.tool.BucketWipeOperations;
@@ -43,7 +46,7 @@ import static org.mockito.Mockito.*;
         BucketAclAction.class, NFSExportAction.class,
         ObjectUserMapAction.class, BucketTagsAction.class,
         SearchMetadataAction.class, BucketExpirationAction.class,
-        BucketPolicyAction.class})
+        BucketPolicyAction.class, BucketAdoAction.class})
 public class EcsServiceTest {
     private static final String FOO = "foo";
     private static final String ONE_YEAR = "one-year";
@@ -243,8 +246,6 @@ public class EcsServiceTest {
         Map<String, Object> serviceSettings = ecs.createBucket(BUCKET_NAME, CUSTOM_BUCKET_NAME, service, plan, new HashMap<>());
 
         assertTrue((Boolean) serviceSettings.get(ENCRYPTED));
-        assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
-        assertTrue((Boolean) serviceSettings.get(ADO_READ_ONLY));
         assertTrue((Boolean) serviceSettings.get(FILE_ACCESSIBLE));
         assertNull(serviceSettings.get(QUOTA));
 
@@ -257,7 +258,6 @@ public class EcsServiceTest {
         assertEquals(PREFIX + CUSTOM_BUCKET_NAME, create.getName());
         assertEquals(NAMESPACE_NAME, create.getNamespace());
         assertTrue(create.getIsEncryptionEnabled());
-        assertTrue(create.getIsStaleAllowed());
         assertTrue(create.getFilesystemEnabled());
         assertEquals(HEAD_TYPE_S3, create.getHeadType());
 
@@ -682,6 +682,190 @@ public class EcsServiceTest {
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
         assertEquals(Integer.valueOf(5), limitCaptor.getValue());
         assertEquals(Integer.valueOf(4), warnCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one with ADO to one without an ADO setting, ADO should not be altered.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestNoAdo() throws Exception {
+        setupDeleteBucketQuotaTest();
+        setupCreateBucketRetentionTest(0);
+        setupChangeExpirationTest(0, 0, 0, NAMESPACE_NAME, BUCKET);
+        setupBucketPolicyTest(null, BUCKET);
+        setupBucketAdoTest();
+
+        // mocked BucketTestAction should return a bucket with TSO enabled
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
+        bucketInfo.setIsStaleAllowed(true);
+        bucketInfo.setIsTsoReadOnly(true);
+        setupBucketGetTest(bucketInfo);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2); // no ADO setting
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
+        assertNull(serviceSettings.get(ACCESS_DURING_OUTAGE));
+
+        PowerMockito.verifyStatic(BucketAdoAction.class, times(0));
+        BucketAdoAction.update(same(connection), anyString(), anyString(), anyBoolean());
+    }
+
+    /**
+     * When changing plans from one with ADO to one ADO disabled, ADO should be disabled.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestAdoDisabled() throws Exception {
+        setupDeleteBucketQuotaTest();
+        setupCreateBucketRetentionTest(0);
+        setupChangeExpirationTest(0, 0, 0, NAMESPACE_NAME, BUCKET);
+        setupBucketPolicyTest(null, BUCKET);
+        setupBucketAdoTest();
+
+        // mocked BucketTestAction should return a bucket with TSO enabled
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
+        bucketInfo.setIsStaleAllowed(true);
+        bucketInfo.setIsTsoReadOnly(true);
+        setupBucketGetTest(bucketInfo);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2); // no ADO setting
+        plan.getServiceSettings().put(ACCESS_DURING_OUTAGE, false); // change plan to explicitly disable ADO
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
+        assertNotNull(serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertFalse((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Boolean> adoCaptor = ArgumentCaptor.forClass(Boolean.class);
+
+        PowerMockito.verifyStatic(BucketAdoAction.class, times(1));
+        BucketAdoAction.update(same(connection), nsCaptor.capture(), idCaptor.capture(), adoCaptor.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertFalse(adoCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one without ADO and ADO parameters are
+     * supplied, ADO parameters should be honored.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestParametersAdo() throws Exception {
+        setupDeleteBucketQuotaTest();
+        setupCreateBucketRetentionTest(0);
+        setupChangeExpirationTest(0, 0, 0, NAMESPACE_NAME, BUCKET);
+        setupBucketPolicyTest(null, BUCKET);
+        setupBucketAdoTest();
+
+        // mocked BucketTestAction should return a bucket without TSO enabled
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
+        bucketInfo.setIsStaleAllowed(false);
+        bucketInfo.setIsTsoReadOnly(false);
+        setupBucketGetTest(bucketInfo);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID2); // no ADO setting
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(ACCESS_DURING_OUTAGE, true);
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
+        assertNotNull(serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Boolean> adoCaptor = ArgumentCaptor.forClass(Boolean.class);
+
+        PowerMockito.verifyStatic(BucketAdoAction.class, times(1));
+        BucketAdoAction.update(same(connection), nsCaptor.capture(), idCaptor.capture(), adoCaptor.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertTrue(adoCaptor.getValue());
+    }
+
+    /**
+     * When changing plans from one with ADO specified, and ADO parameters are
+     * supplied, the ADO parameters must be ignored.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestParametersIgnoredAdo() throws Exception {
+        setupDeleteBucketQuotaTest();
+        setupCreateBucketRetentionTest(0);
+        setupChangeExpirationTest(0, 0, 0, NAMESPACE_NAME, BUCKET);
+        setupBucketPolicyTest(null, BUCKET);
+        setupBucketAdoTest();
+
+        // mocked BucketTestAction should return a bucket with ADO enabled
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
+        bucketInfo.setIsStaleAllowed(true);
+        bucketInfo.setIsTsoReadOnly(true);
+        setupBucketGetTest(bucketInfo);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID3); // ADO-enabled plan
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(ACCESS_DURING_OUTAGE, false);
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, params, null);
+        assertNotNull(serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+
+        PowerMockito.verifyStatic(BucketAdoAction.class, times(0));
+        BucketAdoAction.update(same(connection), anyString(), anyString(), anyBoolean());
+    }
+
+    /**
+     * When changing plans from one without ADO to one with ADO enabled, ADO should be enabled on the bucket.
+     *
+     * @throws Exception when mocking fails
+     */
+    @Test
+    public void changeBucketPlanTestNewAdo() throws Exception {
+        setupDeleteBucketQuotaTest();
+        setupCreateBucketRetentionTest(0);
+        setupChangeExpirationTest(0, 0, 0, NAMESPACE_NAME, BUCKET);
+        setupBucketPolicyTest(null, BUCKET);
+        setupBucketAdoTest();
+
+        // mocked BucketTestAction should return a bucket without TSO enabled
+        PowerMockito.mockStatic(BucketAction.class);
+        ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
+        bucketInfo.setIsStaleAllowed(false);
+        bucketInfo.setIsTsoReadOnly(false);
+        setupBucketGetTest(bucketInfo);
+
+        ServiceDefinitionProxy service = bucketServiceFixture();
+        PlanProxy plan = service.findPlan(BUCKET_PLAN_ID3); // ADO-enabled plan
+
+        Map<String, Object> serviceSettings = ecs.changeBucketPlan(BUCKET_NAME, service, plan, new HashMap<>(), null);
+        assertNotNull(serviceSettings.get(ACCESS_DURING_OUTAGE));
+        assertTrue((Boolean) serviceSettings.get(ACCESS_DURING_OUTAGE));
+
+        ArgumentCaptor<String> idCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Boolean> adoCaptor = ArgumentCaptor.forClass(Boolean.class);
+
+        PowerMockito.verifyStatic(BucketAdoAction.class, times(1));
+        BucketAdoAction.update(same(connection), nsCaptor.capture(), idCaptor.capture(), adoCaptor.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertTrue(adoCaptor.getValue());
     }
 
     /**
@@ -2264,7 +2448,10 @@ public class EcsServiceTest {
     private void setupBucketGetTest() throws Exception {
         ObjectBucketInfo bucketInfo = new ObjectBucketInfo();
         bucketInfo.setFsAccessEnabled(true);
+        setupBucketGetTest(bucketInfo);
+    }
 
+    private void setupBucketGetTest(ObjectBucketInfo bucketInfo) throws Exception {
         PowerMockito.when(BucketAction.class, GET, same(connection), eq(PREFIX + BUCKET_NAME), anyString())
                 .thenReturn(bucketInfo);
     }
@@ -2421,6 +2608,11 @@ public class EcsServiceTest {
                     ));
             PowerMockito.when(BucketPolicyAction.class, GET, same(connection), anyString(), anyString()).thenReturn(policy);
         }
+    }
+
+    private void setupBucketAdoTest() throws Exception {
+        PowerMockito.mockStatic(BucketAdoAction.class);
+        PowerMockito.doNothing().when(BucketAdoAction.class, UPDATE, same(connection), anyString(), anyString(), anyBoolean());
     }
 
     static public List<Map<String, String>> createListOfTags(String... args) throws IllegalArgumentException {

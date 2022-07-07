@@ -1,0 +1,28 @@
+{
+	"scenarioName": "adotestbucket",
+    "requiredScenarioState": "Created",
+	"newScenarioState": "Updated",
+    "request": {
+        "method": "POST",
+        "url": "/object/bucket/adotestbucket/isstaleallowed",
+        "headers": {
+        	"Accept": {
+        		"equalTo": "application/xml"
+        	},
+        	"X-SDS-AUTH-TOKEN" : {
+        		"equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+        	}
+        },
+        "bodyPatterns": [
+        	{
+        		"equalToXml": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><object_bucket_update_is_stale_allowed><namespace>ns1</namespace><is_stale_allowed>false</is_stale_allowed></object_bucket_update_is_stale_allowed>"
+        	}
+        ]
+    },
+    "response": {
+        "status": "200",
+        "headers": {
+			"Content-Type": "application/xml"
+		}
+	}
+}

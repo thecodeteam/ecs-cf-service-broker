@@ -279,8 +279,9 @@ public class EcsService implements StorageService {
             }
 
             parameters = validateAndPrepareSearchMetadata(parameters);
+            ObjectBucketInfo bucketInfo = BucketAction.get(connection, prefix(bucketName), namespace);
             List<SearchMetadata> requestedSearchMetadataList = (List<SearchMetadata>) parameters.get(SEARCH_METADATA);
-            List<SearchMetadata> currentSearchMetadataList = BucketAction.get(connection, prefix(bucketName), namespace).getSearchMetadataList();
+            List<SearchMetadata> currentSearchMetadataList = bucketInfo.getSearchMetadataList();
 
             if (!isEqualSearchMetadataList(requestedSearchMetadataList, currentSearchMetadataList)) {
                 logger.info("Removing search metadata from '{}' in '{}'", prefix(bucketName), namespace);
@@ -291,6 +292,12 @@ public class EcsService implements StorageService {
                 changeBucketExpiration(bucketName, namespace, (int) parameters.get(EXPIRATION));
             } else {
                 deleteCurrentExpirationRule(bucketName, namespace);
+            }
+
+            Boolean accessDuringOutage = (Boolean) parameters.get(ACCESS_DURING_OUTAGE);
+            if (accessDuringOutage != null && !Objects.equals(accessDuringOutage, bucketInfo.getIsStaleAllowed())) {
+                logger.info("Changing ADO for '{}' in '{}' to '{}'", prefix(bucketName), namespace, accessDuringOutage);
+                BucketAdoAction.update(connection, namespace, prefix(bucketName), accessDuringOutage);
             }
 
         } catch (EcsManagementClientException | URISyntaxException e) {
