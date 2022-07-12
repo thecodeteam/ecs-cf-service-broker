@@ -174,6 +174,7 @@ The following feature flags are supported by the bucket & namespace. All paramet
 | bucket            | replication-group    |  false  | String   | Replication group for bucket                                                  |
 | bucket            | encrypted            |  false  | Boolean  | Enable encryption of bucket                                                   |
 | bucket            | access-during-outage |  false  | Boolean  | Enable potentially stale data during outage                                   |
+| bucket            | ado-read-only        |  false  | Boolean  | Only allow read access during outage (requires ADO to be enabled)             |
 | bucket            | file-accessible      |  false  | Boolean  | Enable file-access (NFS, HDFS) for bucket                                     |
 | bucket            | head-type            |   s3    | String   | Specify object type (s3, swift) for bucket                                    |
 | bucket            | default-retention    |    -    | Int      | Number of seconds to prevent object deletion/modification                     |

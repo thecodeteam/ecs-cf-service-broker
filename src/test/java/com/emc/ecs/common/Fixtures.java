@@ -61,6 +61,7 @@ public class Fixtures {
     public static final String BUCKET_NAME = "testbucket1";
     public static final String CUSTOM_BUCKET_NAME = "customtestbucket1";
     private static final String ACCESS_DURING_OUTAGE = "access-during-outage";
+    private static final String ADO_READ_ONLY = "ado-read-only";
     public static final String ALLOWED_RECLAIM_POLICIES = "allowed-reclaim-policies";
     public static final String SERVICE_INSTANCE_ID = "service-instance-id";
     public static final String REMOTE_CONNECT_KEY = "95cb87f5-80d3-48b7-b860-072aeae4a918";
@@ -104,17 +105,26 @@ public class Fixtures {
         bucketPlan1.setServiceSettings(settings1);
 
         /*
-         * Plan 2: No quota, encrypted, filesystem, access-during-outage.
+         * Plan 2: No quota, encrypted, filesystem.
          */
         Map<String, Object> settings2 = new HashMap<>();
         PlanProxy bucketPlan2 = new PlanProxy(BUCKET_PLAN_ID2, UNLIMITED,
                 PAY_PER_GB_PER_MONTH, null, false);
         settings2.put(ENCRYPTED, true);
-        settings2.put(ACCESS_DURING_OUTAGE, true);
         settings2.put(FILE_ACCESSIBLE, true);
         bucketPlan2.setServiceSettings(settings2);
 
-        List<PlanProxy> plans = Arrays.asList(bucketPlan1, bucketPlan2);
+        /*
+         * Plan 3: No quota, ADO read-only
+         */
+        Map<String, Object> settings3 = new HashMap<>();
+        PlanProxy bucketPlan3 = new PlanProxy(BUCKET_PLAN_ID3, UNLIMITED,
+                PAY_PER_GB_PER_MONTH, null, false);
+        settings3.put(ACCESS_DURING_OUTAGE, true);
+        settings3.put(ADO_READ_ONLY, true);
+        bucketPlan3.setServiceSettings(settings3);
+
+        List<PlanProxy> plans = Arrays.asList(bucketPlan1, bucketPlan2, bucketPlan3);
 
         List<String> tags = Arrays.asList("ecs-bucket", HEAD_TYPE_S3, "swift");
         Map<String, Object> serviceSettings = new HashMap<>();

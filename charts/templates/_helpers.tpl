@@ -50,6 +50,7 @@ catalog:
           name: unlimited
       service-settings:
         access-during-outage: true
+        ado-read-only: true
         head-type: s3
         service-type: bucket
       tags:

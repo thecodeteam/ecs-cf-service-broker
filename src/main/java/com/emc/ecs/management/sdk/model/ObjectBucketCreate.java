@@ -13,6 +13,7 @@ public class ObjectBucketCreate {
 
     private Boolean filesystemEnabled = false;
     private Boolean isStaleAllowed = false;
+    private Boolean isTsoReadOnly = false;
     private String headType = HEAD_TYPE_S3;
     private String name;
     private String vpool;
@@ -28,6 +29,7 @@ public class ObjectBucketCreate {
         this.isEncryptionEnabled = (Boolean) params.get(ENCRYPTED);
         this.filesystemEnabled = (Boolean) params.get(FILE_ACCESSIBLE);
         this.isStaleAllowed = (Boolean) params.get(ACCESS_DURING_OUTAGE);
+        this.isTsoReadOnly = (Boolean) params.get(ADO_READ_ONLY);
         this.headType = (String) params.getOrDefault(HEAD_TYPE, HEAD_TYPE_S3);
         this.searchMetadataList = (List<SearchMetadata>) params.get(SEARCH_METADATA);
     }
@@ -93,6 +95,15 @@ public class ObjectBucketCreate {
 
     public void setIsStaleAllowed(Boolean isStaleAllowed) {
         this.isStaleAllowed = isStaleAllowed;
+    }
+
+    @XmlElement(name = "is_tso_read_only")
+    public Boolean getIsTsoReadOnly() {
+        return isTsoReadOnly;
+    }
+
+    public void setIsTsoReadOnly(Boolean isTsoReadOnly) {
+        this.isTsoReadOnly = isTsoReadOnly;
     }
 
     @XmlElement(name = "is_encryption_enabled")

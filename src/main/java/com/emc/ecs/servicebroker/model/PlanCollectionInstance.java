@@ -13,6 +13,9 @@ public class PlanCollectionInstance {
     @JsonProperty("access_during_outage")
     private Boolean accessDuringOutage;
 
+    @JsonProperty("ado_read_only")
+    private Boolean adoReadOnly;
+
     @JsonProperty("bullet_1")
     private String bullet1;
 
@@ -167,6 +170,10 @@ public class PlanCollectionInstance {
         this.accessDuringOutage = accessDuringOutage;
     }
 
+    public void setAdoReadOnly(Boolean adoReadOnly) {
+        this.adoReadOnly = adoReadOnly;
+    }
+
     public void setReplicationGroup(String replicationGroup) {
         this.replicationGroup = replicationGroup;
     }
@@ -203,6 +210,10 @@ public class PlanCollectionInstance {
 
         if (accessDuringOutage != null) {
             serviceSettings.put(ACCESS_DURING_OUTAGE, accessDuringOutage);
+        }
+
+        if (adoReadOnly != null) {
+            serviceSettings.put(ADO_READ_ONLY, adoReadOnly);
         }
 
         if (defaultRetention != null) {
