@@ -40,6 +40,7 @@ public class BrokerConfig {
     private boolean useSsl;
     private boolean awsSignatureV4 = false;
     private boolean ignoreSslValidation;
+    private boolean iamManager = false;
 
     private String repositorySecret;
     private String repositoryUser = "user";
@@ -280,6 +281,10 @@ public class BrokerConfig {
     public boolean isAwsSignatureV4() { return awsSignatureV4; }
 
     public void setAwsSignatureV4(boolean awsSignatureV4) { this.awsSignatureV4 = awsSignatureV4; }
+
+    public boolean isIamManager() { return  iamManager; }
+
+    public void setIamManager(boolean iamManager) { this.iamManager = iamManager; }
 
     public void setPathStyleAccess(boolean pathStyleAccess) {
         this.pathStyleAccess = pathStyleAccess;

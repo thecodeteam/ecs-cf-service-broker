@@ -16,9 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.stubbing.OngoingStubbing;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -83,6 +81,9 @@ public class EcsServiceTest {
     @Mock
     private BucketWipeFactory bucketWipeFactory;
 
+    @Mock
+    private UserService userService;
+
     @Autowired
     @InjectMocks
     private EcsService ecs;
@@ -105,6 +106,7 @@ public class EcsServiceTest {
         when(broker.getRepositoryBucket()).thenReturn(REPOSITORY);
 
         when(broker.getSettings()).thenReturn(brokerSettings);
+        when(broker.getApiType()).thenReturn("ecs");
     }
 
     /**
@@ -1067,6 +1069,7 @@ public class EcsServiceTest {
                         same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
                 .thenReturn(true);
 
+        Mockito.doCallRealMethod().when(userService).removeUserFromBucket(same(connection), anyString(), anyString(), anyString());
         ecs.removeUserFromBucket(BUCKET_NAME, NAMESPACE_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
@@ -1091,6 +1094,8 @@ public class EcsServiceTest {
                 .when(ObjectUserAction.class, EXISTS, same(connection), any(String.class), any(String.class))
                 .thenReturn(true);
 
+//        Mockito.doNothing().when(userService).isIamManager();
+        Mockito.doCallRealMethod().when(userService).deleteUser(same(connection), anyString(), anyString());
         ecs.deleteUser(USER1, NAMESPACE_NAME);
         PowerMockito.verifyStatic(ObjectUserAction.class);
 
@@ -1535,6 +1540,7 @@ public class EcsServiceTest {
                         anyString())
                 .thenReturn(Collections.singletonList(new UserSecretKey()));
 
+        Mockito.doCallRealMethod().when(userService).createUser(same(connection), anyString(), anyString());
         ecs.createUser(USER1, NAMESPACE_NAME);
 
         ArgumentCaptor<String> nsCaptor = ArgumentCaptor.forClass(String.class);

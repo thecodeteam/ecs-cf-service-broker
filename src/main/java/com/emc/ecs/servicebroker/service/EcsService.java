@@ -53,6 +53,9 @@ public class EcsService implements StorageService {
     @Autowired
     protected BucketWipeFactory bucketWipeFactory;
 
+    @Autowired
+    protected UserService userService;
+
     protected BucketWipeOperations bucketWipe;
 
     private String objectEndpoint;
@@ -316,17 +319,11 @@ public class EcsService implements StorageService {
     @Override
     public UserSecretKey createUser(String id, String namespace) {
         try {
+            UserSecretKey key;
             String userId = prefix(id);
+            key = userService.createUser(connection, userId, namespace);
+            return key;
 
-            logger.info("Creating user '{}' in namespace '{}'", userId, namespace);
-            ObjectUserAction.create(connection, userId, namespace);
-
-            logger.info("Creating secret for user '{}'", userId);
-            ObjectUserSecretAction.create(connection, userId);
-
-            UserSecretKey userSecretKey = ObjectUserSecretAction.list(connection, userId).get(0);
-
-            return userSecretKey;
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -345,7 +342,8 @@ public class EcsService implements StorageService {
     @Override
     public Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
         try {
-            return ObjectUserAction.exists(connection, prefix(userId), namespace);
+            return userService.userExists(connection, prefix(userId), namespace);
+
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -354,12 +352,7 @@ public class EcsService implements StorageService {
     @Override
     public void deleteUser(String userId, String namespace) throws EcsManagementClientException {
         try {
-            if (userExists(userId, namespace)) {
-                logger.info("Deleting user '{}' in namespace '{}'", userId, namespace);
-                ObjectUserAction.delete(connection, prefix(userId));
-            } else {
-                logger.info("User {} no longer exists, assume already deleted", prefix(userId));
-            }
+            userService.deleteUser(connection, prefix(userId), namespace);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -376,46 +369,12 @@ public class EcsService implements StorageService {
 
     @Override
     public void addUserToBucket(String bucketId, String namespace, String username, List<String> permissions) throws EcsManagementClientException {
-        logger.info("Adding user '{}' to bucket '{}' in '{}' with {} access", prefix(username), prefix(bucketId), namespace, permissions);
-
-        BucketAcl acl = BucketAclAction.get(connection, prefix(bucketId), namespace);
-
-        List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-        userAcl.add(new BucketUserAcl(prefix(username), permissions));
-        acl.getAcl().setUserAccessList(userAcl);
-
-        BucketAclAction.update(connection, prefix(bucketId), acl);
-
-        if (!getBucketFileEnabled(bucketId, namespace)) {
-            BucketPolicy bucketPolicy = new BucketPolicy(
-                    "2012-10-17",
-                    "DefaultPCFBucketPolicy",
-                    new BucketPolicyStatement("DefaultAllowTotalAccess",
-                            new BucketPolicyEffect("Allow"),
-                            new BucketPolicyPrincipal(prefix(username)),
-                            new BucketPolicyActions(Collections.singletonList("s3:*")),
-                            new BucketPolicyResource(Collections.singletonList(prefix(bucketId)))
-                    )
-            );
-            BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
-        }
+         userService.addUserToBucket(connection, prefix(bucketId), namespace, prefix(username), permissions);
     }
 
     @Override
     public void removeUserFromBucket(String bucket, String namespace, String username) throws EcsManagementClientException {
-        if (!aclExists(prefix(bucket), namespace)) {
-            logger.info("ACL {} no longer exists when removing user {}", prefix(bucket), prefix(username));
-            return;
-        }
-
-        BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), namespace);
-
-        List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
-                .stream().filter(a -> !a.getUser().equals(prefix(username)))
-                .collect(Collectors.toList());
-        acl.getAcl().setUserAccessList(newUserAcl);
-
-        BucketAclAction.update(connection, prefix(bucket), acl);
+        userService.removeUserFromBucket(connection, prefix(bucket), namespace, prefix(username));
     }
 
     @Override

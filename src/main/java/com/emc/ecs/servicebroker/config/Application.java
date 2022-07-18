@@ -260,6 +260,9 @@ public class Application {
         return new BucketWipeFactory();
     }
 
+    @Bean
+    public UserService userService() { return new UserService(); }
+
     private static String[] getArgs() {
         return args;
     }

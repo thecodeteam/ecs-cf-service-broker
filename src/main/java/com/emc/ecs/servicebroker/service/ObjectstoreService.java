@@ -39,6 +39,9 @@ public class ObjectstoreService extends EcsService {
     @Autowired
     private S3Client s3Client;
 
+    @Autowired
+    private UserService userService;
+
     @PostConstruct
     void initialize() {
         if (broker.isConfigValidationMode()) {
@@ -85,17 +88,9 @@ public class ObjectstoreService extends EcsService {
         try {
             String userId = prefix(id);
 
-            logger.info("Creating user '{}' in account '{}'", userId, accountId);
-            IAMUserAction.create(objectscaleGateway, userId, accountId);
-
-            logger.info("Creating secret for user '{}'", userId);
-            IamAccessKey iamKey = IAMAccessKeyAction.create(objectscaleGateway, userId, accountId);
-
-            UserSecretKey key = new UserSecretKey();
-            key.setAccessKey(iamKey.getAccessKeyId());
-            key.setSecretKey(iamKey.getSecretAccessKey());
-            key.setKeyTimestamp(iamKey.getCreateDate());
+            UserSecretKey key = userService.createUser(objectscaleGateway, userId, accountId);
             return key;
+
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -104,18 +99,7 @@ public class ObjectstoreService extends EcsService {
     @Override
     public void deleteUser(String userId, String accountId) throws EcsManagementClientException {
         try {
-            if (userExists(userId, accountId)) {
-                logger.info("Deleting access keys of user '{}' in account '{}'", userId, accountId);
-                List<IamAccessKey> accessKeys = IAMAccessKeyAction.list(objectscaleGateway, prefix(userId), accountId);
-                for (IamAccessKey key : accessKeys) {
-                    IAMAccessKeyAction.delete(objectscaleGateway, key.getAccessKeyId(), prefix(userId), accountId);
-                }
-
-                logger.info("Deleting user '{}' in account '{}'", userId, accountId);
-                IAMUserAction.delete(objectscaleGateway, prefix(userId), accountId);
-            } else {
-                logger.info("User {} no longer exists, assume already deleted", prefix(userId));
-            }
+            userService.deleteUser(connection, prefix(userId), accountId);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -124,7 +108,7 @@ public class ObjectstoreService extends EcsService {
     @Override
     public Boolean userExists(String userId, String accountId) throws ServiceBrokerException {
         try {
-            return IAMUserAction.exists(objectscaleGateway, prefix(userId), accountId);
+            return userService.userExists(connection, prefix(userId), accountId);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -132,71 +116,12 @@ public class ObjectstoreService extends EcsService {
 
     @Override
     public void addUserToBucket(String bucketId, String accountId, String username) {
-        logger.info("Adding user '{}' default access to bucket '{}' in '{}'", prefix(username), prefix(bucketId), accountId);
-
-        // TODO get them from broker config?
-
-        String objectscaleId = broker.getObjectscaleId();
-        String objectstoreId = broker.getObjectstoreId();
-
-        // 1. Create policy
-        String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + prefix(bucketId);
-        String objectsARN = bucketARN + "/*";
-
-        String policyDocument = "{\n" +
-                "   \"Version\":\"2012-10-17\",\n" +
-                "   \"Statement\":[\n" +
-                "      {\n" +
-                "         \"Effect\":\"Allow\",\n" +
-                "         \"Action\":[\"s3:ListBucket\"],\n" +
-                "         \"Resource\":\"" + bucketARN + "\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "         \"Effect\":\"Allow\",\n" +
-                "         \"Action\":[\n" +
-                "            \"s3:PutObject\",\n" +
-                "            \"s3:PutObjectAcl\",\n" +
-                "            \"s3:GetObject\",\n" +
-                "            \"s3:GetObjectAcl\",\n" +
-                "            \"s3:DeleteObject\"\n" +
-                "         ],\n" +
-                "         \"Resource\":\"" + objectsARN + "\"\n" +
-                "      }\n" +
-                "   ]\n" +
-                "}";
-
-        String policyName = policyName(prefix(bucketId), FULL_CONTROL);
-
-        IamPolicy iamPolicy = IAMPolicyAction.get(objectscaleGateway, policyName, accountId);
-        if (iamPolicy == null) {
-            iamPolicy = IAMPolicyAction.create(objectscaleGateway, policyName, policyDocument, accountId);
-        }
-
-        // 2. add policy to user
-        IAMUserPolicyAction.attach(objectscaleGateway, prefix(username), iamPolicy.getArn(), accountId);
-    }
-
-    private String policyName(String bucketId, List<String> permissions) {
-        if (permissions == null || isEqualList(FULL_CONTROL, permissions)) {
-            return prefix(bucketId) + "-policy";
-        } else {
-            List<String> copy = new ArrayList<>(permissions);
-            Collections.sort(copy);
-            String join = String.join("-", copy);
-            return prefix(bucketId) + "-policy-" + join;
-        }
+        userService.addUserToBucket(objectscaleGateway, prefix(bucketId), accountId, prefix(username), FULL_CONTROL);
     }
 
     @Override
     public void removeUserFromBucket(String bucketId, String accountId, String userId) throws EcsManagementClientException {
-        String policyName = policyName(prefix(bucketId), FULL_CONTROL);
-        IamPolicy iamPolicy = IAMPolicyAction.get(objectscaleGateway, policyName, accountId);
-        if (iamPolicy != null) {
-            IAMUserPolicyAction.detach(objectscaleGateway, prefix(userId), iamPolicy.getArn(), accountId);
-        } else {
-            logger.warn("Cannot find iamPolicy to remove from user: " + policyName);
-        }
-
+        userService.removeUserFromBucket(connection ,prefix(bucketId), accountId, prefix(userId));
     }
 
     @Override
