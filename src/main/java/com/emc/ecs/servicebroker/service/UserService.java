@@ -11,11 +11,10 @@ import com.emc.ecs.management.sdk.model.iam.policy.IamPolicy;
 import com.emc.ecs.management.sdk.model.iam.user.IamAccessKey;
 import com.emc.ecs.servicebroker.config.BrokerConfig;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
-import com.emc.ecs.servicebroker.service.utils.IamUserPermissionsHandler;
-import org.jvnet.hk2.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,8 +27,14 @@ import static org.apache.commons.collections.ListUtils.isEqualList;
 
 @Service
 public class UserService {
-
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    public static final String FULL_CONTROL_PERMISSIONS_LIST = String.join(",",
+            "s3:PutObject",
+            "s3:PutObjectAcl",
+            "s3:GetObject",
+            "s3:GetObjectAcl",
+            "s3:DeleteObject"
+    );
 
     @Autowired
     private BrokerConfig broker;
@@ -45,10 +50,9 @@ public class UserService {
     public void deleteUser(ManagementAPIConnection connection, String userId, String namespace) {
         if (isIamManager()) {
             deleteIamUser(connection, userId, namespace);
-            return;
+        } else {
+            deleteObjectUser(connection, userId, namespace);
         }
-
-        deleteObjectUser(connection, userId, namespace);
     }
 
     public boolean userExists(ManagementAPIConnection connection, String userId, String namespace) {
@@ -66,10 +70,9 @@ public class UserService {
             } else {
                 addEcsIamUserToBucket(connection, bucketId, namespace, username, permissions);
             }
-            return;
+        } else {
+            addObjectUserToBucket(connection, bucketId, namespace, username, permissions);
         }
-
-        addObjectUserToBucket(connection, bucketId, namespace, username, permissions);
     }
 
     public void removeUserFromBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username) {
@@ -79,13 +82,12 @@ public class UserService {
             } else {
                 removeEcsIamUserFromBucket(connection, bucketId, namespace, username);
             }
-            return;
+        } else {
+            removeObjectUserFromBucket(connection, bucketId, namespace, username);
         }
-
-        removeObjectUserFromBucket(connection, bucketId, namespace, username);
     }
 
-    public boolean isIamManager() {
+    boolean isIamManager() {
         if (broker.getApiType() != null) {
             return broker.isIamManager() || broker.getApiType().equals(OBJECTSCALE);
         }
@@ -108,10 +110,10 @@ public class UserService {
     }
 
     private UserSecretKey createIamUser(ManagementAPIConnection connection, String userId, String namespace) {
-        logger.info("Creating Iam user '{}' in account '{}'", userId, namespace);
+        logger.info("Creating IAM user '{}' in account '{}'", userId, namespace);
         IAMUserAction.create(connection, userId, namespace);
 
-        logger.info("Creating secret for user '{}'", userId);
+        logger.info("Creating access key for IAM user '{}'", userId);
         IamAccessKey iamKey = IAMAccessKeyAction.create(connection, userId, namespace);
 
         UserSecretKey key = new UserSecretKey();
@@ -133,13 +135,13 @@ public class UserService {
 
     private void deleteIamUser(ManagementAPIConnection connection, String userId, String namespace) {
         if (iamUserExists(connection, userId, namespace)) {
-            logger.info("Deleting access keys of user '{}' in account '{}'", userId, namespace);
+            logger.info("Deleting access keys of IAM user '{}' in account '{}'", userId, namespace);
             List<IamAccessKey> accessKeys = IAMAccessKeyAction.list(connection, userId, namespace);
             for (IamAccessKey key : accessKeys) {
                 IAMAccessKeyAction.delete(connection, key.getAccessKeyId(), userId, namespace);
             }
 
-            logger.info("Deleting user '{}' in account '{}'", userId, namespace);
+            logger.info("Deleting IAM user '{}' in account '{}'", userId, namespace);
             IAMUserAction.delete(connection, userId, namespace);
         } else {
             logger.info("User {} no longer exists, assume already deleted", userId);
@@ -147,12 +149,6 @@ public class UserService {
     }
 
     private void addObjectUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, List<String> permissions) {
-
-        if (isIamManager()) {
-            addEcsIamUserToBucket(connection, bucketId, namespace, username, permissions);
-            return;
-        }
-
         logger.info("Adding user '{}' to bucket '{}' in '{}' with {} access", username, bucketId, namespace, permissions);
 
         BucketAcl acl = BucketAclAction.get(connection, bucketId, namespace);
@@ -200,13 +196,7 @@ public class UserService {
                 "      },\n" +
                 "      {\n" +
                 "         \"Effect\":\"Allow\",\n" +
-                "         \"Action\":[\n" +
-                "            \"s3:PutObject\",\n" +
-                "            \"s3:PutObjectAcl\",\n" +
-                "            \"s3:GetObject\",\n" +
-                "            \"s3:GetObjectAcl\",\n" +
-                "            \"s3:DeleteObject\"\n" +
-                "         ],\n" +
+                "         \"Action\":[" + FULL_CONTROL_PERMISSIONS_LIST + "],\n" +
                 "         \"Resource\":\"" + objectsARN + "\"\n" +
                 "      }\n" +
                 "   ]\n" +
@@ -228,25 +218,16 @@ public class UserService {
         logger.info("Adding Iam user '{}' to bucket '{}' in '{}' with {} access", username, bucketId, namespace, permissions);
 
         // 1. Create policy
+        String permissionsList = buildPermissionsList(permissions);
+
         String policyDocument = "{\n" +
                 "  \"Version\": \"2012-10-17\",\n" +
-                "  \n" +
                 "  \"Statement\": [\n" +
-                "    \n" +
                 "    {\n" +
-                "      \n" +
-                "      \"Action\": [" +
-                IamUserPermissionsHandler.getPermissionsList(permissions) +
-                "      ],\n" +
-                "      \n" +
+                "      \"Action\": [" + permissionsList + " ],\n" +
                 "      \"Resource\": \"*\",\n" +
-                "      \n" +
-                "      \"Effect\": \"Allow\",\n" +
-                "      \n" +
-                "      \"Sid\": \"VisualEditor0\"\n" +
-                "    \n" +
+                "      \"Effect\": \"Allow\"\n" +
                 "    }\n" +
-                "  \n" +
                 "  ]\n" +
                 "}";
 
@@ -284,7 +265,7 @@ public class UserService {
         if (iamPolicy != null) {
             IAMUserPolicyAction.detach(connection, userId, iamPolicy.getArn(), accountId);
         } else {
-            logger.warn("Cannot find iamPolicy to remove from user: " + policyName);
+            logger.warn("Cannot find iam policy to remove from user: " + policyName);
         }
     }
 
@@ -295,7 +276,7 @@ public class UserService {
         if (iamPolicy != null) {
             IAMUserPolicyAction.detach(connection, username, iamPolicy.getArn(), namespace);
         } else {
-            logger.warn("Cannot find iamPolicy to remove from user: " + policyName);
+            logger.warn("Cannot find iam policy to remove from user: " + policyName);
         }
     }
 
@@ -313,8 +294,7 @@ public class UserService {
         } else {
             List<String> copy = new ArrayList<>(permissions);
             Collections.sort(copy);
-            String join = String.join("-", copy);
-            return bucketId + "-policy-" + join;
+            return bucketId + "-policy-" + String.join("-", copy);
         }
     }
 
@@ -322,5 +302,24 @@ public class UserService {
         return BucketAclAction.exists(connection, bucketName, namespace);
     }
 
+    public static String buildPermissionsList(List<String> permissions) {
+        if (permissions == null || permissions.size() == 0 || isEqualList(FULL_CONTROL, permissions)) {
+            return FULL_CONTROL_PERMISSIONS_LIST;
+        }
 
+        StringBuilder sb = new StringBuilder();
+        for (String permission : permissions) {
+            if (!permission.startsWith("s3:")) {
+                sb.append("s3:");
+            }
+            sb.append(permission);
+            sb.append(',');
+        }
+
+        if (permissions.size() > 1) {
+            sb.setLength(sb.length() - 1);
+        }
+
+        return sb.toString();
+    }
 }
