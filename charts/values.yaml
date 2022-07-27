@@ -34,7 +34,7 @@ api:
 
 image:
   repository: objectscale/ecs-service-broker
-  tag: 2.2.0
+  tag: 2.3.0
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
