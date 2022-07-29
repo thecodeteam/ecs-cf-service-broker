@@ -29,11 +29,11 @@ import static org.apache.commons.collections.ListUtils.isEqualList;
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     public static final String FULL_CONTROL_PERMISSIONS_LIST = String.join(",",
-            "s3:PutObject",
-            "s3:PutObjectAcl",
-            "s3:GetObject",
-            "s3:GetObjectAcl",
-            "s3:DeleteObject"
+            "\"s3:PutObject\"",
+            "\"s3:PutObjectAcl\"",
+            "\"s3:GetObject\"",
+            "\"s3:GetObjectAcl\"",
+            "\"s3:DeleteObject\""
     );
 
     @Autowired
