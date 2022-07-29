@@ -65,7 +65,7 @@ public class UserService {
 
     public void addUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, List<String> permissions) {
         if (isIamManager()) {
-            if (broker.getApiType().equals(OBJECTSCALE)) {
+            if (OBJECTSCALE.equals(broker.getApiType())) {
                 addObjectStoreIamUserToBucket(connection, bucketId, namespace, username);
             } else {
                 addEcsIamUserToBucket(connection, bucketId, namespace, username, permissions);
@@ -77,7 +77,7 @@ public class UserService {
 
     public void removeUserFromBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username) {
         if (isIamManager()) {
-            if (broker.getApiType().equals(OBJECTSCALE)) {
+            if (OBJECTSCALE.equals(broker.getApiType())) {
                 removeObjectStoreIamUserFromBucket(connection, bucketId, namespace, username);
             } else {
                 removeEcsIamUserFromBucket(connection, bucketId, namespace, username);
@@ -88,11 +88,7 @@ public class UserService {
     }
 
     boolean isIamManager() {
-        if (broker.getApiType() != null) {
-            return broker.isIamManager() || broker.getApiType().equals(OBJECTSCALE);
-        }
-
-        return broker.isIamManager();
+        return OBJECTSCALE.equals(broker.getApiType()) || broker.isIamManager();
     }
 
 
@@ -116,6 +112,7 @@ public class UserService {
         logger.info("Creating access key for IAM user '{}'", userId);
         IamAccessKey iamKey = IAMAccessKeyAction.create(connection, userId, namespace);
 
+        logger.info("Access key received");
         UserSecretKey key = new UserSecretKey();
         key.setAccessKey(iamKey.getAccessKeyId());
         key.setSecretKey(iamKey.getSecretAccessKey());
@@ -309,10 +306,12 @@ public class UserService {
 
         StringBuilder sb = new StringBuilder();
         for (String permission : permissions) {
+            sb.append('"');
             if (!permission.startsWith("s3:")) {
                 sb.append("s3:");
             }
             sb.append(permission);
+            sb.append('"');
             sb.append(',');
         }
 
