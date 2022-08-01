@@ -25,6 +25,7 @@ ecsConnection:
   password: <PASSWORD>
   s3endpoint: "https://object.ecstestdrive.com"
   awsSignatureV4: false  # Use AWS signature V4 to authenticate S3 requests (use V2 if false)
+  iamManager: false
 
 # Broker API security
 api:

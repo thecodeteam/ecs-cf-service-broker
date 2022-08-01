@@ -12,6 +12,7 @@ data:
       namespace: {{ .Values.namespace }}
       replication-group: {{ .Values.replicationGroup }}
       awsSignatureV4: {{ default false .Values.ecsConnection.awsSignatureV4 }}
+      iamManager: {{ default false .Values.ecsConnection.iamManager }}
   {{- if .Values.certificate }}
       certificate: {{ toYaml .Values.certificate | indent 6 }}
   {{- end }}
