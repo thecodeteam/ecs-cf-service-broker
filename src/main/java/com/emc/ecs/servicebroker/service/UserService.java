@@ -76,14 +76,14 @@ public class UserService {
     }
 
     public void addUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn, List<String> permissions) {
-        if(isIamManager()) {
-            if(OBJECTSCALE.equals(broker.getApiType())) {
-                // ?
+        if (isIamManager()) {
+            if (OBJECTSCALE.equals(broker.getApiType())) {
+                addObjectStoreIamUserToBucket(connection, bucketId, namespace, username, policyUrn);
             } else {
                 addEcsIamUserToBucket(connection, bucketId, namespace, username, policyUrn, permissions);
             }
         } else {
-            throw new UnsupportedOperationException("?");
+            //TODO throw new UnsupportedOperationException("");
         }
     }
 
@@ -186,40 +186,21 @@ public class UserService {
     private void addObjectStoreIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username) {
         logger.info("Adding user '{}' default access to bucket '{}' in '{}'", username, bucketId, namespace);
 
-        // TODO get them from broker config?
-
-        String objectscaleId = broker.getObjectscaleId();
-        String objectstoreId = broker.getObjectstoreId();
-
         // 1. Create policy
-        String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + namespace;
-        String objectsARN = bucketARN + "/*";
 
-        String policyDocument = "{\n" +
-                "   \"Version\":\"2012-10-17\",\n" +
-                "   \"Statement\":[\n" +
-                "      {\n" +
-                "         \"Effect\":\"Allow\",\n" +
-                "         \"Action\":[\"s3:ListBucket\"],\n" +
-                "         \"Resource\":\"" + bucketARN + "\"\n" +
-                "      },\n" +
-                "      {\n" +
-                "         \"Effect\":\"Allow\",\n" +
-                "         \"Action\":[" + FULL_CONTROL_PERMISSIONS_LIST + "],\n" +
-                "         \"Resource\":\"" + objectsARN + "\"\n" +
-                "      }\n" +
-                "   ]\n" +
-                "}";
-
-        String policyName = policyName(bucketId, FULL_CONTROL);
-
-        IamPolicy iamPolicy = IAMPolicyAction.get(connection, policyName, namespace);
-        if (iamPolicy == null) {
-            iamPolicy = IAMPolicyAction.create(connection, policyName, policyDocument, namespace);
-        }
+        IamPolicy iamPolicy = createObjectStoreIamPolicy(connection, bucketId, namespace, FULL_CONTROL);
 
         // 2. add policy to user
         IAMUserPolicyAction.attach(connection, username, iamPolicy.getArn(), namespace);
+    }
+
+    private void addObjectStoreIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn) {
+        logger.info("Adding user '{}' default access to bucket '{}' in '{}'", username, bucketId, namespace);
+        if (userExists(connection, policyName(bucketId, FULL_CONTROL), namespace)) {
+            IAMUserPolicyAction.attach(connection, username, policyUrn, namespace);
+        } else {
+            throw new EcsManagementClientException("Can not find policy-urn to attach user");
+        }
     }
 
     private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, List<String> permissions) {
@@ -235,7 +216,12 @@ public class UserService {
 
     private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn, List<String> permissions) {
         logger.info("Adding Iam user '{}' to bucket '{}' in '{}' with {} access", username, bucketId, namespace, permissions);
-        IAMUserPolicyAction.attach(connection, username, policyUrn, namespace);
+        String arn = "urn:ecs:iam::" + namespace + ":policy/" + policyName(bucketId, permissions);
+        if (policyExist(connection, arn, namespace)) {
+            IAMUserPolicyAction.attach(connection, username, policyUrn, namespace);
+        } else {
+            throw new EcsManagementClientException("Can not find policy-urn to attach user");
+        }
     }
 
     private void removeObjectUserFromBucket(ManagementAPIConnection connection, String bucket, String namespace, String username) {
@@ -343,5 +329,44 @@ public class UserService {
         }
 
         return iamPolicy;
+    }
+
+    private IamPolicy createObjectStoreIamPolicy(ManagementAPIConnection connection, String bucketId, String namespace, List<String> permissions) {
+        String objectscaleId = broker.getObjectscaleId();
+        String objectstoreId = broker.getObjectstoreId();
+
+        // 1. Create policy
+        String bucketARN = "arn:aws:s3:" + objectscaleId + ":" + objectstoreId + ":" + namespace;
+        String objectsARN = bucketARN + "/*";
+
+        String policyDocument = "{\n" +
+                "   \"Version\":\"2012-10-17\",\n" +
+                "   \"Statement\":[\n" +
+                "      {\n" +
+                "         \"Effect\":\"Allow\",\n" +
+                "         \"Action\":[\"s3:ListBucket\"],\n" +
+                "         \"Resource\":\"" + bucketARN + "\"\n" +
+                "      },\n" +
+                "      {\n" +
+                "         \"Effect\":\"Allow\",\n" +
+                "         \"Action\":[" + FULL_CONTROL_PERMISSIONS_LIST + "],\n" +
+                "         \"Resource\":\"" + objectsARN + "\"\n" +
+                "      }\n" +
+                "   ]\n" +
+                "}";
+
+        String policyName = policyName(bucketId, FULL_CONTROL);
+
+        IamPolicy iamPolicy = IAMPolicyAction.get(connection, policyName, namespace);
+        if (iamPolicy == null) {
+            iamPolicy = IAMPolicyAction.create(connection, policyName, policyDocument, namespace);
+        }
+
+        return iamPolicy;
+    }
+
+    private boolean policyExist(ManagementAPIConnection connection, String policyName, String namespace) {
+        IamPolicy iamUserPolicy = IAMPolicyAction.get(connection, policyName, namespace);
+        return iamUserPolicy != null;
     }
 }
