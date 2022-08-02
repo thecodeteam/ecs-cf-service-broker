@@ -48,15 +48,21 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
         Map<String, Object> parameters = createRequest.getParameters();
 
         List<String> permissions = null;
+        String policyUrn = null;
+
         if (parameters != null) {
             permissions = (List<String>) parameters.get(USER_PERMISSIONS);
+            policyUrn = (String) parameters.get(POLICY_URN);
         }
 
-        if (permissions == null) {
+        if (permissions == null && policyUrn == null) {
             ecs.addUserToBucket(bucket, namespace, binding.getName());
-        } else {
+        } else if (policyUrn == null) {
             ecs.addUserToBucket(bucket, namespace, binding.getName(), permissions);
+        } else {
+            ecs.addUserToBucket(bucket, namespace, binding.getName(), policyUrn, permissions);
         }
+
 
         if (ecs.getBucketFileEnabled(bucket, namespace)) {
             String export = "";

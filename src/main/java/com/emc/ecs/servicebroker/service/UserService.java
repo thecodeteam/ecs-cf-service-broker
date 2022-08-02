@@ -75,6 +75,18 @@ public class UserService {
         }
     }
 
+    public void addUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn, List<String> permissions) {
+        if(isIamManager()) {
+            if(OBJECTSCALE.equals(broker.getApiType())) {
+                // ?
+            } else {
+                addEcsIamUserToBucket(connection, bucketId, namespace, username, policyUrn, permissions);
+            }
+        } else {
+            throw new UnsupportedOperationException("?");
+        }
+    }
+
     public void removeUserFromBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username) {
         if (isIamManager()) {
             if (OBJECTSCALE.equals(broker.getApiType())) {
@@ -210,34 +222,20 @@ public class UserService {
         IAMUserPolicyAction.attach(connection, username, iamPolicy.getArn(), namespace);
     }
 
-
     private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, List<String> permissions) {
         logger.info("Adding Iam user '{}' to bucket '{}' in '{}' with {} access", username, bucketId, namespace, permissions);
 
         // 1. Create policy
-        String permissionsList = buildPermissionsList(permissions);
 
-        String policyDocument = "{\n" +
-                "  \"Version\": \"2012-10-17\",\n" +
-                "  \"Statement\": [\n" +
-                "    {\n" +
-                "      \"Action\": [" + permissionsList + " ],\n" +
-                "      \"Resource\": \"*\",\n" +
-                "      \"Effect\": \"Allow\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}";
-
-        String policyName = policyName(bucketId, permissions);
-        String arn = "urn:ecs:iam::" + namespace + ":policy/" + policyName;
-
-        IamPolicy iamPolicy = IAMPolicyAction.get(connection, arn, namespace);
-        if (iamPolicy == null) {
-            iamPolicy = IAMPolicyAction.create(connection, policyName, policyDocument, namespace);
-        }
+        IamPolicy iamPolicy = createEcsIamPolicy(connection, bucketId, namespace, permissions);
 
         // 2. add policy to user
         IAMUserPolicyAction.attach(connection, username, iamPolicy.getArn(), namespace);
+    }
+
+    private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn, List<String> permissions) {
+        logger.info("Adding Iam user '{}' to bucket '{}' in '{}' with {} access", username, bucketId, namespace, permissions);
+        IAMUserPolicyAction.attach(connection, username, policyUrn, namespace);
     }
 
     private void removeObjectUserFromBucket(ManagementAPIConnection connection, String bucket, String namespace, String username) {
@@ -320,5 +318,30 @@ public class UserService {
         }
 
         return sb.toString();
+    }
+
+    private IamPolicy createEcsIamPolicy(ManagementAPIConnection connection, String bucketId, String namespace, List<String> permissions) {
+        String permissionsList = buildPermissionsList(permissions);
+
+        String policyDocument = "{\n" +
+                "  \"Version\": \"2012-10-17\",\n" +
+                "  \"Statement\": [\n" +
+                "    {\n" +
+                "      \"Action\": [" + permissionsList + " ],\n" +
+                "      \"Resource\": \"*\",\n" +
+                "      \"Effect\": \"Allow\"\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        String policyName = policyName(bucketId, permissions);
+        String arn = "urn:ecs:iam::" + namespace + ":policy/" + policyName;
+
+        IamPolicy iamPolicy = IAMPolicyAction.get(connection, arn, namespace);
+        if (iamPolicy == null) {
+            iamPolicy = IAMPolicyAction.create(connection, policyName, policyDocument, namespace);
+        }
+
+        return iamPolicy;
     }
 }

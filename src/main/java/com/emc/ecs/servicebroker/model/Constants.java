@@ -65,6 +65,7 @@ public class Constants {
     public static final String CREDENTIALS_INSTANCE_ID = "instanceId";
 
     public static final String USER_PERMISSIONS = "permissions";
+    public static final String POLICY_URN = "policy_urn";
     public static final List<String> FULL_CONTROL = Collections.singletonList("full_control");
 
     public static String NAME_PARAMETER = "name";
