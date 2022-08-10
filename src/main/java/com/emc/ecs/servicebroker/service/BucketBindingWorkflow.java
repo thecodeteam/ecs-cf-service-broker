@@ -55,12 +55,16 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             policyUrn = (String) parameters.get(POLICY_URN);
         }
 
+        if(policyUrn != null && permissions != null) {
+            throw new IllegalArgumentException("Can not apply policy urn and user permissions at the same time");
+        }
+
         if (permissions == null && policyUrn == null) {
             ecs.addUserToBucket(bucket, namespace, binding.getName());
         } else if (policyUrn == null) {
             ecs.addUserToBucket(bucket, namespace, binding.getName(), permissions);
         } else {
-            ecs.addUserToBucket(bucket, namespace, binding.getName(), policyUrn, permissions);
+            ecs.addUserToBucket(bucket, namespace, binding.getName(), policyUrn);
         }
 
 
@@ -72,6 +76,7 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             volumeMounts = createVolumeExport(export, new URL(ecs.getObjectEndpoint()), bucket, namespace, parameters);
         }
 
+        LOG.info("Permissions handled");
         return userSecretKey;
     }
 

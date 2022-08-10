@@ -373,8 +373,8 @@ public class EcsService implements StorageService {
     }
 
     @Override
-    public void addUserToBucket(String bucketId, String namespace, String username, String policyUrn, List<String> permissions) throws EcsManagementClientException {
-        userService.addUserToBucket(connection, prefix(bucketId), namespace, prefix(username), policyUrn, permissions);
+    public void addUserToBucket(String bucketId, String namespace, String username, String policyUrn) throws EcsManagementClientException {
+        userService.addUserToBucket(connection, prefix(bucketId), namespace, prefix(username), policyUrn);
     }
 
     @Override

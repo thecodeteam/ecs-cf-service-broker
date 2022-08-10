@@ -75,12 +75,12 @@ public class UserService {
         }
     }
 
-    public void addUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn, List<String> permissions) {
+    public void addUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn) {
         if (isIamManager()) {
             if (OBJECTSCALE.equals(broker.getApiType())) {
                 addObjectStoreIamUserToBucket(connection, bucketId, namespace, username, policyUrn);
             } else {
-                addEcsIamUserToBucket(connection, bucketId, namespace, username, policyUrn, permissions);
+                addEcsIamUserToBucket(connection, bucketId, namespace, username, policyUrn);
             }
         } else {
             //TODO throw new UnsupportedOperationException("");
@@ -214,10 +214,9 @@ public class UserService {
         IAMUserPolicyAction.attach(connection, username, iamPolicy.getArn(), namespace);
     }
 
-    private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn, List<String> permissions) {
-        logger.info("Adding Iam user '{}' to bucket '{}' in '{}' with {} access", username, bucketId, namespace, permissions);
-        String arn = "urn:ecs:iam::" + namespace + ":policy/" + policyName(bucketId, permissions);
-        if (policyExist(connection, arn, namespace)) {
+    private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn) {
+        logger.info("Adding Iam user '{}' to bucket '{}' in '{}' with policy urn '{}'", username, bucketId, namespace, policyUrn);
+        if (policyExist(connection, policyUrn, namespace)) {
             IAMUserPolicyAction.attach(connection, username, policyUrn, namespace);
         } else {
             throw new EcsManagementClientException("Can not find policy-urn to attach user");
@@ -275,7 +274,8 @@ public class UserService {
         } else {
             List<String> copy = new ArrayList<>(permissions);
             Collections.sort(copy);
-            return bucketId + "-policy-" + String.join("-", copy);
+            String hash = DigestUtils.sha256Hex(String.join("-", copy));
+            return bucketId + "-policy-" + hash;
         }
     }
 
@@ -299,7 +299,7 @@ public class UserService {
             sb.append(',');
         }
 
-        if (permissions.size() > 1) {
+        if (permissions.size() > 0) {
             sb.setLength(sb.length() - 1);
         }
 
