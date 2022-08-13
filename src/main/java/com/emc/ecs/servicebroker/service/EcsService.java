@@ -383,6 +383,11 @@ public class EcsService implements StorageService {
     }
 
     @Override
+    public void removeUserFromBucket(String bucket, String namespace, String username, String policyUrn) throws EcsManagementClientException {
+        userService.removeUserFromBucket(connection, prefix(bucket), namespace, prefix(username), policyUrn);
+    }
+
+    @Override
     public String prefix(String string) {
         if (string.startsWith(broker.getPrefix())) {
             logger.warn("String already prefixed: {}", string);

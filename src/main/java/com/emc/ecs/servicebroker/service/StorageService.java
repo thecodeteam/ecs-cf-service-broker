@@ -50,6 +50,7 @@ public interface StorageService {
     void addUserToBucket(String bucketId, String namespace, String username, String policyUrn) throws  EcsManagementClientException;
 
     void removeUserFromBucket(String bucket, String namespace, String username) throws EcsManagementClientException;
+    void removeUserFromBucket(String bucket, String namespace, String username, String policyUrn) throws EcsManagementClientException;
 
     void createUserMap(String username, String namespace, int uid) throws EcsManagementClientException;
 

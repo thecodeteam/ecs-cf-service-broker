@@ -78,7 +78,8 @@ public class UserService {
     public void addUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn) {
         if (isIamManager()) {
             if (OBJECTSCALE.equals(broker.getApiType())) {
-                addObjectStoreIamUserToBucket(connection, bucketId, namespace, username, policyUrn);
+                // TODO support
+                throw new UnsupportedOperationException("");
             } else {
                 addEcsIamUserToBucket(connection, bucketId, namespace, username, policyUrn);
             }
@@ -98,6 +99,54 @@ public class UserService {
             removeObjectUserFromBucket(connection, bucketId, namespace, username);
         }
     }
+
+    public void removeUserFromBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn) {
+        if (isIamManager()) {
+            if (OBJECTSCALE.equals(broker.getApiType())) {
+                //TODO support
+                throw new UnsupportedOperationException("");
+            } else {
+                removeEcsIamUserFromBucket(connection, bucketId, namespace, username, policyUrn);
+            }
+        } else {
+            throw new UnsupportedOperationException("");
+        }
+    }
+
+    public static String policyName(String bucketId, List<String> permissions) {
+        if (permissions == null || isEqualList(FULL_CONTROL, permissions)) {
+            return bucketId + "-policy";
+        } else {
+            List<String> copy = new ArrayList<>(permissions);
+            Collections.sort(copy);
+            String hash = DigestUtils.sha256Hex(String.join("-", copy));
+            return bucketId + "-policy-" + hash;
+        }
+    }
+
+    public static String buildPermissionsList(List<String> permissions) {
+        if (permissions == null || permissions.size() == 0 || isEqualList(FULL_CONTROL, permissions)) {
+            return FULL_CONTROL_PERMISSIONS_LIST;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (String permission : permissions) {
+            sb.append('"');
+            if (!permission.startsWith("s3:")) {
+                sb.append("s3:");
+            }
+            sb.append(permission);
+            sb.append('"');
+            sb.append(',');
+        }
+
+        if (permissions.size() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
+
+        return sb.toString();
+    }
+
 
     boolean isIamManager() {
         return OBJECTSCALE.equals(broker.getApiType()) || broker.isIamManager();
@@ -188,19 +237,10 @@ public class UserService {
 
         // 1. Create policy
 
-        IamPolicy iamPolicy = createObjectStoreIamPolicy(connection, bucketId, namespace, FULL_CONTROL);
+        IamPolicy iamPolicy = createObjectStoreIamPolicy(connection, bucketId, namespace);
 
         // 2. add policy to user
         IAMUserPolicyAction.attach(connection, username, iamPolicy.getArn(), namespace);
-    }
-
-    private void addObjectStoreIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, String policyUrn) {
-        logger.info("Adding user '{}' default access to bucket '{}' in '{}'", username, bucketId, namespace);
-        if (userExists(connection, policyName(bucketId, FULL_CONTROL), namespace)) {
-            IAMUserPolicyAction.attach(connection, username, policyUrn, namespace);
-        } else {
-            throw new EcsManagementClientException("Can not find policy-urn to attach user");
-        }
     }
 
     private void addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, List<String> permissions) {
@@ -250,13 +290,25 @@ public class UserService {
     }
 
     private void removeEcsIamUserFromBucket(ManagementAPIConnection connection, String bucket, String namespace, String username) {
+        // TODO Fix a problem with removing user with custom permissions
+        //  (User created with method addEcsIamUserToBucket(ManagementAPIConnection connection, String bucketId, String namespace, String username, List<String> permissions)
+        //  The problem is that policy_urn of this user is not FULL_CONTROL policy
+
         String policyName = policyName(bucket, FULL_CONTROL);
         String arn = "urn:ecs:iam::" + namespace + ":policy/" + policyName;
-        IamPolicy iamPolicy = IAMPolicyAction.get(connection, arn, namespace);
+        removeUserFromBucket(connection, bucket, namespace, username, arn);
+    }
+
+    private void removeEcsIamUserFromBucket(ManagementAPIConnection connection, String bucket, String namespace, String username, String policyUrn) {
+        IamPolicy iamPolicy = IAMPolicyAction.get(connection, policyUrn, namespace);
         if (iamPolicy != null) {
-            IAMUserPolicyAction.detach(connection, username, iamPolicy.getArn(), namespace);
+            try {
+                IAMUserPolicyAction.detach(connection, username, iamPolicy.getArn(), namespace);
+            } catch (Exception e) {
+                logger.warn("Can not detach user '{}' from policy urn '{}': '{}'", username, policyUrn, e.getMessage());
+            }
         } else {
-            logger.warn("Cannot find iam policy to remove from user: " + policyName);
+            logger.warn("Cannot find iam policy to remove from user: " + policyUrn);
         }
     }
 
@@ -268,42 +320,8 @@ public class UserService {
         return ObjectUserAction.exists(connection, userId, namespace);
     }
 
-    private String policyName(String bucketId, List<String> permissions) {
-        if (permissions == null || isEqualList(FULL_CONTROL, permissions)) {
-            return bucketId + "-policy";
-        } else {
-            List<String> copy = new ArrayList<>(permissions);
-            Collections.sort(copy);
-            String hash = DigestUtils.sha256Hex(String.join("-", copy));
-            return bucketId + "-policy-" + hash;
-        }
-    }
-
     private boolean aclExists(ManagementAPIConnection connection, String bucketName, String namespace) throws EcsManagementClientException {
         return BucketAclAction.exists(connection, bucketName, namespace);
-    }
-
-    public static String buildPermissionsList(List<String> permissions) {
-        if (permissions == null || permissions.size() == 0 || isEqualList(FULL_CONTROL, permissions)) {
-            return FULL_CONTROL_PERMISSIONS_LIST;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (String permission : permissions) {
-            sb.append('"');
-            if (!permission.startsWith("s3:")) {
-                sb.append("s3:");
-            }
-            sb.append(permission);
-            sb.append('"');
-            sb.append(',');
-        }
-
-        if (permissions.size() > 0) {
-            sb.setLength(sb.length() - 1);
-        }
-
-        return sb.toString();
     }
 
     private IamPolicy createEcsIamPolicy(ManagementAPIConnection connection, String bucketId, String namespace, List<String> permissions) {
@@ -331,7 +349,7 @@ public class UserService {
         return iamPolicy;
     }
 
-    private IamPolicy createObjectStoreIamPolicy(ManagementAPIConnection connection, String bucketId, String namespace, List<String> permissions) {
+    private IamPolicy createObjectStoreIamPolicy(ManagementAPIConnection connection, String bucketId, String namespace) {
         String objectscaleId = broker.getObjectscaleId();
         String objectstoreId = broker.getObjectstoreId();
 

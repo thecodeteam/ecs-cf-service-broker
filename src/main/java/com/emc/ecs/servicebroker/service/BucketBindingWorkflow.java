@@ -103,7 +103,13 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         LOG.info("Removing binding '{}' user from bucket '{}' in namespace '{}'", bindingId, bucket, namespace);
 
-        ecs.removeUserFromBucket(bucket, namespace, binding.getName());
+        Map<String, Object> credentials = binding.getCredentials();
+
+        if(credentials != null && credentials.containsKey(POLICY_URN)) {
+            ecs.removeUserFromBucket(bucket, namespace, binding.getName(), (String) credentials.get(POLICY_URN));
+        } else {
+            ecs.removeUserFromBucket(bucket, namespace, binding.getName());
+        }
         ecs.deleteUser(binding.getName(), namespace);
     }
 
@@ -139,6 +145,10 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
             Map<String, Object> config = volumeDevice.getMountConfig();
             int unixID = Integer.parseInt((String)config.get(VOLUME_EXPORT_UID));
             credentials.put(VOLUME_EXPORT_UID, unixID);
+        }
+
+        if(parameters != null && parameters.containsKey(POLICY_URN)) {
+            credentials.put(POLICY_URN, parameters.get(POLICY_URN));
         }
 
         return credentials;
