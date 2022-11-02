@@ -2,4 +2,6 @@
 # Copy this file to `<project root>/src/main/resources/application.yaml`.
 ---
 spring:
-  profiles: cloud
+  config:
+    activate:
+      on-profile: cloud

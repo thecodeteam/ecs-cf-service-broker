@@ -1,6 +1,8 @@
 ---
 spring:
-  profiles: test
+  config:
+    activate:
+      on-profile: test
 security:
   user:
     password: password
