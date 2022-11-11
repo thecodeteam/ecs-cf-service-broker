@@ -460,7 +460,7 @@ public class EcsServiceTest {
         when(bucketWipeFactory.getBucketWipe(any(BrokerConfig.class))).thenReturn(bucketWipeOperations);
 
         // Setup bucket wipe with a CompletableFuture that never returns
-        CompletableFuture wipeCompletableFuture = new CompletableFuture();
+        CompletableFuture<Boolean> wipeCompletableFuture = new CompletableFuture<>();
         BucketWipeResult bucketWipeResult = mock(BucketWipeResult.class);
         when(bucketWipeResult.getCompletedFuture()).thenReturn(wipeCompletableFuture);
         when(bucketWipeFactory.newBucketWipeResult()).thenReturn(bucketWipeResult);
@@ -489,13 +489,21 @@ public class EcsServiceTest {
         // Complete the Delete operation
         wipeCompletableFuture.complete(true);
 
+        ArgumentCaptor<String> idCaptor2 = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> pfCaptor2 = ArgumentCaptor.forClass(String.class);
+
+        // Verify that bucket wipe was called
+        verify(bucketWipeOperations).deleteAllObjects(idCaptor2.capture(), pfCaptor2.capture(), any());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor2.getValue());
+        assertEquals("", pfCaptor2.getValue());
+
         // Verify that Delete Bucket was called
         PowerMockito.verifyStatic(BucketAction.class, times(1));
-        ArgumentCaptor<String> idCaptor2 = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> nsCaptor2 = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> idCaptor3 = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> nsCaptor3 = ArgumentCaptor.forClass(String.class);
 
-        BucketAction.delete(same(connection), idCaptor2.capture(), nsCaptor2.capture());
-        assertEquals(PREFIX + BUCKET_NAME, idCaptor2.getValue());
+        BucketAction.delete(same(connection), idCaptor3.capture(), nsCaptor3.capture());
+        assertEquals(PREFIX + BUCKET_NAME, idCaptor3.getValue());
     }
 
     @Test
