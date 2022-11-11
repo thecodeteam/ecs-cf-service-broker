@@ -44,7 +44,7 @@ To build, make sure you have a Java 11 runtime environment, and use Gradle.
 The service broker supports a number of configuration parameters that are available as environment variables or through
 Spring configuration.  All parameters are prefixed with the `broker-config.` string.  Default parameters point to the
 bundled ECS simulator.  For more info, check the
-[default config](https://github.com/codedellemc/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
+[example config](https://github.com/codedellemc/ecs-cf-service-broker/blob/master/src/test/resources/application-test.yml).
 
 | Parameter          | Default Value  | Required | Description                                        |
 | ------------------ |:--------------:| -------- | -------------------------------------------------- |
@@ -94,7 +94,7 @@ When connecting to Objectscale, Service Broker requires different set of paramet
 
 The ECS Simulator is helpful for ensuring that the application starts up, without actually having an ECS cluster
 accessible.  You'll find the
-[simulator in the test-suite](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/apiSimulator/Server.java).
+[simulator in the test-suite](https://github.com/thecodeteam/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/apiSimulator/Server.java).
 Just run this file as a Java program, and the broker will be able to initialize against the
 "mocked" API calls.
 
@@ -217,7 +217,7 @@ Details about bucket tagging could be found below in _Bucket Tags_ section
 Details about search metadata definition are described below in _Search metadata_ section 
 
 For more info, check the
-[default config](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/main/resources/application.yml).
+[example config](https://github.com/thecodeteam/ecs-cf-service-broker/blob/master/src/test/resources/application-test.yml).
 
 ### Broker security
 
@@ -464,7 +464,7 @@ Tag Placeholders usage example:
 
 Local test suite can be run with either a live ECS platform, or using the included simulator.  Configuration variables
 can be found and/or changed via the
-[EcsActionTest class](https://github.com/spiegela/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/common/EcsActionTest.java).
+[EcsActionTest class](https://github.com/thecodeteam/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/common/EcsActionTest.java).
 
 You can then run the test-suite with gradle:
 
