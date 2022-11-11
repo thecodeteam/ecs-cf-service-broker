@@ -94,7 +94,7 @@ When connecting to Objectscale, Service Broker requires different set of paramet
 
 The ECS Simulator is helpful for ensuring that the application starts up, without actually having an ECS cluster
 accessible.  You'll find the
-[simulator in the test-suite](https://github.com/thecodeteam/ecs-cf-service-broker/blob/master/src/test/java/com/emc/ecs/apiSimulator/Server.java).
+[simulator in the test-suite](https://github.com/thecodeteam/ecs-cf-service-broker/tree/master/src/test/java/com/emc/ecs/management/simulator/Server.java).
 Just run this file as a Java program, and the broker will be able to initialize against the
 "mocked" API calls.
 
