@@ -388,24 +388,53 @@ public class EcsService implements StorageService {
         BucketAcl acl = BucketAclAction.get(connection, prefix(bucketId), namespace);
 
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-        userAcl.add(new BucketUserAcl(prefix(username), permissions));
-        acl.getAcl().setUserAccessList(userAcl);
 
-        BucketAclAction.update(connection, prefix(bucketId), acl);
+        // Idempotency: check if user is already added
+        if (userAcl.stream().anyMatch(userPerm -> Objects.equals(prefix(username), userPerm.getUser()) && Objects.equals(permissions, userPerm.getPermissions()))) {
+            logger.info("Found existing permissions for user '{}' on bucket '{}' in '{}'", prefix(username), prefix(bucketId), namespace);
+        } else {
+            userAcl.add(new BucketUserAcl(prefix(username), permissions));
+            acl.getAcl().setUserAccessList(userAcl);
+
+            BucketAclAction.update(connection, prefix(bucketId), acl);
+        }
 
         if (!getBucketFileEnabled(bucketId, namespace)) {
-            BucketPolicy bucketPolicy = new BucketPolicy(
-                    "2012-10-17",
-                    "DefaultPCFBucketPolicy",
-                    new BucketPolicyStatement("DefaultAllowTotalAccess",
-                            new BucketPolicyEffect("Allow"),
-                            new BucketPolicyPrincipal(prefix(username)),
-                            new BucketPolicyActions(Collections.singletonList("s3:*")),
-                            new BucketPolicyResource(Collections.singletonList(prefix(bucketId)))
-                    )
-            );
-            BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
+            BucketPolicyStatement statement = new BucketPolicyStatement(null,
+                    new BucketPolicyEffect("Allow"),
+                    new BucketPolicyPrincipal(prefix(username)),
+                    new BucketPolicyActions(Collections.singletonList("s3:*")),
+                    new BucketPolicyResource(Collections.singletonList(prefix(bucketId))));
+
+            // Idempotency: check if permission already exists
+            BucketPolicy bucketPolicy;
+            // first, check if any policy exists
+            if (BucketPolicyAction.hasPolicy(connection, prefix(bucketId), namespace)) {
+                bucketPolicy = BucketPolicyAction.get(connection, prefix(bucketId), namespace);
+            } else {
+                bucketPolicy = new BucketPolicy("2012-10-17", "DefaultPCFBucketPolicy", statement);
+            }
+            // then, only update the policy if it was modified (permission was missing)
+            if (addStatementToBucketPolicy(bucketPolicy, statement))
+                BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
         }
+    }
+
+    /**
+     * Adds the provided statement to the provided policy, unless an equivalent statement already exists on the policy.
+     * An equivalent statement exists if any existing statements in the policy match the provided statement on:
+     * <ul>
+     *     <li>Effect</li>
+     *     <li>Principal</li>
+     *     <li>Actions</li>
+     *     <li>Resources</li>
+     * </ul>
+     *
+     * @return true if the policy was modified, false otherwise
+     */
+    protected boolean addStatementToBucketPolicy(BucketPolicy bucketPolicy, BucketPolicyStatement statement) {
+        // TODO: implement
+        return false;
     }
 
     @Override
