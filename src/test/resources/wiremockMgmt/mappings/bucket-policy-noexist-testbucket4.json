@@ -1,0 +1,22 @@
+{
+  "scenarioName": "testbucket4",
+  "requiredScenarioState": "Created",
+  "request": {
+    "method": "GET",
+    "url": "/object/bucket/testbucket4/policy?namespace=ns1",
+    "headers": {
+      "Accept": {
+        "equalTo": "application/json"
+      },
+      "X-SDS-AUTH-TOKEN": {
+        "equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+      }
+    }
+  },
+  "response": {
+    "status": "200",
+    "headers": {
+      "Content-Type": "application/xml"
+    }
+  }
+}

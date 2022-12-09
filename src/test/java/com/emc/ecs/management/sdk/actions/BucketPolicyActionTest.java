@@ -1,18 +1,17 @@
 package com.emc.ecs.management.sdk.actions;
 
 import com.emc.ecs.common.EcsActionTest;
-import com.emc.ecs.management.sdk.model.BucketAcl;
-import com.emc.ecs.management.sdk.model.BucketUserAcl;
+import com.emc.ecs.management.sdk.model.BucketPolicy;
+import com.emc.ecs.management.sdk.model.BucketPolicyStatement;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.exception.EcsManagementResourceNotFoundException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
+import java.util.Collections;
 
-import static com.emc.ecs.servicebroker.model.Constants.FULL_CONTROL;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class BucketPolicyActionTest extends EcsActionTest {
     private String bucket = "testbucket4";
@@ -31,20 +30,31 @@ public class BucketPolicyActionTest extends EcsActionTest {
         BucketAction.delete(connection, bucket, namespace);
     }
 
-    // TODO: implement test case
     @Test
     public void testApplyCheckRemoveBucketPolicy()
-            throws EcsManagementClientException,
-            EcsManagementResourceNotFoundException {
-        BucketAcl acl = BucketAclAction.get(connection, bucket, namespace);
-        List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-        userAcl.add(new BucketUserAcl(user, FULL_CONTROL));
-        acl.getAcl().setUserAccessList(userAcl);
-        BucketAclAction.update(connection, bucket, acl);
-        BucketAcl bucketAcl = BucketAclAction.get(connection, bucket,
-                namespace);
-        long userAclCount = bucketAcl.getAcl().getUserAccessList().stream()
-                .filter(userAcl1 -> userAcl1.getUser().equals(user)).count();
-        assertTrue(userAclCount == 1);
+            throws EcsManagementClientException {
+        assertFalse(BucketPolicyAction.hasPolicy(connection, bucket, namespace));
+
+        BucketPolicyStatement statement = new BucketPolicyStatement();
+        statement.setBucketPolicyEffect("Allow");
+        statement.setPrincipal(user);
+        statement.setBucketPolicyAction(Collections.singletonList("s3:*"));
+        statement.setBucketPolicyResource(Collections.singletonList(bucket));
+        BucketPolicy policy = new BucketPolicy("2008-10-17", bucket, statement);
+
+        BucketPolicyAction.update(connection, bucket, policy, namespace);
+
+        assertTrue(BucketPolicyAction.hasPolicy(connection, bucket, namespace));
+
+        BucketPolicy policy2 = BucketPolicyAction.get(connection, bucket, namespace);
+        assertEquals(policy.getVersion(), policy2.getVersion());
+        assertEquals(policy.getBucketPolicyStatement().getBucketPolicyEffect(), policy2.getBucketPolicyStatement().getBucketPolicyEffect());
+        assertEquals(policy.getBucketPolicyStatement().getPrincipal(), policy2.getBucketPolicyStatement().getPrincipal());
+        assertEquals(policy.getBucketPolicyStatement().getBucketPolicyAction(), policy2.getBucketPolicyStatement().getBucketPolicyAction());
+        assertEquals(policy.getBucketPolicyStatement().getBucketPolicyResource(), policy2.getBucketPolicyStatement().getBucketPolicyResource());
+
+        BucketPolicyAction.remove(connection, bucket, namespace);
+
+        assertFalse(BucketPolicyAction.hasPolicy(connection, bucket, namespace));
     }
 }

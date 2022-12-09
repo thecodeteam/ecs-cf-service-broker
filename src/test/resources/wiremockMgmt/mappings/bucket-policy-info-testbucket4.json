@@ -1,0 +1,23 @@
+{
+  "scenarioName": "testbucket4",
+  "requiredScenarioState": "Policy updated",
+  "request": {
+    "method": "GET",
+    "url": "/object/bucket/testbucket4/policy?namespace=ns1",
+    "headers": {
+      "Accept": {
+        "equalTo": "application/json"
+      },
+      "X-SDS-AUTH-TOKEN": {
+        "equalTo": "BAAcY1U1UTNSRGRCUnViRXl1UDZDZDdhbWFuaGRZPQMAQQIADTE0NTAwNjU5ODc1MjMDAC51cm46VG9rZW46ODExN2ViY2YtYTliMi00NGExLTliYmUtNTM2ODQwMzk2Nzc1AgAC0A8"
+      }
+    }
+  },
+  "response": {
+    "status": "200",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"Version\":\"2008-10-17\",\"Id\":\"\",\"Statement\":{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":\"testuser3\",\"Action\":[\"s3:*\"],\"Resource\":[\"testbucket4\"]}}"
+  }
+}
