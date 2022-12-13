@@ -217,7 +217,7 @@ public class EcsService implements StorageService {
             }
 
             if (parameters.containsKey(EXPIRATION) && parameters.get(EXPIRATION) != null) {
-                grantUserLifecycleManagementPolicy(prefixedBucketName, namespace, prefix(broker.getRepositoryUser()));
+                grantUserLifecycleManagementPolicy(prefixedBucketName, namespace, broker.getRepositoryUser());
                 logger.info("Applying bucket expiration on '{}': {} days", bucketName, parameters.get(EXPIRATION));
                 BucketExpirationAction.update(broker, namespace, prefixedBucketName, (int) parameters.get(EXPIRATION), null);
             }
@@ -388,41 +388,71 @@ public class EcsService implements StorageService {
         BucketAcl acl = BucketAclAction.get(connection, prefix(bucketId), namespace);
 
         List<BucketUserAcl> userAcl = acl.getAcl().getUserAccessList();
-        userAcl.add(new BucketUserAcl(prefix(username), permissions));
-        acl.getAcl().setUserAccessList(userAcl);
 
-        BucketAclAction.update(connection, prefix(bucketId), acl);
+        // Idempotency: check if user is already added
+        if (userAcl.stream().anyMatch(userPerm -> Objects.equals(prefix(username), userPerm.getUser()) && Objects.equals(permissions, userPerm.getPermissions()))) {
+            logger.info("Found existing permissions for user '{}' on bucket '{}' in '{}'", prefix(username), prefix(bucketId), namespace);
+        } else {
+            userAcl.add(new BucketUserAcl(prefix(username), permissions));
+            acl.getAcl().setUserAccessList(userAcl);
+
+            BucketAclAction.update(connection, prefix(bucketId), acl);
+        }
 
         if (!getBucketFileEnabled(bucketId, namespace)) {
-            BucketPolicy bucketPolicy = new BucketPolicy(
-                    "2012-10-17",
-                    "DefaultPCFBucketPolicy",
-                    new BucketPolicyStatement("DefaultAllowTotalAccess",
-                            new BucketPolicyEffect("Allow"),
-                            new BucketPolicyPrincipal(prefix(username)),
-                            new BucketPolicyActions(Collections.singletonList("s3:*")),
-                            new BucketPolicyResource(Collections.singletonList(prefix(bucketId)))
-                    )
-            );
-            BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
+            String statementId = getPolicyStatementId(username);
+            BucketPolicyStatement statement = new BucketPolicyStatement(statementId,
+                    new BucketPolicyEffect("Allow"),
+                    new BucketPolicyPrincipal(prefix(username)),
+                    new BucketPolicyActions(Collections.singletonList("s3:*")),
+                    new BucketPolicyResource(Collections.singletonList(prefix(bucketId))));
+
+            // Idempotency: check if permission already exists
+            BucketPolicy bucketPolicy;
+            // first, check if any policy exists
+            if (BucketPolicyAction.exists(connection, prefix(bucketId), namespace)) {
+                bucketPolicy = BucketPolicyAction.get(connection, prefix(bucketId), namespace);
+            } else {
+                bucketPolicy = new BucketPolicy(BUCKET_POLICY_VERSION, "DefaultPCFBucketPolicy", new ArrayList<>());
+            }
+            // then, only update the policy if it was modified (statement was missing), which should be true if we created with an empty list above
+            if (addPolicyStatement(bucketPolicy, statement)) {
+                logger.info("Updating bucket policy {} after adding statement for user {}", prefix(bucketId), prefix(username));
+                BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
+            } else {
+                logger.info("Bucket policy {} already contains a statement for user {}", prefix(bucketId), prefix(username));
+            }
         }
     }
 
     @Override
     public void removeUserFromBucket(String bucket, String namespace, String username) throws EcsManagementClientException {
-        if (!aclExists(prefix(bucket), namespace)) {
+        if (aclExists(prefix(bucket), namespace)) {
+            BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), namespace);
+
+            List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
+                    .stream().filter(a -> !a.getUser().equals(prefix(username)))
+                    .collect(Collectors.toList());
+            acl.getAcl().setUserAccessList(newUserAcl);
+
+            logger.info("Updating ACL {} after removing user {}", prefix(bucket), prefix(username));
+            BucketAclAction.update(connection, prefix(bucket), acl);
+        } else {
             logger.info("ACL {} no longer exists when removing user {}", prefix(bucket), prefix(username));
-            return;
         }
 
-        BucketAcl acl = BucketAclAction.get(connection, prefix(bucket), namespace);
-
-        List<BucketUserAcl> newUserAcl = acl.getAcl().getUserAccessList()
-                .stream().filter(a -> !a.getUser().equals(prefix(username)))
-                .collect(Collectors.toList());
-        acl.getAcl().setUserAccessList(newUserAcl);
-
-        BucketAclAction.update(connection, prefix(bucket), acl);
+        if (BucketPolicyAction.exists(connection, prefix(bucket), namespace)) {
+            // remove the policy statement for this user
+            BucketPolicy policy = BucketPolicyAction.get(connection, prefix(bucket), namespace);
+            if (removePolicyStatement(policy, getPolicyStatementId(username))) {
+                logger.info("Updating bucket policy {} after removing user {}", prefix(bucket), prefix(username));
+                BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
+            } else {
+                logger.info("Bucket policy {} no longer contains statement for user {}", prefix(bucket), prefix(username));
+            }
+        } else {
+            logger.info("Bucket policy {} no longer exists when removing user {}", prefix(bucket), prefix(username));
+        }
     }
 
     @Override
@@ -431,6 +461,50 @@ public class EcsService implements StorageService {
             logger.warn("String already prefixed: {}", string);
         }
         return broker.getPrefix() + string;
+    }
+
+    static String getPolicyStatementId(String username) {
+        return "ecs-cf-broker-sid-" + username;
+    }
+
+    /**
+     * Returns the statement in the provided policy that matches the provided Sid
+     */
+    static BucketPolicyStatement getPolicyStatement(BucketPolicy policy, String sid) {
+        return policy.getBucketPolicyStatements().stream()
+                .filter(statement -> sid.equals(statement.getSid()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Removes the statement in the provided policy that matches the provided Sid, if it exists.
+     *
+     * @return true if the policy was modified, false otherwise
+     */
+    static boolean removePolicyStatement(BucketPolicy policy, String sid) {
+        BucketPolicyStatement statement = getPolicyStatement(policy, sid);
+        if (statement != null) {
+            policy.getBucketPolicyStatements().remove(statement);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Adds the provided statement to the provided policy, unless an equivalent statement already exists on the policy.
+     * An equivalent statement exists if any existing statement in the policy has the same Sid.
+     *
+     * @return true if the policy was modified, false otherwise
+     */
+    static boolean addPolicyStatement(BucketPolicy policy, BucketPolicyStatement statement) {
+        if (getPolicyStatement(policy, statement.getSid()) == null) {
+            policy.getBucketPolicyStatements().add(statement);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void lookupObjectEndpoints() throws EcsManagementClientException {
@@ -852,25 +926,31 @@ public class EcsService implements StorageService {
     }
 
     public void grantUserLifecycleManagementPolicy(String prefixedBucket, String namespace, String username) {
-        logger.info("Granting lifecycle management bucket policy on bucket '{}' to user '{}'", prefixedBucket, username);
+        logger.info("Granting lifecycle management bucket policy on bucket '{}' to user '{}'", prefixedBucket, prefix(username));
 
-        BucketPolicy policy = new BucketPolicy(
-                BUCKET_POLICY_VERSION,
-                "LifecycleManagementBucketPolicy",
-                new BucketPolicyStatement(
-                        "Grant permission for lifecycle configuration to " + username,
-                        new BucketPolicyEffect("Allow"),
-                        new BucketPolicyPrincipal(username),
-                        new BucketPolicyActions(Arrays.asList(
-                                S3_ACTION_PUT_LC_CONFIG,
-                                S3_ACTION_GET_LC_CONFIG,
-                                S3_ACTION_GET_BUCKET_POLICY
-                        )),
-                        new BucketPolicyResource(Collections.singletonList(prefixedBucket))
-                )
+        BucketPolicy policy = new BucketPolicy(BUCKET_POLICY_VERSION, "LifecycleManagementBucketPolicy", new ArrayList<>());
+        if (BucketPolicyAction.exists(connection, prefixedBucket, namespace)) {
+            policy = BucketPolicyAction.get(connection, prefixedBucket, namespace);
+        }
+
+        BucketPolicyStatement statement = new BucketPolicyStatement(
+                getPolicyStatementId(username),
+                new BucketPolicyEffect("Allow"),
+                new BucketPolicyPrincipal(prefix(username)),
+                new BucketPolicyActions(Arrays.asList(
+                        S3_ACTION_PUT_LC_CONFIG,
+                        S3_ACTION_GET_LC_CONFIG,
+                        S3_ACTION_GET_BUCKET_POLICY
+                )),
+                new BucketPolicyResource(Collections.singletonList(prefixedBucket))
         );
 
-        BucketPolicyAction.update(connection, prefixedBucket, policy, namespace);
+        if (addPolicyStatement(policy, statement)) {
+            logger.info("Updating bucket policy on bucket '{}' for user '{}'", prefixedBucket, prefix(username));
+            BucketPolicyAction.update(connection, prefixedBucket, policy, namespace);
+        } else {
+            logger.info("Bucket policy '{}' already contains a statement for user '{}'", prefixedBucket, prefix(username));
+        }
     }
 
     /**
@@ -1048,23 +1128,25 @@ public class EcsService implements StorageService {
     private void provideUserWithLifecycleManagementPolicy(String bucketName, String namespace, String user) {
         List<String> actions = new ArrayList<>();
         try {
-            logger.debug("Checking lifecycle management bucket policy on '{}'({}) with user '{}'", prefix(bucketName), namespace, prefix(broker.getRepositoryUser()));
-            BucketPolicyStatement bucketPolicyStatement = BucketPolicyAction.get(connection, prefix(bucketName), namespace).getBucketPolicyStatement();
-            actions = bucketPolicyStatement.getBucketPolicyAction();
+            logger.debug("Checking lifecycle management bucket policy on '{}'({}) with user '{}'", prefix(bucketName), namespace, prefix(user));
+            BucketPolicy policy = BucketPolicyAction.get(connection, prefix(bucketName), namespace);
+            BucketPolicyStatement bucketPolicyStatement = getPolicyStatement(policy, getPolicyStatementId(user));
+            if (bucketPolicyStatement != null) actions = bucketPolicyStatement.getBucketPolicyAction();
         } catch (RuntimeException e) {
             logger.debug(
-                    "Object user '{}' does not have reading bucket policy permissions for bucket '{}' in namespace '{}'",
-                    prefix(broker.getRepositoryUser()), prefix(bucketName), namespace
+                    "Object user '{}' does not have lifecycle management bucket policy permissions for bucket '{}' in namespace '{}'",
+                    prefix(user), prefix(bucketName), namespace
             );
         }
 
-        if (!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG)) {
+        // if user doesn't have full permissions, and also doesn't have R/W LC permissions, then grant them
+        if (!actions.contains(S3_ACTION_ALL) && (!actions.contains(S3_ACTION_GET_LC_CONFIG) || !actions.contains(S3_ACTION_PUT_LC_CONFIG))) {
             grantUserLifecycleManagementPolicy(prefix(bucketName), namespace, user);
         }
     }
 
     void changeBucketExpiration(String bucketName, String namespace, int days) throws URISyntaxException {
-        provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+        provideUserWithLifecycleManagementPolicy(bucketName, namespace, broker.getRepositoryUser());
         LifecycleConfiguration configuration = BucketExpirationAction.get(broker, namespace, prefix(bucketName));
 
         if (configuration == null || configuration.getRules() == null) {
@@ -1088,7 +1170,7 @@ public class EcsService implements StorageService {
     }
 
     void deleteCurrentExpirationRule(String bucketName, String namespace) throws URISyntaxException {
-        provideUserWithLifecycleManagementPolicy(bucketName, namespace, prefix(broker.getRepositoryUser()));
+        provideUserWithLifecycleManagementPolicy(bucketName, namespace, broker.getRepositoryUser());
 
         LifecycleConfiguration configuration = BucketExpirationAction.get(broker, namespace, prefix(bucketName));
 

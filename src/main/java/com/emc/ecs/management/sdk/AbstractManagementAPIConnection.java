@@ -49,6 +49,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
     }
 
     abstract public void login() throws EcsManagementClientException;
+
     abstract public void logout() throws EcsManagementClientException;
 
     public Response remoteCall(String method, UriBuilder uri, Object arg) throws EcsManagementClientException {
@@ -110,14 +111,16 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
                     .target(uri)
                     .request()
                     .header("X-EMC-Override", "true")            // enables access to ECS Flex API (pre-GA limitation)
-                    .header(X_SDS_AUTH_TOKEN, authToken)
-                    .header(HttpHeaders.ACCEPT, APPLICATION_XML);
+                    .header(X_SDS_AUTH_TOKEN, authToken);
 
             if (headers != null && headers.size() > 0) {
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     request.header(header.getKey(), header.getValue());
                 }
             }
+
+            // add a default Accept header if it wasn't specified
+            if (headers == null || !headers.containsKey(HttpHeaders.ACCEPT)) request.header(HttpHeaders.ACCEPT, APPLICATION_XML);
 
             Response response = null;
 

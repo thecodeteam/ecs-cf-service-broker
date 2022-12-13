@@ -137,9 +137,10 @@ public class BucketBindingWorkflowTest {
 
                     Context("basic bucket binding", () -> {
 
-                        BeforeEach(() ->
-                                doNothing().when(ecs).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID))
-                        );
+                        BeforeEach(() -> {
+                            doNothing().when(ecs).addUserToBucket(eq(SERVICE_INSTANCE_ID), anyString(), eq(BINDING_ID));
+                            when(ecs.bucketExists(eq(SERVICE_INSTANCE_ID), eq(NAMESPACE_NAME))).thenReturn(true);
+                        });
 
                         It("should create a new user", () -> {
                             workflow.createBindingUser();
@@ -262,6 +263,7 @@ public class BucketBindingWorkflowTest {
                                         .withCreateRequest(Fixtures.bucketBindingRequestWithNameFixture(BUCKET_NAME));
 
                                     when(instanceRepo.find(eq(SERVICE_INSTANCE_ID))).thenReturn(serviceInstanceWithNameFixture(BUCKET_NAME));
+                                    when(ecs.bucketExists(eq(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID), eq(NAMESPACE_NAME))).thenReturn(true);
                                 });
 
                                 It("should delete named user", () -> {
@@ -274,6 +276,8 @@ public class BucketBindingWorkflowTest {
                                 It("should remove the named user to a bucket", () -> {
                                     workflow.withDeleteRequest(bucketBindingRemoveFixture(), bindingInstanceWithNameFixture(BUCKET_NAME));
                                     workflow.removeBinding();
+                                    verify(ecs, times(1))
+                                            .bucketExists(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID, NAMESPACE_NAME);
                                     verify(ecs, times(1))
                                         .removeUserFromBucket(eq(BUCKET_NAME+"-"+SERVICE_INSTANCE_ID), anyString(), eq(BUCKET_NAME+"-"+BINDING_ID));
                                 });

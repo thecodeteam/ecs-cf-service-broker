@@ -92,7 +92,12 @@ public class BucketBindingWorkflow extends BindingWorkflowImpl {
 
         LOG.info("Removing binding '{}' user from bucket '{}' in namespace '{}'", bindingId, bucket, namespace);
 
-        ecs.removeUserFromBucket(bucket, namespace, binding.getName());
+        if (ecs.bucketExists(bucket, namespace)) {
+            ecs.removeUserFromBucket(bucket, namespace, binding.getName());
+        } else {
+            LOG.warn("While removing binding '{}' user, Bucket '{}' no longer exists in namespace '{}'", bindingId, bucket, namespace);
+        }
+
         ecs.deleteUser(binding.getName(), namespace);
     }
 

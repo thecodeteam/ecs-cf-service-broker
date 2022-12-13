@@ -12,7 +12,7 @@
     },
     "bodyPatterns": [
       {
-        "equalToJson": "{\"Version\":\"2012-10-17\",\"Id\":\"DefaultPCFBucketPolicy\",\"Statement\":{\"Sid\":\"DefaultAllowTotalAccess\",\"Effect\":\"Allow\",\"Principal\":\"ecs-cf-broker-user\",\"Action\":[\"s3:*\"],\"Resource\":[\"ecs-cf-broker-repository\"]}}"
+        "equalToJson": "{\"Version\":\"2012-10-17\",\"Id\":\"DefaultPCFBucketPolicy\",\"Statement\":[{\"Sid\":\"ecs-cf-broker-sid-user\",\"Effect\":\"Allow\",\"Action\":[\"s3:*\"],\"Resource\":[\"ecs-cf-broker-repository\"],\"Principal\":\"ecs-cf-broker-user\"}]}"
       }
     ]
   },
