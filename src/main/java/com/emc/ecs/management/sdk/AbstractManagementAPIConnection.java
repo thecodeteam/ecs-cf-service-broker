@@ -120,7 +120,7 @@ public abstract class AbstractManagementAPIConnection implements ManagementAPICo
             }
 
             // add a default Accept header if it wasn't specified
-            if (!headers.containsKey(HttpHeaders.ACCEPT)) request.header(HttpHeaders.ACCEPT, APPLICATION_XML);
+            if (headers == null || !headers.containsKey(HttpHeaders.ACCEPT)) request.header(HttpHeaders.ACCEPT, APPLICATION_XML);
 
             Response response = null;
 

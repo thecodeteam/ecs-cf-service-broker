@@ -1073,7 +1073,7 @@ public class EcsServiceTest {
 
         PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
-        BucketPolicyStatement bucketPolicyStatement = policyCaptor.getValue().getBucketPolicyStatement();
+        BucketPolicyStatement bucketPolicyStatement = policyCaptor.getValue().getBucketPolicyStatements().get(0);
 
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
@@ -1251,6 +1251,23 @@ public class EcsServiceTest {
         acl.setUserAccessList(Collections.singletonList(userAcl));
         bucketAcl.setAcl(acl);
 
+        BucketPolicy bucketPolicy = new BucketPolicy(
+                BUCKET_POLICY_VERSION,
+                BUCKET_POLICY_ID,
+                new ArrayList<>(List.of(
+                        new BucketPolicyStatement(EcsService.getPolicyStatementId(USER),
+                                new BucketPolicyEffect("Allow"),
+                                new BucketPolicyPrincipal(PREFIX + USER),
+                                new BucketPolicyActions(List.of(S3_ACTION_ALL)),
+                                new BucketPolicyResource(Collections.singletonList(PREFIX + BUCKET_NAME))),
+                        new BucketPolicyStatement(EcsService.getPolicyStatementId(USER1),
+                                new BucketPolicyEffect("Allow"),
+                                new BucketPolicyPrincipal(PREFIX + USER1),
+                                new BucketPolicyActions(List.of(S3_ACTION_ALL)),
+                                new BucketPolicyResource(Collections.singletonList(PREFIX + BUCKET_NAME)))
+                ))
+        );
+
         PowerMockito.mockStatic(BucketAclAction.class);
         PowerMockito
                 .when(BucketAclAction.class, GET,
@@ -1264,6 +1281,19 @@ public class EcsServiceTest {
                         same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
                 .thenReturn(true);
 
+        PowerMockito.mockStatic(BucketPolicyAction.class);
+        PowerMockito
+                .when(BucketPolicyAction.class, GET,
+                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
+                .thenReturn(bucketPolicy);
+        PowerMockito.doNothing()
+                .when(BucketPolicyAction.class, UPDATE,
+                        same(connection), eq(PREFIX + BUCKET_NAME), any(BucketPolicy.class), eq(NAMESPACE_NAME));
+        PowerMockito
+                .when(BucketPolicyAction.class, EXISTS,
+                        same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
+                .thenReturn(true);
+
         ecs.removeUserFromBucket(BUCKET_NAME, NAMESPACE_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
@@ -1274,6 +1304,17 @@ public class EcsServiceTest {
         BucketAclAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), aclCaptor.capture());
         List<BucketUserAcl> actualUserAcl = aclCaptor.getValue().getAcl().getUserAccessList();
         assertFalse(actualUserAcl.contains(userAcl));
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class);
+        BucketPolicyAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
+        BucketPolicyAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
+        ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
+        PowerMockito.verifyStatic(BucketPolicyAction.class);
+        BucketPolicyAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), policyCaptor.capture(), eq(NAMESPACE_NAME));
+        // should have removed 1 statement, leaving 1
+        assertEquals(1, policyCaptor.getValue().getBucketPolicyStatements().size());
+        // remaining statement should *not* be for the removed user
+        assertNotEquals(PREFIX + USER1, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
     }
 
     /**
@@ -2068,12 +2109,12 @@ public class EcsServiceTest {
         BucketPolicyAction.update(same(connection), bucketIdCaptor.capture(), policyCaptor.capture(), namespaceCaptor.capture());
 
         BucketPolicy policy = policyCaptor.getValue();
-        BucketPolicyStatement statement = policy.getBucketPolicyStatement();
+        BucketPolicyStatement statement = policy.getBucketPolicyStatements().get(0);
 
         assertEquals(PREFIX + BUCKET_NAME, bucketIdCaptor.getValue());
         assertEquals(NAMESPACE_NAME, namespaceCaptor.getValue());
         assertEquals(PREFIX + BUCKET_NAME, statement.getBucketPolicyResource().get(0));
-        assertEquals(USER, statement.getPrincipal());
+        assertEquals(PREFIX + USER, statement.getPrincipal());
     }
 
     /**
@@ -2608,12 +2649,12 @@ public class EcsServiceTest {
             BucketPolicy policy = new BucketPolicy(
                     BUCKET_POLICY_VERSION,
                     BUCKET_POLICY_ID,
-                    new BucketPolicyStatement(BUCKET_POLICY_STATEMENT_ID,
+                    Collections.singletonList(new BucketPolicyStatement(EcsService.getPolicyStatementId(USER),
                             new BucketPolicyEffect("Allow"),
                             new BucketPolicyPrincipal(USER),
                             new BucketPolicyActions(actions),
                             new BucketPolicyResource(Collections.singletonList(bucket))
-                    ));
+                    )));
             PowerMockito.when(BucketPolicyAction.class, GET, same(connection), anyString(), anyString()).thenReturn(policy);
         }
     }

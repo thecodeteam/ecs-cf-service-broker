@@ -18,6 +18,6 @@
     "headers": {
       "Content-Type": "application/json"
     },
-    "body": "{\"Version\":\"2008-10-17\",\"Id\":\"\",\"Statement\":{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":\"testuser3\",\"Action\":[\"s3:*\"],\"Resource\":[\"testbucket4\"]}}"
+    "body": "{\"Version\":\"2012-10-17\",\"Id\":\"\",\"Statement\":[{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":\"testuser3\",\"Action\":[\"s3:*\"],\"Resource\":[\"testbucket4\"]}]}"
   }
 }

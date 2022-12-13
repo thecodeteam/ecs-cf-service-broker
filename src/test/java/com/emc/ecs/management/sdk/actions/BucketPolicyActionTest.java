@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+import static com.emc.ecs.servicebroker.model.Constants.BUCKET_POLICY_VERSION;
 import static org.junit.Assert.*;
 
 public class BucketPolicyActionTest extends EcsActionTest {
@@ -33,28 +34,29 @@ public class BucketPolicyActionTest extends EcsActionTest {
     @Test
     public void testApplyCheckRemoveBucketPolicy()
             throws EcsManagementClientException {
-        assertFalse(BucketPolicyAction.hasPolicy(connection, bucket, namespace));
+        assertFalse(BucketPolicyAction.exists(connection, bucket, namespace));
 
         BucketPolicyStatement statement = new BucketPolicyStatement();
         statement.setBucketPolicyEffect("Allow");
         statement.setPrincipal(user);
         statement.setBucketPolicyAction(Collections.singletonList("s3:*"));
         statement.setBucketPolicyResource(Collections.singletonList(bucket));
-        BucketPolicy policy = new BucketPolicy("2008-10-17", bucket, statement);
+        BucketPolicy policy = new BucketPolicy(BUCKET_POLICY_VERSION, bucket, Collections.singletonList(statement));
 
         BucketPolicyAction.update(connection, bucket, policy, namespace);
 
-        assertTrue(BucketPolicyAction.hasPolicy(connection, bucket, namespace));
+        assertTrue(BucketPolicyAction.exists(connection, bucket, namespace));
 
         BucketPolicy policy2 = BucketPolicyAction.get(connection, bucket, namespace);
         assertEquals(policy.getVersion(), policy2.getVersion());
-        assertEquals(policy.getBucketPolicyStatement().getBucketPolicyEffect(), policy2.getBucketPolicyStatement().getBucketPolicyEffect());
-        assertEquals(policy.getBucketPolicyStatement().getPrincipal(), policy2.getBucketPolicyStatement().getPrincipal());
-        assertEquals(policy.getBucketPolicyStatement().getBucketPolicyAction(), policy2.getBucketPolicyStatement().getBucketPolicyAction());
-        assertEquals(policy.getBucketPolicyStatement().getBucketPolicyResource(), policy2.getBucketPolicyStatement().getBucketPolicyResource());
+        assertEquals(1, policy2.getBucketPolicyStatements().size());
+        assertEquals(policy.getBucketPolicyStatements().get(0).getBucketPolicyEffect(), policy2.getBucketPolicyStatements().get(0).getBucketPolicyEffect());
+        assertEquals(policy.getBucketPolicyStatements().get(0).getPrincipal(), policy2.getBucketPolicyStatements().get(0).getPrincipal());
+        assertEquals(policy.getBucketPolicyStatements().get(0).getBucketPolicyAction(), policy2.getBucketPolicyStatements().get(0).getBucketPolicyAction());
+        assertEquals(policy.getBucketPolicyStatements().get(0).getBucketPolicyResource(), policy2.getBucketPolicyStatements().get(0).getBucketPolicyResource());
 
         BucketPolicyAction.remove(connection, bucket, namespace);
 
-        assertFalse(BucketPolicyAction.hasPolicy(connection, bucket, namespace));
+        assertFalse(BucketPolicyAction.exists(connection, bucket, namespace));
     }
 }

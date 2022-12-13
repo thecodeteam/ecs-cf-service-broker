@@ -76,6 +76,7 @@ public class Constants {
     public static final String S3_ACTION_PUT_LC_CONFIG = "s3:PutLifecycleConfiguration";
     public static final String S3_ACTION_GET_LC_CONFIG = "s3:GetLifecycleConfiguration";
     public static final String S3_ACTION_GET_BUCKET_POLICY = "s3:GetBucketPolicy";
+    public static final String S3_ACTION_ALL = "s3:*";
 
     public static final String REQUEST_CONTEXT_VALUES = "__request_context_properties";
     public static final String CTX_NAMESPACE_PLACEHOLDER = "$CTX_NAMESPACE";

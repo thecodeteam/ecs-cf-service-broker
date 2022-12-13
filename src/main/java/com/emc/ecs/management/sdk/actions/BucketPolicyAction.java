@@ -37,7 +37,7 @@ public class BucketPolicyAction {
         }
     }
 
-    public static boolean hasPolicy(ManagementAPIConnection connection, String id, String namespace) throws EcsManagementClientException {
+    public static boolean exists(ManagementAPIConnection connection, String id, String namespace) throws EcsManagementClientException {
         UriBuilder uri = connection.uriBuilder()
                 .segment(OBJECT, BUCKET, id, POLICY)
                 .queryParam(NAMESPACE, namespace);
