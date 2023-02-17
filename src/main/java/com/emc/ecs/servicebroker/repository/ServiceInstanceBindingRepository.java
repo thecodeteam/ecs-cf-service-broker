@@ -3,6 +3,7 @@ package com.emc.ecs.servicebroker.repository;
 import com.emc.ecs.servicebroker.exception.EcsManagementClientException;
 import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.ecs.servicebroker.model.Constants;
+import com.emc.object.s3.S3Exception;
 import com.emc.object.s3.bean.GetObjectResult;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.bean.S3Object;
@@ -86,9 +87,17 @@ public class ServiceInstanceBindingRepository {
         s3.putObject(filename, serialized);
     }
 
+    /**
+     * NOTE: May return <code>null</code> if the binding file is not found or empty
+     */
     public ServiceInstanceBinding find(String id) throws IOException {
         String filename = getFilename(id);
-        return findByFilename(filename);
+        try {
+            return findByFilename(filename);
+        } catch (S3Exception e) {
+            if (e.getHttpCode() == 404) return null; // binding file not found
+            else throw e;
+        }
     }
 
     public ListServiceInstanceBindingsResponse listServiceInstanceBindings(String marker, int pageSize) throws IOException {
