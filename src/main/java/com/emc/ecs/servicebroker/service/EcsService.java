@@ -513,9 +513,9 @@ public class EcsService implements StorageService {
         // if any other user/binding in the policy is somehow missing, we cannot update the policy, so check for missing users here
         for (Iterator<BucketPolicyStatement> chkStmtI = bucketPolicy.getBucketPolicyStatements().iterator(); chkStmtI.hasNext();) {
             String principal = chkStmtI.next().getPrincipal();
-            if (!userExists(prefix(principal), namespace)) {
+            if (!userExists(principal, namespace)) {
                 logger.warn("Policy for bucket {} includes user/binding {} that does not exist - please check the service bindings and policy for this bucket to make sure they are in sync or applications may lose access",
-                        bucket, prefix(principal));
+                        bucket, principal);
                 chkStmtI.remove();
             }
         }
