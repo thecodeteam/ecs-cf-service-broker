@@ -417,6 +417,7 @@ public class EcsService implements StorageService {
             }
             // then, only update the policy if it was modified (statement was missing), which should be true if we created with an empty list above
             if (addPolicyStatement(bucketPolicy, statement)) {
+                checkPolicyForMissingUsers(prefix(bucketId), bucketPolicy, namespace);
                 logger.info("Updating bucket policy {} after adding statement for user {}", prefix(bucketId), prefix(username));
                 BucketPolicyAction.update(connection, prefix(bucketId), bucketPolicy, namespace);
             } else {
@@ -444,7 +445,8 @@ public class EcsService implements StorageService {
         if (BucketPolicyAction.exists(connection, prefix(bucket), namespace)) {
             // remove the policy statement for this user
             BucketPolicy policy = BucketPolicyAction.get(connection, prefix(bucket), namespace);
-            if (removePolicyStatement(policy, getPolicyStatementId(username))) {
+            if (removePolicyStatementForPrincipal(policy, prefix(username))) {
+                checkPolicyForMissingUsers(prefix(bucket), policy, namespace);
                 logger.info("Updating bucket policy {} after removing user {}", prefix(bucket), prefix(username));
                 BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
             } else {
@@ -468,22 +470,22 @@ public class EcsService implements StorageService {
     }
 
     /**
-     * Returns the statement in the provided policy that matches the provided Sid
+     * Returns the statement in the provided policy that matches the provided principal (user)
      */
-    static BucketPolicyStatement getPolicyStatement(BucketPolicy policy, String sid) {
+    static BucketPolicyStatement getPolicyStatementByPrincipal(BucketPolicy policy, String principal) {
         return policy.getBucketPolicyStatements().stream()
-                .filter(statement -> sid.equals(statement.getSid()))
+                .filter(statement -> principal.equals(statement.getPrincipal()))
                 .findFirst()
                 .orElse(null);
     }
 
     /**
-     * Removes the statement in the provided policy that matches the provided Sid, if it exists.
+     * Removes the statement in the provided policy that matches the provided principal (user), if it exists.
      *
      * @return true if the policy was modified, false otherwise
      */
-    static boolean removePolicyStatement(BucketPolicy policy, String sid) {
-        BucketPolicyStatement statement = getPolicyStatement(policy, sid);
+    static boolean removePolicyStatementForPrincipal(BucketPolicy policy, String principal) {
+        BucketPolicyStatement statement = getPolicyStatementByPrincipal(policy, principal);
         if (statement != null) {
             policy.getBucketPolicyStatements().remove(statement);
             return true;
@@ -494,16 +496,28 @@ public class EcsService implements StorageService {
 
     /**
      * Adds the provided statement to the provided policy, unless an equivalent statement already exists on the policy.
-     * An equivalent statement exists if any existing statement in the policy has the same Sid.
+     * An equivalent statement exists if any existing statement in the policy has the same principal (user).
      *
      * @return true if the policy was modified, false otherwise
      */
     static boolean addPolicyStatement(BucketPolicy policy, BucketPolicyStatement statement) {
-        if (getPolicyStatement(policy, statement.getSid()) == null) {
+        if (getPolicyStatementByPrincipal(policy, statement.getPrincipal()) == null) {
             policy.getBucketPolicyStatements().add(statement);
             return true;
         } else {
             return false;
+        }
+    }
+
+    void checkPolicyForMissingUsers(String bucket, BucketPolicy bucketPolicy, String namespace) {
+        // if any other user/binding in the policy is somehow missing, we cannot update the policy, so check for missing users here
+        for (Iterator<BucketPolicyStatement> chkStmtI = bucketPolicy.getBucketPolicyStatements().iterator(); chkStmtI.hasNext();) {
+            String principal = chkStmtI.next().getPrincipal();
+            if (!userExists(principal, namespace)) {
+                logger.warn("Policy for bucket {} includes user/binding {} that does not exist - please check the service bindings and policy for this bucket to make sure they are in sync or applications may lose access",
+                        bucket, principal);
+                chkStmtI.remove();
+            }
         }
     }
 
@@ -1130,7 +1144,7 @@ public class EcsService implements StorageService {
         try {
             logger.debug("Checking lifecycle management bucket policy on '{}'({}) with user '{}'", prefix(bucketName), namespace, prefix(user));
             BucketPolicy policy = BucketPolicyAction.get(connection, prefix(bucketName), namespace);
-            BucketPolicyStatement bucketPolicyStatement = getPolicyStatement(policy, getPolicyStatementId(user));
+            BucketPolicyStatement bucketPolicyStatement = getPolicyStatementByPrincipal(policy, getPolicyStatementId(user));
             if (bucketPolicyStatement != null) actions = bucketPolicyStatement.getBucketPolicyAction();
         } catch (RuntimeException e) {
             logger.debug(
