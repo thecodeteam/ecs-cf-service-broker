@@ -351,8 +351,13 @@ public class EcsService implements StorageService {
 
     @Override
     public Boolean userExists(String userId, String namespace) throws ServiceBrokerException {
+        return objectUserExists(prefix(userId), namespace);
+    }
+
+    // checks if raw object user exists (no prefixing)
+    private Boolean objectUserExists(String objectUser, String namespace) throws ServiceBrokerException {
         try {
-            return ObjectUserAction.exists(connection, prefix(userId), namespace);
+            return ObjectUserAction.exists(connection, objectUser, namespace);
         } catch (Exception e) {
             throw new ServiceBrokerException(e.getMessage(), e);
         }
@@ -513,7 +518,7 @@ public class EcsService implements StorageService {
         // if any other user/binding in the policy is somehow missing, we cannot update the policy, so check for missing users here
         for (Iterator<BucketPolicyStatement> chkStmtI = bucketPolicy.getBucketPolicyStatements().iterator(); chkStmtI.hasNext();) {
             String principal = chkStmtI.next().getPrincipal();
-            if (!userExists(principal, namespace)) {
+            if (!objectUserExists(principal, namespace)) {
                 logger.warn("Policy for bucket {} includes user/binding {} that does not exist - please check the service bindings and policy for this bucket to make sure they are in sync or applications may lose access",
                         bucket, principal);
                 chkStmtI.remove();
