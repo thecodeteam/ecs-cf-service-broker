@@ -453,7 +453,12 @@ public class EcsService implements StorageService {
             if (removePolicyStatementForPrincipal(policy, prefix(username))) {
                 checkPolicyForMissingUsers(prefix(bucket), policy, namespace);
                 logger.info("Updating bucket policy {} after removing user {}", prefix(bucket), prefix(username));
-                BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
+                if (policy.getBucketPolicyStatements().size() == 0) {
+                    logger.info("There are no remaining active statements in the policy for bucket {}, so it will be deleted", prefix(bucket));
+                    BucketPolicyAction.remove(connection, prefix(bucket), namespace);
+                } else {
+                    BucketPolicyAction.update(connection, prefix(bucket), policy, namespace);
+                }
             } else {
                 logger.info("Bucket policy {} no longer contains statement for user {}", prefix(bucket), prefix(username));
             }
