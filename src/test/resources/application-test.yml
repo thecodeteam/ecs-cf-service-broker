@@ -1,3 +1,5 @@
+# You can use multiple profiles to easily configure for test and production.
+# Copy this file to `<project root>/src/main/resources/application.yml`.
 ---
 spring:
   config:
@@ -33,6 +35,9 @@ broker:
   replication-group: rg1
   management-endpoint: https://127.0.0.1:4443
   object-endpoint: http://127.0.0.1:9020
+  # TODO: figure out why removing these 2 lines causes wiremock tests to fail
+  repository-service-id: f3cbab6a-5172-4ff1-a5c7-72990f0ce2aa
+  repository-plan-id: 89d20694-9ab0-4a98-bc6a-868d6d4ecf31
   ignore-ssl-validation: false
 catalog:
   services:
