@@ -10,6 +10,6 @@ ENV GRADLE_USER_HOME=/home/gradle
 RUN gradle clean assemble
 
 # =====================================================================================
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:11-jre-jammy
 VOLUME /tmp
 COPY --from=GradleBuilder /home/gradle/src/ecs-cf-service-broker/build/libs/ecs-cf-service-broker.jar app.jar
