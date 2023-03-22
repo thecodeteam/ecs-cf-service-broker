@@ -42,9 +42,9 @@ dependencies {
     }
     implementation(group: 'org.glassfish.jersey.media', name: 'jersey-media-jaxb', version: '2.39')
     implementation(group: 'com.google.guava', name: 'guava', version: '31.1-jre')
-    implementation(group: 'org.slf4j', name: 'slf4j-api', version: '2.0.6')
-    implementation(group: 'ch.qos.logback', name: 'logback-core', version: '1.4.6')
-    implementation(group: 'ch.qos.logback', name: 'logback-classic', version: '1.4.6')
+    implementation(group: 'org.slf4j', name: 'slf4j-api', version: '2.0.7')
+    implementation(group: 'ch.qos.logback', name: 'logback-core', version: '1.2.11')
+    implementation(group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.11')
     implementation(group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.20.0')
     implementation(group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.20.0')
     implementation(group: 'com.sun.jersey.contribs', name: 'jersey-apache-client4', version: '1.19.4')
@@ -64,7 +64,7 @@ dependencies {
 }
 
 task wrapperOld(type: Wrapper) {
-    gradleVersion = '6.9.4'
+    gradleVersion = '7.5'
 }
 
 
