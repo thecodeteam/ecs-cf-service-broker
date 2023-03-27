@@ -1314,6 +1314,14 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketPolicyAction.class);
         BucketPolicyAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
         BucketPolicyAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
+
+        ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
+        PowerMockito.verifyStatic(BucketPolicyAction.class);
+        BucketPolicyAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), policyCaptor.capture(), eq(NAMESPACE_NAME));
+        // should have removed 1 statement, leaving 1
+        assertEquals(1, policyCaptor.getValue().getBucketPolicyStatements().size());
+        // remaining statement should *not* be for the removed user
+        assertNotEquals(PREFIX + USER1, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
     }
 
     /**
