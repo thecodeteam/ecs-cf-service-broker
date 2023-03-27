@@ -1120,6 +1120,9 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
         ArgumentCaptor<Integer> daysCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
 
@@ -1168,6 +1171,9 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
         ArgumentCaptor<Integer> daysCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
 
@@ -1215,6 +1221,9 @@ public class EcsServiceTest {
 
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
 
         ArgumentCaptor<Integer> daysCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
@@ -1285,11 +1294,13 @@ public class EcsServiceTest {
                         same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
                 .thenReturn(true);
 
-        try {
-            ecs.removeUserFromBucket(BUCKET_NAME, NAMESPACE_NAME, USER1);
-        } catch (Exception e) {
-          // ignore ServiceBrokerException
-        }
+        PowerMockito.mockStatic(ObjectUserAction.class);
+        PowerMockito
+                .when(ObjectUserAction.class, EXISTS,
+                        same(connection), eq(PREFIX + USER), eq(NAMESPACE_NAME))
+                .thenReturn(true);
+
+        ecs.removeUserFromBucket(BUCKET_NAME, NAMESPACE_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
         BucketAclAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
@@ -2292,6 +2303,9 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -2342,6 +2356,9 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
 
@@ -2380,6 +2397,9 @@ public class EcsServiceTest {
 
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
+        BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
 
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
