@@ -375,9 +375,10 @@ public class EcsServiceInstanceBindingServiceTest {
         ServiceInstanceBinding bindingFixture = bindingInstanceFixture();
         when(repository.find(eq(BINDING_ID))).thenReturn(bindingFixture);
         when(instanceRepository.find(SERVICE_INSTANCE_ID)).thenReturn(serviceInstanceFixture());
+        when(ecs.bucketExists(any(), eq(NAMESPACE_NAME))).thenReturn(true);
         bindSvc.deleteServiceInstanceBinding(bucketBindingRemoveFixture());
         verify(ecs, times(1)).bucketExists(ecs.prefix(SERVICE_INSTANCE_ID), NAMESPACE_NAME);
-        verify(ecs, times(1)).removeUserFromBucket(ecs.prefix(SERVICE_INSTANCE_ID), NAMESPACE_NAME, bindingFixture.getName());
+        verify(ecs, times(1)).removeUserFromBucket(SERVICE_INSTANCE_ID, NAMESPACE_NAME, bindingFixture.getName());
         verify(ecs, times(1)).deleteUser(bindingFixture.getName(), NAMESPACE_NAME);
     }
 
