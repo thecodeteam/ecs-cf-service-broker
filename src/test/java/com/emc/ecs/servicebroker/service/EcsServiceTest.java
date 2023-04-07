@@ -1120,8 +1120,19 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
-        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        // bucket policy should have been updated to allow broker user access to change lifecycle policy
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertEquals(PREFIX + USER, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
+        BucketPolicyStatement statement = EcsService.getPolicyStatementByPrincipal(policyCaptor.getValue(), PREFIX + USER);
+        assertEquals(Arrays.asList(
+                 S3_ACTION_PUT_LC_CONFIG,
+                 S3_ACTION_GET_LC_CONFIG,
+                 S3_ACTION_GET_BUCKET_POLICY),
+                            statement.getBucketPolicyAction());
 
         ArgumentCaptor<Integer> daysCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
@@ -1171,8 +1182,19 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
-        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        // bucket policy should have been updated to allow broker user access to change lifecycle policy
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertEquals(PREFIX + USER, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
+        BucketPolicyStatement statement = EcsService.getPolicyStatementByPrincipal(policyCaptor.getValue(), PREFIX + USER);
+        assertEquals(Arrays.asList(
+                 S3_ACTION_PUT_LC_CONFIG,
+                 S3_ACTION_GET_LC_CONFIG,
+                 S3_ACTION_GET_BUCKET_POLICY),
+                            statement.getBucketPolicyAction());
 
         ArgumentCaptor<Integer> daysCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
@@ -1222,8 +1244,19 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
-        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        // bucket policy should have been updated to allow broker user access to change lifecycle policy
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertEquals(PREFIX + USER, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
+        BucketPolicyStatement statement = EcsService.getPolicyStatementByPrincipal(policyCaptor.getValue(), PREFIX + USER);
+        assertEquals(Arrays.asList(
+                 S3_ACTION_PUT_LC_CONFIG,
+                 S3_ACTION_GET_LC_CONFIG,
+                 S3_ACTION_GET_BUCKET_POLICY),
+                            statement.getBucketPolicyAction());
 
         ArgumentCaptor<Integer> daysCaptor = ArgumentCaptor.forClass(Integer.class);
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
@@ -1294,6 +1327,12 @@ public class EcsServiceTest {
                         same(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME))
                 .thenReturn(true);
 
+        PowerMockito.mockStatic(ObjectUserAction.class);
+        PowerMockito
+                .when(ObjectUserAction.class, EXISTS,
+                        same(connection), eq(PREFIX + USER), eq(NAMESPACE_NAME))
+                .thenReturn(true);
+
         ecs.removeUserFromBucket(BUCKET_NAME, NAMESPACE_NAME, USER1);
 
         PowerMockito.verifyStatic(BucketAclAction.class);
@@ -1308,6 +1347,7 @@ public class EcsServiceTest {
         PowerMockito.verifyStatic(BucketPolicyAction.class);
         BucketPolicyAction.exists(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
         BucketPolicyAction.get(eq(connection), eq(PREFIX + BUCKET_NAME), eq(NAMESPACE_NAME));
+
         ArgumentCaptor<BucketPolicy> policyCaptor = ArgumentCaptor.forClass(BucketPolicy.class);
         PowerMockito.verifyStatic(BucketPolicyAction.class);
         BucketPolicyAction.update(eq(connection), eq(PREFIX + BUCKET_NAME), policyCaptor.capture(), eq(NAMESPACE_NAME));
@@ -2304,8 +2344,19 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
-        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        // bucket policy should have been updated to allow broker user access to change lifecycle policy
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertEquals(PREFIX + USER, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
+        BucketPolicyStatement statement = EcsService.getPolicyStatementByPrincipal(policyCaptor.getValue(), PREFIX + USER);
+        assertEquals(Arrays.asList(
+                 S3_ACTION_PUT_LC_CONFIG,
+                 S3_ACTION_GET_LC_CONFIG,
+                 S3_ACTION_GET_BUCKET_POLICY),
+                            statement.getBucketPolicyAction());
 
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
@@ -2357,8 +2408,19 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
-        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        // bucket policy should have been updated to allow broker user access to change lifecycle policy
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertEquals(PREFIX + USER, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
+        BucketPolicyStatement statement = EcsService.getPolicyStatementByPrincipal(policyCaptor.getValue(), PREFIX + USER);
+        assertEquals(Arrays.asList(
+                 S3_ACTION_PUT_LC_CONFIG,
+                 S3_ACTION_GET_LC_CONFIG,
+                 S3_ACTION_GET_BUCKET_POLICY),
+                            statement.getBucketPolicyAction());
 
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
@@ -2399,8 +2461,19 @@ public class EcsServiceTest {
         assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
         assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
 
-        PowerMockito.verifyStatic(BucketPolicyAction.class, times(0));
+        // bucket policy should have been updated to allow broker user access to change lifecycle policy
+        PowerMockito.verifyStatic(BucketPolicyAction.class, times(1));
         BucketPolicyAction.update(same(connection), bucketCaptor.capture(), policyCaptor.capture(), nsCaptor.capture());
+
+        assertEquals(PREFIX + BUCKET_NAME, bucketCaptor.getValue());
+        assertEquals(NAMESPACE_NAME, nsCaptor.getValue());
+        assertEquals(PREFIX + USER, policyCaptor.getValue().getBucketPolicyStatements().get(0).getPrincipal());
+        BucketPolicyStatement statement = EcsService.getPolicyStatementByPrincipal(policyCaptor.getValue(), PREFIX + USER);
+        assertEquals(Arrays.asList(
+                 S3_ACTION_PUT_LC_CONFIG,
+                 S3_ACTION_GET_LC_CONFIG,
+                 S3_ACTION_GET_BUCKET_POLICY),
+                            statement.getBucketPolicyAction());
 
         ArgumentCaptor<List<LifecycleRule>> rulesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> ruleIdCaptor = ArgumentCaptor.forClass(String.class);
