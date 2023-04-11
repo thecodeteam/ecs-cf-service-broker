@@ -18,7 +18,6 @@ import com.emc.ecs.servicebroker.service.s3.S3Service;
 import com.emc.object.s3.S3Client;
 import com.emc.object.s3.S3Config;
 import com.emc.object.s3.jersey.S3JerseyClient;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,7 +184,7 @@ public class Application {
 
         logger.info("S3 config: {}", s3Config);
 
-        return new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+        return new S3JerseyClient(s3Config);
     }
 
     @Bean(name = "s3Client")
@@ -209,7 +208,7 @@ public class Application {
 
         logger.info("S3 config: {}", s3Config);
 
-        return new S3JerseyClient(s3Config, new URLConnectionClientHandler());
+        return new S3JerseyClient(s3Config);
     }
 
     @Bean
