@@ -8,16 +8,21 @@ import com.emc.ecs.servicebroker.repository.ServiceInstance;
 import com.emc.ecs.servicebroker.repository.ServiceInstanceRepository;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
 
 import static com.emc.ecs.servicebroker.model.Constants.*;
 
 public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RemoteConnectionInstanceWorkflow.class);
+    private static final Pattern UUID_REGEX = Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     public RemoteConnectionInstanceWorkflow(ServiceInstanceRepository instanceRepo, StorageService ecs) {
         super(instanceRepo, ecs);
@@ -78,9 +83,37 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
         Map<String, Object> settings = ecs.mergeParameters(serviceDef, plan, parameters);
 
         Map<String, MapDifference.ValueDifference<Object>> settingsDiff = Maps.difference(settings, remoteInstance.getServiceSettings()).entriesDiffering();
-        if (!settingsDiff.isEmpty()) {
+
+        // remove all map entries which are UUIDs
+        Map<String, MapDifference.ValueDifference<Object>> settingsDiffNoUUIDs = settingsDiff.entrySet().stream()
+            .filter(entry -> !entryIsUUID(entry))
+            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+
+        if (!settingsDiffNoUUIDs.isEmpty()) {
+            String diffStr = diffMapToString(settingsDiffNoUUIDs);
+            logger.error("validateSettings found the following settings differences: {}", diffStr);
             throw new ServiceBrokerException("service definition must match between local and remote instances");
         }
+    }
+
+    public String diffMapToString(Map<String, MapDifference.ValueDifference<Object>> map) {
+        String mapAsString = map.keySet().stream()
+            .map(key -> key + "=" + "(" + map.get(key).leftValue() + ", " + map.get(key).rightValue() + ")")
+            .collect(Collectors.joining(", ", "{", "}"));
+        return mapAsString;
+      }
+
+    private boolean entryIsUUID(Map.Entry<String, MapDifference.ValueDifference<Object>> entry) {
+        Object left = entry.getValue().leftValue();
+        Object right = entry.getValue().rightValue();
+        return stringIsUUID(entry.getKey()) || left instanceof String && stringIsUUID(left.toString()) || right instanceof String && stringIsUUID(right.toString());
+    }
+
+    private boolean stringIsUUID(String str) {
+        if (str == null) {
+          return false;
+        }
+        return UUID_REGEX.matcher(str).matches();
     }
 
     private ServiceInstance getRemoteInstance(Map<String, String> remoteConnectionParams) throws IOException {
