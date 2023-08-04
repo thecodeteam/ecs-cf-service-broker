@@ -1092,6 +1092,22 @@ public class EcsService implements StorageService {
         return mergeParameters(broker, service, plan, requestParameters);
     }
 
+    /**
+     * Merge broker, plan and service settings. These are the settings considered when validating a remote connection.
+     * <p>
+     * Broker settings are overwritten with plan and service settings,
+     * since service settings are forced by administrator through the catalog
+     */
+    public Map<String, Object> mergeParametersForRemoteConnections(ServiceDefinitionProxy service, PlanProxy plan) {
+        Map<String, Object> ret = new HashMap<>(broker.getSettings());
+
+        ret.putAll(plan.getServiceSettings());
+
+        ret.putAll(service.getServiceSettings());
+
+        return ret;
+    }
+
     @SuppressWarnings("unchecked")
     Map<String, Object> changeBucketTags(String bucketName, String namespace, Map<String, Object> parameters) {
         List<BucketTag> requestedTags = new BucketTagSetRootElement((List<Map<String, String>>) parameters.get(TAGS)).getTagSet();

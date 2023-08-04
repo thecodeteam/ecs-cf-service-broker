@@ -13,7 +13,7 @@ import org.springframework.cloud.servicebroker.exception.ServiceBrokerException;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
@@ -80,7 +80,7 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) {
-        Map<String, Object> settings = ecs.mergeParameters(serviceDef, plan, parameters);
+        Map<String, Object> settings = ecs.mergeParametersForRemoteConnections(serviceDef, plan);
 
         Map<String, MapDifference.ValueDifference<Object>> settingsDiff = Maps.difference(settings, remoteInstance.getServiceSettings()).entriesDiffering();
 

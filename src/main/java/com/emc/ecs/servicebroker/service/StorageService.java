@@ -27,6 +27,8 @@ public interface StorageService {
 
     Map<String, Object> mergeParameters(ServiceDefinitionProxy service, PlanProxy plan, Map<String, Object> requestParameters); // TODO refactor usages or rename
 
+    Map<String, Object> mergeParametersForRemoteConnections(ServiceDefinitionProxy service, PlanProxy plan);
+
     boolean bucketExists(String bucketName, String namespace) throws EcsManagementClientException;
 
     @SuppressWarnings("unchecked")
