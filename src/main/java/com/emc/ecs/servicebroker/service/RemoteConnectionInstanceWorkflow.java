@@ -80,13 +80,17 @@ public class RemoteConnectionInstanceWorkflow extends InstanceWorkflowImpl {
     }
 
     private void validateSettings(ServiceInstance remoteInstance, ServiceDefinitionProxy serviceDef, PlanProxy plan, Map<String, Object> parameters) {
-        Map<String, Object> settings = ecs.mergeParameters(serviceDef, plan, parameters);
-
+        Map<String, Object> localSettings = ecs.mergeParameters(serviceDef, plan, parameters);
         // ignore bucket tags and search metadata
-        settings.remove(TAGS);
-        settings.remove(SEARCH_METADATA);
+        localSettings.remove(TAGS);
+        localSettings.remove(SEARCH_METADATA);
 
-        Map<String, MapDifference.ValueDifference<Object>> settingsDiff = Maps.difference(settings, remoteInstance.getServiceSettings()).entriesDiffering();
+        Map<String, Object> remoteSettings = remoteInstance.getServiceSettings();
+        // ignore bucket tags and search metadata
+        remoteSettings.remove(TAGS);
+        remoteSettings.remove(SEARCH_METADATA);
+
+        Map<String, MapDifference.ValueDifference<Object>> settingsDiff = Maps.difference(localSettings, remoteSettings).entriesDiffering();
 
         // remove all map entries which are UUIDs
         Map<String, MapDifference.ValueDifference<Object>> settingsDiffNoUUIDs = settingsDiff.entrySet().stream()
