@@ -1,5 +1,8 @@
 # ECS Open Service Broker
 
+## REPOSITORY HAS MOVED!!
+**_NOTE: This repository is no longer maintained - all updates past v2.3.1 will be located here: https://github.com/EMCECS/ecs-cf-service-broker_**
+
 ## Description
 
 This service broker enables Kubernetes & Cloud Foundry applications to create,
